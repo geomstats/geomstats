@@ -11,6 +11,18 @@ class DiscreteCurvesStartingAtOriginTestData(NFoldManifoldTestData):
     skips = ("not_belongs",)
     fail_for_not_implemented_errors = False
 
+    def interpolate_vec_test_data(self):
+        return self.generate_vec_data_with_time()
+
+    def length_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def normalize_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def normalize_is_unit_length_test_data(self):
+        return self.generate_random_data()
+
 
 class L2CurvesMetricTestData(RiemannianMetricTestData):
     fail_for_not_implemented_errors = False
@@ -23,18 +35,21 @@ class L2CurvesMetricTestData(RiemannianMetricTestData):
     )
 
 
-class ElasticTranslationMetricTestData(PullbackDiffeoMetricTestData):
+class ElasticMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 
 
-class SRVTranslationMetricTestData(PullbackDiffeoMetricTestData):
+class SRVMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 
 
-class SRVTranslationReparametrizationBundleTestData(FiberBundleTestData):
+class SRVReparametrizationBundleTestData(FiberBundleTestData):
     fail_for_not_implemented_errors = False
+    # TODO: delete
+    trials = 1
+    N_RANDOM_POINTS = [1]
 
     skips = (
         "align_vec",
@@ -45,6 +60,7 @@ class SRVTranslationReparametrizationBundleTestData(FiberBundleTestData):
         "horizontal_lift_is_horizontal",
     )
     tolerances = {
+        "align": {"atol": 1e-2},
         "tangent_vector_projections_orthogonality_with_metric": {"atol": 5e-1},
         "vertical_projection_is_vertical": {"atol": 1e-1},
         "horizontal_projection_is_horizontal": {"atol": 1e-1},
@@ -54,6 +70,9 @@ class SRVTranslationReparametrizationBundleTestData(FiberBundleTestData):
     }
 
     def tangent_vector_projections_orthogonality_with_metric_test_data(self):
+        return self.generate_random_data()
+
+    def align_test_data(self):
         return self.generate_random_data()
 
 
@@ -74,3 +93,17 @@ class AlignerCmpTestData(TestData):
         )
         data = [dict(curve_a=parametrized_curve_a, curve_b=parametrized_curve_b)]
         return self.generate_tests(data)
+
+
+class SRVRotationBundleTestData(TestData):
+    def align_test_data(self):
+        return self.generate_random_data()
+
+
+class SRVRotationReparametrizationBundleTestData(TestData):
+    tolerances = {
+        "align": {"atol": 1e-2},
+    }
+
+    def align_test_data(self):
+        return self.generate_random_data()

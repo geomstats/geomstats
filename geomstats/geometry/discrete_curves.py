@@ -7,7 +7,7 @@ import copy
 import logging
 import math
 
-from scipy.interpolate import CubicSpline
+from scipy.interpolate import CubicSpline, PchipInterpolator
 
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
@@ -16,6 +16,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks import Landmarks
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
@@ -172,7 +173,7 @@ def insert_zeros(array, axis=-1, end=False):
     zeros = gs.zeros(shape)
 
     first, second = (array, zeros) if end else (zeros, array)
-    return gs.concatenate((first, second), axis=-(array_ndim))
+    return gs.concatenate((first, second), axis=-array_ndim)
 
 
 class DiscreteCurvesStartingAtOrigin(NFoldManifold):
@@ -186,7 +187,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
     space M, with non-vanishing derivative.
 
     .. math::
-        Imm(I, M)=\{c \in C^{\infty}(I, M) \|c'(t)\|\neq 0 \forall t \in I \},
+        Imm(I, M)=\{c \in C^{\infty}(I, M) \|c'(s)\|\neq 0 \forall s \in I \},
 
     where the interval of parameters I is taken to be I = [0, 1]
     without loss of generality.
@@ -206,12 +207,21 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
         super().__init__(ambient_manifold, k_sampling_points - 1, equip=equip)
 
         self._quotient_map = {
-            (SRVTranslationMetric, "reparametrizations"): (
-                SRVTranslationReparametrizationBundle,
-                SRVTranslationReparametrizationQuotientMetric,
+            (SRVMetric, "rotations"): (
+                SRVRotationBundle,
+                SRVRotationQuotientMetric,
+            ),
+            (SRVMetric, "reparametrizations"): (
+                SRVReparametrizationBundle,
+                SRVReparametrizationQuotientMetric,
+            ),
+            (SRVMetric, "rotations and reparametrizations"): (
+                SRVRotationReparametrizationBundle,
+                SRVRotationReparametrizationQuotientMetric,
             ),
         }
         self._sphere = Hypersphere(dim=ambient_dim - 1)
+        self._discrete_curves_with_l2 = None
 
     def new(self, equip=True):
         """Create manifold with same parameters."""
@@ -231,10 +241,19 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
         """Number of sampling points for the discrete curves."""
         return self.n_copies + 1
 
+    @property
+    def discrete_curves_with_l2(self):
+        """Copy of discrete curves with the L^2 metric."""
+        if self._discrete_curves_with_l2 is None:
+            self._discrete_curves_with_l2 = self.new(equip=False).equip_with_metric(
+                L2CurvesMetric
+            )
+        return self._discrete_curves_with_l2
+
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
-        return SRVTranslationMetric
+        return SRVMetric
 
     def insert_origin(self, point):
         """Insert origin as first element of point."""
@@ -274,6 +293,67 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
             initial_point, initial_tangent_vec=initial_tangent_vec
         )(sampling_times)
         return self.projection(point)
+
+    def interpolate(self, point):
+        """Interpolate between the sampling points of a discrete curve.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points, ambient_dim]
+            Discrete curve starting at the origin.
+
+        Returns
+        -------
+        spline : function
+            Cubic spline that interpolates between the sampling points
+            of the discrete curve.
+        """
+        k_sampling_points = self.k_sampling_points
+        t_space = gs.linspace(0.0, 1.0, k_sampling_points)
+        point_with_origin = insert_zeros(point, axis=-self.point_ndim)
+        is_batch = check_is_batch(self.point_ndim, point)
+
+        def interpolating_curve(t):
+            if not is_batch:
+                return gs.from_numpy(
+                    CubicSpline(t_space, point_with_origin, axis=-self.point_ndim)(t)
+                )
+            return gs.stack(
+                [
+                    gs.from_numpy(
+                        CubicSpline(t_space, point_with_origin_, axis=-self.point_ndim)(
+                            t
+                        )
+                    )
+                    for point_with_origin_ in point_with_origin
+                ]
+            )
+
+        return interpolating_curve
+
+    def length(self, point):
+        """Compute the length of a discrete curve.
+
+        This is the integral of the absolute value of the velocity.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points, ambient_dim]
+            Discrete curve starting at the origin.
+
+        Returns
+        -------
+        length : array-like, shape=[..., ]
+            Length of the discrete curve.
+        """
+        point_with_origin = self.insert_origin(point)
+        velocity = forward_difference(point_with_origin, axis=-self.point_ndim)
+        l2_metric = self.discrete_curves_with_l2.metric
+        return l2_metric.norm(velocity, point_with_origin[..., :-1, :])
+
+    def normalize(self, point):
+        """Rescale discrete curve to have unit length."""
+        return gs.einsum("...ij,...->...ij", point, 1 / self.length(point))
 
 
 class SRVTransform(Diffeo):
@@ -341,7 +421,7 @@ class SRVTransform(Diffeo):
         Retrieve a curve from its square root velocity representation.
 
         .. math::
-            c(t) = c(0) + \int_0^t q(s) |q(s)|ds
+            c(s) = c(0) + \int_0^s q(u) |q(u)|du
 
         with:
 
@@ -385,9 +465,9 @@ class SRVTransform(Diffeo):
         ----------
         tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Tangent vector to curve.
-        base_point : array-like, shape=[..., k_sampling_points - 1, ambiend_dim]
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Discrete curve.
-        image_point : array-like, shape=[..., k_sampling_points - 1, ambiend_dim]
+        image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             SRV representation.
 
         Returns
@@ -654,7 +734,7 @@ class FTransform(AutodiffDiffeo):
         Parameters
         ----------
         image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            F tranform representation of a discrete curve.
+            F transform representation of a discrete curve.
 
         Returns
         -------
@@ -754,7 +834,7 @@ class L2CurvesMetric(NFoldMetric):
         return self.riemann_sum(inner_products)
 
 
-class ElasticTranslationMetric(PullbackDiffeoMetric):
+class ElasticMetric(PullbackDiffeoMetric):
     """Elastic metric on the space of discrete curves.
 
     Family of elastic metric parametrized by bending and stretching parameters
@@ -802,7 +882,7 @@ class ElasticTranslationMetric(PullbackDiffeoMetric):
         return image_space
 
 
-class SRVTranslationMetric(PullbackDiffeoMetric):
+class SRVMetric(PullbackDiffeoMetric):
     """Square Root Velocity metric on the space of discrete curves.
 
     The SRV metric is equivalent to the elastic metric chosen with
@@ -850,18 +930,24 @@ class SRVTranslationMetric(PullbackDiffeoMetric):
 
 
 class IterativeHorizontalGeodesicAligner:
-    """Iterative horizontal geodesic algorithm.
+    r"""Align two curves through iterative horizontal geodesic algorithm.
 
-    The horizontal geodesic is computed by an interative procedure where
-    the initial curve stays fixed and the sampling points are moved on the
-    end curve to obtain its optimal parametrization with respect to the
-    initial curve. This optimal matching algorithm sets current_end_curve
-    to be the end curve and iterates three steps:
+    This algorithm computes the horizontal geodesic between two curves in the shape
+    bundle of curves modulo reparametrizations, and at the same time, aligns the
+    end curve with respect to the initial curve. This is done through an iterative
+    procedure where the initial curve stays fixed and the sampling points are moved
+    on the end curve to obtain its optimal parametrization with respect to the initial
+    curve. This procedure is based on the decomposition of any path of curves into a
+    horizontal path of curves composed with a path of reparametrizations:
+    :math:`c(t, s) = c_h(t, phi(t, s))` where :math:`d/dt c_h(t, .)` is horizontal.
+    Here t is the time parameter of the path and s the space parameter of the curves.
+
+    The algorithm sets current_end_curve to be the end curve and iterates three steps:
     1) compute the geodesic between the initial curve and current_end_curve
-    2) compute the path of reparametrizations that transforms this geodesic
-    into a horizontal path of curves
-    3) invert this path of reparametrizations to find the horizontal path
-    and update current_end_curve to be its end point.
+    2) compute the path of reparametrizations such that the path of its inverses
+    transforms this geodesic into a horizontal path of curves
+    3) invert this path of reparametrizations to find the horizontal path and update
+    current_end_curve to be its end point.
     The algorithm stops when the new current_end_curve is sufficiently
     close to the former current_end_curve.
 
@@ -875,26 +961,118 @@ class IterativeHorizontalGeodesicAligner:
         Optional, default: 1e-3.
     max_iter : int
         Maximum number of iterations.
+        Optional, default: 20.
+    tol: float
+        Minimal spacing between time samples in the unit segment when
+        reparametrizing the end curve.
+        Optional, default: 1e-3.
+    verbose: boolean
+        Optional, default: False.
     save_history : bool
         If True, history is saved in a `self.history`.
+
+    References
+    ----------
+    .. [LAB2017] A. Le Brigant, "Optimal matching between curves in a manifold",
+        in Geometric Science of Information. Springer Lecture Notes in Computer
+        Science 10589 (2017), 57 - 64. https://hal.science/hal-04374199.
     """
 
     def __init__(
-        self, n_time_grid=100, threshold=1e-3, max_iter=20, save_history=False
+        self,
+        n_time_grid=100,
+        threshold=1e-3,
+        max_iter=20,
+        tol=1e-3,
+        verbose=0,
+        save_history=False,
     ):
         self.n_time_grid = n_time_grid
         self.threshold = threshold
         self.max_iter = max_iter
+        self.tol = tol
+        self.verbose = verbose
         self.save_history = save_history
         if save_history:
             self.history = None
 
+    @staticmethod
+    def _euler_step_forward(current, increment, step, tol):
+        r"""Perform Euler step while enforcing increasing solution.
+
+        Compute the new state phi(t+dt,.) from the current state phi(t,.) using
+        the Euler step: new = current + step * increment, i.e.
+        :math:`phi(t+dt,.) = phi(t,.) + dt * d/dt phi(t,.)`
+        while ensuring that the result is an increasing function on the unit
+        interval that preserves the end points 0 and 1. This is done by alternatively
+        computing phi(t+dt,s) and phi(t+dt,1-s), for s increasing from 0 to 0.5,
+        in a way that ensures that the spacing with the previous and following
+        sampling points are greater than a given tolerance.
+        """
+        k_sampling_points = current.shape[0]
+        max_index = k_sampling_points // 2
+        new = gs.copy(current)
+        sign = gs.sign(tol)
+        for index in range(1, max_index):
+            new_index = current[index] + step * increment[index - 1]
+            new_index_min = new[index - 1] + tol
+            new_index_max = (
+                new[k_sampling_points - index] - (k_sampling_points - 2 * index) * tol
+            )
+            new_index = sign * gs.maximum(sign * new_index, sign * new_index_min)
+            new[index] = sign * gs.minimum(sign * new_index, sign * new_index_max)
+
+            symindex = k_sampling_points - 1 - index
+            new_symindex = current[symindex] + step * increment[symindex - 1]
+            new_symindex_min = new[index] + (k_sampling_points - 2 * index - 1) * tol
+            new_symindex_max = new[symindex + 1] - tol
+            new_symindex = sign * gs.minimum(
+                sign * new_symindex, sign * new_symindex_max
+            )
+            new[symindex] = sign * gs.maximum(
+                sign * new_symindex, sign * new_symindex_min
+            )
+
+        if k_sampling_points % 2 > 0:
+            new_midindex = current[index + 1] + step * increment[index]
+            new_midindex_min = new[index] + tol
+            new_midindex_max = new[index + 2] - tol
+            new_midindex = sign * gs.maximum(
+                sign * new_midindex, sign * new_midindex_min
+            )
+            new[index + 1] = sign * gs.minimum(
+                sign * new_midindex, sign * new_midindex_max
+            )
+
+        return new
+
+    def _euler_step(self, current, increment, step):
+        r"""Perform Euler step while enforcing increasing solution.
+
+        Symmetric version of previous function.
+        """
+        return (
+            self._euler_step_forward(current, increment, step, self.tol)
+            + gs.flip(
+                self._euler_step_forward(
+                    gs.flip(current, axis=0),
+                    gs.flip(increment, axis=0),
+                    step,
+                    -self.tol,
+                ),
+                axis=0,
+            )
+        ) / 2
+
     def _construct_reparametrization(self, vertical_norm, space_deriv_norm):
         r"""Construct path of reparametrizations.
 
-        Construct path of reparametrizations phi(t, u) that transforms
-        a path of curves c(t, u) into a horizontal path of curves, i.e.
-        :math:`d/dt c(t, phi(t, u))` is a horizontal vector.
+        Construct path of reparametrizations phi(t, s) in the decomposition
+        of the path of curves
+        :math:`c(t, s) = c_h(t, phi(t, s))` where :math:`d/dt c_h(t, .)` is horizontal.
+        This is done by solving a partial differential equation, using an Euler
+        step that enforces that the solution phi(t,.) is an increasing function of
+        the unit interval that preserves the end points 0 and 1, for all time t.
 
         Parameters
         ----------
@@ -907,9 +1085,8 @@ class IterativeHorizontalGeodesicAligner:
         Returns
         -------
         repar : array-like, shape=[n_times, k_sampling_points]
-            Path of parametrizations, such that the path of curves
-            composed with the path of parametrizations is a horizontal
-            path.
+            Path of parametrizations, such that the path of curves composed
+            with the path of inverse parametrizations is a horizontal path.
         """
         n_times = vertical_norm.shape[0] + 1
         k_sampling_points = vertical_norm.shape[1]
@@ -927,25 +1104,16 @@ class IterativeHorizontalGeodesicAligner:
                 repar_diff[:-1],
             )
             repar_time_deriv = repar_space_deriv * quotient[i, 1:-1]
-            repar_i_mid = repar[1:-1] + repar_time_deriv / n_times
+            repar = repar_i = self._euler_step(repar, repar_time_deriv, 1 / n_times)
 
-            repar = repar_i = gs.concatenate(
-                [gs.array([0.0]), repar_i_mid, gs.array([1.0])]
-            )
             repars.append(repar_i)
-
-            test_repar = repar[1:] - repar[:-1] < 0
-            if gs.any(test_repar):
-                raise ValueError(
-                    "Warning: phi(t) is non increasing for at least "
-                    "one time t. Solution may be inaccurate."
-                )
 
         return gs.stack(repars)
 
     def _invert_reparametrize_single(self, t_space, repar, point):
+        """Invert path of reparametrizations, non vectorized."""
         spline = CubicSpline(t_space, point, axis=0)
-        repar_inverse = CubicSpline(repar, t_space)
+        repar_inverse = PchipInterpolator(repar, t_space)
         return gs.from_numpy(spline(repar_inverse(t_space)))
 
     def _invert_reparametrization(
@@ -954,18 +1122,18 @@ class IterativeHorizontalGeodesicAligner:
         repar,
         path_of_curves,
         repar_inverse_end,
-        spline_end,
+        end_spline,
     ):
         r"""Invert path of reparametrizations.
 
-        Given a path of curves c(t, u) and a path of reparametrizations
-        phi(t, u), compute:
-        :math:`c(t, phi_inv(t, u))` where `phi_inv(t, .) = phi(t, .)^{-1}`
+        Given a path of curves c(t, s) and a path of reparametrizations
+        phi(t, s), compute:
+        :math:`c(t, phi_inv(t, s))` where `phi_inv(t, .) = phi(t, .)^{-1}`
 
         The computation for the last time t=1 is done differently, using
         the spline function associated to the end curve and the composition
         of the inverse reparametrizations contained in rep_inverse_end:
-        :math:`spline_end_curve ° phi_inv(1, .) ° ... ° phi_inv(0, .)`.
+        :math:`end_spline ° phi_inv(1, .) ° ... ° phi_inv(0, .)`.
 
         Parameters
         ----------
@@ -976,6 +1144,8 @@ class IterativeHorizontalGeodesicAligner:
         repar_inverse_end: list
             List of the inverses of the reparametrizations applied to
             the end curve during the optimal matching algorithm.
+        end_spline : function
+            Spline interpolation of the end point of the path of curves.
 
         Returns
         -------
@@ -994,11 +1164,11 @@ class IterativeHorizontalGeodesicAligner:
             for repar_i, point in zip(repar[1:-1], path_of_curves[1:-1])
         ]
 
-        repar_inverse_end.append(CubicSpline(repar[-1], t_space))
+        repar_inverse_end.append(PchipInterpolator(repar[-1], t_space))
         arg = t_space
         for repar_inverse in reversed(repar_inverse_end):
             arg = repar_inverse(arg)
-        end_curve_repar = gs.from_numpy(spline_end(arg))
+        end_curve_repar = end_spline(arg)
 
         reparametrized_path.append(end_curve_repar)
         return gs.stack(reparametrized_path)
@@ -1011,9 +1181,9 @@ class IterativeHorizontalGeodesicAligner:
         initial_point,
         end_point,
         repar_inverse_end,
-        spline_end,
+        end_spline,
     ):
-        """Perform one step of the aligment algorithm."""
+        """Perform one step of the alignment algorithm."""
         ndim = bundle.total_space.point_ndim
 
         total_space_geod_fun = bundle.total_space.metric.geodesic(
@@ -1042,20 +1212,26 @@ class IterativeHorizontalGeodesicAligner:
         )
 
         horizontal_path = self._invert_reparametrization(
-            t_space, repar, geod_points_with_origin, repar_inverse_end, spline_end
+            t_space, repar, geod_points_with_origin, repar_inverse_end, end_spline
         )
 
         return horizontal_path
 
-    def _discrete_horizontal_geodesic_single(self, bundle, initial_point, end_point):
-        """Horizontal geodesic between two curves.
+    def _discrete_horizontal_geodesic_single(
+        self, bundle, initial_point, end_point, end_spline
+    ):
+        """Compute discrete horizontal geodesic, non vectorized.
 
         Parameters
         ----------
+        bundle : SRVReparametrizationBundle
+            Fiber bundle of curves modulo reparametrizations.
         initial_point : array-like, shape=[k_sampling_points, ambient_dim]
             Initial discrete curve.
         end_point : array-like, shape=[k_sampling_points, ambient_dim]
             End discrete curve.
+        end_spline : function
+            Spline interpolation of end point.
 
         Returns
         -------
@@ -1067,14 +1243,9 @@ class IterativeHorizontalGeodesicAligner:
         k_sampling_points = bundle.total_space.k_sampling_points
         t_space = gs.linspace(0.0, 1.0, k_sampling_points)
 
-        end_point_with_origin = insert_zeros(
-            end_point, axis=-bundle.total_space.point_ndim
-        )
-        spline_end = CubicSpline(t_space, end_point_with_origin, axis=0)
-
         current_end_point = end_point
         repar_inverse_end = []
-        for _ in range(self.max_iter):
+        for index in range(self.max_iter):
             horizontal_path_with_origin = self._iterate(
                 bundle,
                 times,
@@ -1082,16 +1253,19 @@ class IterativeHorizontalGeodesicAligner:
                 initial_point,
                 current_end_point,
                 repar_inverse_end,
-                spline_end,
+                end_spline,
             )
-
             new_end_point = horizontal_path_with_origin[-1][1:]
-            gap = (
-                gs.sum(gs.linalg.norm(new_end_point - current_end_point, axis=-1) ** 2)
-            ) ** (1 / 2)
+            l2_metric = bundle.total_space.discrete_curves_with_l2.metric
+            gap = l2_metric.dist(new_end_point, current_end_point)
             current_end_point = new_end_point
 
             if gap < self.threshold:
+                if self.verbose > 0:
+                    logging.info(
+                        f"Convergence of alignment reached after {index + 1} "
+                        "iterations."
+                    )
                 break
         else:
             logging.warning(
@@ -1101,21 +1275,27 @@ class IterativeHorizontalGeodesicAligner:
 
         if self.save_history:
             self.history = dict(
-                spline=spline_end,
+                spline=end_spline,
                 repar_inverse=repar_inverse_end,
             )
 
         return horizontal_path_with_origin[..., 1:, :]
 
-    def discrete_horizontal_geodesic(self, bundle, initial_point, end_point):
-        """Discrete horizontal geodesic.
+    def discrete_horizontal_geodesic(
+        self, bundle, initial_point, end_point, end_spline
+    ):
+        """Compute discrete horizontal geodesic.
 
         Parameters
         ----------
+        bundle : SRVReparametrizationBundle
+            Fiber bundle of curves modulo reparametrizations.
         initial_point : array-like, shape=[..., k_sampling_points, ambient_dim]
             Initial discrete curve.
         end_point : array-like, shape=[..., k_sampling_points, ambient_dim]
             End discrete curve.
+        end_spline : function
+            Spline interpolation of end point.
 
         Returns
         -------
@@ -1128,7 +1308,7 @@ class IterativeHorizontalGeodesicAligner:
         )
         if not is_batch:
             return self._discrete_horizontal_geodesic_single(
-                bundle, initial_point, end_point
+                bundle, initial_point, end_point, end_spline
             )
 
         if initial_point.ndim != end_point.ndim:
@@ -1137,9 +1317,11 @@ class IterativeHorizontalGeodesicAligner:
         return gs.stack(
             [
                 self._discrete_horizontal_geodesic_single(
-                    bundle, initial_point_, end_point_
+                    bundle, initial_point_, end_point_, end_spline_
                 )
-                for initial_point_, end_point_ in zip(initial_point, end_point)
+                for initial_point_, end_point_, end_spline_ in zip(
+                    initial_point, end_point, end_spline
+                )
             ]
         )
 
@@ -1148,17 +1330,25 @@ class IterativeHorizontalGeodesicAligner:
 
         Parameters
         ----------
+        bundle : SRVReparametrizationBundle
+            Fiber bundle of curves modulo reparametrizations.
         point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            Initial discrete curve.
+            Discrete curve to align.
         base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            End discrete curve.
+            Reference discrete curve.
 
         Returns
         -------
         aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
-            Action of the optimal g on point.
+            Curve reparametrized in an optimal way with respect to reference curve.
         """
-        return self.discrete_horizontal_geodesic(bundle, base_point, point)[
+        is_batch = check_is_batch(bundle.total_space.point_ndim, point)
+
+        if not is_batch:
+            spline = bundle.total_space.interpolate(point)
+        else:
+            spline = [bundle.total_space.interpolate(point_) for point_ in point]
+        return self.discrete_horizontal_geodesic(bundle, base_point, point, spline)[
             ..., -1, :, :
         ]
 
@@ -1358,20 +1548,23 @@ class DynamicProgrammingAligner:
         )
 
     def _align_single(self, bundle, point, base_point, return_sdist=False):
-        r"""Align point to base point.
+        r"""Align point to base point, non vectorized.
 
         Parameters
         ----------
+        bundle : SRVReparametrizationBundle
+            Fiber bundle of curves modulo reparametrizations.
         point : array-like, shape=[k_sampling_points - 1, ambient_dim]
-            Point to align.
+            Discrete curve to align.
         base_point : array-like, shape=[k_sampling_points - 1, ambient_dim]
-            Reference point.
+            Reference discrete curve.
         return_sdist : bool
             If True, also returns squared distance.
 
         Returns
         -------
         aligned : array, shape=[k_sampling_points - 1, ambient_dim]
+            Curve reparametrized in an optimal way with respect to reference curve.
         squared_dist : float
             Quotient distance between point and base point.
             If return_sdist is True.
@@ -1440,21 +1633,23 @@ class DynamicProgrammingAligner:
         )
 
     def align(self, bundle, point, base_point, return_sdist=False):
-        """Vectorize the dynamic programming algorithm.
+        """Align point to base point.
 
         Parameters
         ----------
+        bundle : SRVReparametrizationBundle
+            Fiber bundle of curves modulo reparametrizations.
         point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            Initial discrete curve.
+            Discrete curve to align.
         base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            End discrete curve.
+            Reference discrete curve.
         return_sdist : bool
             If True, also returns squared distance.
 
         Returns
         -------
         aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
-            Action of the optimal g on point.
+            Curve reparametrized in an optimal way with respect to reference curve.
         squared_dist : array, shape=[...,]
             Quotient distance between point and base point.
             If return_sdist is True.
@@ -1484,36 +1679,30 @@ class DynamicProgrammingAligner:
         return aligned, sdists
 
 
-class SRVTranslationReparametrizationBundle(FiberBundle):
-    """Principal bundle of shapes of curves induced by the SRV metric.
+class SRVReparametrizationBundle(FiberBundle):
+    """Principal bundle of curves modulo reparameterizations with the SRV metric.
 
-    The space of parameterized curves is the total space of a principal
-    bundle where the group action is given by reparameterization and the
-    base space is the shape space of curves modulo reparametrization, i.e.
-    unparametrized curves. In the discrete case, reparametrization corresponds
-    to resampling.
+    The space of parameterized curves is the total space of a principal bundle
+    where the group action is given by reparameterization and the base space is
+    the shape space of curves modulo reparametrization, i.e.unparametrized
+    curves. In the discrete case, reparametrization corresponds to resampling.
 
-    Each tangent vector to the space of parameterized curves can be
-    split into a vertical part (tangent to the fibers of the principal
-    bundle) and a horizontal part (orthogonal to the vertical part with
-    respect to the SRV metric). Horizontal geodesics in the total space
-    can be computed using an algorithm that iteratively finds the best
-    correspondence between two fibers of the principal bundle, see Reference
-    below.
+    Each tangent vector to the space of parameterized curves can be split into a
+    vertical part (tangent to the fibers of the principal bundle) and a
+    horizontal part (orthogonal to the vertical part with respect to the SRV
+    metric). The geodesic between the shapes of two curves is computed by
+    aligning (i.e. reparametrizing) one of the two curves with respect to the
+    other, and computing the geodesic between the aligned curves. This geodesic
+    will be horizontal, and will project to a geodesic on the shape space.
+
+    Two different aligners are available:
+    - IterativeHorizontalGeodesicAligner (default)
+    - DynamicProgrammingAligner.
 
     Parameters
     ----------
-    ambient_manifold : Manifold
-        Manifold in which curves take values.
-    k_sampling_points : int
-        Number of sampling points for the discrete curves.
-
-    References
-    ----------
-    .. [LAB2017] A. Le Brigant,
-        "A discrete framework to find the optimal matching between manifold-
-        valued curves," in Journal of Mathematical Imaging and Vision, 61,
-        pp. 40-70, 2019.
+    total_space : DiscreteCurvesStartingAtOrigin
+        Space of discrete curves starting at the origin
     """
 
     def __init__(self, total_space):
@@ -1551,7 +1740,6 @@ class SRVTranslationReparametrizationBundle(FiberBundle):
         base_point_with_origin = insert_zeros(base_point, axis=-ndim)
 
         position = base_point_with_origin[..., 1:-1, :]
-        # TODO: why delta=1?
         delta = 1.0
         d_pos = centered_difference(base_point_with_origin, delta=delta, axis=-ndim)
         d_vec = centered_difference(tangent_vec_with_zeros, delta=delta, axis=-ndim)
@@ -1657,11 +1845,252 @@ class SRVTranslationReparametrizationBundle(FiberBundle):
         return self.aligner.align(self, point, base_point)
 
 
-class SRVTranslationReparametrizationQuotientMetric(QuotientMetric):
+class SRVReparametrizationQuotientMetric(QuotientMetric):
     """SRV quotient metric on the space of unparametrized curves.
 
     This is the class for the quotient metric induced by the SRV Metric
     on the shape space of unparametrized curves, i.e. the space of parametrized
     curves quotiented by the group of reparametrizations. In the discrete case,
     reparametrization corresponds to resampling.
+    """
+
+
+class SRVRotationBundle(FiberBundle):
+    """Principal bundle of curves modulo rotations with the SRV metric.
+
+    This is the fiber bundle where the total space is the space of parameterized
+    curves equipped with the SRV metric, the action is given by rotations, and
+    the base space is the shape space of curves modulo rotations.
+
+    Parameters
+    ----------
+    total_space : DiscreteCurvesStartingAtOrigin
+        Space of discrete curves starting at the origin
+    """
+
+    def __init__(self, total_space):
+        super().__init__(total_space=total_space)
+
+    def _transpose(self, point):
+        """Transpose discrete curve starting at origin."""
+        dim = self.total_space.ambient_manifold.dim
+        return Matrices(dim, dim).transpose(point)
+
+    def _rotate(self, point, rotation):
+        """Rotate discrete curve starting at origin."""
+        return self._transpose(gs.matmul(rotation, self._transpose(point)))
+
+    def align(self, point, base_point, return_rotation=False):
+        """Align point to base point.
+
+        Find optimal rotation of curve with respect to base curve.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve to align.
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Reference discrete curve.
+        return_rotation : boolean
+            If true, returns the optimal rotation used for the alignment.
+            Optional, default : False.
+
+        Returns
+        -------
+        aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
+            Curve optimally rotated with respect to reference curve.
+        """
+        srv_transform = self.total_space.metric.diffeo
+        initial_srv = srv_transform.diffeomorphism(base_point)
+        end_srv = srv_transform.diffeomorphism(point)
+
+        mat = gs.matmul(self._transpose(initial_srv), end_srv)
+        u_svd, _, vt_svd = gs.linalg.svd(mat)
+        sign = gs.linalg.det(gs.matmul(u_svd, vt_svd))
+        vt_svd[..., -1, :] = gs.einsum("...,...j->...j", sign, vt_svd[..., -1, :])
+        rotation = gs.matmul(u_svd, vt_svd)
+
+        point_aligned = self._rotate(point, rotation)
+        if return_rotation:
+            return point_aligned, rotation
+
+        return point_aligned
+
+
+class SRVRotationQuotientMetric(QuotientMetric):
+    """SRV quotient metric on space of curves modulo rotations.
+
+    This is the class for the quotient metric induced by the SRV Metric on the
+    space of parametrized curves quotiented by the action of rotations.
+    """
+
+
+class SRVRotationReparametrizationBundle(FiberBundle):
+    """SRV principal bundle of curves modulo rotations and reparametrizations.
+
+    This is the fiber bundle where the total space is the space of parameterized
+    curves equipped with the SRV metric, the action is the joint action of rotations
+    and reparametrizations, and the base space is the shape space of curves modulo
+    rotations and reparametrizations.
+
+    Parameters
+    ----------
+    total_space : DiscreteCurvesStartingAtOrigin
+        Space of discrete curves starting at the origin
+    threshold : float
+        Parameter used in the alignment of a curve with respect to a base curve.
+        When the difference between the new curve and the current curve becomes lower
+        than this threshold, the alignment algorithm stops.
+        Optional, default: 1e-3.
+    max_iter : int
+        Maximum number of iterations in the alignment of a curve with respect to a base.
+        curve.
+        Optional, default: 20.
+    verbose : boolean
+        Parameter used in the alignment of a curve with respect to a base curve.
+        Optional, default: False.
+    """
+
+    def __init__(self, total_space, threshold=1e-3, max_iter=20, verbose=0):
+        super().__init__(total_space=total_space)
+
+        self.threshold = threshold
+        self.max_iter = max_iter
+        self.verbose = verbose
+        self._rotations_bundle = SRVRotationBundle(total_space)
+        self._reparameterizations_bundle = SRVReparametrizationBundle(total_space)
+
+    def align_rotation(self, point, base_point, return_rotation=False):
+        """Find optimal rotation of curve with respect to base curve.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve to align.
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Reference discrete curve.
+        return_rotation : boolean
+            If true, returns the optimal rotation used for the alignment.
+            Optional, default : False.
+
+        Returns
+        -------
+        aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
+            Curve optimally rotated with respect to reference curve.
+        """
+        return self._rotations_bundle.align(point, base_point, return_rotation)
+
+    def align_reparametrization(self, point, base_point, spline):
+        """Find optimal parametrization of a curve with respect to a base curve.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve to align.
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Reference discrete curve.
+        spline : function
+            Spline function that interpolates between the points of the curve to
+            align.
+
+        Returns
+        -------
+        aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
+            Curve optimally reparametrized with respect to reference curve.
+        """
+        return self._reparameterizations_bundle.aligner.discrete_horizontal_geodesic(
+            self._reparameterizations_bundle, base_point, point, spline
+        )[..., -1, :, :]
+
+    def _align_single(self, point, base_point):
+        """Align point to base point, non vectorized."""
+        aligned_point = gs.copy(point)
+        rotation = gs.eye(self.total_space.ambient_manifold.dim)
+        for index in range(self.max_iter):
+            new_aligned_point, new_rotation = self.align_rotation(
+                aligned_point, base_point, return_rotation=True
+            )
+            rotation = gs.matmul(new_rotation, rotation)
+            rotated_point = self._rotations_bundle._rotate(point, rotation)
+            rotated_spline = self.total_space.interpolate(rotated_point)
+
+            new_aligned_point = self.align_reparametrization(
+                new_aligned_point, base_point, rotated_spline
+            )
+            l2_metric = self.total_space.discrete_curves_with_l2.metric
+            gap = l2_metric.dist(aligned_point, new_aligned_point)
+            aligned_point = gs.copy(new_aligned_point)
+
+            if gap < self.threshold:
+                if self.verbose > 0:
+                    logging.info(
+                        f"Convergence of alignment reached after {index + 1} "
+                        "iterations."
+                    )
+
+                break
+        else:
+            logging.warning(
+                f"Maximum number of iterations {self.max_iter} reached during "
+                "alignment with respect to rotations and reparametrizations. "
+                "The result may be inaccurate."
+            )
+        return aligned_point, rotation
+
+    def align(self, point, base_point, return_rotation=False):
+        """Align point to base point.
+
+        This is achieved by iteratively rotating and reparametrizing the curve to align
+        with respect to the reference curve until convergence.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve to align.
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Reference discrete curve.
+        return_rotation : boolean
+            If true, returns the optimal rotation used for the alignment.
+            Optional, default : False.
+
+        Returns
+        -------
+        aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
+             Curve rotated and reparametrized in an optimal way with respect to
+             the reference curve.
+        """
+        is_batch = check_is_batch(
+            self.total_space.point_ndim,
+            point,
+            base_point,
+        )
+        if not is_batch:
+            aligned_point, rotation = self._align_single(point, base_point)
+            if return_rotation:
+                return aligned_point, rotation
+
+            return aligned_point
+
+        if point.ndim != base_point.ndim:
+            point, base_point = gs.broadcast_arrays(point, base_point)
+
+        out = [
+            self._align_single(point_, base_point_)
+            for point_, base_point_ in zip(point, base_point)
+        ]
+        aligned_points = gs.stack([out_[0] for out_ in out])
+        rotations = gs.stack([out_[1] for out_ in out])
+        if return_rotation:
+            return aligned_points, rotations
+
+        return aligned_points
+
+
+class SRVRotationReparametrizationQuotientMetric(QuotientMetric):
+    """SRV quotient metric on space of curves modulo rotations and reparametrizations.
+
+    This is the class for the quotient metric induced by the SRV Metric on the
+    space of parametrized curves quotiented by the action of rotations and
+    reparametrizations. In the discrete case, reparametrization corresponds to
+    resampling.
     """

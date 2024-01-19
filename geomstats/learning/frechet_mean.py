@@ -11,17 +11,14 @@ from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
 import geomstats.errors as error
-from geomstats.geometry.discrete_curves import (
-    ElasticTranslationMetric,
-    SRVTranslationMetric,
-)
+from geomstats.geometry.discrete_curves import ElasticMetric, SRVMetric
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.hypersphere import HypersphereMetric
 from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.minkowski import MinkowskiMetric
 
 LINEAR_METRICS = [EuclideanMetric, MatricesMetric, MinkowskiMetric]
-ELASTIC_METRICS = [SRVTranslationMetric, ElasticTranslationMetric]
+ELASTIC_METRICS = [SRVMetric, ElasticMetric]
 
 
 def _is_metric_in_list(metric, metric_classes):
