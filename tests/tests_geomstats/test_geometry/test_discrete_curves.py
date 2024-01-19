@@ -32,6 +32,7 @@ from geomstats.test_cases.geometry.discrete_curves import (
 )
 from geomstats.test_cases.geometry.nfold_manifold import NFoldMetricTestCase
 from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
+from geomstats.test_cases.geometry.quotient_metric import QuotientMetricTestCase
 
 from .data.diffeo import (
     AutodiffDiffeoTestData,
@@ -45,8 +46,11 @@ from .data.discrete_curves import (
     L2CurvesMetricTestData,
     SRVMetricTestData,
     SRVReparametrizationBundleTestData,
+    SRVReparametrizationsQuotientMetricTestData,
     SRVRotationBundleTestData,
     SRVRotationReparametrizationBundleTestData,
+    SRVRotationsAndReparametrizationsQuotientMetricTestData,
+    SRVRotationsQuotientMetricTestData,
 )
 
 
@@ -152,22 +156,36 @@ class TestSRVMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrize
     testing_data = SRVMetricTestData()
 
 
+@pytest.fixture(
+    scope="class",
+    params=[
+        (random.randint(2, 3), random.choice([6, 8, 10])),
+        (random.randint(2, 3), random.choice([5, 7, 9])),
+    ],
+)
+def srv_reparameterization_bundles(request):
+    ambient_dim, k_sampling_points = request.param
+
+    total_space = (
+        request.cls.total_space
+    ) = request.cls.base = DiscreteCurvesStartingAtOrigin(
+        ambient_dim, k_sampling_points
+    )
+    request.cls.bundle = SRVReparametrizationBundle(total_space)
+
+    request.cls.data_generator = (
+        request.cls.base_data_generator
+    ) = ShapeBundleRandomDataGenerator(total_space)
+
+
+@pytest.mark.usefixtures("srv_reparameterization_bundles")
 class TestSRVReparametrizationBundle(
     SRVReparametrizationBundleTestCase, metaclass=DataBasedParametrizer
 ):
-    _ambient_dim = random.randint(2, 3)
-    _k_sampling_points = random.randint(5, 10)
-
-    total_space = base = DiscreteCurvesStartingAtOrigin(
-        ambient_dim=_ambient_dim,
-        k_sampling_points=_k_sampling_points,
-    )
-    bundle = SRVReparametrizationBundle(total_space)
-
-    data_generator = base_data_generator = ShapeBundleRandomDataGenerator(total_space)
     testing_data = SRVReparametrizationBundleTestData()
 
-    def test_align(self, n_points, atol):
+    @pytest.mark.random
+    def test_align_in_same_fiber(self, n_points, atol):
         base_point = self.total_space.random_point(n_points)
         base_curve = self.total_space.interpolate(base_point)
         k_sampling_points = self.total_space.k_sampling_points
@@ -271,3 +289,49 @@ class TestSRVRotationReparametrizationBundle(TestCase, metaclass=DataBasedParame
 
         self.assertAllClose(result, expected, atol=atol)
         self.assertAllClose(aligned_point, base_point, atol=atol)
+
+
+@pytest.mark.redundant
+@pytest.mark.xfail
+class TestSRVReparametrizationsQuotientMetric(
+    QuotientMetricTestCase, metaclass=DataBasedParametrizer
+):
+    _ambient_dim = random.randint(2, 3)
+    _k_sampling_points = random.randint(5, 10)
+    _total_space = DiscreteCurvesStartingAtOrigin(_ambient_dim, _k_sampling_points)
+    _total_space.equip_with_group_action("reparametrizations")
+    _total_space.equip_with_quotient_structure()
+
+    space = _total_space.quotient
+
+    testing_data = SRVReparametrizationsQuotientMetricTestData()
+
+
+@pytest.mark.redundant
+class TestSRVRotationsQuotientMetric(
+    QuotientMetricTestCase, metaclass=DataBasedParametrizer
+):
+    _ambient_dim = random.randint(2, 3)
+    _k_sampling_points = random.randint(5, 10)
+    _total_space = DiscreteCurvesStartingAtOrigin(_ambient_dim, _k_sampling_points)
+    _total_space.equip_with_group_action("rotations")
+    _total_space.equip_with_quotient_structure()
+
+    space = _total_space.quotient
+
+    testing_data = SRVRotationsQuotientMetricTestData()
+
+
+@pytest.mark.redundant
+class TestSRVRotationsReparametrizationsQuotientMetric(
+    QuotientMetricTestCase, metaclass=DataBasedParametrizer
+):
+    _ambient_dim = random.randint(2, 3)
+    _k_sampling_points = random.randint(5, 10)
+    _total_space = DiscreteCurvesStartingAtOrigin(_ambient_dim, _k_sampling_points)
+    _total_space.equip_with_group_action("rotations and reparametrizations")
+    _total_space.equip_with_quotient_structure()
+
+    space = _total_space.quotient
+
+    testing_data = SRVRotationsAndReparametrizationsQuotientMetricTestData()
