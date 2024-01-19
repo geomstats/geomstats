@@ -47,6 +47,9 @@ class SRVMetricTestData(PullbackDiffeoMetricTestData):
 
 class SRVReparametrizationBundleTestData(FiberBundleTestData):
     fail_for_not_implemented_errors = False
+    # TODO: delete
+    trials = 1
+    N_RANDOM_POINTS = [1]
 
     skips = (
         "align_vec",

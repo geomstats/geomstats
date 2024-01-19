@@ -1,6 +1,6 @@
 """Parameterized curves on any given manifold.
 
-Lead author: Alice Le Brigant and Luis Pereira.
+Lead author: Alice Le Brigant.
 """
 
 import copy
@@ -1003,7 +1003,7 @@ class IterativeHorizontalGeodesicAligner:
         sampling points are greater than a given tolerance.
         """
         k_sampling_points = current.shape[0]
-        max_index = gs.cast(gs.floor(k_sampling_points / 2), int)
+        max_index = k_sampling_points // 2
         new = gs.copy(current)
         sign = gs.sign(tol)
         for index in range(1, max_index):
@@ -1046,9 +1046,15 @@ class IterativeHorizontalGeodesicAligner:
         """
         return (
             self._euler_step_forward(current, increment, step, self.tol)
-            + self._euler_step_forward(current[::-1], increment[::-1], step, -self.tol)[
-                ::-1
-            ]
+            + gs.flip(
+                self._euler_step_forward(
+                    gs.flip(current, axis=0),
+                    gs.flip(increment, axis=0),
+                    step,
+                    -self.tol,
+                ),
+                axis=0,
+            )
         ) / 2
 
     def _construct_reparametrization(self, vertical_norm, space_deriv_norm):
@@ -1155,7 +1161,7 @@ class IterativeHorizontalGeodesicAligner:
         arg = t_space
         for repar_inverse in reversed(repar_inverse_end):
             arg = repar_inverse(arg)
-        end_curve_repar = gs.from_numpy(end_spline(arg))
+        end_curve_repar = end_spline(arg)
 
         reparametrized_path.append(end_curve_repar)
         return gs.stack(reparametrized_path)
@@ -1723,7 +1729,6 @@ class SRVReparametrizationBundle(FiberBundle):
         base_point_with_origin = insert_zeros(base_point, axis=-ndim)
 
         position = base_point_with_origin[..., 1:-1, :]
-        # TODO: why delta=1?
         delta = 1.0
         d_pos = centered_difference(base_point_with_origin, delta=delta, axis=-ndim)
         d_vec = centered_difference(tangent_vec_with_zeros, delta=delta, axis=-ndim)
