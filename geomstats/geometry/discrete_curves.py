@@ -1314,9 +1314,6 @@ class IterativeHorizontalGeodesicAligner:
         if initial_point.ndim != end_point.ndim:
             initial_point, end_point = gs.broadcast_arrays(initial_point, end_point)
 
-        if callable(end_spline):
-            end_spline = [end_spline] * end_point.shape[0]
-
         return gs.stack(
             [
                 self._discrete_horizontal_geodesic_single(
@@ -1345,12 +1342,13 @@ class IterativeHorizontalGeodesicAligner:
         aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
             Curve reparametrized in an optimal way with respect to reference curve.
         """
-        is_batch = check_is_batch(bundle.total_space.point_ndim, point)
-
-        if not is_batch:
+        if point.ndim == bundle.total_space.point_ndim:
             spline = bundle.total_space.interpolate(point)
+            if base_point.ndim > bundle.total_space.point_ndim:
+                spline = [spline] * base_point.shape[0]
         else:
             spline = [bundle.total_space.interpolate(point_) for point_ in point]
+
         return self.discrete_horizontal_geodesic(bundle, base_point, point, spline)[
             ..., -1, :, :
         ]
