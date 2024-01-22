@@ -99,6 +99,7 @@ def spaces_with_quotient(request):
     total_space.equip_with_group_action("rotations")
     total_space.equip_with_quotient_structure()
 
+    request.cls.total_space = total_space
     request.cls.space = total_space.quotient
 
 

@@ -742,7 +742,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase):
 class KendallShapeMetricTestCase(QuotientMetricTestCase):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
-            self.data_generator = KendalShapeRandomDataGenerator(self.space)
+            self.data_generator = KendalShapeRandomDataGenerator(self.total_space)
         super().setup_method()
 
     def _cmp_points(self, point, point_, atol):
@@ -959,8 +959,9 @@ class KendallShapeMetricTestCase(QuotientMetricTestCase):
 
         end_point = self.space.metric.exp(direction, base_point)
 
-        fiber_bundle = self.space.metric._total_space.fiber_bundle
-        res = fiber_bundle.is_horizontal(transported, end_point, atol=atol)
+        res = self.total_space.fiber_bundle.is_horizontal(
+            transported, end_point, atol=atol
+        )
 
         expected_shape = get_batch_shape(self.space.point_ndim, base_point)
         expected = gs.ones(expected_shape, dtype=bool)
