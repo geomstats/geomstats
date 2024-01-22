@@ -209,15 +209,15 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
         self._quotient_map = {
             (SRVMetric, "rotations"): (
                 SRVRotationBundle,
-                SRVRotationQuotientMetric,
+                QuotientMetric,
             ),
             (SRVMetric, "reparametrizations"): (
                 SRVReparametrizationBundle,
-                SRVReparametrizationQuotientMetric,
+                QuotientMetric,
             ),
             (SRVMetric, "rotations and reparametrizations"): (
                 SRVRotationReparametrizationBundle,
-                SRVRotationReparametrizationQuotientMetric,
+                QuotientMetric,
             ),
         }
         self._sphere = Hypersphere(dim=ambient_dim - 1)
@@ -1294,7 +1294,7 @@ class IterativeHorizontalGeodesicAligner:
             Initial discrete curve.
         end_point : array-like, shape=[..., k_sampling_points, ambient_dim]
             End discrete curve.
-        end_spline : function
+        end_spline : callable or list[callable]
             Spline interpolation of end point.
 
         Returns
@@ -1342,12 +1342,13 @@ class IterativeHorizontalGeodesicAligner:
         aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
             Curve reparametrized in an optimal way with respect to reference curve.
         """
-        is_batch = check_is_batch(bundle.total_space.point_ndim, point)
-
-        if not is_batch:
+        if point.ndim == bundle.total_space.point_ndim:
             spline = bundle.total_space.interpolate(point)
+            if base_point.ndim > bundle.total_space.point_ndim:
+                spline = [spline] * base_point.shape[0]
         else:
             spline = [bundle.total_space.interpolate(point_) for point_ in point]
+
         return self.discrete_horizontal_geodesic(bundle, base_point, point, spline)[
             ..., -1, :, :
         ]
@@ -1845,16 +1846,6 @@ class SRVReparametrizationBundle(FiberBundle):
         return self.aligner.align(self, point, base_point)
 
 
-class SRVReparametrizationQuotientMetric(QuotientMetric):
-    """SRV quotient metric on the space of unparametrized curves.
-
-    This is the class for the quotient metric induced by the SRV Metric
-    on the shape space of unparametrized curves, i.e. the space of parametrized
-    curves quotiented by the group of reparametrizations. In the discrete case,
-    reparametrization corresponds to resampling.
-    """
-
-
 class SRVRotationBundle(FiberBundle):
     """Principal bundle of curves modulo rotations with the SRV metric.
 
@@ -1879,6 +1870,10 @@ class SRVRotationBundle(FiberBundle):
     def _rotate(self, point, rotation):
         """Rotate discrete curve starting at origin."""
         return self._transpose(gs.matmul(rotation, self._transpose(point)))
+
+    def horizontal_projection(self, tangent_vec, base_point):
+        """Project to horizontal subspace."""
+        raise NotImplementedError("Horizontal projection is not implemented.")
 
     def align(self, point, base_point, return_rotation=False):
         """Align point to base point.
@@ -1917,14 +1912,6 @@ class SRVRotationBundle(FiberBundle):
         return point_aligned
 
 
-class SRVRotationQuotientMetric(QuotientMetric):
-    """SRV quotient metric on space of curves modulo rotations.
-
-    This is the class for the quotient metric induced by the SRV Metric on the
-    space of parametrized curves quotiented by the action of rotations.
-    """
-
-
 class SRVRotationReparametrizationBundle(FiberBundle):
     """SRV principal bundle of curves modulo rotations and reparametrizations.
 
@@ -1959,6 +1946,10 @@ class SRVRotationReparametrizationBundle(FiberBundle):
         self.verbose = verbose
         self._rotations_bundle = SRVRotationBundle(total_space)
         self._reparameterizations_bundle = SRVReparametrizationBundle(total_space)
+
+    def horizontal_projection(self, tangent_vec, base_point):
+        """Project to horizontal subspace."""
+        raise NotImplementedError("Horizontal projection is not implemented.")
 
     def align_rotation(self, point, base_point, return_rotation=False):
         """Find optimal rotation of curve with respect to base curve.
@@ -2084,13 +2075,3 @@ class SRVRotationReparametrizationBundle(FiberBundle):
             return aligned_points, rotations
 
         return aligned_points
-
-
-class SRVRotationReparametrizationQuotientMetric(QuotientMetric):
-    """SRV quotient metric on space of curves modulo rotations and reparametrizations.
-
-    This is the class for the quotient metric induced by the SRV Metric on the
-    space of parametrized curves quotiented by the action of rotations and
-    reparametrizations. In the discrete case, reparametrization corresponds to
-    resampling.
-    """
