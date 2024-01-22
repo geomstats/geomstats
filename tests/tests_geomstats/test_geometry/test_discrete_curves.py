@@ -171,7 +171,7 @@ def srv_reparameterization_bundles(request):
     ) = request.cls.base = DiscreteCurvesStartingAtOrigin(
         ambient_dim, k_sampling_points
     )
-    request.cls.bundle = SRVReparametrizationBundle(total_space)
+    total_space.fiber_bundle = SRVReparametrizationBundle(total_space)
 
     request.cls.data_generator = (
         request.cls.base_data_generator
@@ -194,7 +194,7 @@ class TestSRVReparametrizationBundle(
         point = base_curve(sampling_points**2)
 
         point = self.total_space.projection(point)
-        aligned_point = self.bundle.align(point, base_point)
+        aligned_point = self.total_space.fiber_bundle.align(point, base_point)
 
         self.assertAllClose(aligned_point, base_point, atol=atol)
 
@@ -202,7 +202,8 @@ class TestSRVReparametrizationBundle(
 @pytest.mark.smoke
 class TestAlignerCmp(TestCase, metaclass=DataBasedParametrizer):
     total_space = DiscreteCurvesStartingAtOrigin(k_sampling_points=10)
-    bundle = SRVReparametrizationBundle(total_space)
+    total_space.fiber_bundle = SRVReparametrizationBundle(total_space)
+    total_space.fiber_bundle.aligner = None
 
     aligner = IterativeHorizontalGeodesicAligner()
     other_aligner = DynamicProgrammingAligner()
@@ -216,8 +217,8 @@ class TestAlignerCmp(TestCase, metaclass=DataBasedParametrizer):
         base_point = self.total_space.projection(curve_a(sampling_points))
         point = self.total_space.projection(curve_b(sampling_points))
 
-        aligned = self.aligner.align(self.bundle, point, base_point)
-        other_aligned = self.other_aligner.align(self.bundle, point, base_point)
+        aligned = self.aligner.align(self.total_space, point, base_point)
+        other_aligned = self.other_aligner.align(self.total_space, point, base_point)
 
         self.assertAllClose(aligned, other_aligned, atol=atol)
 
@@ -276,7 +277,9 @@ class TestSRVRotationReparametrizationBundle(TestCase, metaclass=DataBasedParame
 
         point = self.total_space.projection(point)
         rotation = SpecialOrthogonal(self._ambient_dim).random_point(n_points)
-        point = self.bundle._rotations_bundle._rotate(point, rotation)
+        point = self.bundle._total_space_with_rotations.fiber_bundle._rotate(
+            point, rotation
+        )
 
         aligned_point, inv_rotation = self.bundle.align(
             point, base_point, return_rotation=True

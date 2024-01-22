@@ -245,7 +245,7 @@ class BuresWassersteinBundle(FiberBundle):
 
     def lift(self, point):
         """Find a representer in top space."""
-        k = self.total_space.k
+        k = self._total_space.k
         eigvals, eigvecs = gs.linalg.eigh(point)
         return gs.einsum(
             "...ij,...j->...ij", eigvecs[..., -k:], eigvals[..., -k:] ** 0.5
@@ -253,7 +253,7 @@ class BuresWassersteinBundle(FiberBundle):
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
         """Horizontal lift of a tangent vector."""
-        n = self.total_space.n
+        n = self._total_space.n
         if fiber_point is None:
             fiber_point = self.lift(base_point)
         transposed_point = Matrices.transpose(fiber_point)
@@ -333,4 +333,7 @@ class PSDBuresWassersteinMetric(QuotientMetric):
             total_space = FullRankMatrices(space.n, k, equip=False)
             total_space.equip_with_metric(MatricesMetric)
 
-        super().__init__(space=space, fiber_bundle=BuresWassersteinBundle(total_space))
+        if not hasattr(total_space, "fiber_bundle"):
+            total_space.fiber_bundle = BuresWassersteinBundle(total_space)
+
+        super().__init__(space=space, total_space=total_space)

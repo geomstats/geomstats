@@ -64,8 +64,12 @@ class SRVReparametrizationBundleTestCase(FiberBundleTestCase):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        tangent_vec_hor = self.bundle.horizontal_projection(tangent_vec, base_point)
-        tangent_vec_ver = self.bundle.vertical_projection(tangent_vec, base_point)
+        tangent_vec_hor = self.total_space.fiber_bundle.horizontal_projection(
+            tangent_vec, base_point
+        )
+        tangent_vec_ver = self.total_space.fiber_bundle.vertical_projection(
+            tangent_vec, base_point
+        )
 
         res = self.total_space.metric.inner_product(
             tangent_vec_hor, tangent_vec_ver, base_point

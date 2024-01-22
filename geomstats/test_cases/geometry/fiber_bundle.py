@@ -28,13 +28,13 @@ class FiberBundleTestCase(TestCase):
         self.assertAllEqual(res, expected)
 
     def test_riemannian_submersion(self, point, expected, atol):
-        res = self.bundle.riemannian_submersion(point)
+        res = self.total_space.fiber_bundle.riemannian_submersion(point)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
     def test_riemannian_submersion_vec(self, n_reps, atol):
         point = self.data_generator.random_point()
-        expected = self.bundle.riemannian_submersion(point)
+        expected = self.total_space.fiber_bundle.riemannian_submersion(point)
 
         vec_data = generate_vectorization_data(
             data=[dict(point=point, expected=expected, atol=atol)],
@@ -48,19 +48,19 @@ class FiberBundleTestCase(TestCase):
     def test_riemannian_submersion_belongs_to_base(self, n_points, atol):
         point = self.data_generator.random_point(n_points)
 
-        proj_point = self.bundle.riemannian_submersion(point)
+        proj_point = self.total_space.fiber_bundle.riemannian_submersion(point)
         expected = gs.ones(n_points, dtype=bool)
 
         self._test_belongs_to_base(proj_point, expected, atol)
 
     def test_lift(self, point, expected, atol):
-        res = self.bundle.lift(point)
+        res = self.total_space.fiber_bundle.lift(point)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
     def test_lift_vec(self, n_reps, atol):
         point = self.base_data_generator.random_point()
-        expected = self.bundle.lift(point)
+        expected = self.total_space.fiber_bundle.lift(point)
 
         vec_data = generate_vectorization_data(
             data=[dict(point=point, expected=expected, atol=atol)],
@@ -73,7 +73,7 @@ class FiberBundleTestCase(TestCase):
     @pytest.mark.random
     def test_lift_belongs_to_total_space(self, n_points, atol):
         point = self.base_data_generator.random_point(n_points)
-        lifted_point = self.bundle.lift(point)
+        lifted_point = self.total_space.fiber_bundle.lift(point)
 
         expected = gs.ones(n_points, dtype=bool)
         self._test_belongs_to_total_space(lifted_point, expected, atol)
@@ -81,15 +81,17 @@ class FiberBundleTestCase(TestCase):
     @pytest.mark.random
     def test_riemannian_submersion_after_lift(self, n_points, atol):
         point = self.base_data_generator.random_point(n_points)
-        lifted_point = self.bundle.lift(point)
-        point_ = self.bundle.riemannian_submersion(lifted_point)
+        lifted_point = self.total_space.fiber_bundle.lift(point)
+        point_ = self.total_space.fiber_bundle.riemannian_submersion(lifted_point)
 
         self.assertAllClose(point_, point, atol=atol)
 
     def test_tangent_riemannian_submersion(
         self, tangent_vec, base_point, expected, atol
     ):
-        res = self.bundle.tangent_riemannian_submersion(tangent_vec, base_point)
+        res = self.total_space.fiber_bundle.tangent_riemannian_submersion(
+            tangent_vec, base_point
+        )
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
@@ -97,7 +99,9 @@ class FiberBundleTestCase(TestCase):
         base_point = self.data_generator.random_point()
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        expected = self.bundle.tangent_riemannian_submersion(tangent_vec, base_point)
+        expected = self.total_space.fiber_bundle.tangent_riemannian_submersion(
+            tangent_vec, base_point
+        )
 
         vec_data = generate_vectorization_data(
             data=[
@@ -120,17 +124,19 @@ class FiberBundleTestCase(TestCase):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        proj_tangent_vector = self.bundle.tangent_riemannian_submersion(
-            tangent_vec, base_point
+        proj_tangent_vector = (
+            self.total_space.fiber_bundle.tangent_riemannian_submersion(
+                tangent_vec, base_point
+            )
         )
-        proj_point = self.bundle.riemannian_submersion(base_point)
+        proj_point = self.total_space.fiber_bundle.riemannian_submersion(base_point)
 
         res = self.base.is_tangent(proj_tangent_vector, proj_point, atol=atol)
         expected = gs.ones(n_points, dtype=bool)
         self.assertAllEqual(res, expected)
 
     def test_align(self, point, base_point, expected, atol):
-        res = self.bundle.align(point, base_point)
+        res = self.total_space.fiber_bundle.align(point, base_point)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
@@ -138,7 +144,7 @@ class FiberBundleTestCase(TestCase):
         point = self.data_generator.random_point()
         base_point = self.data_generator.random_point()
 
-        expected = self.bundle.align(point, base_point)
+        expected = self.total_space.fiber_bundle.align(point, base_point)
 
         vec_data = generate_vectorization_data(
             data=[
@@ -155,14 +161,16 @@ class FiberBundleTestCase(TestCase):
         point = self.data_generator.random_point(n_points)
         base_point = self.data_generator.random_point(n_points)
 
-        aligned_point = self.bundle.align(point, base_point)
+        aligned_point = self.total_space.fiber_bundle.align(point, base_point)
         log = self.total_space.metric.log(aligned_point, base_point)
 
         expected = gs.ones(n_points, dtype=bool)
         self.test_is_horizontal(log, base_point, expected, atol)
 
     def test_horizontal_projection(self, tangent_vec, base_point, expected, atol):
-        res = self.bundle.horizontal_projection(tangent_vec, base_point)
+        res = self.total_space.fiber_bundle.horizontal_projection(
+            tangent_vec, base_point
+        )
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
@@ -170,7 +178,9 @@ class FiberBundleTestCase(TestCase):
         base_point = self.data_generator.random_point()
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        expected = self.bundle.horizontal_projection(tangent_vec, base_point)
+        expected = self.total_space.fiber_bundle.horizontal_projection(
+            tangent_vec, base_point
+        )
 
         vec_data = generate_vectorization_data(
             data=[
@@ -193,12 +203,14 @@ class FiberBundleTestCase(TestCase):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        horizontal = self.bundle.horizontal_projection(tangent_vec, base_point)
+        horizontal = self.total_space.fiber_bundle.horizontal_projection(
+            tangent_vec, base_point
+        )
         expected = gs.ones(n_points, dtype=bool)
         self.test_is_horizontal(horizontal, base_point, expected, atol)
 
     def test_vertical_projection(self, tangent_vec, base_point, expected, atol):
-        res = self.bundle.vertical_projection(tangent_vec, base_point)
+        res = self.total_space.fiber_bundle.vertical_projection(tangent_vec, base_point)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
@@ -206,7 +218,9 @@ class FiberBundleTestCase(TestCase):
         base_point = self.data_generator.random_point()
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        expected = self.bundle.vertical_projection(tangent_vec, base_point)
+        expected = self.total_space.fiber_bundle.vertical_projection(
+            tangent_vec, base_point
+        )
 
         vec_data = generate_vectorization_data(
             data=[
@@ -229,7 +243,9 @@ class FiberBundleTestCase(TestCase):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        vertical = self.bundle.vertical_projection(tangent_vec, base_point)
+        vertical = self.total_space.fiber_bundle.vertical_projection(
+            tangent_vec, base_point
+        )
         expected = gs.ones(n_points, dtype=bool)
         self.test_is_vertical(vertical, base_point, expected, atol)
 
@@ -240,14 +256,20 @@ class FiberBundleTestCase(TestCase):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        vertical = self.bundle.vertical_projection(tangent_vec, base_point)
-        res = self.bundle.tangent_riemannian_submersion(vertical, base_point)
+        vertical = self.total_space.fiber_bundle.vertical_projection(
+            tangent_vec, base_point
+        )
+        res = self.total_space.fiber_bundle.tangent_riemannian_submersion(
+            vertical, base_point
+        )
         expected = gs.zeros_like(res)
 
         self.assertAllClose(res, expected, atol=atol)
 
     def test_is_horizontal(self, tangent_vec, base_point, expected, atol):
-        res = self.bundle.is_horizontal(tangent_vec, base_point, atol=atol)
+        res = self.total_space.fiber_bundle.is_horizontal(
+            tangent_vec, base_point, atol=atol
+        )
         self.assertAllEqual(res, expected)
 
     @pytest.mark.vec
@@ -255,7 +277,9 @@ class FiberBundleTestCase(TestCase):
         base_point = self.data_generator.random_point()
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        expected = self.bundle.is_horizontal(tangent_vec, base_point, atol=atol)
+        expected = self.total_space.fiber_bundle.is_horizontal(
+            tangent_vec, base_point, atol=atol
+        )
 
         vec_data = generate_vectorization_data(
             data=[
@@ -274,7 +298,9 @@ class FiberBundleTestCase(TestCase):
         self._test_vectorization(vec_data)
 
     def test_is_vertical(self, tangent_vec, base_point, expected, atol):
-        res = self.bundle.is_vertical(tangent_vec, base_point, atol=atol)
+        res = self.total_space.fiber_bundle.is_vertical(
+            tangent_vec, base_point, atol=atol
+        )
         self.assertAllEqual(res, expected)
 
     @pytest.mark.vec
@@ -282,7 +308,9 @@ class FiberBundleTestCase(TestCase):
         base_point = self.data_generator.random_point()
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        expected = self.bundle.is_vertical(tangent_vec, base_point, atol=atol)
+        expected = self.total_space.fiber_bundle.is_vertical(
+            tangent_vec, base_point, atol=atol
+        )
 
         vec_data = generate_vectorization_data(
             data=[
@@ -303,7 +331,7 @@ class FiberBundleTestCase(TestCase):
     def test_horizontal_lift(
         self, tangent_vec, expected, atol, base_point=None, fiber_point=None
     ):
-        res = self.bundle.horizontal_lift(
+        res = self.total_space.fiber_bundle.horizontal_lift(
             tangent_vec, base_point=base_point, fiber_point=fiber_point
         )
         self.assertAllClose(res, expected, atol=atol)
@@ -313,7 +341,9 @@ class FiberBundleTestCase(TestCase):
         base_point = self.base_data_generator.random_point()
         tangent_vec = self.base_data_generator.random_tangent_vec(base_point)
 
-        expected = self.bundle.horizontal_lift(tangent_vec, base_point=base_point)
+        expected = self.total_space.fiber_bundle.horizontal_lift(
+            tangent_vec, base_point=base_point
+        )
 
         vec_data = generate_vectorization_data(
             data=[
@@ -336,8 +366,8 @@ class FiberBundleTestCase(TestCase):
         base_point = self.base_data_generator.random_point(n_points)
         tangent_vec = self.base_data_generator.random_tangent_vec(base_point)
 
-        fiber_point = self.bundle.lift(base_point)
-        horizontal = self.bundle.horizontal_lift(
+        fiber_point = self.total_space.fiber_bundle.lift(base_point)
+        horizontal = self.total_space.fiber_bundle.horizontal_lift(
             tangent_vec, base_point=base_point, fiber_point=fiber_point
         )
 
@@ -348,10 +378,12 @@ class FiberBundleTestCase(TestCase):
     def test_tangent_riemannian_submersion_after_horizontal_lift(self, n_points, atol):
         base_point = self.base_data_generator.random_point(n_points)
         tangent_vec = self.base_data_generator.random_tangent_vec(base_point)
-        fiber_point = self.bundle.lift(base_point)
+        fiber_point = self.total_space.fiber_bundle.lift(base_point)
 
-        horizontal = self.bundle.horizontal_lift(tangent_vec, fiber_point=fiber_point)
-        tangent_vec_ = self.bundle.tangent_riemannian_submersion(
+        horizontal = self.total_space.fiber_bundle.horizontal_lift(
+            tangent_vec, fiber_point=fiber_point
+        )
+        tangent_vec_ = self.total_space.fiber_bundle.tangent_riemannian_submersion(
             horizontal, fiber_point
         )
 
@@ -360,7 +392,9 @@ class FiberBundleTestCase(TestCase):
     def test_integrability_tensor(
         self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
     ):
-        res = self.bundle.integrability_tensor(tangent_vec_a, tangent_vec_b, base_point)
+        res = self.total_space.fiber_bundle.integrability_tensor(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
@@ -369,7 +403,7 @@ class FiberBundleTestCase(TestCase):
         tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
         tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
 
-        expected = self.bundle.integrability_tensor(
+        expected = self.total_space.fiber_bundle.integrability_tensor(
             tangent_vec_a, tangent_vec_b, base_point
         )
 
@@ -402,7 +436,10 @@ class FiberBundleTestCase(TestCase):
         expected_a_y_e,
         atol,
     ):
-        nabla_x_a_y_e, a_y_e = self.bundle.integrability_tensor_derivative(
+        (
+            nabla_x_a_y_e,
+            a_y_e,
+        ) = self.total_space.fiber_bundle.integrability_tensor_derivative(
             horizontal_vec_x,
             horizontal_vec_y,
             nabla_x_y,
@@ -416,11 +453,11 @@ class FiberBundleTestCase(TestCase):
     @pytest.mark.vec
     def test_integrability_tensor_derivative_vec(self, n_reps, atol):
         base_point = self.data_generator.random_point()
-        horizontal_vec_x = self.bundle.horizontal_lift(
+        horizontal_vec_x = self.total_space.fiber_bundle.horizontal_lift(
             self.data_generator.random_tangent_vec(base_point),
             fiber_point=base_point,
         )
-        horizontal_vec_y = self.bundle.horizontal_lift(
+        horizontal_vec_y = self.total_space.fiber_bundle.horizontal_lift(
             self.data_generator.random_tangent_vec(base_point),
             fiber_point=base_point,
         )
@@ -428,7 +465,10 @@ class FiberBundleTestCase(TestCase):
         tangent_vec_e = self.data_generator.random_tangent_vec(base_point)
         nabla_x_e = self.data_generator.random_tangent_vec(base_point)
 
-        nabla_x_a_y_e, a_y_e = self.bundle.integrability_tensor_derivative(
+        (
+            nabla_x_a_y_e,
+            a_y_e,
+        ) = self.total_space.fiber_bundle.integrability_tensor_derivative(
             horizontal_vec_x,
             horizontal_vec_y,
             nabla_x_y,

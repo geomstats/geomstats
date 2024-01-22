@@ -119,7 +119,7 @@ class Manifold(abc.ABC):
         self.fiber_bundle = FiberBundle_(total_space=self)
 
         self.quotient = self.new(equip=False)
-        self.quotient.equip_with_metric(QuotientMetric_, fiber_bundle=self.fiber_bundle)
+        self.quotient.equip_with_metric(QuotientMetric_, total_space=self)
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):

@@ -115,7 +115,7 @@ class LieGroupVectorRandomDataGenerator(RandomDataGenerator):
 class KendalShapeRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
     def random_horizontal_vec(self, base_point):
         tangent_vec = self.random_tangent_vec(base_point)
-        fiber_bundle = self.space.metric.fiber_bundle
+        fiber_bundle = self.space.metric._total_space.fiber_bundle
         return (
             fiber_bundle.horizontal_projection(tangent_vec, base_point) / self.amplitude
         )
