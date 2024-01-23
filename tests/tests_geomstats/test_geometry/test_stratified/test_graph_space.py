@@ -8,7 +8,6 @@ from geomstats.geometry.stratified.graph_space import (
     ExhaustiveAligner,
     FAQAligner,
     GraphSpace,
-    IDAligner,
     PointToGeodesicAligner,
     _GeodesicToPointAligner,
 )
@@ -36,7 +35,6 @@ from .data.quotient import AlignerAlgorithmTestData
 @pytest.fixture(
     scope="class",
     params=[
-        IDAligner,
         ExhaustiveAligner,
         FAQAligner,
     ],

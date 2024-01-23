@@ -83,44 +83,6 @@ class FAQAligner(GraphSpaceAlignerAlgorithm):
         return total_space.group_action.act(self.perm_, point)
 
 
-class IDAligner(GraphSpaceAlignerAlgorithm):
-    """Identity alignment.
-
-    The identity alignment is not performing any matching but returning the nodes in
-    their original position. This alignment can be selected when working with labelled
-    graphs.
-    """
-
-    def align(self, total_space, point, base_point):
-        """Align point to base point.
-
-        Parameters
-        ----------
-        total_space : PointSet
-            PointSet with quotient structure.
-        point : array-like, shape=[..., n_nodes, n_nodes]
-            Graph to align.
-        base_point : array-like, shape=[..., n_nodes, n_nodes]
-            Reference graph.
-
-        Returns
-        -------
-        aligned_point : array-like, shape=[..., n_nodes, n_nodes]
-            Aligned graph.
-        """
-        n_nodes = total_space.n_nodes
-        perm = gs.array(list(range(n_nodes)))
-        if base_point.ndim > point.ndim:
-            point = gs.broadcast_to(point, base_point.shape)
-
-        if point.ndim > 2:
-            perm = gs.broadcast_to(perm, point.shape[:-2] + (n_nodes,))
-
-        self.perm_ = perm
-
-        return gs.copy(point)
-
-
 class ExhaustiveAligner(GraphSpaceAlignerAlgorithm):
     """Brute force exact alignment.
 
@@ -504,7 +466,6 @@ class GraphSpaceAligner(Aligner):
     """Graph space aligner."""
 
     MAP_ALIGNER = {
-        "ID": IDAligner,
         "FAQ": FAQAligner,
         "exhaustive": ExhaustiveAligner,
     }
@@ -520,13 +481,12 @@ class GraphSpaceAligner(Aligner):
         """Set the aligning strategy.
 
         Graph Space metric relies on alignment. In this module we propose the
-        identity matching, the FAQ graph matching by [Vogelstein2015]_, and
+        the FAQ graph matching by [Vogelstein2015]_, and
         exhaustive aligner which explores the whole permutation group.
 
         Parameters
         ----------
         aligner_algorithm : str or GraphSpaceAlignerAlgorithm
-            'ID': Identity,
             'FAQ': Fast Quadratic Assignment - only compatible with Frobenius norm,
             'exhaustive': all group exhaustive search
         """
@@ -594,7 +554,7 @@ class GraphSpaceQuotientMetric(QuotientMetric):
     :math:`d([x_1],[x_2]) = min_{t\in T} d_X(x_1, t^Tx_2t)`. The metric relies on the
     total space metric and an alignment procedure, i.e., Graph Matching or Networks
     alignment procedure. Metric, alignment, geodesics, and alignment with respect to
-    a geodesic are defined. By default, the alignment is the identity and the total
+    a geodesic are defined. By default, the alignment is FAQ and the total
     space metric is the Frobenious norm.
 
     Parameters
