@@ -939,10 +939,7 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
         pass
 
     def _check_implemented(self, space):
-        check = (
-            isinstance(space, _SpecialEuclideanMatrices)
-            and space.default_point_type == "matrix"
-        )
+        check = isinstance(space, _SpecialEuclideanMatrices) and space.point_ndim == 2
         if not check:
             raise ValueError(
                 "group must be an instance of the "

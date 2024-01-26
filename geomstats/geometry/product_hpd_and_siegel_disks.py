@@ -63,7 +63,7 @@ class ProductHPDMatricesAndSiegelDisks(ProductManifold):
 
         super().__init__(
             factors=factors,
-            default_point_type="other",
+            point_ndim=3,
             equip=equip,
         )
 

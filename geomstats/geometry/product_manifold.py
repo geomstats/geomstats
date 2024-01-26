@@ -62,25 +62,21 @@ def _block_diagonal(factor_matrices):
     return metric_matrix
 
 
-def _find_product_shape(factors, default_point_type):
+def _find_product_shape(factors, point_ndim):
     """Determine an appropriate shape for the product from the factors."""
     factor_shapes = [factor.shape for factor in factors]
 
-    if default_point_type == "auto":
+    if point_ndim is None:
         if _all_equal(factor_shapes):
             return len(factors), *factors[0].shape
-        default_point_type = "vector"
-    if default_point_type == "vector":
+        point_ndim = 1
+
+    if point_ndim == 1:
         return (sum(math.prod(factor_shape) for factor_shape in factor_shapes),)
     if not _all_equal(factor_shapes):
         raise ValueError(
-            "A default_point_type of 'matrix' or 'other' can only be used if all "
-            "manifolds have the same shape."
-        )
-    if default_point_type == "matrix" and not len(factor_shapes[0]) == 1:
-        raise ValueError(
-            "A default_point_type of 'matrix' can only be used if all "
-            "manifolds have vector type."
+            "A point_ndim greater than one can only be used if all "
+            "manifolds have shape."
         )
     return len(factors), *factors[0].shape
 
@@ -117,7 +113,7 @@ class _IterateOverFactorsMixins:
         for point, factor in zip(points, self.factors):
             geomstats.errors.check_point_shape(point, factor)
 
-        if self.default_point_type == "vector":
+        if self.point_ndim == 1:
             points_ = []
             for point, factor in zip(points, self.factors):
                 if gs.ndim(point) > len(factor.shape):
@@ -151,7 +147,7 @@ class _IterateOverFactorsMixins:
         """
         geomstats.errors.check_point_shape(point, self)
 
-        if self.default_point_type == "vector":
+        if self.point_ndim == 1:
             projected_points = gs.split(point, self._cum_index, axis=-1)
             projected_points = [
                 self._reshape_trailing(projected_points[j], self.factors[j])
@@ -180,7 +176,7 @@ class _IterateOverFactorsMixins:
         """Convert the trailing dimensions to match the shape of a factor manifold."""
         space = factor._space if isinstance(factor, RiemannianMetric) else factor
 
-        if space.default_coords_type == "vector":
+        if space.point_ndim == 1:
             return argument
         leading_shape = argument.shape[:-1]
         trailing_shape = space.shape
@@ -267,23 +263,13 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
     Parameters
     ----------
-    factors : list
-        List of manifolds in the product.
-    default_point_type : {'auto', 'vector', 'matrix', 'other'}
-        Optional. Default value is 'auto', which will implement as 'vector' unless all
-        factors have the same shape. Vector representation gives the point as a 1-d
-        array. Matrix representation allows for a point to be represented by an array of
-        shape (n, dim), if each manifold has default_point_type 'vector' with shape
-        (dim,). 'other' will behave as `matrix` but for higher dimensions.
+    factors : tuple
+        Collection of manifolds in the product.
+    point_ndim : int or None
+        If None, defaults to 1, unless all factors have the same shape.
     """
 
-    def __init__(self, factors, default_point_type="auto", equip=True):
-        geomstats.errors.check_parameter_accepted_values(
-            default_point_type,
-            "default_point_type",
-            ["auto", "vector", "matrix", "other"],
-        )
-
+    def __init__(self, factors, point_ndim=None, equip=True):
         factors = tuple(factors)
 
         factor_dims = [factor.dim for factor in factors]
@@ -291,7 +277,7 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
         dim = sum(factor_dims)
 
-        shape = _find_product_shape(factors, default_point_type)
+        shape = _find_product_shape(factors, point_ndim)
 
         if "extrinsic" in factor_default_coords_types:
             default_coords_type = "extrinsic"
@@ -309,7 +295,7 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
             ]
             # TODO: need to revisit due to removal of scales
             self.embedding_space = ProductManifold(
-                factor_embedding_spaces, default_point_type, equip=False
+                factor_embedding_spaces, point_ndim, equip=False
             )
 
         cum_index = (
@@ -563,9 +549,9 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         return self._space.shape
 
     @property
-    def default_point_type(self):
+    def point_ndim(self):
         """Point type of space."""
-        return self._space.default_point_type
+        return self._space.point_ndim
 
     def metric_matrix(self, base_point=None):
         """Compute the matrix of the inner-product.

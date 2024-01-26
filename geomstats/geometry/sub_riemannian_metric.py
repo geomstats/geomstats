@@ -52,7 +52,7 @@ class SubRiemannianMetric:
                 "Either 'cometric_matrix' or 'frame' must be passed, and not both."
             )
 
-        if space.default_point_type != "vector":
+        if space.point_ndim != 1:
             raise ValueError("Can only handle 'vector' point types.")
 
         self.cometric_matrix = cometric_matrix

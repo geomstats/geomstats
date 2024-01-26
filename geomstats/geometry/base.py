@@ -225,9 +225,6 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
     shape : tuple
         Shape of the elements of the vector space. The dimension is the
         product of these values by default.
-    default_point_type : str, {'vector', 'matrix'}
-        Point type.
-        Optional, default: 'vector'.
     """
 
     def __init__(self, shape, dim=None, **kwargs):

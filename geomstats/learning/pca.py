@@ -209,7 +209,7 @@ class TangentPCA(_BasePCA):
             Projected data.
         """
         tangent_vecs = self._geometry.log(X, base_point=self.base_point_)
-        if self.space.default_point_type == "matrix":
+        if self.space.point_ndim == 2:
             if (
                 gs.all(Matrices.is_square(tangent_vecs))
                 and Matrices.is_symmetric(tangent_vecs).all()

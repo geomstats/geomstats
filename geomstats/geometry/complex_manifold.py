@@ -40,12 +40,6 @@ class ComplexManifold(abc.ABC):
         self.default_coords_type = default_coords_type
 
         self.point_ndim = len(self.shape)
-        if self.point_ndim == 1:
-            self.default_point_type = "vector"
-        elif self.point_ndim == 2:
-            self.default_point_type = "matrix"
-        else:
-            self.default_point_type = "other"
 
         if equip:
             self.equip_with_metric()
