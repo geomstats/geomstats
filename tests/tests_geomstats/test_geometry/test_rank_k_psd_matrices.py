@@ -83,10 +83,12 @@ def bundle_spaces(request):
         n = k = request.param
     else:
         n, k = request.param
+
     request.cls.base = PSDMatrices(n=n, k=k, equip=False)
+
     request.cls.total_space = total_space = FullRankMatrices(n=n, k=k, equip=False)
     total_space.equip_with_metric(MatricesMetric)
-    request.cls.bundle = BuresWassersteinBundle(total_space)
+    total_space.fiber_bundle = BuresWassersteinBundle(total_space)
 
 
 @pytest.mark.usefixtures("bundle_spaces")

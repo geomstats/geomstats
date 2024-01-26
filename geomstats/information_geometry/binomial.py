@@ -2,6 +2,7 @@
 
 Lead authors: Jules Deschamps, Tra My Nguyen.
 """
+
 from scipy.special import factorial
 from scipy.stats import binom
 
@@ -162,9 +163,7 @@ class BinomialDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
                 factorial(k) * factorial(self.n_draws - k)
             )
             return (
-                gs.from_numpy(const)
-                * (point**k)
-                * ((1 - point) ** (self.n_draws - k))
+                gs.from_numpy(const) * (point**k) * ((1 - point) ** (self.n_draws - k))
             )
 
         return pmf

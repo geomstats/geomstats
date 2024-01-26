@@ -1,4 +1,5 @@
 """Autograd based random backend."""
+
 import autograd.numpy as _np
 from autograd.numpy.random import randint, seed
 

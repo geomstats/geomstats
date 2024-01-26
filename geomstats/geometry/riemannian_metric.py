@@ -2,6 +2,7 @@
 
 Lead author: Nina Miolane.
 """
+
 from abc import ABC
 
 import joblib

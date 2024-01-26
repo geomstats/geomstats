@@ -3,7 +3,6 @@
 The n-dimensional hyperbolic regardless its different representations.
 """
 
-
 import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 

@@ -1,4 +1,5 @@
 """Visualization for Geometric Statistics."""
+
 import logging
 
 import matplotlib.pyplot as plt

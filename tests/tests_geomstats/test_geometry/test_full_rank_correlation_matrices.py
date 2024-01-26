@@ -67,7 +67,7 @@ class TestFullRankCorrelationMatrices(
 def bundles(request):
     n = request.param
     request.cls.total_space = total_space = SPDMatrices(n=n, equip=True)
-    request.cls.bundle = CorrelationMatricesBundle(total_space)
+    total_space.fiber_bundle = CorrelationMatricesBundle(total_space)
     request.cls.base = FullRankCorrelationMatrices(n=n, equip=False)
 
 
@@ -81,7 +81,9 @@ class TestCorrelationMatricesBundle(
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        horizontal_vec = self.bundle.horizontal_projection(tangent_vec, base_point)
+        horizontal_vec = self.total_space.fiber_bundle.horizontal_projection(
+            tangent_vec, base_point
+        )
 
         inverse = GeneralLinear.inverse(base_point)
         product_1 = Matrices.mul(horizontal_vec, inverse)

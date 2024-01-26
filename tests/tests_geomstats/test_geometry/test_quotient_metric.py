@@ -34,9 +34,8 @@ def spd_with_quotient_metric(request):
 
     total_space = GeneralLinear(n=n, equip=False)
     total_space.equip_with_metric(MatricesMetric)
-
-    bundle = GeneralLinearBuresWassersteinBundle(total_space)
-    other_space.equip_with_metric(QuotientMetric, fiber_bundle=bundle)
+    total_space.fiber_bundle = GeneralLinearBuresWassersteinBundle(total_space)
+    other_space.equip_with_metric(QuotientMetric, total_space=total_space)
 
     request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
 

@@ -255,7 +255,7 @@ class CorrelationMatricesBundle(FiberBundle):
         ver : array-like, shape=[..., n, n]
             Vertical projection.
         """
-        n = self.total_space.n
+        n = self._total_space.n
         inverse_base_point = GeneralLinear.inverse(base_point)
         operator = gs.eye(n) + base_point * inverse_base_point
         inverse_operator = GeneralLinear.inverse(operator)
@@ -300,9 +300,12 @@ class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
             total_space = SPDMatrices(space.n, equip=False)
             total_space.equip_with_metric(SPDAffineMetric)
 
+        if not hasattr(total_space, "fiber_bundle"):
+            total_space.fiber_bundle = CorrelationMatricesBundle(total_space)
+
         super().__init__(
             space=space,
-            fiber_bundle=CorrelationMatricesBundle(total_space),
+            total_space=total_space,
         )
 
 
