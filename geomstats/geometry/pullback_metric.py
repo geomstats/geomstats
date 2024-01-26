@@ -2,6 +2,7 @@
 
 Lead author: Nina Miolane.
 """
+
 import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.numerics.geodesic import ExpODESolver, LogShootingSolver

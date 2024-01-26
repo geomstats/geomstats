@@ -166,16 +166,14 @@ class TestSRVMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrize
 def srv_reparameterization_bundles(request):
     ambient_dim, k_sampling_points = request.param
 
-    total_space = (
-        request.cls.total_space
-    ) = request.cls.base = DiscreteCurvesStartingAtOrigin(
-        ambient_dim, k_sampling_points
+    total_space = request.cls.total_space = request.cls.base = (
+        DiscreteCurvesStartingAtOrigin(ambient_dim, k_sampling_points)
     )
     total_space.fiber_bundle = SRVReparametrizationBundle(total_space)
 
-    request.cls.data_generator = (
-        request.cls.base_data_generator
-    ) = ShapeBundleRandomDataGenerator(total_space)
+    request.cls.data_generator = request.cls.base_data_generator = (
+        ShapeBundleRandomDataGenerator(total_space)
+    )
 
 
 @pytest.mark.usefixtures("srv_reparameterization_bundles")

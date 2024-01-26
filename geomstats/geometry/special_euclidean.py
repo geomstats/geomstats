@@ -4,6 +4,7 @@ i.e. the Lie group of rigid transformations in n dimensions.
 
 Lead authors: Nicolas Guigui and Nina Miolane.
 """
+
 import math
 
 import geomstats.algebra_utils as utils
@@ -882,10 +883,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         coef_2 = gs.zeros_like(angle)
 
         coef_2 += mask_close_0_float * (
-            1.0 / 12.0
-            + angle**2 / 720.0
-            + angle**4 / 30240.0
-            + angle**6 / 1209600.0
+            1.0 / 12.0 + angle**2 / 720.0 + angle**4 / 30240.0 + angle**6 / 1209600.0
         )
 
         delta_angle = angle - gs.pi

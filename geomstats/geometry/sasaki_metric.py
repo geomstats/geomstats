@@ -5,6 +5,7 @@ bundle TM of a Riemannian manifold M.
 
 Lead authors: E. Nava-Yazdani, F. Ambellan, M. Hanik and C. von Tycowicz.
 """
+
 from joblib import Parallel, delayed
 
 import geomstats.backend as gs

@@ -1,4 +1,5 @@
 """Module exposing the `Matrices` and `MatricesMetric` class."""
+
 import logging
 import math
 from functools import reduce

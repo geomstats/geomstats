@@ -290,12 +290,8 @@ class HyperboloidMetric(HyperbolicMetric):
         """
         angle = self.dist(base_point, point)
 
-        coef_1_ = utils.taylor_exp_even_func(
-            angle**2, utils.inv_sinch_close_0, order=4
-        )
-        coef_2_ = utils.taylor_exp_even_func(
-            angle**2, utils.inv_tanh_close_0, order=4
-        )
+        coef_1_ = utils.taylor_exp_even_func(angle**2, utils.inv_sinch_close_0, order=4)
+        coef_2_ = utils.taylor_exp_even_func(angle**2, utils.inv_tanh_close_0, order=4)
 
         log_term_1 = gs.einsum("...,...j->...j", coef_1_, point)
         log_term_2 = -gs.einsum("...,...j->...j", coef_2_, base_point)
