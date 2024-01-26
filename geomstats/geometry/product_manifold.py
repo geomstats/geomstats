@@ -273,18 +273,14 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
         factors = tuple(factors)
 
         factor_dims = [factor.dim for factor in factors]
-        factor_default_coords_types = [factor.default_coords_type for factor in factors]
 
         dim = sum(factor_dims)
 
         shape = _find_product_shape(factors, point_ndim)
 
-        if "extrinsic" in factor_default_coords_types:
-            default_coords_type = "extrinsic"
-        else:
-            default_coords_type = "intrinsic"
+        intrinsic = all(factor.intrinsic for factor in factors)
 
-        if default_coords_type == "extrinsic":
+        if not intrinsic:
             factor_embedding_spaces = [
                 (
                     manifold.embedding_space
@@ -300,7 +296,7 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
         cum_index = (
             gs.cumsum(factor_dims)[:-1]
-            if default_coords_type == "intrinsic"
+            if intrinsic
             else self.embedding_space._cum_index
         )
 
@@ -311,7 +307,7 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
             has_mixed_fields=_has_mixed_fields(factors),
             dim=dim,
             shape=shape,
-            default_coords_type=default_coords_type,
+            intrinsic=intrinsic,
             equip=equip,
         )
 

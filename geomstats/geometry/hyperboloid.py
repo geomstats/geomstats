@@ -30,8 +30,9 @@ class Hyperboloid(_Hyperbolic, LevelSet):
     """
 
     def __init__(self, dim, equip=True):
+        self.coords_type = "extrinsic"
         self.dim = dim
-        super().__init__(dim=dim, default_coords_type="extrinsic", equip=equip)
+        super().__init__(dim=dim, intrinsic=False, equip=equip)
 
     @staticmethod
     def default_metric():
@@ -271,7 +272,7 @@ class HyperboloidMetric(HyperbolicMetric):
     def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
 
-        If `default_coords_type` is `poincare` then base_point belongs
+        If `coords_type` is `poincare` then base_point belongs
         to the Poincare ball and point is a vector in the Euclidean
         space of the same dimension as the ball.
 

@@ -346,9 +346,7 @@ class _Hyperbolic:
         point_to : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space in coordinates given by to_coords_type.
         """
-        return self.change_coordinates_system(
-            point, self.default_coords_type, to_coords_type
-        )
+        return self.change_coordinates_system(point, self.coords_type, to_coords_type)
 
     def from_coordinates(self, point, from_coords_type):
         """Convert to a type of coordinates given some type.
@@ -368,9 +366,7 @@ class _Hyperbolic:
         point_current : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space.
         """
-        return self.change_coordinates_system(
-            point, from_coords_type, self.default_coords_type
-        )
+        return self.change_coordinates_system(point, from_coords_type, self.coords_type)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample over the hyperbolic space.
@@ -397,9 +393,7 @@ class _Hyperbolic:
         size = (n_samples, self.dim)
         samples = bound * 2.0 * (gs.random.rand(*size) - 0.5)
 
-        samples = self.change_coordinates_system(
-            samples, "intrinsic", self.default_coords_type
-        )
+        samples = self.change_coordinates_system(samples, "intrinsic", self.coords_type)
 
         if n_samples == 1:
             return samples[0]

@@ -43,7 +43,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             dim=int((n * (n - 1)) / 2),
             representation_dim=n,
             lie_algebra=SkewSymmetricMatrices(n=n, equip=False),
-            default_coords_type="extrinsic",
+            intrinsic=False,
             equip=equip,
         )
 

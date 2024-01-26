@@ -76,7 +76,7 @@ class OpenHemisphere(OpenSet):
         self.dim = dim
         super().__init__(
             dim=dim,
-            default_coords_type="extrinsic",
+            intrinsic=False,
             embedding_space=Hypersphere(dim, equip=equip),
             equip=equip,
         )

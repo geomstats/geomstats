@@ -22,9 +22,8 @@ class Manifold(abc.ABC):
     shape : tuple of int
         Shape of one element of the manifold.
         Optional, default : None.
-    default_coords_type : str, {'intrinsic', 'extrinsic', etc}
+    intrinsic : bool
         Coordinate type.
-        Optional, default: 'intrinsic'.
     equip : bool
         If True, equip space with default metric.
 
@@ -38,7 +37,7 @@ class Manifold(abc.ABC):
         self,
         dim,
         shape,
-        default_coords_type="intrinsic",
+        intrinsic=True,
         equip=True,
     ):
         geomstats.errors.check_integer(dim, "dim")
@@ -48,7 +47,7 @@ class Manifold(abc.ABC):
 
         self.dim = dim
         self.shape = shape
-        self.default_coords_type = default_coords_type
+        self.intrinsic = intrinsic
 
         self.point_ndim = len(self.shape)
 

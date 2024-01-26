@@ -26,20 +26,20 @@ class Hyperbolic:
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    default_coords_type : str, {'extrinsic', 'ball', 'half-space'}
+    coords_type : str, {'extrinsic', 'ball', 'half-space'}
         Default coordinates to represent points in hyperbolic space.
         Optional, default: 'extrinsic'.
     """
 
-    def __new__(cls, dim, default_coords_type="extrinsic", equip=True):
-        """Instantiate class that corresponds to the default_coords_type."""
+    def __new__(cls, dim, coords_type="extrinsic", equip=True):
+        """Instantiate class that corresponds to the coords_type."""
         errors.check_parameter_accepted_values(
-            default_coords_type,
-            "default_coords_type",
+            coords_type,
+            "coords_type",
             ["extrinsic", "ball", "half-space"],
         )
-        if default_coords_type == "extrinsic":
+        if coords_type == "extrinsic":
             return Hyperboloid(dim, equip=equip)
-        if default_coords_type == "ball":
+        if coords_type == "ball":
             return PoincareBall(dim, equip=equip)
         return PoincareHalfSpace(dim, equip=equip)
