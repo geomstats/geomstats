@@ -2,6 +2,7 @@
 
 Lead author: Nicolas Guigui, John Harvey.
 """
+
 import math
 
 import geomstats.backend as gs
@@ -299,9 +300,11 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
         if default_coords_type == "extrinsic":
             factor_embedding_spaces = [
-                manifold.embedding_space
-                if hasattr(manifold, "embedding_space")
-                else manifold
+                (
+                    manifold.embedding_space
+                    if hasattr(manifold, "embedding_space")
+                    else manifold
+                )
                 for manifold in factors
             ]
             # TODO: need to revisit due to removal of scales

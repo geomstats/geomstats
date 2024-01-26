@@ -3,7 +3,6 @@
 Lead author: Nicolas Guigui, John Harvey.
 """
 
-
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.manifold import Manifold

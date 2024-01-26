@@ -2,6 +2,7 @@
 
 Lead author: Alice Le Brigant.
 """
+
 import math
 
 import numpy as np
@@ -303,9 +304,7 @@ class DirichletMetric(RiemannianMetric):
         jac_1 = term_1 * term_8 / term_9
         jac_1_mat = gs.squeeze(gs.tile(jac_1, (dim, dim, dim, 1, 1)))
         jac_2 = (
-            -term_6
-            / term_9**2
-            * gs.einsum("j...,i...->ji...", term_4 - term_3, term_1)
+            -term_6 / term_9**2 * gs.einsum("j...,i...->ji...", term_4 - term_3, term_1)
         )
         jac_2_mat = gs.squeeze(gs.tile(jac_2, (dim, dim, 1, 1, 1)))
         jac_3 = term_3 * term_6 / term_9

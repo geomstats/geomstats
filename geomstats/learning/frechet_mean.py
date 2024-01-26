@@ -337,8 +337,7 @@ class AdaptiveGradientDescent(BaseGradientDescent):
         )
 
         while (
-            sq_norm_current_tangent_mean > self.epsilon**2
-            and iteration < self.max_iter
+            sq_norm_current_tangent_mean > self.epsilon**2 and iteration < self.max_iter
         ):
             iteration += 1
 

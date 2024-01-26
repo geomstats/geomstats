@@ -1,4 +1,5 @@
 """Incremental frechet mean estimator."""
+
 from sklearn.base import BaseEstimator
 
 
