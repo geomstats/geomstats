@@ -57,8 +57,8 @@ class PreShapeSpace(LevelSet):
 
     def _get_total_space_metric(self):
         return (
-            self.metric.fiber_bundle.total_space.metric
-            if hasattr(self.metric, "fiber_bundle")
+            self.metric._total_space.metric
+            if hasattr(self.metric, "_total_space")
             else self.metric
         )
 
@@ -322,7 +322,7 @@ class PreShapeSpaceBundle(FiberBundle):
             Boolean denoting if tangent vector is horizontal.
         """
         product = gs.matmul(Matrices.transpose(tangent_vec), base_point)
-        is_tangent = self.total_space.is_tangent(tangent_vec, base_point, atol)
+        is_tangent = self._total_space.is_tangent(tangent_vec, base_point, atol)
         is_symmetric = Matrices.is_symmetric(product, atol)
         return gs.logical_and(is_tangent, is_symmetric)
 
@@ -435,13 +435,13 @@ class PreShapeSpaceBundle(FiberBundle):
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
         in Kendall shape spaces. Unpublished.
         """
-        if not gs.all(self.total_space.belongs(base_point)):
+        if not gs.all(self._total_space.belongs(base_point)):
             raise ValueError("The base_point does not belong to the pre-shape space")
         if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
             raise ValueError("Tangent vector x is not horizontal")
         if not gs.all(self.is_horizontal(horizontal_vec_y, base_point)):
             raise ValueError("Tangent vector y is not horizontal")
-        if not gs.all(self.total_space.is_tangent(nabla_x_y, base_point)):
+        if not gs.all(self._total_space.is_tangent(nabla_x_y, base_point)):
             raise ValueError("Vector nabla_x_y is not tangent")
         a_x_y = self.integrability_tensor(
             horizontal_vec_x, horizontal_vec_y, base_point
@@ -451,9 +451,9 @@ class PreShapeSpaceBundle(FiberBundle):
                 "Tangent vector nabla_x_y is not the gradient "
                 "of a horizontal distribution"
             )
-        if not gs.all(self.total_space.is_tangent(tangent_vec_e, base_point)):
+        if not gs.all(self._total_space.is_tangent(tangent_vec_e, base_point)):
             raise ValueError("Tangent vector e is not tangent")
-        if not gs.all(self.total_space.is_tangent(nabla_x_e, base_point)):
+        if not gs.all(self._total_space.is_tangent(nabla_x_e, base_point)):
             raise ValueError("Vector nabla_x_e is not tangent")
 
         p_top = Matrices.transpose(base_point)
@@ -485,7 +485,7 @@ class PreShapeSpaceBundle(FiberBundle):
             x_top, tangent_vec_e_sym
         )
 
-        scal_x_a_y_e = self.total_space.metric.inner_product(
+        scal_x_a_y_e = self._total_space.metric.inner_product(
             horizontal_vec_x, a_y_e, base_point
         )
 
@@ -541,7 +541,7 @@ class PreShapeSpaceBundle(FiberBundle):
             in Kendall shape spaces. Unpublished.
         """
         # Vectors X and Y have to be horizontal.
-        if not gs.all(self.total_space.is_centered(base_point)):
+        if not gs.all(self._total_space.is_centered(base_point)):
             raise ValueError("The base_point does not belong to the pre-shape space")
         if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
             raise ValueError("Tangent vector x is not horizontal")
@@ -632,7 +632,7 @@ class PreShapeSpaceBundle(FiberBundle):
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
             in Kendall shape spaces. Unpublished.
         """
-        if not gs.all(self.total_space.is_centered(base_point)):
+        if not gs.all(self._total_space.is_centered(base_point)):
             raise ValueError("The base_point does not belong to the pre-shape space")
         if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
             raise ValueError("Tangent vector x is not horizontal")
@@ -976,10 +976,10 @@ class KendallShapeMetric(QuotientMetric):
         curvature_derivative : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
         """
-        horizontal_x = self.fiber_bundle.horizontal_projection(
+        horizontal_x = self._fiber_bundle.horizontal_projection(
             tangent_vec_a, base_point
         )
-        horizontal_y = self.fiber_bundle.horizontal_projection(
+        horizontal_y = self._fiber_bundle.horizontal_projection(
             tangent_vec_b, base_point
         )
         (
@@ -988,7 +988,7 @@ class KendallShapeMetric(QuotientMetric):
             _,
             _,
             _,
-        ) = self.fiber_bundle.iterated_integrability_tensor_derivative_parallel(
+        ) = self._fiber_bundle.iterated_integrability_tensor_derivative_parallel(
             horizontal_x, horizontal_y, base_point
         )
         return 3.0 * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
@@ -1055,14 +1055,12 @@ class KendallShapeMetric(QuotientMetric):
                     "Either an end_point or a tangent_vec_b must be given to define the"
                     " geodesic along which to transport."
                 )
-        horizontal_a = self.fiber_bundle.horizontal_projection(tangent_vec, base_point)
-        horizontal_b = self.fiber_bundle.horizontal_projection(direction, base_point)
+        horizontal_a = self._fiber_bundle.horizontal_projection(tangent_vec, base_point)
+        horizontal_b = self._fiber_bundle.horizontal_projection(direction, base_point)
 
         def force(state, time):
-            gamma_t = self.fiber_bundle.total_space.metric.exp(
-                time * horizontal_b, base_point
-            )
-            speed = self.fiber_bundle.total_space.metric.parallel_transport(
+            gamma_t = self._total_space.metric.exp(time * horizontal_b, base_point)
+            speed = self._total_space.metric.parallel_transport(
                 horizontal_b, base_point, time * horizontal_b
             )
             coef = self.inner_product(speed, state, gamma_t)
