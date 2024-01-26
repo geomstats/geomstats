@@ -1125,7 +1125,7 @@ class InvariantMetric:
 
         Select the object to instantiate depending on the point_type.
         """
-        if space.default_point_type == "vector":
+        if space.point_ndim == 1:
             return _InvariantMetricVector(space, left=left)
         return _InvariantMetricMatrix(
             space,
@@ -1158,7 +1158,7 @@ class BiInvariantMetric(RiemannianMetric):
         self._check_implemented(space)
 
         super().__init__(space=space)
-        if self._space.default_point_type == "vector":
+        if self._space.point_ndim == 1:
             # keeps behavior before removing inheritance
             self.left = True
 
@@ -1238,7 +1238,7 @@ class BiInvariantMetric(RiemannianMetric):
         inner_prod : array-like, shape=[...]
             Inner-product of the two tangent vectors.
         """
-        if self._space.default_point_type == "vector":
+        if self._space.point_ndim == 1:
             return gs.dot(tangent_vec_a, tangent_vec_b)
 
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b) / 2
@@ -1261,7 +1261,7 @@ class BiInvariantMetric(RiemannianMetric):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        if base_point is None or self._space.default_point_type == "matrix":
+        if base_point is None or self._space.point_ndim == 2:
             inner_prod = self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
             if base_point is not None:
                 return repeat_out(

@@ -19,17 +19,17 @@ from .data.product_manifold import (
 @pytest.fixture(
     scope="class",
     params=[
-        ((Hypersphere(dim=3, equip=False), Hyperboloid(dim=3, equip=False)), "matrix"),
-        ((Hypersphere(dim=3, equip=False), Hyperboloid(dim=3, equip=False)), "vector"),
-        ((Hypersphere(dim=3, equip=False), Hyperboloid(dim=4, equip=False)), "vector"),
-        ((Hypersphere(dim=1, equip=False), Euclidean(dim=1, equip=False)), "vector"),
+        ((Hypersphere(dim=3, equip=False), Hyperboloid(dim=3, equip=False)), 2),
+        ((Hypersphere(dim=3, equip=False), Hyperboloid(dim=3, equip=False)), 1),
+        ((Hypersphere(dim=3, equip=False), Hyperboloid(dim=4, equip=False)), 1),
+        ((Hypersphere(dim=1, equip=False), Euclidean(dim=1, equip=False)), 1),
         (
             (SpecialOrthogonal(n=2, equip=False), SpecialOrthogonal(n=3, equip=False)),
-            "vector",
+            1,
         ),
         (
             (SpecialOrthogonal(n=2, equip=False), Euclidean(dim=3, equip=False)),
-            "vector",
+            1,
         ),
         (
             (
@@ -37,18 +37,18 @@ from .data.product_manifold import (
                 Euclidean(dim=1, equip=False),
                 Euclidean(dim=4, equip=False),
             ),
-            "vector",
+            1,
         ),
         (
             (Siegel(2, equip=False), Siegel(2, equip=False), Siegel(2, equip=False)),
-            "other",
+            3,
         ),
     ],
 )
 def spaces(request):
-    factors, default_point_type = request.param
+    factors, point_ndim = request.param
     request.cls.space = ProductManifold(
-        factors=factors, default_point_type=default_point_type, equip=False
+        factors=factors, point_ndim=point_ndim, equip=False
     )
 
 
@@ -60,17 +60,17 @@ class TestProductManifold(ProductManifoldTestCase, metaclass=DataBasedParametriz
 @pytest.fixture(
     scope="class",
     params=[
-        ((Hypersphere(dim=3), Hyperboloid(dim=3)), "matrix"),
-        ((Hypersphere(dim=3), Hyperboloid(dim=3)), "vector"),
-        ((Hypersphere(dim=3), Hyperboloid(dim=4)), "vector"),
-        ((Hypersphere(dim=1), Euclidean(dim=1)), "vector"),
+        ((Hypersphere(dim=3), Hyperboloid(dim=3)), 2),
+        ((Hypersphere(dim=3), Hyperboloid(dim=3)), 1),
+        ((Hypersphere(dim=3), Hyperboloid(dim=4)), 1),
+        ((Hypersphere(dim=1), Euclidean(dim=1)), 1),
         (
             (SpecialOrthogonal(n=2), SpecialOrthogonal(n=3)),
-            "vector",
+            1,
         ),
         (
             (SpecialOrthogonal(n=2), Euclidean(dim=3)),
-            "vector",
+            1,
         ),
         (
             (
@@ -78,19 +78,19 @@ class TestProductManifold(ProductManifoldTestCase, metaclass=DataBasedParametriz
                 Euclidean(dim=1),
                 Euclidean(dim=4),
             ),
-            "vector",
+            1,
         ),
         (
             (Siegel(2), Siegel(2), Siegel(2)),
-            "other",
+            3,
         ),
     ],
 )
 def equipped_spaces(request):
-    factors, default_point_type = request.param
+    factors, point_ndim = request.param
     request.cls.space = ProductManifold(
         factors=factors,
-        default_point_type=default_point_type,
+        point_ndim=point_ndim,
     )
 
 

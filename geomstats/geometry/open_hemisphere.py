@@ -135,7 +135,7 @@ class OpenHemispheresProduct(ProductManifold):
 
         super().__init__(
             factors=factors,
-            default_point_type="vector",
+            point_ndim=1,
             equip=equip,
         )
 

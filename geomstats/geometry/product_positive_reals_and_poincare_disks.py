@@ -84,7 +84,7 @@ class ProductPositiveRealsAndComplexPoincareDisks(ProductManifold):
                 ComplexPoincareDiskMetric(factor), scale
             )
 
-        super().__init__(factors=factors, default_point_type="other", equip=equip)
+        super().__init__(factors=factors, point_ndim=3, equip=equip)
 
     @staticmethod
     def default_metric():
