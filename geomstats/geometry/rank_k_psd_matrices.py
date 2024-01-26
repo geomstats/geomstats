@@ -36,7 +36,7 @@ class RankKPSDMatrices(Manifold):
             dim=int(k * n - k * (k + 1) / 2),
             shape=(n, n),
             equip=equip,
-            default_coords_type="extrinsic",
+            intrinsic=False,
         )
         self.n = n
         self.rank = k

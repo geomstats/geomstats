@@ -44,7 +44,7 @@ def kmean_poincare_ball():
         space="H2_poincare_disk",
         marker=".",
         color="black",
-        coords_type=manifold.default_coords_type,
+        coords_type=manifold.coords_type,
     )
 
     for i in range(n_clusters):
@@ -54,7 +54,7 @@ def kmean_poincare_ball():
             space="H2_poincare_disk",
             marker=".",
             color=colors[i],
-            coords_type=manifold.default_coords_type,
+            coords_type=manifold.coords_type,
         )
 
     ax = visualization.plot(
@@ -64,7 +64,7 @@ def kmean_poincare_ball():
         marker="*",
         color="green",
         s=100,
-        coords_type=manifold.default_coords_type,
+        coords_type=manifold.coords_type,
     )
 
     ax.set_title("Kmeans on Poincaré Ball Manifold")

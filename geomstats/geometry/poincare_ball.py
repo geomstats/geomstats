@@ -20,8 +20,6 @@ NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
 PI_2_3 = gs.power(gs.array([2.0 * gs.pi]), gs.array([2 / 3]))
 SQRT_2 = gs.sqrt(2.0)
 
-_COORDS_TYPE = "ball"
-
 
 class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
     """Class for the n-dimensional Poincare ball.
@@ -36,10 +34,11 @@ class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
     """
 
     def __init__(self, dim, equip=True):
+        self.coords_type = "ball"
         super().__init__(
             dim=dim,
             embedding_space=Euclidean(dim),
-            default_coords_type=_COORDS_TYPE,
+            intrinsic=True,
             equip=equip,
         )
 

@@ -357,18 +357,17 @@ class LevelSet(Manifold, abc.ABC):
 
     Parameters
     ----------
-    default_coords_type : str, {'intrinsic', 'extrinsic', etc}
-        Coordinate type.
-        Optional, default: 'extrinsic'.
+    intrinsic : bool
+        Coordinates type.
     """
 
-    def __init__(self, default_coords_type="extrinsic", shape=None, **kwargs):
+    def __init__(self, intrinsic=False, shape=None, **kwargs):
         self.embedding_space = self._define_embedding_space()
 
         if shape is None:
             shape = self.embedding_space.shape
 
-        super().__init__(default_coords_type=default_coords_type, shape=shape, **kwargs)
+        super().__init__(intrinsic=intrinsic, shape=shape, **kwargs)
 
     @abc.abstractmethod
     def _define_embedding_space(self):
@@ -709,7 +708,7 @@ class ComplexVectorSpaceOpenSet(ComplexManifold, abc.ABC):
     def __init__(self, embedding_space, shape=None, **kwargs):
         if shape is None:
             shape = embedding_space.shape
-        super().__init__(shape=shape, default_coords_type="extrinsic", **kwargs)
+        super().__init__(shape=shape, intrinsic=False, **kwargs)
         self.embedding_space = embedding_space
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
@@ -807,9 +806,7 @@ class ImmersedSet(Manifold, abc.ABC):
     """
 
     def __init__(self, dim, equip=True):
-        super().__init__(
-            dim=dim, shape=(dim,), default_coords_type="intrinsic", equip=equip
-        )
+        super().__init__(dim=dim, shape=(dim,), intrinsic=True, equip=equip)
         self.embedding_space = self._define_embedding_space()
 
     @staticmethod
