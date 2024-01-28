@@ -15,6 +15,7 @@ change of variable, either for a point or a vector.
 
 Lead author: Jules Deschamps.
 """
+
 from scipy.stats import gamma
 
 import geomstats.backend as gs

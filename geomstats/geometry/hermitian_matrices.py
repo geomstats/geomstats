@@ -2,6 +2,7 @@
 
 Lead author: Yann Cabanes.
 """
+
 import logging
 
 import geomstats.backend as gs

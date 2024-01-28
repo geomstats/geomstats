@@ -45,6 +45,7 @@ References
 .. [Yang_2013] Marc Arnaudon, Frédéric Barbaresco and Le Yang. Riemannian Medians
     and Means With Applications to Radar Signal Processing, IEEE, 2013.
 """
+
 from geomstats.geometry.complex_poincare_disk import (
     ComplexPoincareDisk,
     ComplexPoincareDiskMetric,
@@ -83,7 +84,7 @@ class ProductPositiveRealsAndComplexPoincareDisks(ProductManifold):
                 ComplexPoincareDiskMetric(factor), scale
             )
 
-        super().__init__(factors=factors, default_point_type="other", equip=equip)
+        super().__init__(factors=factors, point_ndim=3, equip=equip)
 
     @staticmethod
     def default_metric():

@@ -4,6 +4,7 @@ Define the product of a Riemannian metric with a scalar number.
 
 Lead author: John Harvey.
 """
+
 from functools import wraps
 
 import geomstats.backend as gs

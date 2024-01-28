@@ -26,10 +26,9 @@ def bundle_spaces(request):
 
     request.cls.total_space = total_space = GeneralLinear(n, equip=False)
     total_space.equip_with_metric(MatricesMetric)
+    total_space.fiber_bundle = GeneralLinearBuresWassersteinBundle(total_space)
 
     request.cls.base = SPDMatrices(n=n, equip=False)
-
-    request.cls.bundle = GeneralLinearBuresWassersteinBundle(total_space)
 
 
 @pytest.mark.usefixtures("bundle_spaces")

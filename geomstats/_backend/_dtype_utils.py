@@ -202,9 +202,11 @@ def _pre_cast_out_from_dtype(cast, is_floating, is_complex):
                     else:
                         dtype = kwargs.get(
                             "dtype",
-                            _config.DEFAULT_DTYPE
-                            if is_floating(out)
-                            else _config.DEFAULT_COMPLEX_DTYPE,
+                            (
+                                _config.DEFAULT_DTYPE
+                                if is_floating(out)
+                                else _config.DEFAULT_COMPLEX_DTYPE
+                            ),
                         )
 
                     if out.dtype != dtype:

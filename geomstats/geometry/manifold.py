@@ -22,9 +22,8 @@ class Manifold(abc.ABC):
     shape : tuple of int
         Shape of one element of the manifold.
         Optional, default : None.
-    default_coords_type : str, {'intrinsic', 'extrinsic', etc}
+    intrinsic : bool
         Coordinate type.
-        Optional, default: 'intrinsic'.
     equip : bool
         If True, equip space with default metric.
 
@@ -32,15 +31,13 @@ class Manifold(abc.ABC):
     ----------
     point_ndim : int
         Dimension of point array.
-    default_point_type : str
-        Point type: "vector" or "matrix".
     """
 
     def __init__(
         self,
         dim,
         shape,
-        default_coords_type="intrinsic",
+        intrinsic=True,
         equip=True,
     ):
         geomstats.errors.check_integer(dim, "dim")
@@ -50,15 +47,9 @@ class Manifold(abc.ABC):
 
         self.dim = dim
         self.shape = shape
-        self.default_coords_type = default_coords_type
+        self.intrinsic = intrinsic
 
         self.point_ndim = len(self.shape)
-        if self.point_ndim == 1:
-            self.default_point_type = "vector"
-        elif self.point_ndim == 2:
-            self.default_point_type = "matrix"
-        else:
-            self.default_point_type = "other"
 
         if equip:
             self.equip_with_metric()
@@ -119,7 +110,7 @@ class Manifold(abc.ABC):
         self.fiber_bundle = FiberBundle_(total_space=self)
 
         self.quotient = self.new(equip=False)
-        self.quotient.equip_with_metric(QuotientMetric_, fiber_bundle=self.fiber_bundle)
+        self.quotient.equip_with_metric(QuotientMetric_, total_space=self)
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):

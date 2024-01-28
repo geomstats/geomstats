@@ -76,7 +76,7 @@ class OpenHemisphere(OpenSet):
         self.dim = dim
         super().__init__(
             dim=dim,
-            default_coords_type="extrinsic",
+            intrinsic=False,
             embedding_space=Hypersphere(dim, equip=equip),
             equip=equip,
         )
@@ -135,7 +135,7 @@ class OpenHemispheresProduct(ProductManifold):
 
         super().__init__(
             factors=factors,
-            default_point_type="vector",
+            point_ndim=1,
             equip=equip,
         )
 

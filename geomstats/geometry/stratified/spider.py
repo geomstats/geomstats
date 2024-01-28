@@ -310,9 +310,11 @@ class SpiderMetric(PointSetMetric):
             )
             x = g(t)
             return [
-                SpiderPoint(stratum=initial_point.stratum, stratum_coord=-xx[0])
-                if xx < 0.0
-                else SpiderPoint(stratum=end_point.stratum, stratum_coord=xx[0])
+                (
+                    SpiderPoint(stratum=initial_point.stratum, stratum_coord=-xx[0])
+                    if xx < 0.0
+                    else SpiderPoint(stratum=end_point.stratum, stratum_coord=xx[0])
+                )
                 for xx in x
             ]
 

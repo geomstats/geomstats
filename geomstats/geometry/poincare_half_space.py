@@ -29,10 +29,11 @@ class PoincareHalfSpace(_Hyperbolic, VectorSpaceOpenSet):
     """
 
     def __init__(self, dim, equip=True):
+        self.coords_type = "half-space"
         super().__init__(
             dim=dim,
             embedding_space=Euclidean(dim),
-            default_coords_type="half-space",
+            intrinsic=True,
             equip=equip,
         )
 

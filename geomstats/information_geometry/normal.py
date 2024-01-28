@@ -470,7 +470,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
     def __init__(self, sample_dim, equip=True):
         super().__init__(
             factors=(Euclidean(sample_dim), SPDMatrices(sample_dim)),
-            default_point_type="vector",
+            point_ndim=1,
             support_shape=(sample_dim,),
             equip=equip,
         )

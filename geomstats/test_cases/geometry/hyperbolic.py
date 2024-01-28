@@ -16,15 +16,15 @@ class HyperbolicTransformer(PointTransformer):
     def transform_point(self, point):
         return self.space.change_coordinates_system(
             point,
-            self.space.default_coords_type,
-            self.other_space.default_coords_type,
+            self.space.coords_type,
+            self.other_space.coords_type,
         )
 
     def inverse_transform_point(self, other_point):
         return self.space.change_coordinates_system(
             other_point,
-            self.other_space.default_coords_type,
-            self.space.default_coords_type,
+            self.other_space.coords_type,
+            self.space.coords_type,
         )
 
 
@@ -43,11 +43,11 @@ class BallToHalfSpace(HyperbolicTransformer):
 
 
 class HyperbolicCoordsTransformTestCase(TestCase):
-    def _get_space(self, default_coords_type):
-        return Hyperbolic(dim=self.dim, default_coords_type=default_coords_type)
+    def _get_space(self, coords_type):
+        return Hyperbolic(dim=self.dim, coords_type=coords_type)
 
-    def _get_random_point(self, default_coords_type, n_points=1):
-        return self._get_space(default_coords_type).random_point(n_points)
+    def _get_random_point(self, coords_type, n_points=1):
+        return self._get_space(coords_type).random_point(n_points)
 
     def _test_from_space_to_other_space_tangent_is_tangent(
         self, n_points, from_, other, atol

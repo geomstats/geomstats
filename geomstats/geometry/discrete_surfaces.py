@@ -2,6 +2,7 @@
 
 Lead authors: Emmanuel Hartman, Adele Myers.
 """
+
 import math
 
 import geomstats.backend as gs

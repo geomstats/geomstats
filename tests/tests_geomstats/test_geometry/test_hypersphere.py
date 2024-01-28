@@ -34,10 +34,8 @@ from .data.hypersphere import (
 )
 def coords_transform_spaces(request):
     dim = request.param
-    request.cls.space_intrinsic = Hypersphere(dim, default_coords_type="intrinsic")
-    request.cls.space = request.cls.space_extrinsic = Hypersphere(
-        dim, default_coords_type="extrinsic"
-    )
+    request.cls.space_intrinsic = Hypersphere(dim, intrinsic=True)
+    request.cls.space = request.cls.space_extrinsic = Hypersphere(dim, intrinsic=False)
 
 
 @pytest.mark.usefixtures("coords_transform_spaces")
@@ -57,7 +55,7 @@ class TestHypersphereCoordsTransform(
 )
 def extrinsic_spaces(request):
     dim = request.param
-    request.cls.space = Hypersphere(dim, default_coords_type="extrinsic", equip=True)
+    request.cls.space = Hypersphere(dim, intrinsic=False, equip=True)
 
 
 @pytest.mark.usefixtures("extrinsic_spaces")
@@ -76,7 +74,7 @@ class TestHypersphereExtrinsic(
 )
 def intrinsic_spaces(request):
     dim = request.param
-    request.cls.space = Hypersphere(dim, default_coords_type="intrinsic")
+    request.cls.space = Hypersphere(dim, intrinsic=True)
 
 
 @pytest.mark.usefixtures("intrinsic_spaces")
@@ -96,7 +94,7 @@ class TestHypersphereIntrinsic(
 )
 def equipped_extrinsic_spaces(request):
     dim = request.param
-    request.cls.space = Hypersphere(dim, default_coords_type="extrinsic")
+    request.cls.space = Hypersphere(dim, intrinsic=False)
 
 
 @pytest.mark.usefixtures("equipped_extrinsic_spaces")
@@ -123,7 +121,7 @@ class TestHypersphereExtrinsicMetric(
 class TestHypersphere2IntrinsicMetric(
     RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
-    space = space = Hypersphere(2, default_coords_type="intrinsic", equip=False)
+    space = space = Hypersphere(2, intrinsic=True, equip=False)
     space.equip_with_metric(HypersphereMetric)
 
     data_generator = HypersphereIntrinsicRandomDataGenerator(space)
@@ -146,7 +144,7 @@ class TestHypersphere2IntrinsicMetric(
 
         theta, _ = base_point[0], base_point[1]
         expected_212_1 = gs.array(gs.sin(theta) ** 2)
-        expected_221_1 = gs.array(-gs.sin(theta) ** 2)
+        expected_221_1 = gs.array(-(gs.sin(theta) ** 2))
         expected_121_2 = gs.array(1.0)
         expected_112_2 = gs.array(-1.0)
         result_212_1 = riemann_tensor_ijk_l[1, 0, 1, 0]
@@ -163,7 +161,7 @@ class TestHypersphere2IntrinsicMetric(
 class TestHypersphere2ExtrinsicMetric(
     RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
-    space = space = Hypersphere(2, default_coords_type="extrinsic", equip=False)
+    space = space = Hypersphere(2, intrinsic=False, equip=False)
     space.equip_with_metric(HypersphereMetric)
 
     testing_data = Hypersphere2ExtrinsicMetricTestData()
@@ -173,7 +171,7 @@ class TestHypersphere2ExtrinsicMetric(
 class TestHypersphere4ExtrinsicMetric(
     RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
-    space = space = Hypersphere(4, default_coords_type="extrinsic", equip=False)
+    space = space = Hypersphere(4, intrinsic=False, equip=False)
     space.equip_with_metric(HypersphereMetric)
 
     testing_data = Hypersphere4ExtrinsicMetricTestData()

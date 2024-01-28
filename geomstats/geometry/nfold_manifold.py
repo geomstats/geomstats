@@ -3,7 +3,6 @@
 Lead author: Nicolas Guigui, John Harvey.
 """
 
-
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.manifold import Manifold
@@ -23,9 +22,6 @@ class NFoldManifold(Manifold):
         Base manifold.
     n_copies : int
         Number of replication of the base manifold.
-    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
-        Coordinate type.
-        Optional, default: 'intrinsic'.
     """
 
     def __init__(
@@ -44,7 +40,7 @@ class NFoldManifold(Manifold):
         super().__init__(
             dim=dim,
             shape=shape,
-            default_coords_type=base_manifold.default_coords_type,
+            intrinsic=base_manifold.intrinsic,
             equip=equip,
         )
 

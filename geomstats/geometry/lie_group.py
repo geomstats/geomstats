@@ -387,7 +387,7 @@ class LieGroup(Manifold, abc.ABC):
             Tangent map of the left/right translation by point. It can be
             applied to tangent vectors.
         """
-        if self.default_point_type == "matrix":
+        if self.point_ndim == 2:
             if inverse:
                 point = self.inverse(point)
             if left:
@@ -431,7 +431,7 @@ class LieGroup(Manifold, abc.ABC):
         exp : array-like, shape=[..., {dim, [n, n]}]
             Group exponential.
         """
-        if self.default_point_type == "vector":
+        if self.point_ndim == 1:
             tangent_translation = self.tangent_translation_map(
                 point=base_point, left=True, inverse=True
             )
@@ -504,7 +504,7 @@ class LieGroup(Manifold, abc.ABC):
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
             Group logarithm.
         """
-        if self.default_point_type == "vector":
+        if self.point_ndim == 1:
             tangent_translation = self.tangent_translation_map(
                 point=base_point,
                 left=True,

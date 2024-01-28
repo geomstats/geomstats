@@ -21,9 +21,8 @@ class ComplexManifold(abc.ABC):
     shape : tuple of int
         Shape of one element of the manifold.
         Optional, default : None.
-    default_coords_type : str, {'intrinsic', 'extrinsic', etc}
-        Coordinate type.
-        Optional, default: 'intrinsic'.
+    intrinsic : bool
+        Coordinates type.
     equip : bool
         If True, equip space with default metric.
     """
@@ -32,20 +31,14 @@ class ComplexManifold(abc.ABC):
         self,
         dim,
         shape,
-        default_coords_type="intrinsic",
+        intrinsic=True,
         equip=True,
     ):
         self.dim = dim
         self.shape = shape
-        self.default_coords_type = default_coords_type
+        self.intrinsic = intrinsic
 
         self.point_ndim = len(self.shape)
-        if self.point_ndim == 1:
-            self.default_point_type = "vector"
-        elif self.point_ndim == 2:
-            self.default_point_type = "matrix"
-        else:
-            self.default_point_type = "other"
 
         if equip:
             self.equip_with_metric()

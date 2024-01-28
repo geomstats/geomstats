@@ -13,6 +13,7 @@ with our BCH-implementation, for small orders approximation by BCH is faster
 than the scikit-learn version, while being close to the actual value.
 
 """
+
 import timeit
 
 import matplotlib.pyplot as plt

@@ -16,13 +16,13 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Linting
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{matrix.python-version}}
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: lint-${{matrix.os}}-${{matrix.python-version}}-${{ hashFiles('pyproject.toml') }}
@@ -33,11 +33,11 @@ jobs:
           pip install -e .[lint]
 
       - name: Setup flake8 annotations
-        uses: rbialon/flake8-annotations@v1
+        run: pip install flake8-github-annotations
 
       - name: linting [flake8]
         run: |
-          flake8 geomstats/ tests/
+          flake8 geomstats/ tests/ --format github
 
       - name: linting [black and isort]
         run: |
