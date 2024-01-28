@@ -42,12 +42,17 @@ class BrownianMotion:
         Parameters
         ----------
         end_time : float
+            Final time of the path.
         n_steps : int
+            Number of steps in the path.
         initial_point : array-like, shape=[..., dim]
+            Initial point of the path at time 0.
 
         Returns
         -------
         path : array-like, shape=[..., n_steps, dim]
+            Sample path of Brownian motion.
+
         """
         step_size = end_time / n_steps
 
@@ -57,6 +62,27 @@ class BrownianMotion:
         return gs.stack(paths)
 
     def _step(self, step_size, current_point):
+        """Calulate one increment of a Brownian motion path.
+
+        Parameters
+        ----------
+        step_size : float
+            Size of the step to be taken in the Brownian motion.
+        current_point : array-like, shape=[..., dim]
+            Current point in the Brownian motion path.
+
+        Returns
+        -------
+        next_point : array-like, shape=[..., dim]
+            Next point in the Brownian motion path after taking the step.
+
+        Notes
+        -----
+        Method uses the Euler-Maruyama integration scheme.
+        Brownian motion is described in the Ito form in intrinsic coordinates as a
+        stochastic differential equation, [H2022] (example 3.3.5).
+
+        """
         sigma = gs.linalg.sqrtm(self.space.metric.cometric_matrix(current_point))
         christoffels = self.space.metric.christoffels(current_point)
         cometric_matrix = self.space.metric.cometric_matrix(current_point)
