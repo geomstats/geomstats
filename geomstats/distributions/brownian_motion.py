@@ -35,6 +35,15 @@ class BrownianMotion:
 
     def __init__(self, space):
         self.space = space
+        self._check_coordinates(space)
+
+    def _check_coordinates(self, space):
+        """Check the manifold is defined in intrinsic coordinates."""
+        if not space.intrinsic:
+            raise ValueError(
+                "Space should be equipped with intrinsic coordinates to create Brownian"
+                "motion over the local parametrization."
+            )
 
     def sample_path(self, end_time, n_steps, initial_point):
         """Generate a sample path of Brownian motion.
