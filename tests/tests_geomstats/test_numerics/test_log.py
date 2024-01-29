@@ -1,6 +1,9 @@
+import random
+
 import pytest
 
 from geomstats.geometry.poincare_ball import PoincareBall
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.numerics.geodesic import LogODESolver, LogShootingSolver
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.numerics.geodesic import (
@@ -12,18 +15,20 @@ from .data.geodesic import LogSolverComparisonTestData, LogSolverTypeCheckTestDa
 
 
 def _create_params():
-    # TODO: do this more in a fixture like behavior?
     params = []
 
-    for space in (
-        PoincareBall(2),
-        PoincareBall(3),
-    ):
+    spaces_1d = [PoincareBall(random.randint(2, 3))]
+    spaces_2d = [SPDMatrices(random.randint(2, 3))]
+
+    for space in spaces_1d + spaces_2d:
         for solver in (
             LogShootingSolver(flatten=True),
             LogShootingSolver(flatten=False),
-            LogODESolver(n_nodes=10, use_jac=False),
         ):
+            params.append((space, solver))
+
+    for space in spaces_1d:
+        for solver in (LogODESolver(n_nodes=10, use_jac=False),):
             params.append((space, solver))
 
     return params

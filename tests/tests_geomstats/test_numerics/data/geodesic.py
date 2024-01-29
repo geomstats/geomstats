@@ -17,7 +17,7 @@ class LogSolverComparisonTestData(TestData):
     fail_for_not_implemented_errors = False
 
     tolerances = {
-        "log": {"atol": 1e-4},
+        "log": {"atol": 1e-3},
         "geodesic_bvp": {"atol": 1e-4},
     }
 

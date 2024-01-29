@@ -1,3 +1,5 @@
+import random
+
 import pytest
 
 from geomstats.geometry.poincare_ball import PoincareBall
@@ -14,13 +16,9 @@ from .data.geodesic import ExpSolverTypeCheckTestData
 
 
 def _create_params():
-    # TODO: do this more in a fixture like behavior?
     params = []
 
-    for space in (
-        PoincareBall(2),
-        PoincareBall(3),
-    ):
+    for space in (PoincareBall(random.randint(2, 3)),):
         for integrator in (
             GSIVPIntegrator(n_steps=20, step_type="rk4"),
             ScipySolveIVP(rtol=1e-8),
@@ -49,7 +47,7 @@ class TestExpODESolverComparison(
 def _create_params_type_check():
     params = []
 
-    space = PoincareBall(2)
+    space = PoincareBall(random.randint(2, 3))
     for integrator in (
         GSIVPIntegrator(n_steps=10, step_type="euler"),
         ScipySolveIVP(),

@@ -17,8 +17,8 @@ class ExpSolverComparisonTestCase(_SolverTestCase):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        res = self.space.metric.exp(tangent_vec, base_point)
         res_ = self.exp_solver.exp(self.space, tangent_vec, base_point)
+        res = self.space.metric.exp(tangent_vec, base_point)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
@@ -27,10 +27,10 @@ class ExpSolverComparisonTestCase(_SolverTestCase):
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
         time = get_random_times(n_times)
 
+        res_ = self.exp_solver.geodesic_ivp(self.space, tangent_vec, base_point)(time)
         res = self.space.metric.geodesic(base_point, initial_tangent_vec=tangent_vec)(
             time
         )
-        res_ = self.exp_solver.geodesic_ivp(self.space, tangent_vec, base_point)(time)
         self.assertAllClose(res, res_, atol=atol)
 
 
@@ -40,8 +40,8 @@ class LogSolverComparisonTestCase(_SolverTestCase):
         base_point = self.data_generator.random_point(n_points)
         end_point = self.data_generator.random_point(n_points)
 
-        res = self.space.metric.log(end_point, base_point)
         res_ = self.log_solver.log(self.space, end_point, base_point)
+        res = self.space.metric.log(end_point, base_point)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
@@ -50,8 +50,8 @@ class LogSolverComparisonTestCase(_SolverTestCase):
         end_point = self.data_generator.random_point(n_points)
         time = get_random_times(n_times)
 
-        res = self.space.metric.geodesic(base_point, end_point=end_point)(time)
         res_ = self.log_solver.geodesic_bvp(self.space, end_point, base_point)(time)
+        res = self.space.metric.geodesic(base_point, end_point=end_point)(time)
         self.assertAllClose(res, res_, atol=atol)
 
 

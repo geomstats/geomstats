@@ -58,12 +58,18 @@ class ODEIVPSolver(ABC):
     tfirst : bool
         Declares function signature.
         If True `f(t, y)`, else `f(y, t)`.
+    tchosen : bool
+        Informs about ability to solve at chosen times.
+        If False, then does not implement `integrate_t`.
     """
 
-    def __init__(self, save_result=False, state_is_raveled=False, tfirst=False):
+    def __init__(
+        self, save_result=False, state_is_raveled=False, tfirst=False, tchosen=False
+    ):
         self.state_is_raveled = state_is_raveled
         self.tfirst = tfirst
         self.save_result = save_result
+        self.tchosen = tchosen
 
         self.result_ = None
 
@@ -85,7 +91,6 @@ class ODEIVPSolver(ABC):
         result : OdeResult
         """
 
-    @abstractmethod
     def integrate_t(self, force, initial_state, t_eval):
         """Integrate force while choosing evaluating points.
 
@@ -102,6 +107,7 @@ class ODEIVPSolver(ABC):
         -------
         result : OdeResult
         """
+        raise NotImplementedError("Can't solve for chosen evaluating points.")
 
 
 class GSIVPIntegrator(ODEIVPSolver):
@@ -119,7 +125,9 @@ class GSIVPIntegrator(ODEIVPSolver):
     """
 
     def __init__(self, n_steps=10, step_type="euler", save_result=False):
-        super().__init__(save_result=save_result, state_is_raveled=False, tfirst=False)
+        super().__init__(
+            save_result=save_result, state_is_raveled=False, tfirst=False, tchosen=False
+        )
         self.step_type = step_type
         self.n_steps = n_steps
 
@@ -190,45 +198,6 @@ class GSIVPIntegrator(ODEIVPSolver):
 
         return result
 
-    def integrate_t(self, force, initial_state, t_eval):
-        """Integrate force at `t_eval` points.
-
-        Parameters
-        ----------
-        force : callable
-            Function to integrate.
-        initial_state : array-like
-            Initial state.
-        t_eval : array-like
-            Times at which to store the computed solution.
-
-        Returns
-        -------
-        result : OdeResult
-        """
-        # TODO: this is a very naive implementation
-        # based on previous generic implementation in geomstats
-        # resolution gets worst for larger t
-
-        states = []
-        initial_states = [
-            gs.stack([initial_state[0], t * initial_state[1]]) for t in t_eval
-        ]
-        for initial_state_ in initial_states:
-            states_t = self._integrate(force, initial_state_, end_time=1.0)
-            states.append(states_t[-1])
-
-        nfev = self._get_n_fevals(self.n_steps)
-        n_t = len(t_eval)
-        result = OdeResult(
-            t=t_eval, y=gs.stack(states), nfev=n_t * nfev, njev=0, sucess=True
-        )
-
-        if self.save_result:
-            self.result_ = result
-
-        return result
-
 
 class ScipySolveIVP(ODEIVPSolver):
     """Wrapper for scipy.integrate.solve_ivp.
@@ -242,7 +211,9 @@ class ScipySolveIVP(ODEIVPSolver):
     """
 
     def __init__(self, method="RK45", save_result=False, **options):
-        super().__init__(save_result=save_result, state_is_raveled=True, tfirst=True)
+        super().__init__(
+            save_result=save_result, state_is_raveled=True, tfirst=True, tchosen=True
+        )
         self.method = method
         self.options = options
 

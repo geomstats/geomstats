@@ -827,16 +827,19 @@ class _InvariantMetricMatrix(RiemannianMetric):
         sign = 1.0 if self.left else -1.0
         basis = self.normal_basis(self._space.lie_algebra.basis)
 
-        point, vector = state
+        point = state[..., 0, :, :]
+        vector = state[..., 1, :, :]
+
         velocity = self._space.tangent_translation_map(point, left=self.left)(vector)
-        coefficients = gs.array(
+        coefficients = gs.stack(
             [
                 self.structure_constant(vector, basis_vector, vector)
                 for basis_vector in basis
-            ]
+            ],
+            axis=-1,
         )
-        acceleration = gs.einsum("i...,ijk->...jk", coefficients, basis)
-        return gs.stack([velocity, sign * acceleration])
+        acceleration = gs.einsum("...i,ijk->...jk", coefficients, basis)
+        return gs.stack([velocity, sign * acceleration], axis=-1)
 
 
 class _InvariantMetricVector(RiemannianMetric):

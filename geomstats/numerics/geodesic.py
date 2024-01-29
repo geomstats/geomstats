@@ -11,7 +11,16 @@ from geomstats.vectorization import get_batch_shape
 
 
 class ExpSolver(ABC):
-    """Abstract class for geodesic initial value problem solvers."""
+    """Abstract class for geodesic initial value problem solvers.
+
+    Parameters
+    ----------
+    solves_ivp : bool
+        Informs if solver is able to solve for geodesic at different t.
+    """
+
+    def __init__(self, solves_ivp=False):
+        self.solves_ivp = solves_ivp
 
     @abstractmethod
     def exp(self, space, tangent_vec, base_point):
@@ -32,7 +41,6 @@ class ExpSolver(ABC):
             Point on the manifold.
         """
 
-    @abstractmethod
     def geodesic_ivp(self, space, tangent_vec, base_point):
         """Geodesic curve for initial value problem.
 
@@ -50,6 +58,7 @@ class ExpSolver(ABC):
         path : callable
             Time parametrized geodesic curve. `f(t)`.
         """
+        raise NotImplementedError("Can't solve for geodesic at different t.")
 
 
 class ExpODESolver(ExpSolver):
@@ -62,26 +71,34 @@ class ExpODESolver(ExpSolver):
     """
 
     def __init__(self, integrator=None):
+        super().__init__(solves_ivp=False)
+
         if integrator is None:
             integrator = GSIVPIntegrator()
 
+        self._integrator = None
         self.integrator = integrator
+
+    @property
+    def integrator(self):
+        """An instance of ODEIVPSolver."""
+        return self._integrator
+
+    @integrator.setter
+    def integrator(self, integrator):
+        """Set integrator."""
+        self.solves_ivp = integrator.tchosen
+        self._integrator = integrator
 
     def _solve(self, space, tangent_vec, base_point, t_eval=None):
         batch_shape = get_batch_shape(space.point_ndim, base_point, tangent_vec)
         base_point = gs.broadcast_to(base_point, tangent_vec.shape)
 
         if self.integrator.state_is_raveled:
-            if space.point_ndim > 1:
-                dim_vec = math.prod(space.shape)
-                batch_shape_ = (-1,) if batch_shape else ()
-
-                base_point = gs.reshape(base_point, batch_shape_ + (dim_vec,))
-                tangent_vec = gs.reshape(tangent_vec, batch_shape_ + (dim_vec,))
-
             initial_state = gs.hstack([base_point, tangent_vec])
         else:
-            initial_state = gs.stack([base_point, tangent_vec])
+            state_axis = -(space.point_ndim + 1)
+            initial_state = gs.stack([base_point, tangent_vec], axis=state_axis)
 
         force = self._get_force(space)
         if t_eval is None:
@@ -130,6 +147,11 @@ class ExpODESolver(ExpSolver):
         path : callable
             Time parametrized geodesic curve. `f(t)`.
         """
+        if not self.solves_ivp:
+            raise NotImplementedError(
+                "Can't solve for geodesic at different t with this integrator."
+            )
+
         base_point = gs.broadcast_to(base_point, tangent_vec.shape)
 
         def path(t):
@@ -181,16 +203,13 @@ class ExpODESolver(ExpSolver):
 
     def _simplify_exp_result(self, result, space):
         y = result.get_last_y()
-
         if self.integrator.state_is_raveled:
             dim_vec = math.prod(space.shape)
             exp = y[..., :dim_vec]
-            if space.point_ndim > 1:
-                return gs.reshape(exp, result.batch_shape + space.shape)
 
             return exp
 
-        return y[0]
+        return y[..., 0, :]
 
     def _simplify_result_t(self, result, space):
         # assumes several t
@@ -200,21 +219,25 @@ class ExpODESolver(ExpSolver):
             dim_vec = math.prod(space.shape)
             y = y[..., :dim_vec]
 
-            if space.point_ndim > 1:
-                y = gs.reshape(y, y.shape[:-1] + space.shape)
-
             if result.batch_shape:
                 return gs.moveaxis(y, 0, 1)
             return y
 
-        y = y[:, 0, :, ...]
-        if result.batch_shape:
-            return gs.moveaxis(y, 1, 0)
+        y = y[..., :, 0, :]
         return y
 
 
 class LogSolver(ABC):
-    """Abstract class for geodesic boundary value problem solvers."""
+    """Abstract class for geodesic boundary value problem solvers.
+
+    Parameters
+    ----------
+    solves_bvp : bool
+        Informs if solver is able to solve for geodesic at different t.
+    """
+
+    def __init__(self, solves_bvp=False):
+        self.solves_bvp = solves_bvp
 
     @abstractmethod
     def log(self, space, point, base_point):
@@ -235,7 +258,6 @@ class LogSolver(ABC):
             Tangent vector at the base point.
         """
 
-    @abstractmethod
     def geodesic_bvp(self, space, point, base_point):
         """Geodesic curve for boundary value problem.
 
@@ -253,67 +275,7 @@ class LogSolver(ABC):
         path : callable
             Time parametrized geodesic curve. `f(t)`.
         """
-
-
-class _GeodesicBVPFromExpMixins:
-    """Provides method to get geodesic given exp."""
-
-    def _geodesic_bvp_single(self, space, t, tangent_vec, base_point):
-        idx = "ijk"[: space.point_ndim]
-        tangent_vec_ = gs.einsum(f"...,...{idx}->...{idx}", t, tangent_vec)
-        return space.metric.exp(tangent_vec_, base_point)
-
-    def geodesic_bvp(self, space, point, base_point):
-        """Geodesic curve for boundary value problem.
-
-        Parameters
-        ----------
-        space : Manifold
-            Equipped manifold.
-        end_point : array-like, shape=[..., dim]
-            Point on the manifold.
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-
-        Returns
-        -------
-        path : callable
-            Time parametrized geodesic curve. `f(t)`.
-        """
-        tangent_vec = self.log(space, point, base_point)
-        is_batch = tangent_vec.ndim > space.point_ndim
-        if base_point.ndim < tangent_vec.ndim:
-            base_point = gs.broadcast_to(base_point, tangent_vec.shape)
-
-        def path(t):
-            """Time parametrized geodesic curve.
-
-            Parameters
-            ----------
-            t : float or array-like, shape=[n_times,]
-
-            Returns
-            -------
-            geodesic_points : array-like, shape=[..., n_times, dim]
-                Geodesic points evaluated at t.
-            """
-            if not gs.is_array(t):
-                t = gs.array([t])
-
-            if gs.ndim(t) == 0:
-                t = gs.expand_dims(t, axis=0)
-
-            if not is_batch:
-                return self._geodesic_bvp_single(space, t, tangent_vec, base_point)
-
-            return gs.stack(
-                [
-                    self._geodesic_bvp_single(space, t, tangent_vec_, base_point_)
-                    for tangent_vec_, base_point_ in zip(tangent_vec, base_point)
-                ]
-            )
-
-        return path
+        raise NotImplementedError("Can't solve for geodesic at different t.")
 
 
 class _LogBatchMixins:
@@ -399,8 +361,10 @@ class LogShootingSolver:
         )
 
 
-class _LogShootingSolverFlatten(_GeodesicBVPFromExpMixins, LogSolver):
+class _LogShootingSolverFlatten(LogSolver):
     def __init__(self, optimizer=None, initialization=None):
+        super().__init__(solves_bvp=False)
+
         if optimizer is None:
             optimizer = ScipyMinimize(jac="autodiff")
 
@@ -443,15 +407,12 @@ class _LogShootingSolverFlatten(_GeodesicBVPFromExpMixins, LogSolver):
 
         res = self.optimizer.minimize(objective, init_tangent_vec)
 
-        tangent_vec = gs.reshape(res.x, base_point.shape)
-
-        return tangent_vec
+        return gs.reshape(res.x, base_point.shape)
 
 
-class _LogShootingSolverUnflatten(
-    _LogBatchMixins, _GeodesicBVPFromExpMixins, LogSolver
-):
+class _LogShootingSolverUnflatten(_LogBatchMixins, LogSolver):
     def __init__(self, optimizer=None, initialization=None):
+        super().__init__(solves_bvp=False)
         if optimizer is None:
             optimizer = ScipyMinimize(jac="autodiff")
 
@@ -513,6 +474,8 @@ class LogODESolver(_LogBatchMixins, LogSolver):
     """
 
     def __init__(self, n_nodes=10, integrator=None, initialization=None, use_jac=True):
+        super().__init__(solves_bvp=True)
+
         if integrator is None:
             integrator = ScipySolveBVP()
 
@@ -558,11 +521,13 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         -------
         sol : array-like, shape=[2*dim, n_nodes]
         """
-        state = gs.moveaxis(gs.reshape(raveled_state, (2, space.dim, -1)), -2, -1)
+        state = gs.moveaxis(
+            gs.reshape(raveled_state, (2, space.dim, -1)), [-3, -2, -1], [-2, -1, -3]
+        )
 
         eq = space.metric.geodesic_equation(state, _)
 
-        return gs.reshape(gs.moveaxis(eq, -2, -1), (2 * space.dim, -1))
+        return gs.moveaxis(gs.reshape(eq, (-1, 2 * space.dim)), -2, -1)
 
     def _jacobian(self, _, raveled_state, space):
         """Jacobian of boundary value problem.
