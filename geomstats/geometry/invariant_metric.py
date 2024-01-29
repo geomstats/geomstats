@@ -778,21 +778,28 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         def acceleration(state, time):
             """Compute the right-hand-side of the parallel transport eq."""
-            omega, zeta = state[1:]
-            gam_dot, omega_dot = self.geodesic_equation(state[:2], time)
+            omega = state[..., 1, :, :]
+            zeta = state[..., 2, :, :]
+            new_state = self.geodesic_equation(state[..., :2, :, :], time)
+            gam_dot = new_state[..., 0, :, :]
+            omega_dot = new_state[..., 1, :, :]
             zeta_dot = -self.connection_at_identity(omega, zeta)
-            return gs.stack([gam_dot, omega_dot, zeta_dot])
+            return gs.stack([gam_dot, omega_dot, zeta_dot], axis=-3)
 
         base_point, left_angular_vel_a, left_angular_vel_b = gs.broadcast_arrays(
             base_point, left_angular_vel_a, left_angular_vel_b
         )
-        initial_state = gs.stack([base_point, left_angular_vel_b, left_angular_vel_a])
+        initial_state = gs.stack(
+            [base_point, left_angular_vel_b, left_angular_vel_a], axis=-3
+        )
 
         flow = integrate(acceleration, initial_state, n_steps=n_steps, step=step)
-        gamma, _, zeta_t = flow[-1]
+        gamma = flow[-1][..., 0, :, :]
+        zeta_t = flow[-1][..., 2, :, :]
         transported = self._space.tangent_translation_map(
             gamma, left=self.left, inverse=False
         )(zeta_t)
+
         return (transported, gamma) if return_endpoint else transported
 
     def geodesic_equation(self, state, _time):
@@ -839,7 +846,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
             axis=-1,
         )
         acceleration = gs.einsum("...i,ijk->...jk", coefficients, basis)
-        return gs.stack([velocity, sign * acceleration], axis=-1)
+        return gs.stack([velocity, sign * acceleration], axis=-3)
 
 
 class _InvariantMetricVector(RiemannianMetric):

@@ -209,7 +209,8 @@ class ExpODESolver(ExpSolver):
 
             return exp
 
-        return y[..., 0, :]
+        slc = tuple([slice(None)] * space.point_ndim)
+        return y[..., 0, *slc]
 
     def _simplify_result_t(self, result, space):
         # assumes several t
@@ -223,8 +224,8 @@ class ExpODESolver(ExpSolver):
                 return gs.moveaxis(y, 0, 1)
             return y
 
-        y = y[..., :, 0, :]
-        return y
+        slc = tuple([slice(None)] * space.point_ndim)
+        return y[..., :, 0, *slc]
 
 
 class LogSolver(ABC):

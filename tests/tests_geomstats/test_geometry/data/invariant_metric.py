@@ -62,12 +62,11 @@ class InvariantMetricMatrixTestData(_InvariantMetricMixinsTestData):
 class InvariantMetricMatrixSOTestData(InvariantMetricMatrixTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
-    skip_vec = True
-    trials = 3
 
     tolerances = {
         "dist_triangle_inequality": {"atol": 1e-4},
         "exp_after_log": {"atol": 1e-4},
+        "log_after_exp": {"atol": 1e-4},
         "geodesic_boundary_points": {"atol": 1e-4},
         "geodesic_bvp_reverse": {"atol": 1e-4},
         "geodesic_ivp_belongs": {"atol": 1e-4},

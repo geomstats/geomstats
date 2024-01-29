@@ -66,15 +66,15 @@ class Connection(ABC):
 
         Parameters
         ----------
-        state : array-like, shape=[..., dim]
+        state : array-like, shape=[..., 2, dim]
             Tangent vector at the position.
-        _time : array-like, shape=[..., dim]
+        _time : array-like, shape=[..., 2, dim]
             Point on the manifold, the position at which to compute the
             geodesic ODE.
 
         Returns
         -------
-        geodesic_ode : array-like, shape=[..., dim]
+        geodesic_ode : array-like, shape=[..., 2, dim]
             Value of the vector field to be integrated at position.
         """
         if self._space.point_ndim != 1:
