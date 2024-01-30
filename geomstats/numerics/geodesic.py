@@ -94,11 +94,10 @@ class ExpODESolver(ExpSolver):
         batch_shape = get_batch_shape(space.point_ndim, base_point, tangent_vec)
         base_point = gs.broadcast_to(base_point, tangent_vec.shape)
 
+        state_axis = -(space.point_ndim + 1)
+        initial_state = gs.stack([base_point, tangent_vec], axis=state_axis)
         if self.integrator.state_is_raveled:
-            initial_state = gs.hstack([base_point, tangent_vec])
-        else:
-            state_axis = -(space.point_ndim + 1)
-            initial_state = gs.stack([base_point, tangent_vec], axis=state_axis)
+            initial_state = gs.reshape(initial_state, batch_shape + (-1,))
 
         force = self._get_force(space)
         if t_eval is None:
@@ -207,7 +206,7 @@ class ExpODESolver(ExpSolver):
             dim_vec = math.prod(space.shape)
             exp = y[..., :dim_vec]
 
-            return exp
+            return gs.reshape(exp, exp.shape[:-1] + space.shape)
 
         slc = tuple([slice(None)] * space.point_ndim)
         return y[..., 0, *slc]
@@ -219,10 +218,7 @@ class ExpODESolver(ExpSolver):
         if self.integrator.state_is_raveled:
             dim_vec = math.prod(space.shape)
             y = y[..., :dim_vec]
-
-            if result.batch_shape:
-                return gs.moveaxis(y, 0, 1)
-            return y
+            return gs.reshape(y, y.shape[:-1] + space.shape)
 
         slc = tuple([slice(None)] * space.point_ndim)
         return y[..., :, 0, *slc]

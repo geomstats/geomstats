@@ -19,8 +19,8 @@ def _merge_scipy_results(results, same_t=False):
             value.append(result[key])
 
     if same_t:
-        merged_results["t"] = gs.moveaxis(gs.stack(merged_results["t"]), 0, 1)
-        merged_results["y"] = gs.moveaxis(gs.stack(merged_results["y"]), 0, 1)
+        merged_results["t"] = merged_results["t"][0]
+        merged_results["y"] = gs.stack(merged_results["y"])
 
     return merged_results
 
