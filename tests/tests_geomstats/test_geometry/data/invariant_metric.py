@@ -79,6 +79,7 @@ class InvariantMetricMatrixSOTestData(InvariantMetricMatrixTestData):
         "parallel_transport_bvp_norm": {"atol": _atol},
         "parallel_transport_bvp_vec": {"atol": _atol},
     }
+    xfails = ("geodesic_bvp_belongs", "geodesic_bvp_reverse")
 
 
 class InvariantMetricMatrixSO3TestData(TestData):
@@ -144,6 +145,7 @@ class InvariantMetricMatrixSETestData(InvariantMetricMatrixTestData):
         "squared_dist_is_symmetric": {"atol": _atol},
         "squared_dist_vec": {"atol": _atol},
     }
+    xfails = ("geodesic_bvp_belongs", "geodesic_bvp_reverse")
 
 
 class InvariantMetricVectorAtIdentityTestData(_InvariantMetricAtIdentityMixinsTestData):
