@@ -34,7 +34,7 @@ class ExpSolverTestData(TestData):
         return self.generate_vec_data_with_time()
 
 
-class LogSolverComparisonTestData(TestData):
+class LogSolverAgainstMetricTestData(TestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
@@ -47,6 +47,25 @@ class LogSolverComparisonTestData(TestData):
         return self.generate_random_data()
 
     def geodesic_bvp_test_data(self):
+        return self.generate_random_data_with_time()
+
+
+class LogSolverComparisonTestData(TestData):
+    def log_test_data(self):
+        return self.generate_random_data()
+
+    def geodesic_bvp_test_data(self):
+        return self.generate_random_data_with_time()
+
+
+class LogSolverTestData(TestData):
+    def log_known_tangent_vec_test_data(self):
+        return self.generate_random_data()
+
+    def geodesic_bvp_vec_test_data(self):
+        return self.generate_vec_data_with_time()
+
+    def geodesic_bvp_known_geod_test_data(self):
         return self.generate_random_data_with_time()
 
 
