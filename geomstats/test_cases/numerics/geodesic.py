@@ -221,8 +221,9 @@ class LogSolverTestCase(TestCase):
         )
         self._test_vectorization(vec_data)
 
+    @pytest.mark.random
     def test_geodesic_bvp_known_geod(self, n_points, n_times, atol):
-        # NB: assumes proper implementation of geodesic_bvp
+        # NB: assumes proper implementation of geodesic_ivp
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
         time = get_random_times(n_times)
