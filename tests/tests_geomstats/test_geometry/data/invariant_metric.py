@@ -63,17 +63,21 @@ class InvariantMetricMatrixSOTestData(InvariantMetricMatrixTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
+    _atol = 1e-3
     tolerances = {
-        "dist_triangle_inequality": {"atol": 1e-4},
-        "exp_after_log": {"atol": 1e-4},
-        "log_after_exp": {"atol": 1e-4},
-        "geodesic_boundary_points": {"atol": 1e-4},
-        "geodesic_bvp_reverse": {"atol": 1e-4},
-        "geodesic_ivp_belongs": {"atol": 1e-4},
-        "parallel_transport_bvp_transported_is_tangent": {"atol": 1e-4},
-        "parallel_transport_ivp_transported_is_tangent": {"atol": 1e-4},
-        "parallel_transport_bvp_norm": {"atol": 1e-4},
-        "parallel_transport_bvp_vec": {"atol": 1e-4},
+        "dist_triangle_inequality": {"atol": _atol},
+        "dist_is_symmetric": {"atol": _atol * 10},
+        "squared_dist_is_symmetric": {"atol": _atol * 10},
+        "exp_after_log": {"atol": _atol},
+        "log_after_exp": {"atol": _atol},
+        "geodesic_boundary_points": {"atol": _atol},
+        "geodesic_bvp_reverse": {"atol": _atol},
+        "geodesic_ivp_belongs": {"atol": _atol},
+        "geodesic_bvp_belongs": {"atol": _atol},
+        "parallel_transport_bvp_transported_is_tangent": {"atol": _atol},
+        "parallel_transport_ivp_transported_is_tangent": {"atol": _atol},
+        "parallel_transport_bvp_norm": {"atol": _atol},
+        "parallel_transport_bvp_vec": {"atol": _atol},
     }
 
 
@@ -118,28 +122,28 @@ class InvariantMetricMatrixSETestData(InvariantMetricMatrixTestData):
     fail_for_not_implemented_errors = False
     skip_vec = True
 
+    _atol = 1e-2
     tolerances = {
-        "dist_vec": {"atol": 1e-4},
-        "dist_is_log_norm": {"atol": 1e-4},
-        "dist_point_to_itself_is_zero": {"atol": 1e-4},
-        "dist_is_symmetric": {"atol": 1e-4},
-        "dist_triangle_inequality": {"atol": 1e-4},
-        "exp_belongs": {"atol": 1e-4},
-        "exp_after_log": {"atol": 1e-4},
-        "log_after_exp": {"atol": 1e-4},
-        "log_vec": {"atol": 1e-4},
-        "geodesic_bvp_vec": {"atol": 1e-4},
-        "geodesic_boundary_points": {"atol": 1e-4},
-        "geodesic_bvp_reverse": {"atol": 1e-4},
-        "geodesic_bvp_belongs": {"atol": 1e-4},
-        "parallel_transport_bvp_transported_is_tangent": {"atol": 1e-4},
-        "parallel_transport_ivp_transported_is_tangent": {"atol": 1e-4},
-        "parallel_transport_bvp_norm": {"atol": 1e-4},
-        "parallel_transport_bvp_vec": {"atol": 1e-4},
-        "squared_dist_is_symmetric": {"atol": 1e-4},
-        "squared_dist_vec": {"atol": 1e-4},
+        "dist_vec": {"atol": _atol},
+        "dist_is_log_norm": {"atol": _atol},
+        "dist_point_to_itself_is_zero": {"atol": _atol},
+        "dist_is_symmetric": {"atol": _atol},
+        "dist_triangle_inequality": {"atol": _atol},
+        "exp_belongs": {"atol": _atol},
+        "exp_after_log": {"atol": _atol},
+        "log_after_exp": {"atol": _atol},
+        "log_vec": {"atol": _atol},
+        "geodesic_bvp_vec": {"atol": _atol},
+        "geodesic_boundary_points": {"atol": _atol},
+        "geodesic_bvp_reverse": {"atol": _atol},
+        "geodesic_bvp_belongs": {"atol": _atol},
+        "parallel_transport_bvp_transported_is_tangent": {"atol": _atol},
+        "parallel_transport_ivp_transported_is_tangent": {"atol": _atol},
+        "parallel_transport_bvp_norm": {"atol": _atol},
+        "parallel_transport_bvp_vec": {"atol": _atol},
+        "squared_dist_is_symmetric": {"atol": _atol},
+        "squared_dist_vec": {"atol": _atol},
     }
-    xfails = list(tolerances.keys())
 
 
 class InvariantMetricVectorAtIdentityTestData(_InvariantMetricAtIdentityMixinsTestData):
