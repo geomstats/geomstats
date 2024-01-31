@@ -490,7 +490,11 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         return gs.linspace(0.0, 1.0, num=self.n_nodes)
 
     def _default_initialization(self, space, point, base_point):
-        point_0, point_1 = base_point, point
+        if point.ndim == 1:
+            point_0, point_1 = base_point, point
+        else:
+            point_0 = gs.flatten(base_point)
+            point_1 = gs.flatten(point)
 
         pos_init = gs.transpose(gs.linspace(point_0, point_1, self.n_nodes))
 
@@ -500,8 +504,8 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         return gs.vstack([pos_init, vel_init])
 
     def _boundary_condition(self, state_0, state_1, space, point_0, point_1):
-        pos_0 = state_0[: space.dim]
-        pos_1 = state_1[: space.dim]
+        pos_0 = state_0[: point_0.shape[0]]
+        pos_1 = state_1[: point_1.shape[0]]
         return gs.hstack((pos_0 - point_0, pos_1 - point_1))
 
     def _bvp(self, _, raveled_state, space):
@@ -519,12 +523,10 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         sol : array-like, shape=[2*dim, n_nodes]
         """
         state = gs.moveaxis(
-            gs.reshape(raveled_state, (2, space.dim, -1)), [-3, -2, -1], [-2, -1, -3]
+            gs.reshape(raveled_state, (2,) + space.shape + (-1,)), -1, 0
         )
-
-        eq = space.metric.geodesic_equation(state, _)
-
-        return gs.moveaxis(gs.reshape(eq, (-1, 2 * space.dim)), -2, -1)
+        new_state = space.metric.geodesic_equation(state, _)
+        return gs.moveaxis(gs.reshape(new_state, (-1, raveled_state.shape[0])), -2, -1)
 
     def _jacobian(self, _, raveled_state, space):
         """Jacobian of boundary value problem.
@@ -570,7 +572,7 @@ class LogODESolver(_LogBatchMixins, LogSolver):
     def _solve(self, space, point, base_point):
         bvp = lambda t, state: self._bvp(t, state, space)
         bc = lambda state_0, state_1: self._boundary_condition(
-            state_0, state_1, space, base_point, point
+            state_0, state_1, space, gs.flatten(base_point), gs.flatten(point)
         )
 
         jacobian = None
@@ -642,8 +644,9 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         return path
 
     def _simplify_log_result(self, result, space):
-        _, tangent_vec = gs.reshape(gs.transpose(result.y)[0], (2, space.dim))
-        return tangent_vec
+        return gs.reshape(result.y[..., 0], (2,) + space.shape)[1]
 
     def _simplify_result_t(self, result, space):
-        return gs.transpose(result[: space.dim, :])
+        return gs.moveaxis(
+            gs.reshape(result[: result.shape[0] // 2, :], space.shape + (-1,)), -1, 0
+        )
