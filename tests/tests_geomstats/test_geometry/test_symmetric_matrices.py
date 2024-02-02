@@ -3,6 +3,7 @@ import random
 import pytest
 
 from geomstats.geometry.symmetric_matrices import (
+    HollowMatricesPermutationInvariantMetric,
     SymmetricHollowMatrices,
     SymmetricMatrices,
 )
@@ -12,9 +13,11 @@ from geomstats.test_cases.geometry.base import (
     MatrixVectorSpaceTestCase,
 )
 from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.matrices import MatricesMetricTestData
 from .data.symmetric_matrices import (
+    HollowMatricesPermutationInvariantMetricTestData,
     SymmetricHollowMatricesTestData,
     SymmetricMatrices1TestData,
     SymmetricMatrices2TestData,
@@ -91,3 +94,15 @@ class TestSymmetricHollowMatrices(
     space = SymmetricHollowMatrices(n=_n, equip=False)
 
     testing_data = SymmetricHollowMatricesTestData()
+
+
+class TestHollowMatricesPermutationInvariantMetric(
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+):
+    # _n = random.randint(2, 5)
+    _n = 3
+    space = SymmetricHollowMatrices(n=_n, equip=False).equip_with_metric(
+        HollowMatricesPermutationInvariantMetric
+    )
+
+    testing_data = HollowMatricesPermutationInvariantMetricTestData()
