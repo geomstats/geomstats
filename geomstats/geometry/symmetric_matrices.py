@@ -4,8 +4,9 @@ Lead author: Yann Thanwerdas.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.base import MatrixVectorSpace
+from geomstats.geometry.base import LevelSet, MatrixVectorSpace
 from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.vectorization import repeat_out
 
 
 class SymmetricMatrices(MatrixVectorSpace):
@@ -133,3 +134,90 @@ class SymmetricMatrices(MatrixVectorSpace):
 
         mat = Matrices.to_symmetric(upper_triangular) * mask
         return mat
+
+
+class SymmetricHollowMatrices(MatrixVectorSpace, LevelSet):
+    """Space of symmetric hollow matrices."""
+
+    def __init__(self, n, equip=True):
+        self.n = n
+        super().__init__(dim=int(n * (n - 1) / 2), shape=(n, n), equip=equip)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return MatricesMetric
+
+    def _define_embedding_space(self):
+        return SymmetricMatrices(n=self.n)
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n]
+        """
+        return Matrices.diagonal(point)
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+        point : Ignored.
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n]
+        """
+        out = self.submersion(vector)
+        return repeat_out(self.point_ndim, out, vector, point, out_shape=(self.n,))
+
+    def _create_basis(self):
+        """Compute the basis of the vector space of hollow symmetric matrices."""
+        indices, values = [], []
+        k = -1
+        for row in range(self.n):
+            for col in range(row + 1, self.n):
+                k += 1
+                indices.extend([(k, row, col), (k, col, row)])
+                values.extend([1.0, 1.0])
+
+        return gs.array_from_sparse(indices, values, (k + 1, self.n, self.n))
+
+    @staticmethod
+    def basis_representation(matrix_representation):
+        """Convert a hollow symmetric matrix into a vector.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        vec : array-like, shape=[..., n(n+1)/2]
+            Vector.
+        """
+        return gs.tril_to_vec(matrix_representation, k=-1)
+
+    def projection(self, point):
+        """Project a point in embedding manifold on embedded manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *embedding_space.point_shape]
+            Point in embedding manifold.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., *point_shape]
+            Projected point.
+        """
+        return point - Matrices.to_diagonal(point)
