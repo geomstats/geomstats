@@ -1,7 +1,7 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import MatrixVectorSpaceTestData
+from .base import LevelSetTestData, MatrixVectorSpaceTestData
 
 
 class SymmetricMatricesTestData(MatrixVectorSpaceTestData):
@@ -86,3 +86,7 @@ class SymmetricMatrices3TestData(TestData):
             ),
         ]
         return self.generate_tests(data)
+
+
+class SymmetricHollowMatricesTestData(MatrixVectorSpaceTestData, LevelSetTestData):
+    pass

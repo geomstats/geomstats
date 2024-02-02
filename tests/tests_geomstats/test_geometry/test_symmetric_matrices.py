@@ -2,13 +2,20 @@ import random
 
 import pytest
 
-from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from geomstats.geometry.symmetric_matrices import (
+    SymmetricHollowMatrices,
+    SymmetricMatrices,
+)
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.base import MatrixVectorSpaceTestCase
+from geomstats.test_cases.geometry.base import (
+    LevelSetTestCase,
+    MatrixVectorSpaceTestCase,
+)
 from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 
 from .data.matrices import MatricesMetricTestData
 from .data.symmetric_matrices import (
+    SymmetricHollowMatricesTestData,
     SymmetricMatrices1TestData,
     SymmetricMatrices2TestData,
     SymmetricMatrices3TestData,
@@ -73,3 +80,14 @@ class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer
     space = SymmetricMatrices(n=n)
 
     testing_data = MatricesMetricTestData()
+
+
+class TestSymmetricHollowMatrices(
+    MatrixVectorSpaceTestCase,
+    LevelSetTestCase,
+    metaclass=DataBasedParametrizer,
+):
+    _n = random.randint(2, 5)
+    space = SymmetricHollowMatrices(n=_n, equip=False)
+
+    testing_data = SymmetricHollowMatricesTestData()
