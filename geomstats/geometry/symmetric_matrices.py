@@ -6,6 +6,7 @@ Lead author: Yann Thanwerdas.
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet, MatrixVectorSpace
 from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import repeat_out
 
 
@@ -221,3 +222,89 @@ class SymmetricHollowMatrices(MatrixVectorSpace, LevelSet):
             Projected point.
         """
         return point - Matrices.to_diagonal(point)
+
+
+class HollowMatricesPermutationInvariantMetric(RiemannianMetric):
+    """A permutation-invariant metric on the space of hollow matrices.
+
+    It is flat Riemannian metric à priori invariant by the congruence action
+    of permutation matrices defined over a matrix vector space,
+    so it is just a metric defined over the vector space itself,
+    even though we implement it as a Riemannian metric, since
+    the tangent bundle to Hol is itself, so tangent vector are simply hollow matrices,
+    and since the metric is flat it doesn't depend
+    from the base point.
+    """
+
+    def __init__(self, space, alpha=1.0, beta=1.0, gamma=1.0):
+        # the condition is always verified for for a,b,g=1 (easy proof) <=> n>0
+        # TODO: add condition check?
+        self._check_params(space, alpha, beta, gamma)
+        super().__init__(space=space)
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+
+    @staticmethod
+    def _check_params(space, alpha, beta, gamma):
+        if space.n == 2:
+            if alpha < gs.atol or beta < gs.atol:
+                raise ValueError("{alpha} and {beta} must be 0. when n==2")
+
+        elif space.n == 3:
+            if alpha < gs.atol:
+                raise ValueError("{alpha} must be 0. when n==2")
+
+    def quadratic_form(self, tangent_vec):
+        comp = tangent_vec @ tangent_vec
+
+        out_alpha = self.alpha * gs.trace(comp) if self.alpha > gs.atol else 0.0
+        out_beta = self.beta * gs.sum(comp) if self.beta > gs.atol else 0.0
+        out_gamma = self.gamma * gs.sum(tangent_vec) ** 2
+
+        return out_alpha + out_beta + out_gamma
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        return (1 / 2) * (
+            self.quadratic_form(tangent_vec_a + tangent_vec_b)
+            - self.quadratic_form(tangent_vec_a)
+            - self.quadratic_form(tangent_vec_b)
+        )
+
+    def exp(self, tangent_vec, base_point):
+        """Compute exp map of a base point in tangent vector direction.
+
+        The Riemannian exponential is vector addition in the Euclidean space.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., dim]
+            Riemannian exponential.
+        """
+        return base_point + tangent_vec
+
+    def log(self, point, base_point):
+        """Compute log map using a base point and other point.
+
+        The Riemannian logarithm is the subtraction in the Euclidean space.
+
+        Parameters
+        ----------
+        point: array-like, shape=[..., dim]
+            Point.
+        base_point: array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        log: array-like, shape=[..., dim]
+            Riemannian logarithm.
+        """
+        return point - base_point
