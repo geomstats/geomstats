@@ -36,7 +36,7 @@ def main():
     tangent_vec = gs.einsum("t,ij->tij", t, initial_tangent_vec)
     group_geo_points = se2_group_left_metric.exp(tangent_vec)
     left_geo_points = se2_group_left_metric.metric.exp(tangent_vec)
-    right_geo_points = se2_group_right_metric.metric.exp(tangent_vec)
+    right_geo_points = se2_group_right_metric.metric.exp(tangent_vec, base_point=None)
 
     ax = visualization.plot(
         group_geo_points, space="SE2_GROUP", color="black", label="Group"

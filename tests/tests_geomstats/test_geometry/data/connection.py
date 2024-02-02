@@ -5,6 +5,9 @@ class ConnectionTestData(TestData):
     def christoffels_vec_test_data(self):
         return self.generate_vec_data()
 
+    def geodesic_equation_vec_test_data(self):
+        return self.generate_vec_data()
+
     def exp_vec_test_data(self):
         return self.generate_vec_data()
 

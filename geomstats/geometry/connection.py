@@ -66,22 +66,28 @@ class Connection(ABC):
 
         Parameters
         ----------
-        state : array-like, shape=[..., dim]
+        state : array-like, shape=[..., 2, dim]
             Tangent vector at the position.
-        _time : array-like, shape=[..., dim]
+        _time : array-like, shape=[..., 2, dim]
             Point on the manifold, the position at which to compute the
             geodesic ODE.
 
         Returns
         -------
-        geodesic_ode : array-like, shape=[..., dim]
+        geodesic_ode : array-like, shape=[..., 2, dim]
             Value of the vector field to be integrated at position.
         """
-        position, velocity = state
+        if self._space.point_ndim != 1:
+            raise NotImplementedError(
+                "The geodesic equation is only implemented for points "
+                "represented by a vector."
+            )
+        position = state[..., 0, :]
+        velocity = state[..., 1, :]
         gamma = self.christoffels(position)
         equation = gs.einsum("...kij,...i->...kj", gamma, velocity)
         equation = -gs.einsum("...kj,...j->...k", equation, velocity)
-        return gs.stack([velocity, equation])
+        return gs.stack([velocity, equation], axis=-2)
 
     def exp(self, tangent_vec, base_point):
         """Exponential map associated to the affine connection.
@@ -649,9 +655,7 @@ class Connection(ABC):
             Parameterized function for the geodesic curve starting at
             initial_point with velocity initial_tangent_vec.
         """
-        if _check_exp_solver(self, raise_=False) and hasattr(
-            self.exp_solver, "geodesic_ivp"
-        ):
+        if _check_exp_solver(self, raise_=False) and self.exp_solver.solves_ivp:
             return self.exp_solver.geodesic_ivp(
                 self._space, initial_tangent_vec, initial_point
             )
@@ -677,9 +681,7 @@ class Connection(ABC):
             Parameterized function for the geodesic curve starting at
             initial_point and ending at end_point.
         """
-        if _check_log_solver(self, raise_=False) and hasattr(
-            self.log_solver, "geodesic_bvp"
-        ):
+        if _check_log_solver(self, raise_=False) and self.log_solver.solves_bvp:
             return self.log_solver.geodesic_bvp(
                 self._space,
                 end_point,
