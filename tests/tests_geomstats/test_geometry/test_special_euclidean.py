@@ -103,19 +103,10 @@ class TestSpecialEuclidean2Vectors(
     testing_data = SpecialEuclidean2VectorsTestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[random.randint(2, 3)],
-)
-def equipped_SE_matrix_groups(request):
-    n = request.param
-    request.cls.space = SpecialEuclidean(n)
-
-
-@pytest.mark.usefixtures("equipped_SE_matrix_groups")
 class TestSpecialEuclideanMatricesCanonicalLeftMetric(
     InvariantMetricMatrixTestCase, metaclass=DataBasedParametrizer
 ):
+    space = SpecialEuclidean(random.randint(2, 3))
     testing_data = SpecialEuclideanMatricesCanonicalLeftMetricTestData()
 
 
