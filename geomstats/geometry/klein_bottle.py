@@ -7,6 +7,7 @@ Lead author: Juliane Braunsmann
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import get_batch_shape, repeat_out
 
 
 class KleinBottleMetric(RiemannianMetric):
@@ -19,14 +20,6 @@ class KleinBottleMetric(RiemannianMetric):
     space : KleinBottle
         Underlying manifold.
     """
-
-    def __init__(self, space):
-        super().__init__(
-            dim=space.dim,
-            shape=space.shape,
-            default_coords_type=space.default_coords_type,
-        )
-        self._space = space
 
     def injectivity_radius(self, base_point):
         """Compute the radius of the injectivity domain.
@@ -45,7 +38,8 @@ class KleinBottleMetric(RiemannianMetric):
         radius : float
             Injectivity radius.
         """
-        return 0.5
+        radius = gs.array(0.5)
+        return repeat_out(self._space.point_ndim, radius, base_point)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
@@ -90,8 +84,7 @@ class KleinBottleMetric(RiemannianMetric):
                 base_point = gs.expand_dims(base_point, 0)
         base_point_canonical = self._space.regularize(base_point)
         point = base_point_canonical + tangent_vec
-        point_canonical = self._space.regularize(point)
-        return point_canonical
+        return self._space.regularize(point)
 
     def log(self, point, base_point, **kwargs):
         """Logarithm map.
@@ -188,30 +181,11 @@ class KleinBottle(Manifold):
     """
 
     def __init__(self, equip=True):
-        dim = 2
-        super().__init__(
-            dim=dim, shape=(dim,), metric=None, default_coords_type="intrinsic"
-        )
+        super().__init__(dim=2, shape=(2,), intrinsic=True, equip=equip)
 
-        if equip is True:
-            self.equip_with_metric()
-
-    def _default_metric(self):
+    def default_metric(self):
+        """Metric to equip the space with if equip is True."""
         return KleinBottleMetric
-
-    def equip_with_metric(self, Metric=None):
-        """Equip the manifold with the specified metric.
-
-        Parameters
-        ----------
-        metric: Metric
-            A metric compatible with the Klein Bottle.
-        """
-        if Metric is None:
-            Metric = self._default_metric()
-        self.metric = Metric(self)
-
-        return self.metric
 
     def random_point(self, n_samples=1, bound=None):
         """Uniformly sample points on the manifold.
@@ -230,7 +204,7 @@ class KleinBottle(Manifold):
         """
         samples = gs.random.uniform(size=(n_samples, 2))
         if n_samples == 1:
-            samples = gs.squeeze(samples, axis=0)
+            return gs.squeeze(samples, axis=0)
         return samples
 
     def to_tangent(self, vector, base_point=None):
@@ -252,7 +226,10 @@ class KleinBottle(Manifold):
         if not gs.all(self.is_tangent(vector)):
             raise ValueError("Cannot handle non tangent vectors")
 
-        return gs.copy(vector)
+        tangent_vec = gs.copy(vector)
+        return repeat_out(
+            self.point_ndim, tangent_vec, vector, base_point, out_shape=self.shape
+        )
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         r"""Evaluate if the point belongs to :math:`\mathbb R^2`.
@@ -272,18 +249,11 @@ class KleinBottle(Manifold):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the tangent space.
         """
-        # TODO: use errors after merge
-        minimal_ndim = len(self.shape)
-        correct_shape = vector.shape[-minimal_ndim:] == self.shape
-        if correct_shape:
-            if vector.ndim > minimal_ndim:
-                return gs.ones(*vector.shape[:-minimal_ndim])
-            else:
-                return correct_shape
-        raise ValueError(
-            f"Wrong shape: shape of vector should end with {self.shape} "
-            f"but is {vector.shape}"
-        )
+        belongs = self.shape == vector.shape[-self.point_ndim :]
+        shape = get_batch_shape(self.point_ndim, vector, base_point)
+        if belongs:
+            return gs.ones(shape, dtype=bool)
+        return gs.zeros(shape, dtype=bool)
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the set [0,1]^2.
@@ -303,7 +273,7 @@ class KleinBottle(Manifold):
         return gs.all(gs.logical_and(point >= 0, point <= 1), axis=-1)
 
     @staticmethod
-    def equivalent(point1, point2, atol=gs.atol):
+    def equivalent(point_a, point_b, atol=gs.atol):
         r"""Evaluate whether two points represent equivalent points on the Klein Bottle.
 
         This method uses the equivalence stated in the class description.
@@ -315,9 +285,9 @@ class KleinBottle(Manifold):
 
         Parameters
         ----------
-        point1: array-like, shape=[..., 2]
+        point_a: array-like, shape=[..., 2]
             Representation of point on Klein Bottle
-        point2: array-like, shape=[..., 2]
+        point_b: array-like, shape=[..., 2]
             Representation of point on Klein Bottle
         atol: Absolute tolerance to test for belonging to \mathbb Z.
 
@@ -326,16 +296,16 @@ class KleinBottle(Manifold):
         is_equivalent : array-like, shape=[..., 2]
             Boolean evaluating if points are equivalent
         """
-        x_diff = point1[..., 0] - point2[..., 0]
-        y_diff = point1[..., 1] - point2[..., 1]
-        y_sum = point1[..., 1] + point2[..., 1]
+        x_diff = point_a[..., 0] - point_b[..., 0]
+        y_diff = point_a[..., 1] - point_b[..., 1]
+        y_sum = point_a[..., 1] + point_b[..., 1]
         un_mirrored = gs.logical_and(
-            is_close_mod(gs.mod(x_diff, 2.0), 2.0, atol=atol),
-            is_close_mod(gs.mod(y_diff, 1.0), 1.0, atol=atol),
+            _is_close_mod(gs.mod(x_diff, 2.0), 2.0, atol=atol),
+            _is_close_mod(gs.mod(y_diff, 1.0), 1.0, atol=atol),
         )
         mirrored = gs.logical_and(
-            is_close_mod(gs.mod(x_diff - 1, 2.0), 2.0, atol=atol),
-            is_close_mod(gs.mod(y_sum, 1.0), 1.0, atol=atol),
+            _is_close_mod(gs.mod(x_diff - 1, 2.0), 2.0, atol=atol),
+            _is_close_mod(gs.mod(y_sum, 1.0), 1.0, atol=atol),
         )
         return gs.logical_or(un_mirrored, mirrored)
 
@@ -358,16 +328,16 @@ class KleinBottle(Manifold):
         # determine number of steps to take in x direction
         num_steps = gs.cast(gs.abs(gs.floor(point[..., [0]])), gs.int64)
 
-        x_canonical = gs.remainder(point[..., 0], 1.0)
-        y_canonical_even = gs.remainder(point[..., 1], 1.0)
-        y_canonical_odd = gs.remainder(1 - y_canonical_even, 1.0)
+        x_canonical = gs.mod(point[..., 0], 1.0)
+        y_canonical_even = gs.mod(point[..., 1], 1.0)
+        y_canonical_odd = gs.mod(1 - y_canonical_even, 1.0)
 
         point_even = gs.stack([x_canonical, y_canonical_even], axis=-1)
         point_odd = gs.stack([x_canonical, y_canonical_odd], axis=-1)
-        return gs.where(gs.remainder(num_steps, 2) == 0, point_even, point_odd)
+        return gs.where(gs.mod(num_steps, 2) == 0, point_even, point_odd)
 
 
-def is_close_mod(array, divisor, atol):
+def _is_close_mod(array, divisor, atol):
     """Determine if values in array are elementwise close to zero modulo divisor.
 
     Evaluate elementwise to true if the absolute value is close to 0 or divisor.
@@ -383,7 +353,7 @@ def is_close_mod(array, divisor, atol):
 
     Return
     ------
-    is_close_mod_bool: boolean array-like, shape [...]
+    _is_close_mod_bool: boolean array-like, shape [...]
         Elementwise result.
     """
     return gs.logical_or(
