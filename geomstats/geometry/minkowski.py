@@ -9,6 +9,7 @@ import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import repeat_out
 
 
 class Minkowski(Euclidean):
@@ -23,14 +24,15 @@ class Minkowski(Euclidean):
        Dimension of Minkowski space.
     """
 
-    def __new__(cls, dim, **kwargs):
+    def __new__(cls, dim, equip=True):
         """Instantiate a Minkowski space.
 
         This is an instance of the `Euclidean` class endowed with the
         `MinkowskiMetric`.
         """
-        space = Euclidean(dim)
-        space._metric = MinkowskiMetric(dim)
+        space = Euclidean(dim, equip=False)
+        if equip:
+            space.equip_with_metric(MinkowskiMetric)
         return space
 
 
@@ -38,15 +40,10 @@ class MinkowskiMetric(RiemannianMetric):
     """Class for the pseudo-Riemannian Minkowski metric.
 
     The metric is flat: the inner product is independent of the base point.
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the Minkowski space.
     """
 
-    def __init__(self, dim):
-        super().__init__(dim=dim, signature=(dim - 1, 1))
+    def __init__(self, space):
+        super().__init__(space=space, signature=(space.dim - 1, 1))
 
     def metric_matrix(self, base_point=None):
         """Compute the inner product matrix, independent of the base point.
@@ -107,8 +104,7 @@ class MinkowskiMetric(RiemannianMetric):
         exp : array-like, shape=[..., dim]
             Riemannian exponential.
         """
-        exp = base_point + tangent_vec
-        return exp
+        return base_point + tangent_vec
 
     def log(self, point, base_point, **kwargs):
         """Compute the Riemannian logarithm of `point` at `base_point`.
@@ -127,8 +123,7 @@ class MinkowskiMetric(RiemannianMetric):
         log : array-like, shape=[..., dim]
             Riemannian logarithm.
         """
-        log = point - base_point
-        return log
+        return point - base_point
 
     def injectivity_radius(self, base_point):
         """Compute the radius of the injectivity domain.
@@ -146,7 +141,8 @@ class MinkowskiMetric(RiemannianMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
-        return math.inf
+        radius = gs.array(math.inf)
+        return repeat_out(self._space.point_ndim, radius, base_point)

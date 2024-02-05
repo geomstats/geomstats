@@ -15,8 +15,9 @@ class Hyperbolic:
     This class is a common interface to the different models of hyperbolic
     geometry:
 
-    - the hyperboloid, embedded in Minkowski space of dimension dim + 1. This
-      representation is called `extrinsic` here.
+    - the hyperboloid, embedded in Minkowski space of dimension dim + 1 as the set of
+      points whose squared norm is equal to -1. This representation is called
+      `extrinsic` here.
     - the Poincare ball, the open ball of the Euclidean space of dimension dim.
     - the Poincare half-space, the open space of points of the Euclidean
       space of  dimension dim, whose last coordinate is positive.
@@ -25,24 +26,20 @@ class Hyperbolic:
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    default_coords_type : str, {'extrinsic', 'ball', 'half-space'}
+    coords_type : str, {'extrinsic', 'ball', 'half-space'}
         Default coordinates to represent points in hyperbolic space.
         Optional, default: 'extrinsic'.
-    scale : int
-        Scale of the hyperbolic space, defined as the set of points
-        in Minkowski space whose squared norm is equal to -scale.
-        Optional, default: 1.
     """
 
-    def __new__(cls, *args, default_coords_type="extrinsic", **kwargs):
-        """Instantiate class that corresponds to the default_coords_type."""
+    def __new__(cls, dim, coords_type="extrinsic", equip=True):
+        """Instantiate class that corresponds to the coords_type."""
         errors.check_parameter_accepted_values(
-            default_coords_type,
-            "default_coords_type",
+            coords_type,
+            "coords_type",
             ["extrinsic", "ball", "half-space"],
         )
-        if default_coords_type == "extrinsic":
-            return Hyperboloid(*args, default_coords_type=default_coords_type, **kwargs)
-        if default_coords_type == "ball":
-            return PoincareBall(*args, **kwargs)
-        return PoincareHalfSpace(*args, **kwargs)
+        if coords_type == "extrinsic":
+            return Hyperboloid(dim, equip=equip)
+        if coords_type == "ball":
+            return PoincareBall(dim, equip=equip)
+        return PoincareHalfSpace(dim, equip=equip)

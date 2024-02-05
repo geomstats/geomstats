@@ -2,6 +2,7 @@
 
 Lead author: Alice Le Brigant.
 """
+
 from geomstats.information_geometry.multinomial import (
     MultinomialDistributions,
     MultinomialMetric,
@@ -25,12 +26,13 @@ class CategoricalDistributions(MultinomialDistributions):
         Embedding manifold.
     """
 
-    def __init__(self, dim):
-        super().__init__(
-            dim=dim,
-            n_draws=1,
-        )
-        self.metric = CategoricalMetric(dim=dim)
+    def __init__(self, dim, equip=True):
+        super().__init__(dim=dim, n_draws=1, equip=equip)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return CategoricalMetric
 
 
 class CategoricalMetric(MultinomialMetric):
@@ -45,6 +47,3 @@ class CategoricalMetric(MultinomialMetric):
     .. [K2003] R. E. Kass. The Geometry of Asymptotic Inference. Statistical
         Science, 4(3): 188 - 234, 1989.
     """
-
-    def __init__(self, dim):
-        super().__init__(dim=dim, n_draws=1)

@@ -46,9 +46,9 @@ templates_path = ["_templates"]
 
 source_suffix = [".rst"]
 
-master_doc = "index"
+main_doc = "index"
 
-language = None
+language = "en"
 
 nbsphinx_prolog = (
     r"""
@@ -59,10 +59,10 @@ nbsphinx_prolog = (
     <div class="admonition note">
       <p>Notebook source code:
         <a class="reference external" href="https://github.com/geomstats/"""
-    r"""geomstats/blob/master/{{ docname|e }}">{{ docname|e }}</a>
+    r"""geomstats/blob/main/{{ docname|e }}">{{ docname|e }}</a>
         <br>Run it yourself on binder
         <a href="https://mybinder.org/v2/gh/geomstats/geomstats/"""
-    r"""master?filepath={{ docname|e }}"><img alt="Binder badge"
+    r"""main?filepath={{ docname|e }}"><img alt="Binder badge"
         src="https://mybinder.org/badge_logo.svg"
         style="vertical-align:text-bottom"></a>
       </p>
@@ -75,6 +75,14 @@ nbsphinx_prolog = (
     \sphinxcode{\sphinxupquote{\strut {{ docname | escape_latex }}}} \dotfill}}
     """
 )
+
+nbsphinx_thumbnails = {
+    "notebooks/00_foundations__introduction_to_geomstats": "_images/intro_sphere_geodesic.png",
+    "notebooks/01_foundations__manifolds": "_images/manifold_definitions2.png",
+    "notebooks/02_foundations__connection_riemannian_metric": "_images/conn_black_hole.png",
+}
+
+
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 
 pygments_style = None
@@ -89,7 +97,7 @@ latex_elements = {}
 
 latex_documents = [
     (
-        master_doc,
+        main_doc,
         "geomstats.tex",
         "geomstats Documentation",
         "Geomstats Team",
@@ -97,11 +105,11 @@ latex_documents = [
     ),
 ]
 
-man_pages = [(master_doc, "geomstats", "geomstats Documentation", [author], 1)]
+man_pages = [(main_doc, "geomstats", "geomstats Documentation", [author], 1)]
 
 texinfo_documents = [
     (
-        master_doc,
+        main_doc,
         "geomstats",
         "geomstats Documentation",
         author,

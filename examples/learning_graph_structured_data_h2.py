@@ -150,7 +150,6 @@ def main():
     for epoch in range(max_epochs):
         total_loss = []
         for path in random_walks:
-
             for example_index, one_path in enumerate(path):
                 context_index = path[
                     max(0, example_index - context_size) : min(

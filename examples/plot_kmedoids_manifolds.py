@@ -4,7 +4,7 @@ Two random clusters are generated in separate regions of the
 manifold. Then K-medoids is applied using the metric of the manifold.
 The points are represented with two distinct colors. For the moment
 the example works on the Poincaré Ball and the Hypersphere.
-Computed centroids are marked as green stars.
+Computed cluster centers are marked as green stars.
 """
 
 import logging
@@ -25,16 +25,18 @@ def kmedoids_poincare_ball():
     dim = 2
     n_clusters = 2
     manifold = PoincareBall(dim=dim)
-    metric = manifold.metric
 
     cluster_1 = gs.random.uniform(low=0.5, high=0.6, size=(n_samples, dim))
     cluster_2 = gs.random.uniform(low=-0.2, high=0, size=(n_samples, dim))
     data = gs.concatenate((cluster_1, cluster_2), axis=0)
 
-    kmedoids = RiemannianKMedoids(metric=metric, n_clusters=n_clusters, init="random")
+    kmedoids = RiemannianKMedoids(
+        manifold, n_clusters=n_clusters, max_iter=100, init="random"
+    )
 
-    centroids = kmedoids.fit(data=data, max_iter=100)
-    labels = kmedoids.predict(data=data)
+    kmedoids.fit(X=data)
+    cluster_centers_ = kmedoids.cluster_centers_
+    labels = kmedoids.labels_
 
     plt.figure(1)
     colors = ["red", "blue"]
@@ -44,7 +46,7 @@ def kmedoids_poincare_ball():
         space="H2_poincare_disk",
         marker=".",
         color="black",
-        coords_type=manifold.default_coords_type,
+        coords_type=manifold.coords_type,
     )
 
     for i in range(n_clusters):
@@ -54,17 +56,17 @@ def kmedoids_poincare_ball():
             space="H2_poincare_disk",
             marker=".",
             color=colors[i],
-            coords_type=manifold.default_coords_type,
+            coords_type=manifold.coords_type,
         )
 
     ax = visualization.plot(
-        centroids,
+        cluster_centers_,
         ax=ax,
         space="H2_poincare_disk",
         marker="*",
         color="green",
         s=100,
-        coords_type=manifold.default_coords_type,
+        coords_type=manifold.coords_type,
     )
 
     ax.set_title("Kmedoids on Poincaré Ball Manifold")
@@ -78,7 +80,6 @@ def kmedoids_hypersphere():
     dim = 2
     n_clusters = 2
     manifold = Hypersphere(dim)
-    metric = manifold.metric
 
     # Generate data on north pole
     cluster_1 = manifold.random_von_mises_fisher(kappa=50, n_samples=n_samples)
@@ -90,9 +91,10 @@ def kmedoids_hypersphere():
 
     data = gs.concatenate((cluster_1, cluster_2), axis=0)
 
-    kmedoids = RiemannianKMedoids(metric=metric, n_clusters=n_clusters)
-    centroids = kmedoids.fit(data)
-    labels = kmedoids.predict(data)
+    kmedoids = RiemannianKMedoids(manifold, n_clusters=n_clusters)
+    kmedoids.fit(X=data)
+    cluster_centers_ = kmedoids.cluster_centers_
+    labels = kmedoids.labels_
 
     plt.figure(2)
     colors = ["red", "blue"]
@@ -106,7 +108,7 @@ def kmedoids_hypersphere():
             )
 
     ax = visualization.plot(
-        centroids, ax=ax, space="S2", marker="*", s=200, color="green"
+        cluster_centers_, ax=ax, space="S2", marker="*", s=200, color="green"
     )
 
     ax.set_title("Kmedoids on Hypersphere Manifold")
@@ -124,10 +126,9 @@ def main():
 
 
 if __name__ == "__main__":
-
     compatible_backends = ["numpy", "pytorch"]
 
-    if os.environ["GEOMSTATS_BACKEND"] not in compatible_backends:
+    if os.environ.get("GEOMSTATS_BACKEND", "numpy") not in compatible_backends:
         logging.info(
             "K-Medoids example is implemented"
             "with numpy or pytorch backend.\n"

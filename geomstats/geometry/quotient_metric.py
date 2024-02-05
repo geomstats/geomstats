@@ -4,7 +4,6 @@ Lead author: Nicolas Guigui.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
@@ -19,29 +18,20 @@ class QuotientMetric(RiemannianMetric):
 
     Parameters
     ----------
-    fiber_bundle : geomstats.geometry.fiber_bundle.FiberBundle
-        Bundle structure to define the quotient.
+    space : Manifold
+        Base.
+    total_space : Manifold
+        Total space equipped with a fiber bundle structure.
     """
 
-    def __init__(
-        self, fiber_bundle: FiberBundle, dim: int = None, shape=None, **kwargs
-    ):
-        if dim is None:
-            if fiber_bundle.group is not None:
-                dim = fiber_bundle.dim - fiber_bundle.group.dim
-            elif fiber_bundle.group_dim is not None:
-                dim = fiber_bundle.dim - fiber_bundle.group_dim
-            else:
-                raise ValueError(
-                    "Either the dimension of the base manifold, "
-                    "or the group acting on the "
-                    "total space must be provided to the fiber bundle."
-                )
-        super().__init__(dim=dim, shape=shape, **kwargs)
+    def __init__(self, space, total_space, signature=None):
+        self._total_space = total_space
+        super().__init__(space=space, signature=signature)
 
-        self.fiber_bundle = fiber_bundle
-        self.group = fiber_bundle.group
-        self.total_space_metric = fiber_bundle.total_space_metric
+    @property
+    def _fiber_bundle(self):
+        """Fiber bundle associated to total space."""
+        return self._total_space.fiber_bundle
 
     def inner_product(
         self, tangent_vec_a, tangent_vec_b, base_point=None, fiber_point=None
@@ -68,26 +58,26 @@ class QuotientMetric(RiemannianMetric):
         inner_product : float, shape=[...]
             Inner products
         """
+        if base_point is None and fiber_point is None:
+            raise ValueError(
+                "Either a point (of the total space) or a "
+                "base point (of the base manifold) must be "
+                "given."
+            )
         if fiber_point is None:
-            if base_point is not None:
-                fiber_point = self.fiber_bundle.lift(base_point)
-            else:
-                raise ValueError(
-                    "Either a point (of the total space) or a "
-                    "base point (of the quotient manifold) must "
-                    "be given."
-                )
-        horizontal_a = self.fiber_bundle.horizontal_lift(
-            tangent_vec_a, fiber_point=fiber_point
+            fiber_point = self._fiber_bundle.lift(base_point)
+
+        horizontal_a = self._fiber_bundle.horizontal_lift(
+            tangent_vec_a, base_point=base_point, fiber_point=fiber_point
         )
-        horizontal_b = self.fiber_bundle.horizontal_lift(
-            tangent_vec_b, fiber_point=fiber_point
+        horizontal_b = self._fiber_bundle.horizontal_lift(
+            tangent_vec_b, base_point=base_point, fiber_point=fiber_point
         )
-        return self.total_space_metric.inner_product(
+        return self._total_space.metric.inner_product(
             horizontal_a, horizontal_b, fiber_point
         )
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -103,15 +93,50 @@ class QuotientMetric(RiemannianMetric):
         exp : array-like, shape=[..., {dim, [n, n]}]
             Point on the quotient manifold.
         """
-        lift = self.fiber_bundle.lift(base_point)
-        horizontal_vec = self.fiber_bundle.horizontal_lift(
-            tangent_vec, fiber_point=lift
+        fiber_point = self._fiber_bundle.lift(base_point)
+        horizontal_vec = self._fiber_bundle.horizontal_lift(
+            tangent_vec, fiber_point=fiber_point, base_point=base_point
         )
-        return self.fiber_bundle.riemannian_submersion(
-            self.total_space_metric.exp(horizontal_vec, lift)
+        return self._fiber_bundle.riemannian_submersion(
+            self._total_space.metric.exp(horizontal_vec, fiber_point)
         )
 
-    def log(self, point, base_point, **kwargs):
+    def _geodesic_from_exp(self, initial_point, initial_tangent_vec):
+        """Generate parameterized function for the geodesic curve.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Point on the manifold, initial point of the geodesic.
+        initial_tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point, the initial speed of the geodesics.
+            Optional, default: None.
+            If None, an end point must be given and a logarithm is computed.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve. If a batch of initial
+            conditions is passed, the output array's first dimension
+            represents the different initial conditions, and the second
+            corresponds to time.
+        """
+        fiber_point = self._fiber_bundle.lift(initial_point)
+        horizontal_vec = self._fiber_bundle.horizontal_lift(
+            initial_tangent_vec, fiber_point=fiber_point, base_point=initial_point
+        )
+        total_path = self._total_space.metric._geodesic_from_exp(
+            fiber_point, horizontal_vec
+        )
+
+        def path(t):
+            total_geod_points = total_path(t)
+            out = self._fiber_bundle.riemannian_submersion(total_geod_points)
+            return out
+
+        return path
+
+    def log(self, point, base_point):
         """Compute the Riemannian logarithm of a point.
 
         Parameters
@@ -127,14 +152,15 @@ class QuotientMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        fiber_point = self.fiber_bundle.lift(point)
-        bp_fiber = self.fiber_bundle.lift(base_point)
-        aligned = self.fiber_bundle.align(fiber_point, bp_fiber, **kwargs)
-        return self.fiber_bundle.tangent_riemannian_submersion(
-            self.total_space_metric.log(aligned, bp_fiber), bp_fiber
+        fiber_point = self._fiber_bundle.lift(point)
+        fiber_base_point = self._fiber_bundle.lift(base_point)
+        aligned = self._fiber_bundle.align(fiber_point, fiber_base_point)
+        return self._fiber_bundle.tangent_riemannian_submersion(
+            self._total_space.metric.log(aligned, fiber_base_point),
+            fiber_base_point,
         )
 
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Squared geodesic distance between two points.
 
         Parameters
@@ -149,10 +175,10 @@ class QuotientMetric(RiemannianMetric):
         sq_dist : array-like, shape=[...,]
             Squared distance.
         """
-        lift_a = self.fiber_bundle.lift(point_a)
-        lift_b = self.fiber_bundle.lift(point_b)
-        aligned = self.fiber_bundle.align(lift_a, lift_b, **kwargs)
-        return self.total_space_metric.squared_dist(aligned, lift_b)
+        fiber_point_a = self._fiber_bundle.lift(point_a)
+        fiber_point_b = self._fiber_bundle.lift(point_b)
+        aligned = self._fiber_bundle.align(fiber_point_b, fiber_point_a)
+        return self._total_space.metric.squared_dist(fiber_point_a, aligned)
 
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
         r"""Compute the curvature.
@@ -166,7 +192,7 @@ class QuotientMetric(RiemannianMetric):
         In the case of quotient metrics, the fundamental equations of a
         Riemannian submersion allow to compute the curvature of the base
         manifold from the one of the total space and a correction term that
-        uses the integrability tensor A [O'Neill]_.
+        uses the integrability tensor A [ONeill]_.
 
         In more details, let :math:`X, Y, Z` be the horizontal lift of
         vector fields extending the tangent vectors given in argument in a
@@ -194,17 +220,17 @@ class QuotientMetric(RiemannianMetric):
 
         References
         ----------
-        .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
+        .. [ONeill]  O’Neill, Barrett. The Fundamental Equations of a
             Submersion, Michigan Mathematical Journal 13, no. 4
             (December 1966): 459–69. https://doi.org/10.1307/mmj/1028999604.
         """
-        bundle = self.fiber_bundle
+        bundle = self._fiber_bundle
         fiber_point = bundle.lift(base_point)
         horizontal_a = bundle.horizontal_lift(tangent_vec_a, base_point)
         horizontal_b = bundle.horizontal_lift(tangent_vec_b, base_point)
         horizontal_c = bundle.horizontal_lift(tangent_vec_c, base_point)
 
-        top_curvature = self.total_space_metric.curvature(
+        top_curvature = self._total_space.metric.curvature(
             horizontal_a, horizontal_b, horizontal_c, fiber_point
         )
         projected_top_curvature = bundle.tangent_riemannian_submersion(
@@ -235,11 +261,12 @@ class QuotientMetric(RiemannianMetric):
     ):
         r"""Compute the covariant derivative of the curvature.
 
-        For four vectors fields :math:`H|_P = tangent\_vec\_a, X|_P =
-        tangent\_vec\_b, Y|_P = tangent\_vec\_c, Z|_P = tangent\_vec\_d` with
-        tangent vector value specified in argument at the base point `P`,
+        For four vectors fields :math:`H|_P =` `tangent_vec_a`,
+        :math:`X|_P =` `tangent_vec_b`, :math:`Y|_P =` `tangent_vec_c`,
+        :math:`Z|_P =` `tangent_vec_d` with
+        tangent vector value specified in argument at the `base_point` :math:`P`,
         the covariant derivative of the curvature
-        :math:`(\nabla_H R)(X, Y)Z |_P` is computed at the base point P.
+        :math:`(\nabla_H R)(X, Y)Z |_P` is computed at the `base_point` :math:`P`.
 
         In the case of quotient metrics, the fundamental equations of a
         Riemannian submersion allow to compute this tensor on the base manifold
@@ -249,22 +276,24 @@ class QuotientMetric(RiemannianMetric):
 
         In more details, let :math:`H, X, Y, Z` be the horizontal lift of
         parallel vector fields extending the tangent vectors given in argument
-        by parallel transport in a neighborhood of the base-point P in the
+        by parallel transport in a neighborhood of the `base_point` :math:`P` in the
         base-space. Such vector fields verify :math:`\nabla^T_H H=0`,
-        :math:`\nabla^T_H^X = A_H X` (and similarly for Y and Z) using the
+        :math:`\nabla^T_H X = A_H X` (and similarly for Y and Z) using the
         connection :math:`\nabla^T` of the total space. Then the covariant
         derivative of the curvature tensor is given by
-        :math:`\nabla_H (R(X, Y) Z) =
-        \hor\nabla_H^T(R^T(X,Y)Z) - A_H(ver R^T(X,Y)Z )
-        + (2 A_H A_Z A_X Y - A_H A_X A_Y Z + A_H A_Y A_X Z)
-        - (2 \nabla_H^T A_Z A_X Y - \nabla_H^T A_X A_Y Z +
-             \nabla_H^T A_Y A_X Z)`, where :math:`R^T(X,Y)Z` is the curvature
-        tensor of the total space.
+
+        .. math::
+            \nabla_H (R(X, Y) Z) =
+            hor\nabla_H^T(R^T(X,Y)Z) - A_H(ver R^T(X,Y)Z )
+            + (2 A_H A_Z A_X Y - A_H A_X A_Y Z + A_H A_Y A_X Z)
+            - (2 \nabla_H^T A_Z A_X Y - \nabla_H^T A_X A_Y Z + \nabla_H^T A_Y A_X Z)
+
+        where :math:`R^T(X,Y)Z` is the curvature tensor of the total space.
 
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., n, n]
-            Tangent vector at `base_point` (derivative direction)).
+            Tangent vector at `base_point` (derivative direction).
         tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
         tangent_vec_c : array-like, shape=[..., n, n]
@@ -277,14 +306,14 @@ class QuotientMetric(RiemannianMetric):
         Returns
         -------
         curvature_derivative : array-like, shape=[..., n, n]
-            Tangent vector at base point.
+            Tangent vector at `base_point`.
 
         References
         ----------
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
-        in Kendall shape spaces. Unpublished.
+            in Kendall shape spaces. Unpublished.
         """
-        bundle = self.fiber_bundle
+        bundle = self._fiber_bundle
         point_fiber = bundle.lift(base_point)
         hor_h = bundle.horizontal_lift(tangent_vec_a, point_fiber)
         hor_x = bundle.horizontal_lift(tangent_vec_b, point_fiber)
@@ -295,7 +324,7 @@ class QuotientMetric(RiemannianMetric):
         nabla_h_y = bundle.integrability_tensor(hor_h, hor_y, point_fiber)
         nabla_h_z = bundle.integrability_tensor(hor_h, hor_z, point_fiber)
 
-        nabla_curvature_top = self.total_space_metric.curvature_derivative(
+        nabla_curvature_top = self._total_space.metric.curvature_derivative(
             hor_h, hor_x, hor_y, hor_z, point_fiber
         )
 
@@ -348,13 +377,14 @@ class QuotientMetric(RiemannianMetric):
     ):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For two vectors fields :math:`X|_P = tangent\_vec\_a, Y|_P =
-        tangent\_vec\_b` with tangent vector value specified in argument at the
-        base point `P`, the covariant derivative (in the direction 'X')
+        For two vectors fields :math:`X|_P =` `tangent_vec_a`,
+        :math:`Y|_P =` `tangent_vec_b` with tangent vector value specified in
+        argument at the `base_point` :math:`P`,
+        the covariant derivative (in the direction :math:`X`)
         :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
-        directional curvature (in the direction `Y`)
-        :math:`R_Y(X) = R(Y, X) Y`  is a quadratic tensor in 'X' and 'Y' that
-        plays an important role in the computation of the moments of the
+        directional curvature (in the direction :math:`Y`)
+        :math:`R_Y(X) = R(Y, X) Y` is a quadratic tensor in :math:`X` and :math:`Y`
+        that plays an important role in the computation of the moments of the
         empirical Fréchet mean.
 
         This tensor can be computed from the covariant derivative of the
@@ -367,14 +397,17 @@ class QuotientMetric(RiemannianMetric):
 
         In more details, let :math:`X, Y` be the horizontal lift of parallel
         vector fields extending the tangent vectors given in argument by
-        parallel transport in a neighborhood of the base-point P in the
+        parallel transport in a neighborhood of the `base_point` :math:`P` in the
         base-space. Such vector fields verify :math:`\nabla^T_X X=0` and
         :math:`\nabla^T_X^Y = A_X Y` using the connection :math:`\nabla^T`
         of the total space. Then the covariant derivative of the
-        directional curvature tensor is given by :math:
-        `\nabla_X (R_Y(X)) = hor \nabla^T_X (R^T_Y(X)) - A_X( ver R^T_Y(X))
-        + 3 A_X A_Y A_X Y - 3 \nabla_X^T A_Y A_X Y `, where :math:`R^T_Y(X)`
-        is the directional curvature tensor of the total space.
+        directional curvature tensor is given by
+
+        .. math::
+            \nabla_X (R_Y(X)) = hor \nabla^T_X (R^T_Y(X)) - A_X( ver R^T_Y(X))
+            + 3 A_X A_Y A_X Y - 3 \nabla_X^T A_Y A_X Y
+
+        where :math:`R^T_Y(X)` is the directional curvature tensor of the total space.
 
         Parameters
         ----------
@@ -388,14 +421,14 @@ class QuotientMetric(RiemannianMetric):
         Returns
         -------
         curvature_derivative : array-like, shape=[..., n, n]
-            Tangent vector at base point.
+            Tangent vector at `base_point`.
 
         References
         ----------
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
-        in Kendall shape spaces. Unpublished.
+            in Kendall shape spaces. Unpublished.
         """
-        bundle = self.fiber_bundle
+        bundle = self._fiber_bundle
         point_fiber = bundle.lift(base_point)
         hor_x = bundle.horizontal_lift(tangent_vec_a, point_fiber)
         hor_y = bundle.horizontal_lift(tangent_vec_b, point_fiber)
@@ -403,7 +436,7 @@ class QuotientMetric(RiemannianMetric):
         nabla_x_x = gs.zeros_like(hor_x)
         nabla_x_y = bundle.integrability_tensor(hor_x, hor_y, point_fiber)
 
-        nabla_curvature_top = self.total_space_metric.curvature_derivative(
+        nabla_curvature_top = self._total_space.metric.curvature_derivative(
             hor_x, hor_x, hor_y, hor_y, point_fiber
         )
 
@@ -430,3 +463,57 @@ class QuotientMetric(RiemannianMetric):
             - a_x_ver_nabla_curvature_top
             + 3.0 * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
         )
+
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
+        """Generate parameterized function for the geodesic curve.
+
+        Geodesic curve defined by either:
+
+        - an initial point and an initial tangent vector,
+        - an initial point and an end point.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Point on the manifold, initial point of the geodesic.
+        end_point : array-like, shape=[..., dim], optional
+            Point on the manifold, end point of the geodesic. If None,
+            an initial tangent vector must be given.
+        initial_tangent_vec : array-like, shape=[..., dim],
+            Tangent vector at base point, the initial speed of the geodesics.
+            Optional, default: None.
+            If None, an end point must be given and a logarithm is computed.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve. If a batch of initial
+            conditions is passed, the output array's first dimension
+            represents the different initial conditions, and the second
+            corresponds to time.
+        """
+        if end_point is None and initial_tangent_vec is None:
+            raise ValueError(
+                "Specify an end point or an initial tangent "
+                "vector to define the geodesic."
+            )
+        if end_point is not None:
+            if initial_tangent_vec is not None:
+                raise ValueError(
+                    "Cannot specify both an end point and an initial tangent vector."
+                )
+            initial_fiber_point = self._fiber_bundle.lift(initial_point)
+            end_fiber_point = self._fiber_bundle.lift(end_point)
+            aligned_end_fiber_point = self._fiber_bundle.align(
+                end_fiber_point, initial_fiber_point
+            )
+            geodesic = self._total_space.metric.geodesic(
+                initial_point=initial_fiber_point, end_point=aligned_end_fiber_point
+            )
+
+            def projected_geodesic(t):
+                return self._fiber_bundle.riemannian_submersion(geodesic(t))
+
+            return projected_geodesic
+
+        return self._geodesic_ivp(initial_point, initial_tangent_vec)

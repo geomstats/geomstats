@@ -1,5 +1,12 @@
-Geomstats
-=========
+.. image:: logo.png
+  :width: 730
+  :alt: Geomstats logo
+
+**Geomstats** is a Python package for computations, statistics, machine learning and deep learning on manifolds. 
+
+The package is organized into two main modules: *geometry* and *learning*. 
+The module *geometry* implements differential geometry: manifolds, Lie groups, fiber bundles, shape spaces, information manifolds, Riemannian metrics, and more. 
+The module *learning* implements statistics and learning algorithms for data on manifolds. Users can choose between backends: NumPy, Autograd or PyTorch.
 
 .. list-table::
    :header-rows: 0
@@ -8,50 +15,36 @@ Geomstats
      - |PyPI version|\ |Downloads|\  |Zenodo|\
    * - **Continuous Integration**
      - |Build Status|\ |python|\
-   * - **Code coverage (numpy)**
-     - |Coverage Status np|\
-   * - **Code coverage (autograd, tensorflow, pytorch)**
-     - |Coverage Status autograd|\ |Coverage Status tf|\ |Coverage Status torch|
+   * - **Code coverage (np, autograd, torch)**
+     - |Coverage Status np|\ |Coverage Status autograd|\ |Coverage Status torch|
    * - **Documentation**
      - |doc|\  |binder|\ |tutorial|\
    * - **Community**
      - |contributions|\  |Slack|\  |Twitter|\
 
+Keep in touch with the community by joining us on our `slack workspace <https://join.slack.com/t/geomstats/shared_invite/zt-15t8k0q7r-Duxt6j6aA3rDOIms2Vd~RQ>`__!
+
 **NEWS**:
 
-- Next hackathon will be on October 17-21, 2022 in Paris. Interested? Reach out to us on slack!
-- Google's Season of Docs (SoD) 2022: Geomstats is participating! Interested?
-   - Find out more about being a Google SoD's `writer <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_ and about Geomstats' `proposal <https://geomstats.github.io/gsod.html>`_.
-   - Feel free to reach out to us, and/or to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_.
-   - Submit your `statement of interest <https://developers.google.com/season-of-docs/docs/tech-writer-statement>`_ via email to nmiolane@gmail.com before May 1st, at 18:00 UTC.
-   - Selected technical writers will be notified no later than May 16th.
+- 2023: Discover our `information_geometry module <https://github.com/geomstats/geomstats/tree/main/geomstats/information_geometry>`_ , and its paper `Parametric information geometry with the package Geomstats <https://dl.acm.org/doi/abs/10.1145/3627538>`_ by Alice Le Brigant, Jules Deschamps, Antoine Collas, and Nina Miolane, published in the ACM Transactions of Mathematical Software.
 
-- The white papers summarizing the findings from our ICLR 2021 and 2022 challenges of computational differential geometry and topology are available `here (2021) <https://arxiv.org/abs/2108.09810>`__ and `here (2022) <https://arxiv.org/abs/2206.09048>`_.
+- 2023: Discover our foundational paper `Introduction to Riemannian Geometry and Geometric Statistics: From Basic Theory to Implementation with Geomstats <https://www.nowpublishers.com/article/Details/MAL-098>`_ by Nicolas Guigui, Nina Miolane and Xavier Pennec, published in Foundations and Trends in Machine Learning.
 
-- Check out our new  `information_geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_ module.
-
-Geomstats is an open-source Python package for computations and
-statistics on manifolds. The package is organized into two main modules:
-``geometry`` and ``learning``.
-
-The module ``geometry`` implements concepts in differential geometry,
-and the module ``learning`` implements statistics and learning
-algorithms for data on manifolds.
+- 2021-2022: The white papers summarizing the findings from our ICLR 2021 and 2022 challenges of computational differential geometry and topology are available `here (2021) <https://arxiv.org/abs/2108.09810>`__ and `here (2022) <https://arxiv.org/abs/2206.09048>`_.
 
 -  To get an overview of ``geomstats``, see our `introductory
    video <https://www.youtube.com/watch?v=Ju-Wsd84uG0&list=PLYx7XA2nY5GejOB1lsvriFeMytD1-VS1B&index=3>`__.
+- To understand how ``geomstats`` is built, check out `these slides <https://drive.google.com/file/d/1YxeGeLXrJdVQLBJQ-SYPirQ7V_UisqUw/view?usp=sharing>`__.
 -  To get started with ``geomstats``, see the
-   `examples <https://github.com/geomstats/geomstats/tree/master/examples>`__
+   `examples <https://github.com/geomstats/geomstats/tree/main/examples>`__
    and
-   `notebooks <https://github.com/geomstats/geomstats/tree/master/notebooks>`__
+   `notebooks <https://github.com/geomstats/geomstats/tree/main/notebooks>`__
    directories.
 -  The documentation of ``geomstats`` can be found on the `documentation
    website <https://geomstats.github.io/>`__.
-- Interested in information geometry? Go to our `information_geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_ module.
+- Interested in information geometry? Go to our `information_geometry <https://github.com/geomstats/geomstats/tree/main/geomstats/information_geometry>`_ module.
 -  To follow the scientific literature on geometric statistics, follow
    our twitter-bot `@geomstats <https://twitter.com/geomstats>`__!
-
-Keep in touch with the community by joining us on our `slack workspace <https://join.slack.com/t/geomstats/shared_invite/zt-15t8k0q7r-Duxt6j6aA3rDOIms2Vd~RQ>`__!
 
 
 Citing Geomstats
@@ -74,7 +67,7 @@ If you find ``geomstats`` useful, please kindly cite:
       url     = {http://jmlr.org/papers/v21/19-027.html}
     }
 
-- and `Geomstats software version <https://zenodo.org/record/5558028>`__ (citation automatically generated by Zenodo at the bottom right of this link).
+- and `Geomstats software version <https://doi.org/10.5281/zenodo.4624475>`__ (citation automatically generated by Zenodo at the bottom right of this link).
 
 We would sincerely appreciate citations to both the original research paper and the software version, to acknowledge authors who started the codebase and made the library possible, together with the crucial work of all contributors who are continuously implementing pivotal new geometries and important learning algorithms, as well as refactoring, testing and documenting the code to democratize geometric statistics and (deep) learning and foster reproducible research in this field.
 
@@ -91,6 +84,19 @@ requirements with ``pip3`` as follows:
 This method installs the latest version of geomstats that is uploaded on
 PyPi. Note that geomstats is only available with Python3.
 
+Install geomstats via conda
+---------------------------
+
+From a terminal (OS X & Linux) or an Anaconda prompt (Windows), you can install geomstats and its
+requirements with ``conda`` as follows:
+
+::
+
+    conda install -c conda-forge geomstats
+
+This method installs the latest version of geomstats that is uploaded on
+conda-forge. Note that geomstats is only available with Python3.
+
 Install geomstats via Git
 -------------------------
 
@@ -106,23 +112,15 @@ requirements via ``git`` as follows:
 This method installs the latest GitHub version of geomstats.
 
 
-To add the requirements into a conda environment, you can use the
-``enviroment.yml`` file as follows:
-
-::
-
-   conda env create --file environment.yml
-
 Note that this only installs the minimum requirements. To add the optional,
 development, continuous integration and documentation requirements,
-refer to the file ``setup.cfg``.
+refer to the file ``pyproject.toml``.
 
 Install geomstats : Developers
 ------------------------------
 
-Developers should git clone the master branch of this repository, together with the development requirements
-and the optional requirements to enable ``tensorflow`` and ``pytorch``
-backends:
+Developers should git clone the main branch of this repository, together with the development requirements
+and the optional requirements to enable ``autograd`` and ``pytorch`` backends:
 
 ::
 
@@ -139,13 +137,13 @@ follows our Python style guidelines:
 Choose the backend
 ------------------
 
-Geomstats can run seamlessly with ``numpy``, ``autograd``, ``tensorflow`` or
-``pytorch``. Note that ``autograd``, ``tensorflow`` and ``pytorch`` and requirements are
+Geomstats can run seamlessly with ``numpy``, ``autograd`` or
+``pytorch``. Note that ``autograd`` and ``pytorch`` and requirements are
 optional, as geomstats can be used with ``numpy`` only. By default, the
 ``numpy`` backend is used. The visualizations are only available with
 this backend.
 
-To get the ``autograd``, ``tensorflow`` and ``pytorch`` versions compatible with
+To get the ``autograd`` and ``pytorch`` versions compatible with
 geomstats, install the optional requirements:
 
 ::
@@ -159,7 +157,7 @@ To install only the requirements for a given backend do:
     pip3 install geomstats[<backend_name>]
 
 You can choose your backend by setting the environment variable
-``GEOMSTATS_BACKEND`` to ``numpy``, ``autograd``, ``tensorflow`` or ``pytorch``, and
+``GEOMSTATS_BACKEND`` to ``numpy``, ``autograd`` or ``pytorch``, and
 importing the ``backend`` module. From the command line:
 
 ::
@@ -176,14 +174,14 @@ Getting started
 ---------------
 
 To use ``geomstats`` for learning algorithms on Riemannian manifolds,
-you need to follow three steps: 
+you need to follow three steps:
 
 * instantiate the manifold of interest,
-* instantiate the learning algorithm of interest, 
+* instantiate the learning algorithm of interest,
 * run the algorithm.
 
 The data should be represented by a ``gs.array``. This structure
-represents numpy arrays, or tensorflow/pytorch tensors, depending on the
+represents numpy arrays, autograd or pytorch tensors, depending on the
 choice of backend.
 
 The following code snippet shows the use of tangent Principal Component
@@ -195,11 +193,10 @@ Analysis on simulated ``data`` on the space of 3D rotations.
     from geomstats.learning.pca import TangentPCA
 
     so3 = SpecialOrthogonal(n=3, point_type="vector")
-    metric = so3.bi_invariant_metric
 
     data = so3.random_uniform(n_samples=10)
 
-    tpca = TangentPCA(metric=metric, n_components=2)
+    tpca = TangentPCA(space=so3, n_components=2)
     tpca = tpca.fit(data)
     tangent_projected_data = tpca.transform(data)
 
@@ -209,16 +206,16 @@ algorithm can be used with any of the manifolds and metric implemented
 in the package.
 
 To see additional examples, go to the
-`examples <https://github.com/geomstats/geomstats/tree/master/examples>`__
+`examples <https://github.com/geomstats/geomstats/tree/main/examples>`__
 or
-`notebooks <https://github.com/geomstats/geomstats/tree/master/notebooks>`__
+`notebooks <https://github.com/geomstats/geomstats/tree/main/notebooks>`__
 directories.
 
 Contributing
 ------------
 
 See our
-`contributing <https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst>`__
+`contributing <https://github.com/geomstats/geomstats/blob/main/docs/contributing/index.rst>`__
 guidelines!
 
 Interested? Contact us and join the next hackathons. Previous Geomstats events include:
@@ -232,7 +229,7 @@ Interested? Contact us and join the next hackathons. Previous Geomstats events i
 -  February 2022: hackathon, hybrid at Inria Sophia-Antipolis / remotely with contributors from around the world
 -  April 2022: in-person hackathon at the Villa Cynthia, Saint Raphael, France.
 -  April 2022: international Coding Challenge at the International Conference on Learning Representations (ICLR), remotely.
--  June 2022: hakathon at the University of Washington (UW).
+-  June 2022: hackathon at the University of Washington (UW).
 -  October 17-21, 2022: hackathon during the trimester `Geometry and Statistics in Data Sciences <https://indico.math.cnrs.fr/category/498/>`__, in Paris.
 
 
@@ -241,6 +238,8 @@ Acknowledgements
 
 This work is supported by:
 
+-  the National Science Foundation (grant 2313150).
+-  the National Science Foundation (NSF CAREER award, grant 2240158).
 -  the Inria-Stanford associated team `GeomStats <http://www-sop.inria.fr/asclepios/projects/GeomStats/>`__,
 -  the European Research Council (ERC) under the European Union's Horizon 2020 research and innovation program (grant agreement `G-Statistics <https://team.inria.fr/epione/en/research/erc-g-statistics/>`__ No. 786854),
 -  the French society for applied and industrial mathematics (`SMAI <http://smai.emath.fr/>`__),
@@ -254,25 +253,23 @@ This work is supported by:
    :target: https://github.com/geomstats/geomstats/actions/workflows/test.yml
 .. |Slack| image:: https://img.shields.io/badge/Slack-Join-yellow
    :target: https://join.slack.com/t/geomstats/shared_invite/zt-15t8k0q7r-Duxt6j6aA3rDOIms2Vd~RQ
-.. |Coverage Status np| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy
+.. |Coverage Status np| image:: https://codecov.io/gh/geomstats/geomstats/branch/main/graph/badge.svg?flag=numpy
    :target: https://codecov.io/gh/geomstats/geomstats
-.. |Coverage Status autograd| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=autograd
+.. |Coverage Status autograd| image:: https://codecov.io/gh/geomstats/geomstats/branch/main/graph/badge.svg?flag=autograd
    :target: https://codecov.io/gh/geomstats/geomstats
-.. |Coverage Status tf| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow
-   :target: https://codecov.io/gh/geomstats/geomstats
-.. |Coverage Status torch| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=pytorch
+.. |Coverage Status torch| image:: https://codecov.io/gh/geomstats/geomstats/branch/main/graph/badge.svg?flag=pytorch
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Zenodo| image:: https://zenodo.org/badge/108200238.svg
    :target: https://zenodo.org/badge/latestdoi/108200238
 .. |Downloads| image:: https://static.pepy.tech/personalized-badge/geomstats?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads
    :target: https://pepy.tech/project/geomstats
-.. |python| image:: https://img.shields.io/badge/python-3.7+-blue?logo=python
+.. |python| image:: https://img.shields.io/badge/python-3.11+-blue?logo=python
    :target: https://www.python.org/
 .. |tutorial| image:: https://img.shields.io/youtube/views/Ju-Wsd84uG0?label=watch&style=social
    :target: https://www.youtube.com/watch?v=Ju-Wsd84uG0
 .. |doc| image:: https://img.shields.io/badge/docs-website-brightgreen?style=flat
    :target: https://geomstats.github.io/?badge=latest
 .. |binder| image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/geomstats/geomstats/master?filepath=notebooks
+   :target: https://mybinder.org/v2/gh/geomstats/geomstats/main?filepath=notebooks
 .. |contributions| image:: https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat
    :target: https://geomstats.github.io/contributing.html

@@ -13,30 +13,28 @@ import abc
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.base import VectorSpace
+from geomstats.geometry.base import MatrixVectorSpace
 from geomstats.geometry.matrices import Matrices
 
 from ._bch_coefficients import BCH_COEFFICIENTS
 
 
-class MatrixLieAlgebra(VectorSpace, abc.ABC):
+class MatrixLieAlgebra(MatrixVectorSpace, abc.ABC):
     """Class implementing matrix Lie algebra related functions.
 
     Parameters
     ----------
-    dim : int
-        Dimension of the Lie algebra as a real vector space.
-    n : int
+    representation_dim : int
         Amount of rows and columns in the matrix representation of the
         Lie algebra.
     """
 
-    def __init__(self, dim, n, **kwargs):
-        super().__init__(shape=(n, n), **kwargs)
-        geomstats.errors.check_integer(dim, "dim")
-        geomstats.errors.check_integer(n, "n")
-        self.dim = dim
-        self.n = n
+    # TODO: check again need for representation_dim
+
+    def __init__(self, representation_dim, **kwargs):
+        geomstats.errors.check_integer(representation_dim, "representation_dim")
+        super().__init__(shape=(representation_dim, representation_dim), **kwargs)
+        self.representation_dim = representation_dim
 
     bracket = Matrices.bracket
 
@@ -54,7 +52,8 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
 
         Parameters
         ----------
-        matrix_a, matrix_b : array-like, shape=[..., n, n]
+        matrix_a : array-like, shape=[..., *point_shape]
+        matrix_b : array-like, shape=[..., *point_shape]
             Matrices.
         order : int
             The order to which the approximation is calculated. Note that this
@@ -88,40 +87,3 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
                 float(BCH_COEFFICIENTS[i, 3]) / float(BCH_COEFFICIENTS[i, 4]) * el[i]
             )
         return result
-
-    @abc.abstractmethod
-    def basis_representation(self, matrix_representation):
-        """Compute the coefficients of matrices in the given basis.
-
-        Parameters
-        ----------
-        matrix_representation : array-like, shape=[..., n, n]
-            Matrix.
-
-        Returns
-        -------
-        basis_representation : array-like, shape=[..., dim]
-            Coefficients in the basis.
-        """
-        raise NotImplementedError("basis_representation not implemented.")
-
-    def matrix_representation(self, basis_representation):
-        """Compute the matrix representation for the given basis coefficients.
-
-        Sums the basis elements according to the coefficients given in
-        basis_representation.
-
-        Parameters
-        ----------
-        basis_representation : array-like, shape=[..., dim]
-            Coefficients in the basis.
-
-        Returns
-        -------
-        matrix_representation : array-like, shape=[..., n, n]
-            Matrix.
-        """
-        if self.basis is None:
-            raise NotImplementedError("basis not implemented")
-
-        return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)

@@ -84,7 +84,7 @@ from the project GitHub repository using the following instructions:
 
        .. code-block:: bash
 
-          $ git pull upstream master
+          $ git pull upstream main
 
 
 #. Verify your remote configuration:
@@ -104,7 +104,7 @@ from the project GitHub repository using the following instructions:
 
       $ git checkout -b <branch-name>
    
-   (`master` could have been used to develop new code. Nevertheless, the process is cleaner if you create a new branch - e.g. the merge from upstream is easier to handle when there's conflicts - and allows you to develop several features independently, each in its own branch.)
+   (`main` could have been used to develop new code. Nevertheless, the process is cleaner if you create a new branch - e.g. the merge from upstream is easier to handle when there's conflicts - and allows you to develop several features independently, each in its own branch.)
 
 #. Verify that you are on the new branch:
 
@@ -112,7 +112,7 @@ from the project GitHub repository using the following instructions:
 
       $ git branch
       * <branch-name>
-        master
+        main
 
 
 .. _dependencies
@@ -122,34 +122,25 @@ Dependencies and a virtual environment
 
 We recommend using `conda virtual environments <https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_ to separate your development environment from any other geomstats versions installed on your system (this simplifies e.g. requirements management). 
 
-From the geomstats folder, create a virtual environment and install the minimum requirements:
+From the geomstats folder, create a virtual environment:
 
     .. code-block:: bash
 
-      $ conda env create --file environment.yml
+      $ conda create -n geomstats-3.11 python=3.11
 
-This command will create a new environment named `geomstats-3.8`.
+
+This command will create a new environment named `geomstats-3.11`.
 
 
 Then, activate the environment and install geomstats in editable mode:
 
   .. code-block:: bash
 
-    $ conda activate geomstats-3.8
+    $ conda activate geomstats-3.11
     $ pip install -e .
 
 
 Editable mode means that your changes in geomstats will be immediately reflected in any code that runs within this environment.
-
-
-Alternatively, you create a virtual environment from scratch using:
-
-    .. code-block:: bash
-
-      $ conda create -n <env-name>
-
-
-Then, activate it and install geomstats as above (the required packages will be installed automatically).
 
 
 .. note::
@@ -157,7 +148,7 @@ Then, activate it and install geomstats as above (the required packages will be 
 
 
 .. note::
-   See the `setup.cfg` file for details on all project requirements.
+   See the `pyproject.toml` file for details on all project requirements.
 
 
 .. _backends-dev
@@ -167,7 +158,7 @@ Backends
 
 Geomstats supports several backends, namely: `numpy <https://numpy.org/doc/>`_ , 
 `autograd <https://autograd.readthedocs.io/en/latest/>`_,
-`tensorflow <https://www.tensorflow.org/api_docs>`_, and `pytorch <https://pytorch.org/docs/stable/index.html>`_.
+`pytorch <https://pytorch.org/docs/stable/index.html>`_.
 
 The default backend is `numpy`, install the other backends using:
 
@@ -364,7 +355,7 @@ should not break any test.
 Workflow of a contribution 
 ===========================
 
-The best way to start contributing is by finding a part of the project that is more familiar to you (e.g. a specific manifold or metric, a learning algoritgm, etc). Instead, if these concepts are new to you and you would like to contribute while learning, look at some of the existing issues.
+The best way to start contributing is by finding a part of the project that is more familiar to you (e.g. a specific manifold or metric, a learning algorithm, etc). Instead, if these concepts are new to you and you would like to contribute while learning, look at some of the existing issues.
 
 
 .. _new-contributors:
@@ -416,12 +407,12 @@ repository <https://github.com/geomstats/geomstats/>`__ and submit a "pull reque
 Follow the guidelines detailed in :ref:`getting-the-code` to setup the development environment.
 Then, follow the next steps before submitting a PR:
 
-#. Synchronize your master branch with the upstream master branch:
+#. Synchronize your main branch with the upstream main branch:
 
     .. code-block:: bash 
 
-        $ git checkout master
-        $ git pull upstream master
+        $ git checkout main
+        $ git pull upstream main
 
 #. | Create a feature branch to hold your development changes:
 
@@ -466,15 +457,15 @@ latest changes of the main geomstats repository. Bring remote changes locally:
 
     .. code-block:: bash 
 
-      $ git checkout master
-      $ git pull upstream master
+      $ git checkout main
+      $ git pull upstream main
 
 And then merge them into your branch:
 
     .. code-block:: bash 
 
       $ git checkout <branch-name>
-      $ git merge master
+      $ git merge main
 
 
 .. note::
@@ -499,7 +490,7 @@ complies with the following rules. The **bolded** ones are especially important:
 
 #. **Make sure that your code is** `vectorized
    <https://www.geeksforgeeks.org/vectorization-in-python/>`_. For vectorized matrix operations we recommend using the
-   methods of the  `Matrices <https://github.com/geomstats/geomstats/blob/master/geomstats/geometry/matrices.py>`_
+   methods of the  `Matrices <https://github.com/geomstats/geomstats/blob/main/geomstats/geometry/matrices.py>`_
    class instead of lower level backend functions, as they are automatically vectorized.
 
 #. **Submit your code with associated unit tests**. High-quality
@@ -539,7 +530,7 @@ complies with the following rules. The **bolded** ones are especially important:
 
    Then before any commit, run::
 
-    $ flake8 geomstats tests --config setup.cfg
+    $ flake8 geomstats tests
 
    To prevent adding commits which fail to adhere to the PEP8 guidelines, we
    include a `pre-commit <https://pre-commit.com/>`_ config, which immediately
@@ -577,7 +568,7 @@ complies with the following rules. The **bolded** ones are especially important:
    performance and efficiency or through examples of usage. Examples also
    illustrate the features and intricacies of the library to users. Have a
    look at other examples in the `examples/
-   <https://github.com/geomstats/geomstats/tree/master/examples>`_
+   <https://github.com/geomstats/geomstats/tree/main/examples>`_
    subdirectory for reference. Examples should demonstrate why the new
    functionality is useful in practice and, if possible, compare it to other
    methods available in geomstats.
@@ -687,7 +678,7 @@ guidelines:
    objects living in several namespaces which creates confusion (see
    `Language Constructs You Should Not Use <https://docs.python.org/2/howto/doanddont.html#language-constructs-you-should-not-use>`_).
    Keeping the original namespace ensures naming consistency in the codebase
-   and speeds up the code reviews: co-developpers and maintainers do not have
+   and speeds up the code reviews: co-developers and maintainers do not have
    to check if you are using the original module's method or if you have
    overwritten it.
 
@@ -734,7 +725,7 @@ Building the documentation requires installing specific requirements::
 
    pip install -e .[doc]
 
-To build the documentation, follow the steps discussed in `build the docs`_ to install other dependecies 
+To build the documentation, follow the steps discussed in `build the docs`_ to install other dependencies 
 and build the documentation.
 
 Writing Docstrings
@@ -960,7 +951,7 @@ from high-level questions to a more detailed check-list.
 Reporting bugs and features 
 ===========================
 
-Sharing bugs and potential new features for the geomstats project is an equally significant conteibution.
+Sharing bugs and potential new features for the geomstats project is an equally significant contribution.
 We encourage reports for any module including documentation and missing tests.
 
 Issue tracker
@@ -984,15 +975,15 @@ Issue Triaging
 ==============
 
 Other than reporting bugs, another important aspect of contribution is `issue triaging`. This is
-about issue mamanagement and includes certain aspects that are described in the sequel.
+about issue management and includes certain aspects that are described in the sequel.
 
 Reproducing issues
 ------------------
 
-Sometimes reported issues need to be verified to acertain if they are actual issues or false alarms. Part of 
+Sometimes reported issues need to be verified to ascertain if they are actual issues or false alarms. Part of 
 triaging is trying to simulate the bugs in their reported environments and other relevant environments. 
 
-We encourage you to help with this and comment on the issue if you can or can not reproduce it as decribed.
+We encourage you to help with this and comment on the issue if you can or can not reproduce it as described.
 This allows core devs to close the issue if it does not require fixing.
 
 Commenting on alternative solutions

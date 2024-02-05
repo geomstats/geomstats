@@ -66,9 +66,8 @@ class Graph:
 
         Returns
         -------
-        self : array-like,
-            Shape=[n_walks_per_node*self.n_edges), walk_length]
-            array containing random walks.
+        self : array-like, shape=[n_walks_per_node*self.n_edges, walk_length]
+            Array containing random walks.
         """
         paths = [
             [0] * (walk_length + 1) for i in range(self.n_nodes * n_walks_per_node)
@@ -111,7 +110,6 @@ class HyperbolicEmbedding:
     """
 
     def __init__(self, dim=2, max_epochs=100, lr=0.05, n_context=1, n_negative=2):
-
         self.manifold = PoincareBall(dim)
         self.max_epochs = max_epochs
         self.lr = lr
@@ -274,7 +272,6 @@ class HyperbolicEmbedding:
         for epoch in range(self.max_epochs):
             total_loss = []
             for path in random_walks:
-
                 for example_index, one_path in enumerate(path):
                     context_index = path[
                         max(0, example_index - self.n_context) : min(

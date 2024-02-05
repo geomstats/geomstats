@@ -21,28 +21,27 @@ class HeisenbergVectors(LieGroup, VectorSpace):
     ----------
     No parameters
 
-    Reference
-    ---------
+    References
+    ----------
     https://en.wikipedia.org/wiki/Heisenberg_group
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(dim=3, shape=(3,), lie_algebra=Euclidean(3), **kwargs)
+    def __init__(self, equip=True):
+        super().__init__(dim=3, shape=(3,), lie_algebra=Euclidean(3), equip=equip)
 
     def _create_basis(self):
         """Create the canonical basis."""
         return gs.eye(3)
 
-    def get_identity(self):
-        """Get the identity of the 3D Heisenberg group.
+    @property
+    def identity(self):
+        """Identity of the 3D Heisenberg group.
 
         Returns
         -------
         _ : array-like, shape=[3,]
         """
         return gs.zeros(self.dim)
-
-    identity = property(get_identity)
 
     def compose(self, point_a, point_b):
         """Compute the group product of elements `point_a` and `point_b`.
@@ -88,11 +87,11 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         """
         return -point
 
-    def jacobian_translation(self, point, left_or_right="left"):
+    def jacobian_translation(self, point, left=True):
         """Compute the Jacobian matrix of left/right translation by a point.
 
         This calculates the differential of the left translation L_(point)
-        evaluated at 'point'. Note that it only depends on the point we are
+        evaluated at `point`. Note that it only depends on the point we are
         left-translating by, not on the point where the differential is
         evaluated.
 
@@ -100,10 +99,10 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         ----------
         point : array-like, shape=[..., 3]
             Point.
-        left_or_right : str, {'left', 'right'}
+        left : bool
             Indicate whether to calculate the differential of left or right
             translations.
-            Optional, default: 'left'.
+            Optional, default: True.
 
         Returns
         -------
@@ -113,17 +112,17 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         e31 = gs.array_from_sparse([(2, 0)], [1.0], (3, 3))
         e32 = gs.array_from_sparse([(2, 1)], [1.0], (3, 3))
 
-        if left_or_right == "left":
+        if left:
             return (
                 gs.eye(3)
-                + gs.einsum("..., ij -> ...ij", -point[..., 1] / 2, e31)
-                + gs.einsum("..., ij -> ...ij", point[..., 0] / 2, e32)
+                + gs.einsum("...,ij->...ij", -point[..., 1] / 2, e31)
+                + gs.einsum("...,ij->...ij", point[..., 0] / 2, e32)
             )
 
         return (
             gs.eye(3)
-            + gs.einsum("..., ij -> ...ij", point[..., 1] / 2, e31)
-            + gs.einsum("..., ij -> ...ij", -point[..., 0] / 2, e32)
+            + gs.einsum("...,ij->...ij", point[..., 1] / 2, e31)
+            + gs.einsum("...,ij->...ij", -point[..., 0] / 2, e32)
         )
 
     def exp_from_identity(self, tangent_vec):
@@ -139,7 +138,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         _ : array-like, shape=[..., 3]
             Point.
         """
-        return tangent_vec
+        return gs.copy(tangent_vec)
 
     def log_from_identity(self, point):
         """Compute the group logarithm of the point at the identity.
@@ -154,7 +153,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         _ : array-like, shape=[..., 3]
             Group logarithm.
         """
-        return point
+        return gs.copy(point)
 
     @staticmethod
     def upper_triangular_matrix_from_vector(point):
@@ -162,7 +161,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
 
         The 3D Heisenberg group can also be represented as 3x3 upper triangular
         matrices. This function computes this representation of the vector
-        'point'.
+        `point`.
 
         Parameters
         ----------
@@ -174,13 +173,12 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         upper_triangular_mat : array-like, shape=[..., 3, 3]
             Upper triangular matrix.
         """
-        n_points = gs.ndim(point)
-
         element_02 = point[..., 2] + 1 / 2 * point[..., 0] * point[..., 1]
 
-        if n_points == 1:
+        if gs.ndim(point) == 1:
             modified_point = gs.array([1, point[0], element_02, 1, point[1], 1])
         else:
+            n_points = gs.shape(point)[0]
             modified_point = gs.stack(
                 (
                     gs.ones(n_points),
@@ -190,7 +188,33 @@ class HeisenbergVectors(LieGroup, VectorSpace):
                     point[..., 1],
                     gs.ones(n_points),
                 ),
-                axis=1,
+                axis=-1,
             )
 
-        return gs.triu(SymmetricMatrices.from_vector(modified_point))
+        return gs.triu(SymmetricMatrices.matrix_representation(modified_point))
+
+    @staticmethod
+    def vector_from_upper_triangular_matrix(matrix):
+        """Compute the vector representation of the upper triangular matrix.
+
+        Parameters
+        ----------
+        matrix : array-like, shape=[..., 3, 3]
+            Upper triangular matrix.
+
+        Returns
+        -------
+        vector : array-like, shape=[..., 3]
+        """
+        modified_point = gs.triu_to_vec(matrix, k=1)
+        corrected_elem = (
+            modified_point[..., 1]
+            - 1 / 2 * modified_point[..., 0] * modified_point[..., 2]
+        )
+        return gs.stack(
+            [modified_point[..., 0], modified_point[..., 2], corrected_elem], axis=-1
+        )
+
+    def lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute the lie bracket of two tangent vectors."""
+        raise NotImplementedError("The lie bracket is not implemented.")

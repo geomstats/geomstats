@@ -18,10 +18,6 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.frechet_mean import FrechetMean, variance
 from geomstats.learning.geodesic_regression import GeodesicRegression
 
-DIM = 2
-SPACE = Hypersphere(dim=DIM)
-EMBEDDING_DIM = SPACE.embedding_space.dim
-METRIC = SPACE.metric
 gs.random.seed(0)
 
 
@@ -37,46 +33,54 @@ def main():
     - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
     - :math:`X` is the input, :math:`Y` is the target.
     """
+    space = Hypersphere(dim=2)
+
     # Generate noise-free data
     n_samples = 50
     X = gs.random.rand(n_samples)
     X -= gs.mean(X)
 
-    intercept = SPACE.random_uniform()
-    coef = SPACE.to_tangent(5.0 * gs.random.rand(EMBEDDING_DIM), base_point=intercept)
-    y = METRIC.exp(X[:, None] * coef, base_point=intercept)
+    intercept = space.random_uniform()
+    coef = space.to_tangent(
+        5.0 * gs.random.rand(space.embedding_space.dim), base_point=intercept
+    )
+    y = space.metric.exp(X[:, None] * coef, base_point=intercept)
 
     # Generate normal noise
-    normal_noise = gs.random.normal(size=(n_samples, EMBEDDING_DIM))
-    noise = SPACE.to_tangent(normal_noise, base_point=y) / gs.pi / 2
+    normal_noise = gs.random.normal(size=(n_samples, space.embedding_space.dim))
+    noise = space.to_tangent(normal_noise, base_point=y) / gs.pi / 2
 
-    rss = gs.sum(METRIC.squared_norm(noise, base_point=y)) / n_samples
+    rss = gs.sum(space.metric.squared_norm(noise, base_point=y)) / n_samples
 
     # Add noise
-    y = METRIC.exp(noise, y)
+    y = space.metric.exp(noise, y)
 
     # True noise level and R2
-    estimator = FrechetMean(METRIC)
+    estimator = FrechetMean(space)
     estimator.fit(y)
-    variance_ = variance(y, estimator.estimate_, metric=METRIC)
+    variance_ = variance(space, y, estimator.estimate_)
     r2 = 1 - rss / variance_
 
     # Fit geodesic regression
-    gr = GeodesicRegression(SPACE, center_X=False, method="extrinsic", verbose=True)
-    gr.fit(X, y, compute_training_score=True)
+    gr = GeodesicRegression(
+        space, center_X=False, method="extrinsic", compute_training_score=True
+    )
+    gr.fit(X, y)
     intercept_hat, coef_hat = gr.intercept_, gr.coef_
 
     # Measure Mean Squared Error
-    mse_intercept = METRIC.squared_dist(intercept_hat, intercept)
+    mse_intercept = space.metric.squared_dist(intercept_hat, intercept)
 
     tangent_vec_to_transport = coef_hat
-    tangent_vec_of_transport = METRIC.log(intercept, base_point=intercept_hat)
-    transported_coef_hat = METRIC.parallel_transport(
+    tangent_vec_of_transport = space.metric.log(intercept, base_point=intercept_hat)
+    transported_coef_hat = space.metric.parallel_transport(
         tangent_vec=tangent_vec_to_transport,
         base_point=intercept_hat,
         direction=tangent_vec_of_transport,
     )
-    mse_coef = METRIC.squared_norm(transported_coef_hat - coef, base_point=intercept)
+    mse_coef = space.metric.squared_norm(
+        transported_coef_hat - coef, base_point=intercept
+    )
 
     # Measure goodness of fit
     r2_hat = gr.training_score_
@@ -93,11 +97,13 @@ def main():
     sphere_visu = visualization.Sphere(n_meridians=30)
     ax = sphere_visu.set_ax(ax=ax)
 
-    path = METRIC.geodesic(initial_point=intercept_hat, initial_tangent_vec=coef_hat)
-    regressed_geodesic = path(
-        gs.linspace(0.0, 1.0, 100) * gs.pi * 2 / METRIC.norm(coef)
+    path = space.metric.geodesic(
+        initial_point=intercept_hat, initial_tangent_vec=coef_hat
     )
-    regressed_geodesic = gs.to_numpy(gs.autodiff.detach(regressed_geodesic))
+    regressed_geodesic = path(
+        gs.linspace(0.0, 1.0, 100) * gs.pi * 2 / space.metric.norm(coef)
+    )
+    regressed_geodesic = gs.to_numpy(regressed_geodesic)
 
     size = 10
     marker = "o"

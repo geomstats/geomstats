@@ -1,25 +1,60 @@
 """Automatic differentiation in PyTorch."""
 
-import numpy as _np
+import functools
+
 import torch as _torch
 from torch.autograd.functional import hessian as _torch_hessian
 from torch.autograd.functional import jacobian as _torch_jacobian
 
 
-def detach(x):
-    """Return a new tensor detached from the current graph.
+def _get_max_ndim_point(*points):
+    """Identify point with higher dimension.
+
+    Same as `geomstats.vectorization._get_max_ndim_point`.
 
     Parameters
     ----------
-    x : array-like
-        Tensor to detach.
+    points : array-like
 
     Returns
     -------
-    x : array-like
-        Detached tensor.
+    max_ndim_point : array-like
+        Point with higher dimension.
     """
-    return x.detach()
+    max_ndim_point = points[0]
+    for point in points[1:]:
+        if point.ndim > max_ndim_point.ndim:
+            max_ndim_point = point
+
+    return max_ndim_point
+
+
+def _get_batch_shape(*points, point_ndims=1):
+    """Get batch shape.
+
+    Similar to `geomstats.vectorization.get_batch_shape`.
+
+    Parameters
+    ----------
+    points : array-like or None
+        Point belonging to the space.
+    point_ndims : int or tuple[int]
+        Point number of array dimensions.
+
+    Returns
+    -------
+    batch_shape : tuple
+        Returns the shape related with batch. () if only one point.
+    """
+    if isinstance(point_ndims, int):
+        point_max_ndim = _get_max_ndim_point(*points)
+        return point_max_ndim.shape[:-point_ndims]
+
+    for point, point_ndim in zip(points, point_ndims):
+        if point.ndim > point_ndim:
+            return point.shape[:-point_ndim]
+
+    return ()
 
 
 def custom_gradient(*grad_funcs):
@@ -51,29 +86,37 @@ def custom_gradient(*grad_funcs):
             Function func with gradients specified by grad_funcs.
         """
 
-        class func_with_grad(_torch.autograd.Function):
+        class FuncWithGrad(_torch.autograd.Function):
             """Wrapper class for a function with custom grad."""
 
             @staticmethod
-            def forward(ctx, *args):
+            def forward(ctx, *args, **kwargs):
                 ctx.save_for_backward(*args)
-                return func(*args)
+                return func(*args, **kwargs)
 
             @staticmethod
             def backward(ctx, grad_output):
                 inputs = ctx.saved_tensors
 
-                grads = ()
-                for custom_grad in grad_funcs:
-                    grads = (*grads, grad_output * custom_grad(*inputs))
+                if grad_output.ndim > 0:
+                    return tuple(
+                        (
+                            _torch.einsum(
+                                "n,n...->n...", grad_output, custom_grad(*inputs)
+                            )
+                            if input_.requires_grad
+                            else None
+                        )
+                        for input_, custom_grad in zip(inputs, grad_funcs)
+                    )
 
-                if len(grads) == 1:
-                    return grads[0]
-                return grads
+                return tuple(
+                    grad_output * custom_grad(*inputs) if input_.requires_grad else None
+                    for input_, custom_grad in zip(inputs, grad_funcs)
+                )
 
         def wrapped_function(*args, **kwargs):
-            new_inputs = args + tuple(kwargs.values())
-            return func_with_grad.apply(*new_inputs)
+            return FuncWithGrad.apply(*args, **kwargs)
 
         return wrapped_function
 
@@ -101,7 +144,7 @@ def jacobian(func):
     return _jacobian
 
 
-def jacobian_vec(func):
+def jacobian_vec(func, point_ndim=1):
     """Return a function that returns the jacobian of func.
 
     We note that the jacobian function of torch is not vectorized
@@ -134,7 +177,7 @@ def jacobian_vec(func):
     """
 
     def _jacobian(point):
-        if point.ndim == 1:
+        if point.ndim == point_ndim:
             return _torch_jacobian(func=lambda x: func(x), inputs=point)
         return _torch.stack(
             [
@@ -147,13 +190,15 @@ def jacobian_vec(func):
     return _jacobian
 
 
-def hessian(func):
+def hessian(func, func_out_ndim=0):
     """Return a function that returns the hessian of func.
 
     Parameters
     ----------
     func : callable
         Function whose Hessian is computed.
+    func_out_ndim : dim
+        func output ndim.
 
     Returns
     -------
@@ -165,10 +210,24 @@ def hessian(func):
     def _hessian(point):
         return _torch_hessian(func=lambda x: func(x), inputs=point, strict=True)
 
+    def _hessian_vector_valued(point):
+        def scalar_func(point, a):
+            return func(point)[a]
+
+        return _torch.stack(
+            [
+                hessian(functools.partial(scalar_func, a=a))(point)
+                for a in range(func_out_ndim)
+            ]
+        )
+
+    if func_out_ndim:
+        return _hessian_vector_valued
+
     return _hessian
 
 
-def hessian_vec(func):
+def hessian_vec(func, point_ndim=1, func_out_ndim=0):
     """Return a function that returns the hessian of func.
 
     We modify the default behavior of the hessian function of torch
@@ -179,6 +238,8 @@ def hessian_vec(func):
     ----------
     func : callable
         Function whose Hessian is computed.
+    func_out_ndim : dim
+        func output ndim.
 
     Returns
     -------
@@ -186,22 +247,20 @@ def hessian_vec(func):
         Function taking point as input and returning
         the hessian of func at point.
     """
+    hessian_func = hessian(func, func_out_ndim=func_out_ndim)
 
     def _hessian(point):
-        if point.ndim == 1:
-            return _torch_hessian(func=lambda x: func(x), inputs=point, strict=True)
+        if point.ndim == point_ndim:
+            return hessian_func(point)
         return _torch.stack(
-            [
-                _torch_hessian(func=lambda x: func(x), inputs=one_point, strict=True)
-                for one_point in point
-            ],
+            [hessian_func(one_point) for one_point in point],
             axis=0,
         )
 
     return _hessian
 
 
-def jacobian_and_hessian(func):
+def jacobian_and_hessian(func, func_out_ndim=0):
     """Return a function that returns func's jacobian and hessian.
 
     Parameters
@@ -209,6 +268,8 @@ def jacobian_and_hessian(func):
     func : callable
         Function whose jacobian and hessian
         will be computed. It must be real-valued.
+    func_out_ndim : dim
+        func output ndim.
 
     Returns
     -------
@@ -234,25 +295,25 @@ def jacobian_and_hessian(func):
         hessian : any
             Value of func's hessian at input arguments args.
         """
-        return jacobian(func)(*args), hessian(func)(*args)
+        return jacobian(func)(*args), hessian(func, func_out_ndim=func_out_ndim)(*args)
 
     return _jacobian_and_hessian
 
 
-def value_and_grad(func, to_numpy=False):
+def value_and_grad(func, argnums=0, point_ndims=1):
     """Return a function that returns func's value and gradients' values.
 
-    Suitable for use in scipy.optimize with to_numpy=True.
+    Suitable for use in scipy.optimize.
 
     Parameters
     ----------
     func : callable
         Function whose value and gradient values
         will be computed. It must be real-valued.
-    to_numpy : bool
-        Determines if the outputs value and grad will be cast
-        to numpy arrays. Set to "True" when using scipy.optimize.
-        Optional, default: False.
+    argnums: int or tuple[int]
+        Specifies arguments to compute gradients with respect to.
+    point_ndims: int or tuple[int]
+        Specifies arguments ndim.
 
     Returns
     -------
@@ -260,9 +321,81 @@ def value_and_grad(func, to_numpy=False):
         Function that returns func's value and
         func's gradients' values at its inputs args.
     """
+    argnums_ = (argnums,) if isinstance(argnums, int) else argnums
 
-    def func_with_grad(*args, **kwargs):
+    def func_with_grad(*inputs, **kwargs):
         """Return func's value and func's gradients' values at args.
+
+        Parameters
+        ----------
+        inputs : array-like, shape=[..., *point_shape]
+        kwargs : dict
+            Keyword arguments to function func and its gradients.
+
+        Returns
+        -------
+        value : array-like, shape=[...,]
+            Image of func at point.
+        grad : array-like or tuple[array-like], shape=[..., *point_shape]
+            Gradient of func at required points.
+        """
+        batch_shape = _get_batch_shape(*inputs, point_ndims=point_ndims)
+
+        if len(inputs) > 1:
+            point_ndims_ = (
+                (point_ndims,) * len(inputs)
+                if isinstance(point_ndims, int)
+                else point_ndims
+            )
+            inputs_ = []
+            for point, point_ndim in zip(inputs, point_ndims_):
+                if point.shape[:-point_ndim] != batch_shape:
+                    point = _torch.broadcast_to(point, batch_shape + point.shape)
+                inputs_.append(point)
+            inputs = inputs_
+
+        inputs_ = []
+        for index, point in enumerate(inputs):
+            if index in argnums_ and not point.requires_grad:
+                point = point.detach().requires_grad_(True)
+            inputs_.append(point)
+        inputs = inputs_
+        value = func(*inputs, **kwargs).requires_grad_(True)
+
+        if value.ndim > 0:
+            sum_value = value.sum(axis=-1)
+            sum_value.backward()
+        else:
+            value.backward()
+
+        grads = tuple(
+            point.grad.detach()
+            for index, point in enumerate(inputs)
+            if point.requires_grad and index in argnums_
+        )
+        if isinstance(argnums, int):
+            grads = grads[0]
+        return value.detach(), grads
+
+    return func_with_grad
+
+
+def value_jacobian_and_hessian(func, func_out_ndim=0):
+    """Compute value, jacobian and hessian.
+
+    func is called as many times as the output dim.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose jacobian and hessian values
+        will be computed.
+    func_out_ndim : int
+        func output ndim.
+    """
+
+    def _value_jacobian_and_hessian(*args, **kwargs):
+        """Return func's jacobian and func's hessian at args.
 
         Parameters
         ----------
@@ -273,40 +406,17 @@ def value_and_grad(func, to_numpy=False):
 
         Returns
         -------
-        value : any
+        value : array-like
             Value of func at input arguments args.
-        all_grads : list or any
-            Values of func's gradients at input arguments args.
+        jacobian : array-like
+            Value of func's jacobian at input arguments args.
+        hessian : array-like
+            Value of func's hessian at input arguments args.
         """
-        new_args = ()
-        for one_arg in args:
-            if isinstance(one_arg, float):
-                one_arg = _torch.from_numpy(_np.array(one_arg))
-            if isinstance(one_arg, _np.ndarray):
-                one_arg = _torch.from_numpy(one_arg)
-            one_arg = one_arg.clone().requires_grad_(True)
-            new_args = (*new_args, one_arg)
-        args = new_args
+        return (
+            func(*args, **kwargs),
+            jacobian_vec(func)(*args, **kwargs),
+            hessian_vec(func, func_out_ndim=func_out_ndim)(*args, **kwargs),
+        )
 
-        value = func(*args, **kwargs)
-        if value.ndim > 0:
-            value.backward(gradient=_torch.ones_like(one_arg), retain_graph=True)
-        else:
-            value.backward(retain_graph=True)
-
-        all_grads = ()
-        for one_arg in args:
-            all_grads = (
-                *all_grads,
-                _torch.autograd.grad(value, one_arg, retain_graph=True)[0],
-            )
-
-        if to_numpy:
-            value = detach(value).numpy()
-            all_grads = [detach(one_grad).numpy() for one_grad in all_grads]
-
-        if len(args) == 1:
-            return value, all_grads[0]
-        return value, all_grads
-
-    return func_with_grad
+    return _value_jacobian_and_hessian

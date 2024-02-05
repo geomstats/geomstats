@@ -26,9 +26,6 @@ from torch import (
     kron,
     less,
     logical_or,
-)
-from torch import max as amax
-from torch import (
     mean,
     meshgrid,
     moveaxis,
@@ -36,10 +33,19 @@ from torch import (
     ones_like,
     polygamma,
     quantile,
-    remainder,
 )
 from torch import repeat_interleave as repeat
-from torch import reshape, stack, trapz, uint8, unique, vstack, zeros, zeros_like
+from torch import (
+    reshape,
+    scatter_add,
+    stack,
+    trapz,
+    uint8,
+    unique,
+    vstack,
+    zeros,
+    zeros_like,
+)
 from torch.special import gammaln as _gammaln
 
 from .._backend_config import pytorch_atol as atol
@@ -56,6 +62,9 @@ from ._dtype import (
     as_dtype,
     get_default_cdtype,
     get_default_dtype,
+    is_bool,
+    is_complex,
+    is_floating,
     set_default_dtype,
 )
 
@@ -87,7 +96,6 @@ cos = _box_unary_scalar(target=_torch.cos)
 cosh = _box_unary_scalar(target=_torch.cosh)
 exp = _box_unary_scalar(target=_torch.exp)
 floor = _box_unary_scalar(target=_torch.floor)
-imag = _box_unary_scalar(target=_torch.imag)
 log = _box_unary_scalar(target=_torch.log)
 real = _box_unary_scalar(target=_torch.real)
 sign = _box_unary_scalar(target=_torch.sign)
@@ -99,19 +107,11 @@ tanh = _box_unary_scalar(target=_torch.tanh)
 
 
 arctan2 = _box_binary_scalar(target=_torch.atan2)
-mod = _box_binary_scalar(target=_torch.fmod, box_x2=False)
+mod = _box_binary_scalar(target=_torch.remainder, box_x2=False)
 power = _box_binary_scalar(target=_torch.pow, box_x2=False)
 
 
 std = _preserve_input_dtype(_add_default_dtype_by_casting(target=_torch.std))
-
-
-def is_floating(x):
-    return x.dtype.is_floating_point
-
-
-def is_complex(x):
-    return x.dtype.is_complex
 
 
 def matmul(x, y, out=None):
@@ -279,6 +279,12 @@ def shape(val):
     return val.shape
 
 
+def amax(a, axis=None):
+    if axis is None:
+        return _torch.max(array(a))
+    return _torch.max(array(a), dim=axis).values
+
+
 def maximum(a, b):
     return _torch.max(array(a), array(b))
 
@@ -352,15 +358,51 @@ def trace(x):
     return _torch.einsum("...ii", x)
 
 
-def linspace(start, stop, num=50, dtype=None):
-    return _torch.linspace(start=start, end=stop, steps=num, dtype=dtype)
+def linspace(start, stop, num=50, endpoint=True, dtype=None):
+    start_is_array = _torch.is_tensor(start)
+    stop_is_array = _torch.is_tensor(stop)
+
+    if not (start_is_array or stop_is_array) and endpoint:
+        return _torch.linspace(start=start, end=stop, steps=num, dtype=dtype)
+
+    if not start_is_array:
+        start = _torch.tensor(start)
+    if not stop_is_array:
+        stop = _torch.tensor(stop)
+    start, stop = _torch.broadcast_tensors(start, stop)
+    result_shape = (num, *start.shape)
+    start = _torch.flatten(start)
+    stop = _torch.flatten(stop)
+
+    if endpoint:
+        result = _torch.vstack(
+            [
+                _torch.linspace(start=start[i], end=stop[i], steps=num, dtype=dtype)
+                for i in range(start.shape[0])
+            ]
+        ).T
+    else:
+        result = _torch.vstack(
+            [
+                _torch.arange(
+                    start=start[i],
+                    end=stop[i],
+                    step=(stop[i] - start[i]) / num,
+                    dtype=dtype,
+                )
+                for i in range(start.shape[0])
+            ]
+        ).T
+
+    return _torch.reshape(result, result_shape)
 
 
 def equal(a, b, **kwargs):
-    if a.dtype == _torch.ByteTensor:
-        a = cast(a, _torch.uint8).float()
-    if b.dtype == _torch.ByteTensor:
-        b = cast(b, _torch.uint8).float()
+    if not is_array(a):
+        a = array(a)
+
+    if not is_array(b):
+        b = array(b)
     return _torch.eq(a, b, **kwargs)
 
 
@@ -404,8 +446,8 @@ def ndim(x):
 
 def hsplit(x, indices_or_section):
     if isinstance(indices_or_section, int):
-        indices_or_section = x.shape[1] // indices_or_section
-    return _torch.split(x, indices_or_section, dim=1)
+        indices_or_section = x.shape[-1] // indices_or_section
+    return _torch.split(x, indices_or_section, dim=-1)
 
 
 def diagonal(x, offset=0, axis1=0, axis2=1):
@@ -757,10 +799,18 @@ def dot(a, b):
 
 
 def cross(a, b):
-    if a.ndim + b.ndim == 3 or a.ndim == b.ndim == 2 and a.shape[0] != b.shape[0]:
+    if a.shape != b.shape:
         a, b = broadcast_arrays(a, b)
-    return _torch.cross(*convert_to_wider_dtype([a, b]))
+    return _torch.cross(*convert_to_wider_dtype([a, b]), dim=-1)
 
 
 def gamma(a):
     return _torch.exp(_gammaln(a))
+
+
+def imag(a):
+    if not _torch.is_tensor(a):
+        a = _torch.tensor(a)
+    if is_complex(a):
+        return _torch.imag(a)
+    return _torch.zeros(a.shape, dtype=a.dtype)

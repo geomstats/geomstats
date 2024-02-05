@@ -2,8 +2,8 @@ r"""Integrator functions used when no closed forms are available.
 
 Lead author: Nicolas Guigui.
 
-These are designed for first order ODE written of a variable x and a time
-variable t:
+These are designed for first order systems of ODEs written as a
+spatial variable x and a time variable t:
 
 .. math::
 
@@ -14,14 +14,22 @@ variables by stacking arrays, e.g. position and velocity in a geodesic
 equation.
 """
 
+import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
 
 STEP_FUNCTIONS = {
     "euler": "euler_step",
-    "symp_euler": "symplectic_euler_step",
-    "leapfrog": "leapfrog_step",
     "rk4": "rk4_step",
     "rk2": "rk2_step",
+    "leapfrog": "leapfrog_step",
+}
+
+
+FEVALS_PER_STEP = {
+    "euler": 1,
+    "rk4": 4,
+    "rk2": 2,
+    "leapfrog": 2,
 }
 
 
@@ -32,7 +40,7 @@ def euler_step(force, state, time, dt):
     ----------
     force : callable
         Vector field that is being integrated.
-    state : array-like, shape=[2, dim]
+    state : array-like, shape=[..., n, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
     time : float
@@ -42,10 +50,8 @@ def euler_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
-        First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
-        Second variable at time t + dt.
+    point_new : array-like, shape=[..., n, dim]
+        Variables at time t + dt.
     """
     derivatives = force(state, time)
     new_state = state + derivatives * dt
@@ -57,7 +63,7 @@ def symplectic_euler_step(force, state, time, dt):
 
     Parameters
     ----------
-    state : array-like, shape=[2, dim]
+    state : array-like, shape=[..., 2, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
     force : callable
@@ -69,10 +75,10 @@ def symplectic_euler_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
-        First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
-        Second variable at time t + dt.
+    point_new : array-like, shape=[..., 1, dim]
+        Position variable at time t + dt.
+    vector_new : array-like, shape=[..., 1, dim]
+        Velocity variable at time t + dt.
     """
     raise NotImplementedError
 
@@ -82,7 +88,7 @@ def leapfrog_step(force, state, time, dt):
 
     Parameters
     ----------
-    state : array-like, shape=[2, dim]
+    state : array-like, shape=[..., 2, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
     force : callable
@@ -94,12 +100,22 @@ def leapfrog_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
-        First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
-        Second variable at time t + dt.
+    state_new : array-like, shape=[..., 2, dim]
+        State at time t + dt, corresponds to position and velocity variables
+        at time t + dt.
+
+    See Also
+    --------
+    https://en.wikipedia.org/wiki/Leapfrog_integration
     """
-    raise NotImplementedError
+    pos, vel = state[..., 0, :], state[..., 1, :]
+    vel_half_step = vel + 0.5 * dt * force(pos, time)
+    pos_full_step = pos + dt * vel_half_step
+    vel_full_step = vel_half_step + 0.5 * dt * force(pos_full_step, time + dt)
+    point_new = pos_full_step[..., None, :]
+    vector_new = vel_full_step[..., None, :]
+    state_new = gs.concatenate([point_new, vector_new], axis=-2)
+    return state_new
 
 
 def rk2_step(force, state, time, dt):
@@ -109,7 +125,7 @@ def rk2_step(force, state, time, dt):
     ----------
     force : callable
         Vector field that is being integrated.
-    state : array-like, shape=[2, dim]
+    state : array-like, shape=[..., n, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
     time : float
@@ -119,10 +135,8 @@ def rk2_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
-        First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
-        Second variable at time t + dt.
+    point_new : array-like, shape=[..., n, dim]
+        Variables at time t + dt.
 
     See Also
     --------
@@ -141,7 +155,7 @@ def rk4_step(force, state, time, dt):
     ----------
     force : callable
         Vector field that is being integrated.
-    state : array-like, shape=[2, dim]
+    state : array-like, shape=[..., n, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
     time : float
@@ -151,10 +165,8 @@ def rk4_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
-        First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
-        Second variable at time t + dt.
+    point_new : array-like, shape=[..., n, dim]
+        Variables at time t + dt.
 
     See Also
     --------

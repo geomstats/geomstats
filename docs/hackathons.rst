@@ -7,7 +7,7 @@ Hackathons
 Geomstats core developers organize several hackathons a year, with the following goals:
   * Train new users, e.g. pairing a new user with an experienced Geomstats developer.
   * On-board new contributors, e.g. on collaborative coding practices.
-  * Foster new collaborations and strenghten existing ones
+  * Foster new collaborations and strengthen existing ones
   * Bring the community of geometric statistics and learning together.
 
 
@@ -106,3 +106,10 @@ In addition to hackathons, we co-organize international coding challenges.
 * April 2022: international Coding Challenge at the International Conference on Learning Representations (ICLR)
 
 
+
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   hackathons/ihp_10_2022

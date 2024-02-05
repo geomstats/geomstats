@@ -9,12 +9,10 @@ from abc import ABC
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
-from geomstats.geometry.lie_group import LieGroup
-from geomstats.geometry.manifold import Manifold
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import get_batch_shape
 
 
-class FiberBundle(Manifold, ABC):
+class FiberBundle(ABC):
     """Class for (principal) fiber bundles.
 
     This class implements abstract methods for fiber bundles, or more
@@ -22,42 +20,24 @@ class FiberBundle(Manifold, ABC):
 
     Parameters
     ----------
-    total_space : Manifold
-        Total space of the bundle.
-    base : Manifold
-        Base manifold of the bundle.
-        Optional. Default : None.
     group : LieGroup
         Group that acts on the total space by the right.
         Optional. Default : None.
         Either the group or the group action must be given.
-    total_space_metric : RiemannianMetric
-        Metric to use in the total space.
-        Optional. The `metric` attribute of the total space is used if no
-        ambient metric is passed.
     group_action : callable
         Right group action. It must take as input a point of the total space
         and an element of the group, and return a point of the total space.
-    dim : int
-        Dimension of the base manifold.
-        Optional. If available the dimension of the base manifold is used,
-        or the difference between the dimension of the total space and the
-        group. Either dim, base or group must be given as input.
     """
 
     def __init__(
         self,
-        dim: int,
-        group: LieGroup = None,
-        total_space_metric: RiemannianMetric = None,
+        total_space,
+        group=None,
         group_action=None,
         group_dim=None,
-        **kwargs
     ):
-
-        super().__init__(dim=dim, **kwargs)
+        self._total_space = total_space
         self.group = group
-        self.total_space_metric = total_space_metric
 
         if group_action is None and group is not None:
             group_action = group.compose
@@ -72,7 +52,7 @@ class FiberBundle(Manifold, ABC):
 
         This is the projection of the fiber bundle, defined on the total
         space, with values in the base manifold. This map is surjective.
-        By default, the base manifold  is not explicit but is identified with a
+        By default, the base manifold is not explicit but is identified with a
         local section of the fiber bundle, so the submersion is the identity
         map.
 
@@ -86,7 +66,7 @@ class FiberBundle(Manifold, ABC):
         projection : array-like, shape=[..., {base_dim, [n, m]}]
             Point of the base manifold.
         """
-        return point
+        return gs.copy(point)
 
     @staticmethod
     def lift(point):
@@ -108,7 +88,7 @@ class FiberBundle(Manifold, ABC):
         lift : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point of the total space.
         """
-        return point
+        return gs.copy(point)
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
         """Project a tangent vector to base manifold.
@@ -166,19 +146,17 @@ class FiberBundle(Manifold, ABC):
         """
         group = self.group
         group_action = self.group_action
-        initial_distance = self.total_space_metric.squared_dist(point, base_point)
-        if isinstance(initial_distance, float) or initial_distance.shape == ():
-            n_samples = 1
-        else:
-            n_samples = len(initial_distance)
-        max_shape = (n_samples, self.group_dim) if n_samples > 1 else (self.group_dim,)
+
+        batch_shape = get_batch_shape(self._total_space.point_ndim, point, base_point)
+        max_shape = batch_shape + (self.group_dim,)
 
         if group is not None:
 
             def wrap(param):
                 """Wrap a parameter vector to a group element."""
-                algebra_elt = gs.array(param)
-                algebra_elt = gs.cast(algebra_elt, dtype=base_point.dtype)
+                algebra_elt = gs.reshape(
+                    gs.cast(gs.array(param), dtype=base_point.dtype), max_shape
+                )
                 algebra_elt = group.lie_algebra.matrix_representation(algebra_elt)
                 group_elt = group.exp(algebra_elt)
                 return self.group_action(point, group_elt)
@@ -186,7 +164,7 @@ class FiberBundle(Manifold, ABC):
         elif group_action is not None:
 
             def wrap(param):
-                vector = gs.array(param)
+                vector = gs.reshape(gs.array(param), max_shape)
                 vector = gs.cast(vector, dtype=base_point.dtype)
                 return group_action(vector, point)
 
@@ -194,13 +172,14 @@ class FiberBundle(Manifold, ABC):
             raise ValueError("Either the group of its action must be known")
 
         objective_with_grad = gs.autodiff.value_and_grad(
-            lambda param: self.total_space_metric.squared_dist(wrap(param), base_point),
-            to_numpy=True,
+            lambda param: gs.sum(
+                self._total_space.metric.squared_dist(wrap(param), base_point)
+            ),
         )
 
         tangent_vec = gs.flatten(gs.random.rand(*max_shape))
         res = minimize(
-            objective_with_grad,
+            lambda x: objective_with_grad(gs.from_numpy(x)),
             tangent_vec,
             method="L-BFGS-B",
             jac=True,
@@ -241,7 +220,7 @@ class FiberBundle(Manifold, ABC):
             fiber_point=base_point,
         )
 
-    def vertical_projection(self, tangent_vec, base_point, **kwargs):
+    def vertical_projection(self, tangent_vec, base_point):
         r"""Project to vertical subspace.
 
         Compute the vertical component of a tangent vector :math:`w` at a
@@ -347,15 +326,16 @@ class FiberBundle(Manifold, ABC):
         horizontal_lift : array-like, shape=[..., {total_space.dim, [n, m]}]
             Horizontal tangent vector to the total space at point.
         """
+        if base_point is None and fiber_point is None:
+            raise ValueError(
+                "Either a point (of the total space) or a "
+                "base point (of the base manifold) must be "
+                "given."
+            )
+
         if fiber_point is None:
-            if base_point is not None:
-                fiber_point = self.lift(base_point)
-            else:
-                raise ValueError(
-                    "Either a point (of the total space) or a "
-                    "base point (of the base manifold) must be "
-                    "given."
-                )
+            fiber_point = self.lift(base_point)
+
         return self.horizontal_projection(tangent_vec, fiber_point)
 
     def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -363,7 +343,7 @@ class FiberBundle(Manifold, ABC):
 
         The fundamental integrability tensor A is defined for tangent vectors
         :math:`X = tangent\_vec\_a` and :math:`Y = tangent\_vec\_b` of the
-        total space by [O'Neill]_ as
+        total space by [ONeill]_ as
         :math:`A_X Y = ver\nabla_{hor X} (hor Y) + hor \nabla_{hor X}( ver Y)`
         where :math:`hor, ver` are the horizontal and vertical projections
         and :math:`\nabla` is the connection of the total space.
@@ -385,7 +365,7 @@ class FiberBundle(Manifold, ABC):
 
         References
         ----------
-        .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
+        .. [ONeill]  O’Neill, Barrett. The Fundamental Equations of a
             Submersion, Michigan Mathematical Journal 13, no. 4
             (December 1966): 459–69. https://doi.org/10.1307/mmj/1028999604.
         """
@@ -407,12 +387,12 @@ class FiberBundle(Manifold, ABC):
         curvature in a submersion. The components :math:`\nabla_X (A_Y E)`
         and :math:`A_Y E` are computed at base-point :math:`P = base\_point`
         for horizontal vector fields :math:`X, Y` extending the values
-        given in argument :math:`X|_P = horizontal_vec_x`,
+        given in argument :math:`X|_P = horizontal\_vec\_x`,
         :math:`Y|_P = horizontal\_vec\_y` and a general vector field
-        :math:`E` extending :math:`E|_x =
-        tangent\_vec\_e` in a neighborhood of x with covariant derivatives
-        :math:`\nabla_X Y |_P = nabla_x_y` and
-        :math:`\nabla_X E |_P = nabla_x_e`.
+        :math:`E` extending :math:`E|_x = tangent\_vec\_e`
+        in a neighborhood of x with covariant derivatives
+        :math:`\nabla_X Y |_P = nabla_x y` and
+        :math:`\nabla_X E |_P = nabla_x e`.
 
         Parameters
         ----------

@@ -5,12 +5,26 @@ Lead author: Yann Cabanes.
 
 from sklearn.neighbors import KNeighborsClassifier
 
+import geomstats.backend as gs
+
+
+def wrap(function):
+    """Wrap a function to first convert args to arrays."""
+
+    def wrapped_function(*args, **kwargs):
+        new_args = map(gs.from_numpy, args)
+        return function(*new_args, **kwargs)
+
+    return wrapped_function
+
 
 class KNearestNeighborsClassifier(KNeighborsClassifier):
     """Classifier implementing the k-nearest neighbors vote on manifolds.
 
     Parameters
     ----------
+    space : Manifold
+        Equipped manifold.
     n_neighbors : int, optional (default = 5)
         Number of neighbors to use by default.
     weights : string or callable, optional (default = 'uniform')
@@ -24,21 +38,6 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
         - [callable] : a user-defined function which accepts an
           array of distances, and returns an array of the same shape
           containing the weights.
-    p : integer, optional (default = 2)
-        Power parameter for the 'minkowski' string distance.
-        When p = 1, this is equivalent to using manhattan_distance (l1),
-        and euclidean_distance (l2) for p = 2.
-        For arbitrary p, minkowski_distance (l_p) is used.
-    distance : string or callable, optional (default = 'minkowski')
-        The distance metric to use.
-        The default distance is minkowski, and with p=2 is equivalent to the
-        standard Euclidean distance.
-        See the documentation of the DistanceMetric class in the scikit-learn
-        library for a list of available distances.
-        If distance is "precomputed", X is assumed to be a distance matrix and
-        must be square during fit.
-    distance_params : dict, optional (default = None)
-        Additional keyword arguments for the distance function.
     n_jobs : int or None, optional (default = None)
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1; ``-1`` means using all processors.
@@ -69,22 +68,18 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
 
     def __init__(
         self,
+        space,
         n_neighbors=5,
         weights="uniform",
-        p=2,
-        distance="minkowski",
-        distance_params=None,
         n_jobs=None,
-        **kwargs
     ):
+        self.space = space
 
+        distance = wrap(space.metric.dist)
         super().__init__(
             n_neighbors=n_neighbors,
             weights=weights,
             algorithm="brute",
-            p=p,
             metric=distance,
-            metric_params=distance_params,
             n_jobs=n_jobs,
-            **kwargs
         )

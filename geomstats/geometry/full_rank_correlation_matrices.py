@@ -1,15 +1,32 @@
 """The manifold of full-rank correlation matrices.
 
-Lead author: Yann Thanwerdas.
+Lead authors: Yann Thanwerdas and Olivier Bisson.
+
+
+References
+----------
+.. [T2022] Yann Thanwerdas. Riemannian and stratified
+geometries on covariance and correlation matrices. Differential
+Geometry [math.DG]. Université Côte d'Azur, 2022.
 """
 
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet
+from geomstats.geometry.diffeo import ComposedDiffeo
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.open_hemisphere import (
+    OpenHemispheresProduct,
+    OpenHemisphereToHyperboloidDiffeo,
+)
+from geomstats.geometry.positive_lower_triangular_matrices import (
+    UnitNormedRowsPLTDiffeo,
+)
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
+from geomstats.geometry.spd_matrices import CholeskyMap, SPDAffineMetric, SPDMatrices
 
 
 class FullRankCorrelationMatrices(LevelSet):
@@ -21,24 +38,55 @@ class FullRankCorrelationMatrices(LevelSet):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n, **kwargs):
-        kwargs.setdefault("metric", FullRankCorrelationAffineQuotientMetric(n))
-        super().__init__(
-            dim=int(n * (n - 1) / 2),
-            embedding_space=SPDMatrices(n=n),
-            submersion=Matrices.diagonal,
-            value=gs.ones(n),
-            tangent_submersion=lambda v, x: Matrices.diagonal(v),
-            **kwargs
-        )
+    def __init__(self, n, equip=True):
         self.n = n
+        super().__init__(dim=int(n * (n - 1) / 2), equip=equip)
+
+    def _define_embedding_space(self):
+        return SPDMatrices(n=self.n)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return FullRankCorrelationAffineQuotientMetric
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n]
+        """
+        return Matrices.diagonal(point) - gs.ones(self.n)
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+        point : Ignored.
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n]
+        """
+        submersed_vector = Matrices.diagonal(vector)
+        if point is not None and point.ndim > vector.ndim:
+            return gs.broadcast_to(submersed_vector, point.shape[:-1])
+
+        return submersed_vector
 
     @staticmethod
     def diag_action(diagonal_vec, point):
         r"""Apply a diagonal matrix on an SPD matrices by congruence.
 
         The action of :math:`D` on :math:`\Sigma` is given by :math:`D
-        \Sigma D. The diagonal matrix must be passed as a vector representing
+        \Sigma D`. The diagonal matrix must be passed as a vector representing
         its diagonal.
 
         Parameters
@@ -61,7 +109,7 @@ class FullRankCorrelationMatrices(LevelSet):
         r"""Compute the correlation matrix associated to an SPD matrix.
 
         The correlation matrix associated to an SPD matrix (the covariance)
-        :math:`\Sigma` is given by :math:`D  \Sigma D` where :math:`D` is
+        :math:`\Sigma` is given by :math:`D \Sigma D` where :math:`D` is
         the inverse square-root of the diagonal of :math:`\Sigma`.
 
         Parameters
@@ -131,7 +179,7 @@ class FullRankCorrelationMatrices(LevelSet):
         return sym * mask_diag
 
 
-class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
+class CorrelationMatricesBundle(FiberBundle):
     """Fiber bundle to construct the quotient metric on correlation matrices.
 
     Correlation matrices are obtained as the quotient of the space of SPD
@@ -146,11 +194,10 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         https://hal.archives-ouvertes.fr/hal-03157992.
     """
 
-    def __init__(self, n):
+    def __init__(self, total_space):
         super().__init__(
-            n=n,
-            total_space_metric=SPDAffineMetric(n),
-            group_dim=n,
+            total_space=total_space,
+            group_dim=total_space.n,
             group_action=FullRankCorrelationMatrices.diag_action,
         )
 
@@ -191,9 +238,9 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         diagonal = diagonal_tv / diagonal_bp
         aux = base_point * (diagonal[..., None, :] + diagonal[..., :, None])
         mat = tangent_vec - 0.5 * aux
-        return FullRankCorrelationMatrices.diag_action(diagonal_bp ** (-0.5), mat)
+        return self.group_action(diagonal_bp ** (-0.5), mat)
 
-    def vertical_projection(self, tangent_vec, base_point, **kwargs):
+    def vertical_projection(self, tangent_vec, base_point):
         """Compute the vertical projection wrt the affine-invariant metric.
 
         Parameters
@@ -208,7 +255,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         ver : array-like, shape=[..., n, n]
             Vertical projection.
         """
-        n = self.n
+        n = self._total_space.n
         inverse_base_point = GeneralLinear.inverse(base_point)
         operator = gs.eye(n) + base_point * inverse_base_point
         inverse_operator = GeneralLinear.inverse(operator)
@@ -233,12 +280,11 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         hor_lift : array-like, shape=[..., n, n]
             Horizontal lift of tangent_vec from point to base_point.
         """
-        if fiber_point is None and base_point is not None:
+        if base_point is not None:
             return self.horizontal_projection(tangent_vec, base_point)
         diagonal_point = Matrices.diagonal(fiber_point) ** 0.5
-        lift = FullRankCorrelationMatrices.diag_action(diagonal_point, tangent_vec)
-        hor_lift = self.horizontal_projection(lift, base_point=fiber_point)
-        return hor_lift
+        lift = self.group_action(diagonal_point, tangent_vec)
+        return self.horizontal_projection(lift, base_point=fiber_point)
 
 
 class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
@@ -247,16 +293,47 @@ class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
     The affine-invariant metric on SPD matrices is invariant under the
     action of diagonal matrices, thus it induces a quotient metric on the
     manifold of full-rank correlation matrices.
-
-    Parameters
-    ----------
-    n : int
-        Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n):
-        fiber_bundle = CorrelationMatricesBundle(n=n)
+    def __init__(self, space, total_space=None):
+        if total_space is None:
+            total_space = SPDMatrices(space.n, equip=False)
+            total_space.equip_with_metric(SPDAffineMetric)
+
+        if not hasattr(total_space, "fiber_bundle"):
+            total_space.fiber_bundle = CorrelationMatricesBundle(total_space)
+
         super().__init__(
-            fiber_bundle=fiber_bundle,
-            shape=fiber_bundle.shape,
+            space=space,
+            total_space=total_space,
         )
+
+
+class PolyHyperbolicCholeskyMetric(PullbackDiffeoMetric):
+    """Pullback metric via a diffeomorphism.
+
+    Diffeormorphism between full-rank correlation matrices and
+    the space of lower triangular matrices with positive diagonal
+    and unit normed rows.
+
+    Since this image space is also diffeomorphic to another space, the
+    product space of successively increasing factor-dimension open hemispheres,
+    we take advantage of `ComposedDiffeo` to avoid explicitly representing
+    the intermediate space.
+
+    For more details, check section 7.4.1 [T2022]_.
+    """
+
+    def __init__(self, space):
+        n = space.n
+        diffeos = [CholeskyMap(), UnitNormedRowsPLTDiffeo(n)]
+
+        if n == 2:
+            diffeos.append(OpenHemisphereToHyperboloidDiffeo())
+            image_space = Hyperboloid(dim=1)
+        else:
+            image_space = OpenHemispheresProduct(n=n)
+
+        diffeo = ComposedDiffeo(diffeos)
+
+        super().__init__(space=space, diffeo=diffeo, image_space=image_space)

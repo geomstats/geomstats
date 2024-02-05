@@ -6,9 +6,7 @@ Lead author: Nicolas Guigui.
 from sklearn.base import BaseEstimator, TransformerMixin
 
 import geomstats.backend as gs
-from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.learning.exponential_barycenter import ExponentialBarycenter
@@ -30,35 +28,31 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
 
     Parameters
     ----------
-    geometry : {Manifold ,LieGroup or RiemannianMetric}
-        Metric or Lie group to use to compute the log and exp. If a Lie group
-        is passed, its group exp/log will be used, which don't necessarily
-        correspond to a Riemannian metric. To use a `metric` on the Lie group,
-        explicitly pass `geometry=metric`
-    **kwargs : key-word arguments for the FrechetMean/ExponentialBarycenter
-        estimator.
+    space : Manifold
+        Equipped manifold or unequipped space implementing `exp` and `log`.
+
+    Notes
+    -----
+    * Required geometry methods: `log`, `exp`.
     """
 
-    def __init__(self, geometry, **kwargs):
+    def __init__(self, space):
+        self.space = space
 
-        if isinstance(geometry, LieGroup):
-            self._used_geometry = geometry
-            self.estimator = ExponentialBarycenter(group=self._used_geometry, **kwargs)
+        if hasattr(self.space, "metric"):
+            self.mean_estimator = FrechetMean(space)
         else:
-            if hasattr(geometry, "metric"):
-                self._used_geometry = geometry.metric
-            elif isinstance(geometry, RiemannianMetric):
-                self._used_geometry = geometry
-            else:
-                raise ValueError(
-                    "The input geometry must be either a "
-                    "Manifold equipped with a "
-                    "RiemannianMetric, or a RiemannianMetric or a"
-                    " LieGroup"
-                )
-            self.estimator = FrechetMean(metric=self._used_geometry, **kwargs)
-        self.point_type = geometry.default_point_type
-        self.geometry = geometry
+            self.mean_estimator = ExponentialBarycenter(space)
+
+        self.base_point_ = None
+
+    @property
+    def _geometry(self):
+        """Object where `exp` and `log` are defined."""
+        if hasattr(self.space, "metric"):
+            return self.space.metric
+
+        return self.space
 
     def fit(self, X, y=None, weights=None, base_point=None):
         """Compute the central point at which to take the log.
@@ -68,11 +62,11 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : array-like, shape=[..., {dim, [n, n]}]
+        X : array-like, shape=[n_samples, {dim, [n, n]}]
             The training input samples.
-        y : array-like, shape (n_samples,) or (n_samples, n_outputs)
-            Ignored
-        weights : array-like, shape=[..., 1]
+        y : None
+            Ignored.
+        weights : array-like, shape=[n_samples, 1]
             Weights associated to the points.
             Optional, default: None
         base_point : array-like, shape=[{dim, [n, n]}]
@@ -85,10 +79,14 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
             Returns self.
         """
         if base_point is None:
-            self.estimator.fit(X, y, weights)
+            self.base_point_ = self.mean_estimator.fit(X, y, weights).estimate_
+
+        else:
+            self.base_point_ = base_point
+
         return self
 
-    def transform(self, X, base_point=None):
+    def transform(self, X):
         """Lift data to a tangent space.
 
         Compute the logs of all data point and reshapes them to
@@ -98,33 +96,25 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : array-like, shape=[..., {dim, [n, n]}]
+        X : array-like, shape=[n_samples, {dim, [n, n]}]
             Data to transform.
-        y : Ignored (Compliance with scikit-learn interface)
-        base_point : array-like, shape={dim, [n,n]}, optional (mean)
-            Point on the manifold, the returned samples will be tangent
-            vectors at the base point.
 
         Returns
         -------
-        X_new : array-like, shape=[..., dim]
+        X_new : array-like, shape=[n_samples, dim]
             Lifted data.
         """
-        if base_point is None:
-            base_point = self.estimator.estimate_
+        if self.base_point_ is None:
+            raise Exception("Not fitted")
 
-            if self.estimator.estimate_ is None:
-                raise RuntimeError(
-                    "fit needs to be called first or a " "base_point passed."
-                )
+        tangent_vecs = self._geometry.log(X, base_point=self.base_point_)
 
-        tangent_vecs = self._used_geometry.log(X, base_point=base_point)
-
-        if self.point_type == "vector":
+        if self.space.point_ndim == 1:
             return tangent_vecs
 
         if gs.all(Matrices.is_symmetric(tangent_vecs)):
-            X = SymmetricMatrices.to_vector(tangent_vecs)
+            X = SymmetricMatrices.basis_representation(tangent_vecs)
+
         elif gs.all(Matrices.is_skew_symmetric(tangent_vecs)):
             X = SkewSymmetricMatrices(tangent_vecs.shape[-1]).basis_representation(
                 tangent_vecs
@@ -134,46 +124,40 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
 
         return X
 
-    def inverse_transform(self, X, base_point=None):
+    def inverse_transform(self, X):
         """Reconstruction of X.
 
         The reconstruction will match X_original whose transform would be X.
 
         Parameters
         ----------
-        X : array-like, shape=[..., dim]
+        X : array-like, shape=[n_samples, dim]
             New data, where dim is the dimension of the manifold data belong
             to.
-        base_point : array-like, shape={dim, [n,n]}, optional (mean)
-            Point on the manifold, where the input samples are tangent
-            vectors.
 
         Returns
         -------
-        X_original : array-like, shape=[..., {dim, [n, n]}
+        X_original : array-like, shape=[n_samples, {dim, [n, n]}
             Data lying on the manifold.
         """
-        if base_point is None:
-            base_point = self.estimator.estimate_
+        if self.base_point_ is None:
+            raise Exception("Not fitted")
 
-            if self.estimator.estimate_ is None:
-                raise RuntimeError(
-                    "fit needs to be called first or a " "base_point passed."
-                )
-
-        if self.point_type == "matrix":
-            n_base_point = base_point.shape[-1]
+        if self.space.point_ndim > 1:
+            n_base_point = self.base_point_.shape[-1]
             n_vecs = X.shape[-1]
             dim_sym = int(n_base_point * (n_base_point + 1) / 2)
             dim_skew = int(n_base_point * (n_base_point - 1) / 2)
 
-            if gs.all(Matrices.is_symmetric(base_point)) and dim_sym == n_vecs:
-                tangent_vecs = SymmetricMatrices(base_point.shape[-1]).from_vector(X)
+            if gs.all(Matrices.is_symmetric(self.base_point_)) and dim_sym == n_vecs:
+                tangent_vecs = SymmetricMatrices(
+                    self.base_point_.shape[-1]
+                ).matrix_representation(X)
             elif dim_skew == n_vecs:
                 tangent_vecs = SkewSymmetricMatrices(dim_skew).matrix_representation(X)
             else:
-                dim = base_point.shape[-1]
+                dim = self.base_point_.shape[-1]
                 tangent_vecs = gs.reshape(X, (len(X), dim, dim))
         else:
             tangent_vecs = X
-        return self._used_geometry.exp(tangent_vecs, base_point)
+        return self._geometry.exp(tangent_vecs, self.base_point_)

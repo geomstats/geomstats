@@ -10,7 +10,7 @@ Lead author: Nicolas Guigui.
 
 import geomstats.backend as gs
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
 class SkewSymmetricMatrices(MatrixLieAlgebra):
@@ -22,10 +22,16 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         Number of rows and columns.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, equip=True):
+        self.n = n
         dim = int(n * (n - 1) / 2)
-        super().__init__(dim, n)
-        self.embedding_space = Matrices(n, n)
+        super().__init__(dim=dim, representation_dim=n, equip=equip)
+        self.embedding_space = Matrices(n, n, equip=False)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return MatricesMetric
 
     def _create_basis(self):
         """Create the canonical basis."""
@@ -50,12 +56,12 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
 
         return gs.array_from_sparse(indices, data, (k + 1, n, n))
 
-    def belongs(self, mat, atol=gs.atol):
-        """Evaluate if mat is a skew-symmetric matrix.
+    def belongs(self, point, atol=gs.atol):
+        """Evaluate if point is a skew-symmetric matrix.
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
             Square matrix to check.
         atol : float
             Tolerance for the equality evaluation.
@@ -66,9 +72,9 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         belongs : array-like, shape=[...,]
             Boolean evaluating if matrix is skew symmetric.
         """
-        has_right_shape = self.embedding_space.belongs(mat)
+        has_right_shape = self.embedding_space.belongs(point)
         if gs.all(has_right_shape):
-            return Matrices.is_skew_symmetric(mat=mat, atol=atol)
+            return Matrices.is_skew_symmetric(mat=point, atol=atol)
         return has_right_shape
 
     def random_point(self, n_samples=1, bound=1.0):

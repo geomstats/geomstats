@@ -1,4 +1,5 @@
 """Utility module of reusable algebra routines."""
+
 import math
 
 import geomstats.backend as gs
@@ -114,8 +115,7 @@ def from_vector_to_diagonal_matrix(vector, num_diag=0):
         is a diagonal matrix containing the `i`-th row of `vector`.
     """
     num_columns = gs.shape(vector)[-1]
-    identity = gs.eye(num_columns)
-    identity = gs.cast(identity, vector.dtype)
+    identity = gs.eye(num_columns, dtype=vector.dtype)
     diagonals = gs.einsum("...i,ij->...ij", vector, identity)
     diagonals = gs.to_ndarray(diagonals, to_ndim=3)
     num_lines = diagonals.shape[0]

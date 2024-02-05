@@ -14,15 +14,11 @@ The code is object-oriented and classes inherit from
 scikit-learn's base classes and mixins.
 
 In both modules, the operations are vectorized for batch computation and provide
-support for different execution backends---namely NumPy, PyTorch, and TensorFlow.
+support for different execution backends---namely NumPy, Autograd and PyTorch.
 The module `backend` implements the operations needed to use Geomstats seamlessly with any backend.
 
 .. toctree::
    :maxdepth: 3
    :caption: Packages & Modules
 
-   geometry
-   learning
-   datasets
-   backend
-   visualization
+   modules

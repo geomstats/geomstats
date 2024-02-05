@@ -50,13 +50,14 @@ def main():
     n_clusters = 2
 
     kmeans = RiemannianKMeans(
-        metric=hyperbolic_embedding.manifold.metric,
+        hyperbolic_embedding.manifold,
         n_clusters=n_clusters,
         init="random",
     )
 
-    centroids = kmeans.fit(X=embeddings)
-    labels = kmeans.predict(X=embeddings)
+    kmeans.fit(X=embeddings)
+    cluster_centers = kmeans.cluster_centers_
+    labels = kmeans.labels_
 
     colors = ["g", "c", "m"]
     circle = visualization.PoincareDisk(coords_type="ball")
@@ -67,7 +68,7 @@ def main():
     ax2.axes.yaxis.set_visible(False)
     group_1_predicted = mpatches.Patch(color=colors[0], label="Predicted Group 1")
     group_2_predicted = mpatches.Patch(color=colors[1], label="Predicted Group 2")
-    group_centroids = mpatches.Patch(color=colors[2], label="Cluster centroids")
+    group_centers = mpatches.Patch(color=colors[2], label="Cluster centers")
 
     for _ in range(n_clusters):
         for i_embedding, embedding in enumerate(embeddings):
@@ -81,7 +82,7 @@ def main():
             plt.scatter(x_coords, y_coords, c=color, s=150)
             ax2.annotate(pt_id, (x_coords, y_coords))
 
-    for _, centroid in enumerate(centroids):
+    for _, centroid in enumerate(cluster_centers):
         x_coords = centroid[0]
         y_coords = centroid[1]
         plt.scatter(
@@ -93,18 +94,20 @@ def main():
         )
 
     plt.title("K-means applied to Karate club embedding")
-    plt.legend(handles=[group_1_predicted, group_2_predicted, group_centroids])
+    plt.legend(handles=[group_1_predicted, group_2_predicted, group_centers])
     plt.show()
 
     kmedoid = RiemannianKMedoids(
-        metric=hyperbolic_embedding.manifold.metric,
+        hyperbolic_embedding.manifold,
         n_clusters=n_clusters,
+        max_iter=100,
         init="random",
         n_jobs=2,
     )
 
-    centroids = kmedoid.fit(data=embeddings, max_iter=100)
-    labels = kmedoid.predict(data=embeddings)
+    kmedoid.fit(X=embeddings)
+    cluster_centers = kmedoid.cluster_centers_
+    labels = kmedoid.labels_
 
     colors = ["g", "c", "m"]
     circle = visualization.PoincareDisk(coords_type="ball")
@@ -115,7 +118,7 @@ def main():
     ax2.axes.yaxis.set_visible(False)
     group_1_predicted = mpatches.Patch(color=colors[0], label="Predicted Group 1")
     group_2_predicted = mpatches.Patch(color=colors[1], label="Predicted Group 2")
-    group_centroids = mpatches.Patch(color=colors[2], label="Cluster centroids")
+    group_centers = mpatches.Patch(color=colors[2], label="Cluster centers")
 
     for _ in range(n_clusters):
         for i_embedding, embedding in enumerate(embeddings):
@@ -129,7 +132,7 @@ def main():
             plt.scatter(x_coords, y_coords, c=color, s=150)
             ax2.annotate(pt_id, (x_coords, y_coords))
 
-    for _, centroid in enumerate(centroids):
+    for _, centroid in enumerate(cluster_centers):
         x_coords = centroid[0]
         y_coords = centroid[1]
         plt.scatter(
@@ -141,7 +144,7 @@ def main():
         )
 
     plt.title("K-Medoids applied to Karate club embedding")
-    plt.legend(handles=[group_1_predicted, group_2_predicted, group_centroids])
+    plt.legend(handles=[group_1_predicted, group_2_predicted, group_centers])
     plt.show()
 
 

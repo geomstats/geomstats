@@ -4,14 +4,13 @@ coverage:
   status:
     project:
       default:
-        target: 90%
-        threshold: 2%
-        base: auto
+        target: auto
+        threshold: 1%
         flags:
           - unit
        # advanced
         branches:
-          - master
+          - main
         if_not_found: success
         if_ci_failed: error
         informational: False
@@ -26,20 +25,16 @@ coverage:
       pytorch:
         flags:
           - pytorch
-      tensorflow:
-        flags:
-          - tensorflow
     patch:
       default:
         # basic
-        target: 90%
-        threshold: 2%
-        base: auto
+        target: auto
+        threshold: 1%
         flags:
           - unit
         # advanced
         branches:
-          - master
+          - main
         if_no_uploads: error
         if_not_found: success
         if_ci_failed: error
@@ -54,14 +49,13 @@ coverage:
       pytorch:
         flags:
           - pytorch
-      tensorflow:
-        flags:
-          - tensorflow
 
 
 # Files to ignore
 ignore:
   - "geomstats/datasets/data"
+  - "geomstats/test"
+  - "geomstats/test_cases"
   - "examples/data"
   - "examples/imgs"
 
@@ -83,9 +77,3 @@ flags:
       - geomstats/_backend/autograd
       - geomstats/_backend/numpy
       - geomstats/_backend/tensorflow
-
-  tensorflow:
-    ignore:
-      - geomstats/_backend/autograd
-      - geomstats/_backend/numpy
-      - geomstats/_backend/pytorch
