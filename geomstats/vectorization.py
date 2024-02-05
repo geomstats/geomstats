@@ -141,6 +141,43 @@ def repeat_out(point_ndim, out, *point, out_shape=()):
     return out
 
 
+def repeat_out_multiple_ndim(
+    out, point_ndim_1, points_1, point_ndim_2, points_2, out_ndim=0
+):
+    """Repeat out after finding batch shape.
+
+    Differs from `repeat_out` by accepting two sets of point_ndim arrays.
+
+    Parameters
+    ----------
+    out : array-like
+        Output to be repeated
+    point_ndim_1 : int
+        Point number of array dimensions.
+    points_1 : tuple[array-like or None]
+        Arrays of dimension point_ndim_1 or higher.
+    point_ndim_2 : int
+        Point number of array dimensions.
+    points_2 : tuple[array-like or None]
+        Arrays of dimension point_ndim_2 or higher.
+    out_ndim : int
+        Out number of array dimensions.
+
+    Returns
+    -------
+    out : array-like
+        If no batch, then input is returned. Otherwise it is broadcasted.
+    """
+    batch_shape = get_batch_shape(point_ndim_1, *points_1)
+    if not batch_shape:
+        batch_shape = get_batch_shape(point_ndim_2, *points_2)
+
+    out_shape = out.shape[-out_ndim:]
+    if out.shape[:-out_ndim] != batch_shape:
+        return gs.broadcast_to(out, batch_shape + out_shape)
+    return out
+
+
 def broadcast_to_multibatch(batch_shape_a, batch_shape_b, array_a, *array_b):
     """Broadcast to multibatch.
 

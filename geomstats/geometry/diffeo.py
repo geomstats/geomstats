@@ -4,7 +4,7 @@ import abc
 import math
 
 import geomstats.backend as gs
-from geomstats.vectorization import get_batch_shape
+from geomstats.vectorization import get_batch_shape, repeat_out_multiple_ndim
 
 
 class Diffeo:
@@ -32,7 +32,7 @@ class Diffeo:
 
     @abc.abstractmethod
     def inverse_diffeomorphism(self, image_point):
-        r"""Inverse diffeomorphism at base point.
+        r"""Inverse diffeomorphism at image point.
 
         :math:`f^{-1}: N \rightarrow M`
 
@@ -200,7 +200,7 @@ class AutodiffDiffeo(Diffeo):
     def inverse_tangent_diffeomorphism(
         self, image_tangent_vec, image_point=None, base_point=None
     ):
-        r"""Tangent diffeomorphism at base point.
+        r"""Tangent diffeomorphism at image point.
 
         Parameters
         ----------
@@ -256,7 +256,7 @@ class ReversedDiffeo(Diffeo):
         return self.diffeo.inverse_diffeomorphism(base_point)
 
     def inverse_diffeomorphism(self, image_point):
-        """Inverse diffeomorphism at base point."""
+        """Inverse diffeomorphism at image point."""
         return self.diffeo.diffeomorphism(image_point)
 
     def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
@@ -268,7 +268,7 @@ class ReversedDiffeo(Diffeo):
     def inverse_tangent_diffeomorphism(
         self, image_tangent_vec, image_point=None, base_point=None
     ):
-        """Tangent diffeomorphism at base point."""
+        """Tangent diffeomorphism at image point."""
         return self.diffeo.tangent_diffeomorphism(
             image_tangent_vec, base_point=image_point, image_point=image_point
         )
@@ -295,7 +295,7 @@ class ComposedDiffeo(Diffeo):
         return image_point
 
     def inverse_diffeomorphism(self, image_point):
-        """Inverse diffeomorphism at base point."""
+        """Inverse diffeomorphism at image point."""
         base_point = image_point
         for diffeo in reversed(self.diffeos):
             base_point = diffeo.inverse_diffeomorphism(base_point)
@@ -332,3 +332,72 @@ class ComposedDiffeo(Diffeo):
             image_point = base_point
 
         return tangent_vec
+
+
+class VectorSpaceDiffeo(Diffeo):
+    """A diffeo between vector spaces."""
+
+    def __init__(self, space_ndim, image_space_ndim=None):
+        super().__init__()
+        self.space_ndim = space_ndim
+        self.image_space_ndim = image_space_ndim or space_ndim
+
+    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+        r"""Tangent diffeomorphism at base point.
+
+        df_p is a linear map from T_pM to T_f(p)N.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space_shape]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., *space_shape]
+            Base point.
+        image_point : array-like, shape=[..., *image_shape]
+            Image point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., *image_shape]
+            Image tangent vector at image of the base point.
+        """
+        out = self.diffeomorphism(tangent_vec)
+        return repeat_out_multiple_ndim(
+            out,
+            self.space_ndim,
+            (tangent_vec, base_point),
+            self.image_space_ndim,
+            (image_point,),
+            out_ndim=self.image_space_ndim,
+        )
+
+    def inverse_tangent_diffeomorphism(
+        self, image_tangent_vec, image_point=None, base_point=None
+    ):
+        r"""Inverse tangent diffeomorphism at image point.
+
+        df^-1_p is a linear map from T_f(p)N to T_pM
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., *image_shape]
+            Image tangent vector at image point.
+        image_point : array-like, shape=[..., *image_shape]
+            Image point.
+        base_point : array-like, shape=[..., *space_shape]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *space_shape]
+            Tangent vector at base point.
+        """
+        out = self.inverse_diffeomorphism(image_tangent_vec)
+        return repeat_out_multiple_ndim(
+            out,
+            self.image_space_ndim,
+            (image_tangent_vec, image_point),
+            self.space_ndim,
+            (base_point,),
+            out_ndim=self.space_ndim,
+        )
