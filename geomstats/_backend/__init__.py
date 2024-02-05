@@ -125,7 +125,6 @@ BACKEND_ATTRIBUTES = {
         "quantile",
         "ravel_tril_indices",
         "real",
-        "remainder",
         "repeat",
         "reshape",
         "rtol",
