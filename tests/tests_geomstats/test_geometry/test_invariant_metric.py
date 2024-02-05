@@ -8,6 +8,8 @@ from geomstats.geometry.invariant_metric import (
     _InvariantMetricMatrix,
     _InvariantMetricVector,
 )
+from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.test.parametrizers import DataBasedParametrizer
@@ -23,6 +25,7 @@ from .data.invariant_metric import (
     BiInvariantMetricVectorsSOTestData,
     InvariantMetricMatrixSETestData,
     InvariantMetricMatrixSO3TestData,
+    InvariantMetricMatrixSONonDiagTestData,
     InvariantMetricMatrixSOTestData,
     InvariantMetricVectorTestData,
 )
@@ -31,14 +34,30 @@ from .data.invariant_metric import (
 @pytest.fixture(
     scope="class",
     params=[
-        (SpecialOrthogonal(random.randint(2, 3), equip=False), True),
-        (SpecialOrthogonal(random.randint(2, 3), equip=False), False),
+        (random.randint(2, 3), True, True),
+        (random.randint(2, 3), True, False),
+        (random.randint(2, 3), False, True),
     ],
 )
 def equipped_SO_matrix_groups_left_right(request):
-    space, left = request.param
-    request.cls.space = space
-    space.equip_with_metric(_InvariantMetricMatrix, left=left)
+    """SO matrix spaces to equip with invariant metric.
+
+    Third param controls metric_matrix_at_identity:
+    * True: FrobeniusMetric
+    * False: random diagonal matrix
+    """
+    n, left, metric_mat_at_identity = request.param
+    space = request.cls.space = SpecialOrthogonal(n, equip=False)
+
+    if metric_mat_at_identity:
+        metric_mat_at_identity = None
+    else:
+        spd_mat = SPDMatrices(space.dim, equip=False).random_point()
+        metric_mat_at_identity = Matrices.to_diagonal(spd_mat)
+
+    space.equip_with_metric(
+        _InvariantMetricMatrix, left=left, metric_mat_at_identity=metric_mat_at_identity
+    )
 
     request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
 
@@ -49,6 +68,23 @@ class TestInvariantMetricMatrixSO(
     InvariantMetricMatrixTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = InvariantMetricMatrixSOTestData()
+
+
+@pytest.mark.slow
+class TestInvariantMetricMatrixSONonDiag(
+    InvariantMetricMatrixTestCase, metaclass=DataBasedParametrizer
+):
+    _n = random.randint(2, 3)
+    space = SpecialOrthogonal(_n, equip=False)
+    _metric_mat_at_id = SPDMatrices(space.dim, equip=False).random_point()
+
+    space.equip_with_metric(
+        _InvariantMetricMatrix, left=True, metric_mat_at_identity=_metric_mat_at_id
+    )
+
+    data_generator = RandomDataGenerator(space, amplitude=10.0)
+
+    testing_data = InvariantMetricMatrixSONonDiagTestData()
 
 
 @pytest.mark.smoke
@@ -196,12 +232,11 @@ class TestInvariantMetricMatrixSO3(
 
 @pytest.fixture(
     scope="class",
-    params=[
-        SpecialEuclidean(random.randint(2, 3), equip=False),
-    ],
+    params=[random.randint(2, 3)],
 )
 def equipped_SE_matrix_groups(request):
-    space = request.cls.space = request.param
+    n = request.param
+    space = request.cls.space = SpecialEuclidean(n, equip=False)
     space.equip_with_metric(_InvariantMetricMatrix, left=False)
 
     request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
@@ -243,8 +278,7 @@ class TestInvariantMetricVector(
 @pytest.fixture(
     scope="class",
     params=[
-        # TODO: uncomment
-        # SpecialOrthogonal(2, point_type="vector", equip=False),
+        SpecialOrthogonal(2, point_type="vector", equip=False),
         SpecialOrthogonal(3, point_type="vector", equip=False),
     ],
 )

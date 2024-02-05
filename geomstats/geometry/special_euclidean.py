@@ -18,7 +18,6 @@ from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.vectorization import repeat_out
 
 PI = gs.pi
 PI2 = PI * PI
@@ -677,12 +676,8 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
     def equip_with_metric(self, Metric=None, **metric_kwargs):
         super().equip_with_metric(Metric=Metric, **metric_kwargs)
 
-        dim_rotations = self.rotations.dim
-        metric_mat = self.metric.metric_mat_at_identity
-        rot_metric_mat = metric_mat[:dim_rotations, :dim_rotations]
         self.rotations.equip_with_metric(
             InvariantMetric,
-            metric_mat_at_identity=rot_metric_mat,
             left=self.metric.left,
         )
 
@@ -920,7 +915,7 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
     """Class for the canonical left-invariant metric on SE(n).
 
     The canonical left-invariant metric is defined by endowing the tangent
-    space at the identity with the Frobenius inned-product, and to define the
+    space at the identity with the Frobenius inner-product, and to define the
     metric at any point by left-translation. This results in a direct product
     metric between rotations and translations, whose geodesics are therefore
     easily computable with the matrix exponential and straight lines.
@@ -945,29 +940,6 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
                 "group must be an instance of the "
                 "SpecialEuclidean class with `point_type=matrix`."
             )
-
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute inner product of two vectors in tangent space at base point.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
-            First tangent vector at base_point.
-        tangent_vec_b : array-like, shape=[..., n, n]
-            Second tangent vector at base_point.
-        base_point : array-like, shape=[..., n, n]
-            Point in the group.
-            Optional, defaults to identity if None.
-
-        Returns
-        -------
-        inner_prod : array-like, shape=[...,]
-            Inner-product of the two tangent vectors.
-        """
-        inner_prod = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
-        return repeat_out(
-            self._space.point_ndim, inner_prod, base_point, tangent_vec_a, tangent_vec_b
-        )
 
     def exp(self, tangent_vec, base_point=None):
         """Exponential map associated to the cannonical metric.

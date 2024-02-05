@@ -6,11 +6,13 @@ Lead authors: Nicolas Guigui and Nina Miolane.
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet
+from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import powermh
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 
 ATOL = 1e-5
@@ -43,7 +45,6 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             dim=int((n * (n - 1)) / 2),
             representation_dim=n,
             lie_algebra=SkewSymmetricMatrices(n=n, equip=False),
-            intrinsic=False,
             equip=equip,
         )
 
@@ -305,12 +306,26 @@ class _SpecialOrthogonalVectors(LieGroup):
 
     def __init__(self, n, epsilon=0.0, equip=True):
         dim = n * (n - 1) // 2
-        super().__init__(dim=dim, shape=(dim,), lie_algebra=self, equip=equip)
+
+        super().__init__(
+            dim=dim, shape=(dim,), lie_algebra=Euclidean(dim, equip=False), equip=equip
+        )
 
         self.n = n
         self.epsilon = epsilon
 
         self.skew = SkewSymmetricMatrices(self.n, equip=False)
+
+    def equip_with_metric(self, Metric=None, **metric_kwargs):
+        super().equip_with_metric(Metric=Metric, **metric_kwargs)
+
+        if isinstance(self.metric, BiInvariantMetric):
+            self.lie_algebra.equip_with_metric(EuclideanMetric)
+            self.lie_algebra.metric = ScalarProductMetric(
+                self.lie_algebra.metric, 1.0 / 2.0
+            )
+
+        return self
 
     @property
     def identity(self):
