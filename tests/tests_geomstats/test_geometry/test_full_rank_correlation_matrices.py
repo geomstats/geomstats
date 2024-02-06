@@ -7,6 +7,8 @@ from geomstats.geometry.diffeo import ComposedDiffeo
 from geomstats.geometry.full_rank_correlation_matrices import (
     CorrelationMatricesBundle,
     FullRankCorrelationMatrices,
+    OffLogDiffeo,
+    OffLogMetric,
     PolyHyperbolicCholeskyMetric,
 )
 from geomstats.geometry.general_linear import GeneralLinear
@@ -21,6 +23,7 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     UnitNormedRowsPLTMatrices,
 )
 from geomstats.geometry.spd_matrices import CholeskyMap, SPDMatrices
+from geomstats.geometry.symmetric_matrices import SymmetricHollowMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
@@ -35,6 +38,7 @@ from .data.full_rank_correlation_matrices import (
     CorrelationMatricesBundleTestData,
     FullRankCorrelationAffineQuotientMetricTestData,
     FullRankCorrelationMatricesTestData,
+    OffLogMetricTestData,
     PolyHyperbolicCholeskyMetricTestData,
 )
 
@@ -163,3 +167,31 @@ class TestPolyHyperbolicCholeskyMetric(
     PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = PolyHyperbolicCholeskyMetricTestData()
+
+
+class TestOffLogDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(2, 5)
+    space = FullRankCorrelationMatrices(n=_n, equip=False)
+    image_space = SymmetricHollowMatrices(n=_n, equip=False)
+    diffeo = OffLogDiffeo(space)
+    testing_data = DiffeoTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (2, (0.0, 0.0, 1.0)),
+        (3, (0.0, 1.0, 1.0)),
+        (random.randint(4, 5), (1.0, 1.0, 1.0)),
+    ],
+)
+def equipped_cor_with_off_log_metric(request):
+    n, (alpha, beta, gamma) = request.param
+    request.cls.space = FullRankCorrelationMatrices(n, equip=False).equip_with_metric(
+        OffLogMetric, alpha=alpha, beta=beta, gamma=gamma
+    )
+
+
+@pytest.mark.usefixtures("equipped_cor_with_off_log_metric")
+class TestOffLogMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer):
+    testing_data = OffLogMetricTestData()
