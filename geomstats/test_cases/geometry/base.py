@@ -43,7 +43,7 @@ class _VectorSpaceTestCaseMixins(ProjectionTestCaseMixins):
         """
         points = self.data_generator.random_point(n_points)
 
-        res = self.space.is_tangent(points, atol=atol)
+        res = self.space.is_tangent(points, base_point=None, atol=atol)
         self.assertAllEqual(res, gs.ones(n_points, dtype=bool))
 
     @pytest.mark.random

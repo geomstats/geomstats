@@ -10,6 +10,7 @@ import geomstats.backend as gs
 from geomstats.geometry.complex_manifold import ComplexManifold
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.pullback_metric import PullbackMetric
+from geomstats.vectorization import get_batch_shape
 
 
 class VectorSpace(Manifold, abc.ABC):
@@ -140,6 +141,34 @@ class VectorSpace(Manifold, abc.ABC):
             size = (n_samples,) + size
         return bound * (gs.random.rand(*size) - 0.5) * 2
 
+    def random_tangent_vec(self, base_point, n_samples=1):
+        """Generate random tangent vec.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        base_point :  array-like, shape={[n_samples, *point_shape], [*point_shape,]}
+            Point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *point_shape]
+            Tangent vec at base point.
+        """
+        if (
+            n_samples > 1
+            and base_point.ndim > len(self.shape)
+            and n_samples != len(base_point)
+        ):
+            raise ValueError(
+                "The number of base points must be the same as the "
+                "number of samples, when the number of base points is different from 1."
+            )
+        n_samples = base_point.shape[0] if base_point.ndim > len(self.shape) else 1
+        return self.random_point(n_samples)
+
     @property
     def basis(self):
         """Basis of the vector space."""
@@ -152,7 +181,7 @@ class VectorSpace(Manifold, abc.ABC):
         """Create a canonical basis."""
 
 
-class MatrixVectorSpace(VectorSpace):
+class MatrixVectorSpace(VectorSpace, abc.ABC):
     """A matrix vector space."""
 
     @abc.abstractmethod
@@ -467,7 +496,7 @@ class LevelSet(Manifold, abc.ABC):
 
         submersed_vector = self.tangent_submersion(vector, base_point)
 
-        n_batch = max(gs.ndim(base_point), gs.ndim(vector)) - len(self.shape)
+        n_batch = len(get_batch_shape(self.point_ndim, base_point, vector))
         axis = tuple(range(-len(submersed_vector.shape) + n_batch, 0))
 
         constraint = gs.isclose(submersed_vector, 0.0, atol=atol)
@@ -520,23 +549,6 @@ class LevelSet(Manifold, abc.ABC):
         -------
         projected : array-like, shape=[..., *point_shape]
             Projected point.
-        """
-
-    @abc.abstractmethod
-    def to_tangent(self, vector, base_point):
-        """Project a vector to a tangent space of the manifold.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., *point_shape]
-            Vector.
-        base_point : array-like, shape=[..., *point_shape]
-            Point on the manifold.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., *point_shape]
-            Tangent vector at base point.
         """
 
 

@@ -5,8 +5,8 @@ Lead author: Yann Thanwerdas.
 
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet, MatrixVectorSpace
+from geomstats.geometry.euclidean import FlatRiemannianMetric
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import repeat_out
 
 
@@ -137,7 +137,7 @@ class SymmetricMatrices(MatrixVectorSpace):
         return mat
 
 
-class SymmetricHollowMatrices(MatrixVectorSpace, LevelSet):
+class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
     """Space of symmetric hollow matrices."""
 
     def __init__(self, n, equip=True):
@@ -206,7 +206,7 @@ class SymmetricHollowMatrices(MatrixVectorSpace, LevelSet):
         vec : array-like, shape=[..., n(n+1)/2]
             Vector.
         """
-        return gs.tril_to_vec(matrix_representation, k=-1)
+        return gs.triu_to_vec(matrix_representation, k=1)
 
     def projection(self, point):
         """Project a point in embedding manifold on embedded manifold.
@@ -224,21 +224,14 @@ class SymmetricHollowMatrices(MatrixVectorSpace, LevelSet):
         return point - Matrices.to_diagonal(point)
 
 
-class HollowMatricesPermutationInvariantMetric(RiemannianMetric):
+class HollowMatricesPermutationInvariantMetric(FlatRiemannianMetric):
     """A permutation-invariant metric on the space of hollow matrices.
 
-    It is flat Riemannian metric à priori invariant by the congruence action
-    of permutation matrices defined over a matrix vector space,
-    so it is just a metric defined over the vector space itself,
-    even though we implement it as a Riemannian metric, since
-    the tangent bundle to Hol is itself, so tangent vector are simply hollow matrices,
-    and since the metric is flat it doesn't depend
-    from the base point.
+    It is flat Riemannian metric a priori invariant by the congruence action
+    of permutation matrices defined over a matrix vector space.
     """
 
     def __init__(self, space, alpha=1.0, beta=1.0, gamma=1.0):
-        # the condition is always verified for for a,b,g=1 (easy proof) <=> n>0
-        # TODO: add condition check?
         self._check_params(space, alpha, beta, gamma)
         super().__init__(space=space)
         self.alpha = alpha
@@ -247,64 +240,66 @@ class HollowMatricesPermutationInvariantMetric(RiemannianMetric):
 
     @staticmethod
     def _check_params(space, alpha, beta, gamma):
-        if space.n == 2:
-            if alpha < gs.atol or beta < gs.atol:
-                raise ValueError("{alpha} and {beta} must be 0. when n==2")
+        n = space.n
+        if n == 2:
+            if alpha > gs.atol or beta > gs.atol or gamma < gs.atol:
+                raise ValueError(
+                    f"When n==2: alpha ({alpha}) and beta({beta}) must be 0,"
+                    f"and gamma ({gamma}) > 0. "
+                )
+            return
 
-        elif space.n == 3:
-            if alpha < gs.atol:
-                raise ValueError("{alpha} must be 0. when n==2")
+        elif n == 3:
+            cond = beta + 3 * gamma
+            if alpha > gs.atol or beta < gs.atol or cond < gs.atol:
+                raise ValueError(
+                    f"When n==3: alpha ({alpha}) must be 0, beta ({beta}) > 0"
+                    f"and an inequality greater than 0: {cond}."
+                    "Check thanwerdas2022 theorem 8.7"
+                )
+            return
 
-    def quadratic_form(self, tangent_vec):
-        comp = tangent_vec @ tangent_vec
+        cond_1 = 2 * alpha + (n - 2) * beta
+        cond_2 = alpha + (n - 1) * (beta + n * gamma)
+        if cond_1 < gs.atol or cond_2 < gs.atol:
+            raise ValueError(
+                f"Inequalities should be greater than 0, but: {cond_1} and {cond_2}."
+                "Check thanwerdas2022 theorem 8.7"
+            )
 
+    def _quadratic_form(self, tangent_vec):
+        comp = gs.matmul(tangent_vec, tangent_vec)
         out_alpha = self.alpha * gs.trace(comp) if self.alpha > gs.atol else 0.0
-        out_beta = self.beta * gs.sum(comp) if self.beta > gs.atol else 0.0
-        out_gamma = self.gamma * gs.sum(tangent_vec) ** 2
+        out_beta = (
+            self.beta * gs.sum(comp, axis=(-2, -1)) if self.beta > gs.atol else 0.0
+        )
+        out_gamma = self.gamma * gs.sum(tangent_vec, axis=(-2, -1)) ** 2
 
         return out_alpha + out_beta + out_gamma
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        return (1 / 2) * (
-            self.quadratic_form(tangent_vec_a + tangent_vec_b)
-            - self.quadratic_form(tangent_vec_a)
-            - self.quadratic_form(tangent_vec_b)
-        )
-
-    def exp(self, tangent_vec, base_point):
-        """Compute exp map of a base point in tangent vector direction.
-
-        The Riemannian exponential is vector addition in the Euclidean space.
+        """Inner product between two tangent vectors at a base point.
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec_a: array-like, shape=[..., dim]
             Tangent vector at base point.
-        base_point : array-like, shape=[..., dim]
-            Base point.
-
-        Returns
-        -------
-        exp : array-like, shape=[..., dim]
-            Riemannian exponential.
-        """
-        return base_point + tangent_vec
-
-    def log(self, point, base_point):
-        """Compute log map using a base point and other point.
-
-        The Riemannian logarithm is the subtraction in the Euclidean space.
-
-        Parameters
-        ----------
-        point: array-like, shape=[..., dim]
-            Point.
+        tangent_vec_b: array-like, shape=[..., dim]
+            Tangent vector at base point.
         base_point: array-like, shape=[..., dim]
             Base point.
+            Optional, default: None.
 
         Returns
         -------
-        log: array-like, shape=[..., dim]
-            Riemannian logarithm.
+        inner_product : array-like, shape=[...,]
+            Inner-product.
         """
-        return point - base_point
+        inner_prod = (1 / 2) * (
+            self._quadratic_form(tangent_vec_a + tangent_vec_b)
+            - self._quadratic_form(tangent_vec_a)
+            - self._quadratic_form(tangent_vec_b)
+        )
+        return repeat_out(
+            self._space.point_ndim, inner_prod, tangent_vec_a, tangent_vec_b, base_point
+        )
