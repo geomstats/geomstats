@@ -2,7 +2,7 @@ import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from .base import LevelSetTestData, MatrixVectorSpaceTestData
-from .riemannian_metric import RiemannianMetricTestData
+from .euclidean import FlatRiemannianMetricTestData
 
 
 class SymmetricMatricesTestData(MatrixVectorSpaceTestData):
@@ -93,6 +93,6 @@ class SymmetricHollowMatricesTestData(MatrixVectorSpaceTestData, LevelSetTestDat
     pass
 
 
-class HollowMatricesPermutationInvariantMetricTestData(RiemannianMetricTestData):
+class HollowMatricesPermutationInvariantMetricTestData(FlatRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False

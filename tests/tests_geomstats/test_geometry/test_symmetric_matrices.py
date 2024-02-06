@@ -12,8 +12,8 @@ from geomstats.test_cases.geometry.base import (
     LevelSetTestCase,
     MatrixVectorSpaceTestCase,
 )
+from geomstats.test_cases.geometry.euclidean import FlatRiemannianMetricTestCase
 from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.matrices import MatricesMetricTestData
 from .data.symmetric_matrices import (
@@ -26,22 +26,12 @@ from .data.symmetric_matrices import (
 )
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def spaces(request):
-    request.cls.space = SymmetricMatrices(n=request.param, equip=False)
-
-
-@pytest.mark.usefixtures("spaces")
 class TestSymmetricMatrices(
     MatrixVectorSpaceTestCase,
     metaclass=DataBasedParametrizer,
 ):
+    _n = random.randint(2, 5)
+    space = SymmetricMatrices(n=_n, equip=False)
     testing_data = SymmetricMatricesTestData()
 
 
@@ -71,38 +61,42 @@ class TestSymmetricMatrices3(
     testing_data = SymmetricMatrices3TestData()
 
 
-@pytest.mark.parametrize("n,expected", [(1, 1), (2, 3), (5, 15)])
-def test_dim(n, expected):
-    space = SymmetricMatrices(n, equip=False)
-    assert space.dim == expected
-
-
 @pytest.mark.redundant
 class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
-    n = random.randint(3, 5)
-    space = SymmetricMatrices(n=n)
+    _n = random.randint(2, 5)
+    space = SymmetricMatrices(n=_n)
 
     testing_data = MatricesMetricTestData()
 
 
 class TestSymmetricHollowMatrices(
-    MatrixVectorSpaceTestCase,
     LevelSetTestCase,
+    MatrixVectorSpaceTestCase,
     metaclass=DataBasedParametrizer,
 ):
-    _n = random.randint(2, 5)
+    _n = random.randint(2, 6)
     space = SymmetricHollowMatrices(n=_n, equip=False)
 
     testing_data = SymmetricHollowMatricesTestData()
 
 
-class TestHollowMatricesPermutationInvariantMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
-):
-    # _n = random.randint(2, 5)
-    _n = 3
-    space = SymmetricHollowMatrices(n=_n, equip=False).equip_with_metric(
-        HollowMatricesPermutationInvariantMetric
+@pytest.fixture(
+    scope="class",
+    params=[
+        (2, (0.0, 0.0, 1.0)),
+        (3, (0.0, 1.0, 1.0)),
+        (random.randint(4, 6), (1.0, 1.0, 1.0)),
+    ],
+)
+def equipped_hollow_matrices(request):
+    n, (alpha, beta, gamma) = request.param
+    request.cls.space = SymmetricHollowMatrices(n, equip=False).equip_with_metric(
+        HollowMatricesPermutationInvariantMetric, alpha=alpha, beta=beta, gamma=gamma
     )
 
+
+@pytest.mark.usefixtures("equipped_hollow_matrices")
+class TestHollowMatricesPermutationInvariantMetric(
+    FlatRiemannianMetricTestCase, metaclass=DataBasedParametrizer
+):
     testing_data = HollowMatricesPermutationInvariantMetricTestData()
