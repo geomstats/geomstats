@@ -138,7 +138,26 @@ class SymmetricMatrices(MatrixVectorSpace):
 
 
 class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
-    """Space of symmetric hollow matrices."""
+    r"""Space of symmetric hollow matrices.
+
+    Set of symmetric matrices with null diagonal:
+
+    .. math::
+
+        \operatorname{Hol}(n) = \{X \in \operatorname{Sym}(n)
+        \mid \operatorname{Diag}(X)=0\}
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shapes of the matrices: n x n.
+
+    References
+    ----------
+    .. [T2022] Yann Thanwerdas. Riemannian and stratified
+    geometries on covariance and correlation matrices. Differential
+    Geometry [math.DG]. Université Côte d'Azur, 2022.
+    """
 
     def __init__(self, n, equip=True):
         self.n = n
@@ -225,10 +244,36 @@ class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
 
 
 class HollowMatricesPermutationInvariantMetric(FlatRiemannianMetric):
-    """A permutation-invariant metric on the space of hollow matrices.
+    r"""A permutation-invariant metric on the space of hollow matrices.
 
-    It is flat Riemannian metric a priori invariant by the congruence action
+    It is flat Riemannian metric invariant by the congruence action
     of permutation matrices defined over a matrix vector space.
+
+    Its associated quadratic form is:
+
+    .. math::
+
+        (X)=\alpha \operatorname{tr}\left(X^2\right)
+        +\beta \operatorname{Sum}\left(X^2\right)
+        +\gamma \operatorname{Sum}(X)^2
+
+    Parameters
+    ----------
+    space : Manifold
+    alpha : float
+        Scalar multiplying first term of quadratic form.
+    beta : float
+        Scalar multiplying second term of quadratic form.
+    gamma : float
+        Scalar multiplying third term of quadratic form.
+
+    Check out chapter 8 of [T2022]_ for more details.
+
+    References
+    ----------
+    .. [T2022] Yann Thanwerdas. Riemannian and stratified
+    geometries on covariance and correlation matrices. Differential
+    Geometry [math.DG]. Université Côte d'Azur, 2022.
     """
 
     def __init__(self, space, alpha=1.0, beta=1.0, gamma=1.0):
@@ -240,6 +285,13 @@ class HollowMatricesPermutationInvariantMetric(FlatRiemannianMetric):
 
     @staticmethod
     def _check_params(space, alpha, beta, gamma):
+        r"""Check parameters of quadratic form.
+
+        The following conditions must verify:
+        - n > 3: :math:`\alpha>0,2 \alpha+(n-2) \beta>0, \alpha+(n-1)(\beta+n \gamma)>0`
+        - n = 3: :math:`\alpha=0, \beta > 0, \beta+3 \gamma>0`
+        - n = 2: :math:`\alpha=0, \beta=0, \gamma > 0`
+        """
         n = space.n
         if n == 2:
             if alpha > gs.atol or beta > gs.atol or gamma < gs.atol:
@@ -268,6 +320,13 @@ class HollowMatricesPermutationInvariantMetric(FlatRiemannianMetric):
             )
 
     def _quadratic_form(self, tangent_vec):
+        """Quadratic form associated to inner product.
+
+        Parameters
+        ----------
+        tangent_vec: array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
         comp = gs.matmul(tangent_vec, tangent_vec)
         out_alpha = self.alpha * gs.trace(comp) if self.alpha > gs.atol else 0.0
         out_beta = (
@@ -303,3 +362,24 @@ class HollowMatricesPermutationInvariantMetric(FlatRiemannianMetric):
         return repeat_out(
             self._space.point_ndim, inner_prod, tangent_vec_a, tangent_vec_b, base_point
         )
+
+    def squared_norm(self, vector, base_point=None):
+        """Compute the square of the norm of a vector.
+
+        Squared norm of a vector associated to the inner product
+        at the tangent space at a base point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        sq_norm : array-like, shape=[...,]
+            Squared norm.
+        """
+        return self._quadratic_form(vector)
