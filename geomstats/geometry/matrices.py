@@ -8,7 +8,7 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import flip_determinant, from_vector_to_diagonal_matrix
 from geomstats.geometry.base import MatrixVectorSpace
-from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.euclidean import FlatRiemannianMetric
 from geomstats.vectorization import repeat_out
 
 
@@ -682,7 +682,7 @@ class Matrices(MatrixVectorSpace):
         return Matrices.mul(point, left, cls.transpose(flipped))
 
 
-class MatricesMetric(EuclideanMetric):
+class MatricesMetric(FlatRiemannianMetric):
     """Euclidean metric on matrices given by Frobenius inner-product."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -707,6 +707,30 @@ class MatricesMetric(EuclideanMetric):
         return repeat_out(
             self._space.point_ndim, inner_prod, tangent_vec_a, tangent_vec_b, base_point
         )
+
+    def squared_norm(self, vector, base_point=None):
+        """Compute the square of the norm of a vector.
+
+        Squared norm of a vector associated to the inner product
+        at the tangent space at a base point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        sq_norm : array-like, shape=[...,]
+            Squared norm.
+        """
+        init_axis = len(vector.shape[:-2])
+        axis = (init_axis, init_axis + 1)
+        sq_norm = gs.linalg.norm(vector, axis=axis) ** 2
+        return repeat_out(self._space.point_ndim, sq_norm, vector, base_point)
 
     def norm(self, vector, base_point=None):
         """Compute norm of a matrix.

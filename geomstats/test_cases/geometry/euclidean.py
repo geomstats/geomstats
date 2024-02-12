@@ -21,19 +21,7 @@ class EuclideanTestCase(GroupExpTestCaseMixins, VectorSpaceTestCase):
         self.test_belongs(self.space.identity, gs.array(True), atol)
 
 
-class EuclideanMetricTestCase(RiemannianMetricTestCase):
-    @pytest.mark.random
-    def test_cometrix_matrix_is_identity(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-
-        res = self.space.metric.cometric_matrix(base_point)
-
-        batch_shape = (n_points,) if n_points > 1 else ()
-        expected = gs.broadcast_to(
-            gs.eye(self.space.dim), batch_shape + 2 * (self.space.dim,)
-        )
-        self.assertAllClose(res, expected, atol=atol)
-
+class FlatRiemannianMetricTestCase(RiemannianMetricTestCase):
     @pytest.mark.random
     def test_inner_product_derivative_matrix_is_zeros(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
@@ -52,4 +40,18 @@ class EuclideanMetricTestCase(RiemannianMetricTestCase):
 
         batch_shape = (n_points,) if n_points > 1 else ()
         expected = gs.zeros(batch_shape + 3 * (self.space.dim,))
+        self.assertAllClose(res, expected, atol=atol)
+
+
+class EuclideanMetricTestCase(FlatRiemannianMetricTestCase):
+    @pytest.mark.random
+    def test_cometrix_matrix_is_identity(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+
+        res = self.space.metric.cometric_matrix(base_point)
+
+        batch_shape = (n_points,) if n_points > 1 else ()
+        expected = gs.broadcast_to(
+            gs.eye(self.space.dim), batch_shape + 2 * (self.space.dim,)
+        )
         self.assertAllClose(res, expected, atol=atol)

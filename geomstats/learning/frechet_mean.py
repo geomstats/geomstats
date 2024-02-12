@@ -12,29 +12,18 @@ from sklearn.base import BaseEstimator
 import geomstats.backend as gs
 import geomstats.errors as error
 from geomstats.geometry.discrete_curves import ElasticMetric, SRVMetric
-from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.euclidean import FlatRiemannianMetric
 from geomstats.geometry.hypersphere import HypersphereMetric
-from geomstats.geometry.matrices import MatricesMetric
-from geomstats.geometry.minkowski import MinkowskiMetric
 
-LINEAR_METRICS = [EuclideanMetric, MatricesMetric, MinkowskiMetric]
 ELASTIC_METRICS = [SRVMetric, ElasticMetric]
 
 
-def _is_metric_in_list(metric, metric_classes):
-    for metric_class in metric_classes:
-        if isinstance(metric, metric_class):
-            return True
-
-    return False
-
-
-def _is_linear_metric(metric_str):
-    return _is_metric_in_list(metric_str, LINEAR_METRICS)
+def _is_linear_metric(metric):
+    return isinstance(metric, FlatRiemannianMetric)
 
 
 def _is_elastic_metric(metric):
-    return _is_metric_in_list(metric, ELASTIC_METRICS)
+    return isinstance(metric, tuple(ELASTIC_METRICS))
 
 
 def _scalarmul(scalar, array):
