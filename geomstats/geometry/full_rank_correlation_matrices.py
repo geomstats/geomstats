@@ -358,10 +358,16 @@ def off_map(matrix):
 
 
 class OffLogDiffeo(Diffeo):
-    """Off-log diffeomorphism from Cor+ to Hol.
+    r"""Off-log diffeomorphism from Cor+ to Hol.
 
     A diffeomorphism between full-rank correlation matrices Cor+ and
-    symmetric hollow matrices Hol.
+    symmetric hollow matrices Hol:
+
+    .. math::
+        \operatorname{Log} = \operatorname{Off} \circ \log :
+        \operatorname{Cor}^{+}(n) \longrightarrow \operatorname{Hol}(n)
+
+    Check out chapter 8 of [T2022]_ for more details.
     """
 
     def __init__(self, space, atol=gs.atol, max_iter=100):
@@ -373,6 +379,14 @@ class OffLogDiffeo(Diffeo):
         """Find unique diagonal matrix corresponding to a Cor+ mat.
 
         Converges in logarithmic time to the solution of the equation, no closed form.
+
+        Parameters
+        ----------
+        sym_mat : array-like, shape=[n, n]
+
+        Returns
+        -------
+        diag_mat : array-like, shape=[n, n]
         """
         diag_mat = gs.zeros_like(sym_mat)
 
@@ -394,7 +408,16 @@ class OffLogDiffeo(Diffeo):
         return diag_mat
 
     def _unique_diag_mat(self, sym_mat):
-        """Find unique diagonal matrix corresponding to a Cor+ mat."""
+        """Find unique diagonal matrix corresponding to a Cor+ mat.
+
+        Parameters
+        ----------
+        sym_mat : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        diag_mat : array-like, shape=[..., n, n]
+        """
         if sym_mat.ndim == 2:
             return self._unique_diag_mat_single(sym_mat)
 
@@ -412,15 +435,56 @@ class OffLogDiffeo(Diffeo):
         return gs.reshape(out, batch_shape + mat_shape)
 
     def diffeomorphism(self, base_point):
-        """Diffeomorphism at base point."""
+        """Diffeomorphism at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+        """
         return off_map(matrix=logmh(mat=base_point))
 
     def inverse_diffeomorphism(self, image_point):
-        """Inverse diffeomorphism at image point."""
+        r"""Inverse diffeomorphism at image point.
+
+        :math:`f^{-1}: N \rightarrow M`
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+        """
         return expmh(self._unique_diag_mat(image_point) + image_point)
 
     def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
-        """Tangent diffeomorphism at base point."""
+        r"""Tangent diffeomorphism at base point.
+
+        df_p is a linear map from T_pM to T_f(p)N.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Image tangent vector at image of the base point.
+        """
         if base_point is None:
             base_point = self.inverse_diffeomorphism(image_point)
 
@@ -503,7 +567,24 @@ class OffLogDiffeo(Diffeo):
     def inverse_tangent_diffeomorphism(
         self, image_tangent_vec, image_point=None, base_point=None
     ):
-        """Inverse tangent diffeomorphism at image point."""
+        r"""Inverse tangent diffeomorphism at image point.
+
+        df^-1_p is a linear map from T_f(p)N to T_pM
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Image tangent vector at image point.
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
         diff_D, sym_mat = self._tangent_diag_map(
             image_base_point=image_point,
             base_point=base_point,
