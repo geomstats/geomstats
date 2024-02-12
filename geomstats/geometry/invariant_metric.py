@@ -127,7 +127,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
             n_nodes=100, use_jac=False, integrator=ScipySolveBVP(tol=1e-8)
         )
         self.exp_solver = InvariantMetricMatrixExpODESolver(
-            integrator=ScipySolveIVP(atol=1e-8)
+            integrator=ScipySolveIVP(atol=1e-8, point_ndim=2)
         )
 
     @property
