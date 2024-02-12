@@ -138,7 +138,21 @@ class SymmetricMatrices(MatrixVectorSpace):
 
 
 class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
-    """Space of symmetric hollow matrices."""
+    r"""Space of symmetric hollow matrices.
+
+    Set of symmetric matrices with null diagonal:
+
+    .. math::
+
+        \operatorname{Hol}(n) = \{X \in \operatorname{Sym}(n)
+        \mid \operatorname{Diag}(X)=0\}
+
+    References
+    ----------
+    .. [T2022] Yann Thanwerdas. Riemannian and stratified
+    geometries on covariance and correlation matrices. Differential
+    Geometry [math.DG]. Université Côte d'Azur, 2022.
+    """
 
     def __init__(self, n, equip=True):
         self.n = n
@@ -225,10 +239,26 @@ class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
 
 
 class HollowMatricesPermutationInvariantMetric(FlatRiemannianMetric):
-    """A permutation-invariant metric on the space of hollow matrices.
+    r"""A permutation-invariant metric on the space of hollow matrices.
 
-    It is flat Riemannian metric a priori invariant by the congruence action
+    It is flat Riemannian metric invariant by the congruence action
     of permutation matrices defined over a matrix vector space.
+
+    Its associated quadratic form is:
+
+    .. math::
+
+        (X)=\alpha \operatorname{tr}\left(X^2\right)
+        +\beta \operatorname{Sum}\left(X^2\right)
+        +\gamma \operatorname{Sum}(X)^2
+
+    Check out chapter 8 of [T2022]_ for more details.
+
+    References
+    ----------
+    .. [T2022] Yann Thanwerdas. Riemannian and stratified
+    geometries on covariance and correlation matrices. Differential
+    Geometry [math.DG]. Université Côte d'Azur, 2022.
     """
 
     def __init__(self, space, alpha=1.0, beta=1.0, gamma=1.0):
@@ -240,6 +270,13 @@ class HollowMatricesPermutationInvariantMetric(FlatRiemannianMetric):
 
     @staticmethod
     def _check_params(space, alpha, beta, gamma):
+        r"""Check parameters of quadratic form.
+
+        The following conditions must verify:
+        - n > 3: :math:`\alpha>0,2 \alpha+(n-2) \beta>0, \alpha+(n-1)(\beta+n \gamma)>0`
+        - n = 3: :math:`\alpha=0, \beta > 0, \beta+3 \gamma>0`
+        - n = 2: :math:`\alpha=0, \beta=0, \gamma > 0`
+        """
         n = space.n
         if n == 2:
             if alpha > gs.atol or beta > gs.atol or gamma < gs.atol:
