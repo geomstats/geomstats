@@ -4,6 +4,7 @@ import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 from geomstats.geometry.discrete_surfaces import DiscreteSurfaces, ElasticMetric
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.test_case import torch_only
 from geomstats.test_cases.geometry.discrete_surfaces import (
     DiscreteSurfacesTestCase,
     ElasticMetricTestCase,
@@ -17,6 +18,7 @@ from .data.discrete_surfaces import (
 )
 
 
+@torch_only
 class TestDiscreteSurfaces(DiscreteSurfacesTestCase, metaclass=DataBasedParametrizer):
     vertices, faces = data_utils.load_cube()
     vertices = gs.array(vertices, dtype=gs.float64)
@@ -26,6 +28,7 @@ class TestDiscreteSurfaces(DiscreteSurfacesTestCase, metaclass=DataBasedParametr
     testing_data = DiscreteSurfacesTestData()
 
 
+@torch_only
 @pytest.mark.smoke
 class TestDiscreteSurfacesSmoke(
     DiscreteSurfacesTestCase, metaclass=DataBasedParametrizer
@@ -50,6 +53,7 @@ class TestDiscreteSurfacesSmoke(
     testing_data = DiscreteSurfacesSmokeTestData()
 
 
+@torch_only
 @pytest.mark.skip
 class TestElasticMetric(ElasticMetricTestCase, metaclass=DataBasedParametrizer):
     vertices, faces = data_utils.load_cube()
@@ -60,6 +64,7 @@ class TestElasticMetric(ElasticMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = ElasticMetricTestData()
 
 
+@torch_only
 @pytest.mark.smoke
 class TestElasticMetricSmoke(ElasticMetricTestCase, metaclass=DataBasedParametrizer):
     vertices, faces = data_utils.load_cube()
