@@ -1,4 +1,7 @@
+"""Bregman divergence on a manifold."""
+
 import geomstats.backend as gs
+
 
 class BregmanDivergence:
     """Bregman divergence on a manifold."""
@@ -44,7 +47,6 @@ class BregmanDivergence:
         bregman_div : array
             Bregman divergence.
         """
-
         grad_func = gs.autodiff.value_and_grad(self.potential_function)
         func_basepoint, grad_func_basepoint = grad_func(basepoint)
         bregman_div = (
@@ -52,5 +54,4 @@ class BregmanDivergence:
             - func_basepoint
             - gs.dot(grad_func_basepoint, point - basepoint)
         )
-
         return bregman_div
