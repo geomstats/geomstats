@@ -1,13 +1,11 @@
 """Geodesic solvers implementation."""
 
-import math
 from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
 from geomstats.numerics.bvp import ScipySolveBVP
 from geomstats.numerics.ivp import GSIVPIntegrator
 from geomstats.numerics.optimizers import ScipyMinimize
-from geomstats.vectorization import get_batch_shape
 
 
 class ExpSolver(ABC):
@@ -66,12 +64,12 @@ class ExpODESolver(ExpSolver):
 
     Parameters
     ----------
-    integrator : ODEIVPSolver
+    integrator : ODEIVPIntegrator
         Instance of ODEIVP integrator.
     """
 
     def __init__(self, integrator=None):
-        super().__init__(solves_ivp=False)
+        super().__init__()
 
         if integrator is None:
             integrator = GSIVPIntegrator()
@@ -81,7 +79,7 @@ class ExpODESolver(ExpSolver):
 
     @property
     def integrator(self):
-        """An instance of ODEIVPSolver."""
+        """An instance of ODEIVPIntegrator."""
         return self._integrator
 
     @integrator.setter
@@ -91,23 +89,17 @@ class ExpODESolver(ExpSolver):
         self._integrator = integrator
 
     def _solve(self, space, tangent_vec, base_point, t_eval=None):
-        batch_shape = get_batch_shape(space.point_ndim, base_point, tangent_vec)
-        base_point = gs.broadcast_to(base_point, tangent_vec.shape)
+        if base_point.ndim != tangent_vec.ndim:
+            base_point = gs.broadcast_to(base_point, tangent_vec.shape)
 
         state_axis = -(space.point_ndim + 1)
         initial_state = gs.stack([base_point, tangent_vec], axis=state_axis)
-        if self.integrator.state_is_raveled:
-            initial_state = gs.reshape(initial_state, batch_shape + (-1,))
 
-        force = self._get_force(space)
+        force = space.metric.geodesic_equation
         if t_eval is None:
-            result = self.integrator.integrate(force, initial_state)
-        else:
-            result = self.integrator.integrate_t(force, initial_state, t_eval)
+            return self.integrator.integrate(force, initial_state)
 
-        result.batch_shape = batch_shape
-
-        return result
+        return self.integrator.integrate_t(force, initial_state, t_eval)
 
     def exp(self, space, tangent_vec, base_point):
         """Exponential map.
@@ -176,50 +168,14 @@ class ExpODESolver(ExpSolver):
 
         return path
 
-    def _get_force(self, space):
-        if self.integrator.state_is_raveled:
-            force_ = lambda state, t: self._force_raveled_state(state, t, space=space)
-        else:
-            force_ = lambda state, t: self._force_unraveled_state(state, t, space=space)
-
-        if self.integrator.tfirst:
-            return lambda t, state: force_(state, t)
-
-        return force_
-
-    def _force_raveled_state(self, raveled_initial_state, _, space):
-        # input: (n,)
-
-        # assumes unvectorize
-        state = gs.reshape(raveled_initial_state, (2,) + space.shape)
-
-        eq = space.metric.geodesic_equation(state, _)
-
-        return gs.flatten(eq)
-
-    def _force_unraveled_state(self, initial_state, _, space):
-        return space.metric.geodesic_equation(initial_state, _)
-
     def _simplify_exp_result(self, result, space):
         y = result.get_last_y()
-        if self.integrator.state_is_raveled:
-            dim_vec = math.prod(space.shape)
-            exp = y[..., :dim_vec]
-
-            return gs.reshape(exp, exp.shape[:-1] + space.shape)
-
         slc = tuple([slice(None)] * space.point_ndim)
         return y[..., 0, *slc]
 
     def _simplify_result_t(self, result, space):
         # assumes several t
         y = result.y
-
-        if self.integrator.state_is_raveled:
-            dim_vec = math.prod(space.shape)
-            y = y[..., :dim_vec]
-            return gs.reshape(y, y.shape[:-1] + space.shape)
-
         slc = tuple([slice(None)] * space.point_ndim)
         return y[..., :, 0, *slc]
 

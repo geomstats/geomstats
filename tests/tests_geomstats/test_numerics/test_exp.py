@@ -79,7 +79,7 @@ class TestExpODESolverMatrixComparison(
         integrator=GSIVPIntegrator(n_steps=15, step_type="rk4"),
     )
     cmp_exp_solver = InvariantMetricMatrixExpODESolver(
-        integrator=ScipySolveIVP(rtol=1e-8)
+        integrator=ScipySolveIVP(rtol=1e-8, point_ndim=2)
     )
 
     testing_data = ExpSolverComparisonTestData()
@@ -98,7 +98,12 @@ class TestExpODESolverMatrix(ExpSolverTestCase, metaclass=DataBasedParametrizer)
     space.metric.log_solver = None
     space.metric.exp_solver = None
 
-    exp_solver = InvariantMetricMatrixExpODESolver(integrator=ScipySolveIVP(rtol=1e-8))
+    exp_solver = InvariantMetricMatrixExpODESolver(
+        integrator=ScipySolveIVP(
+            rtol=1e-8,
+            point_ndim=2,
+        )
+    )
 
     testing_data = ExpSolverTestData()
 
