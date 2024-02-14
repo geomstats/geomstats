@@ -26,7 +26,7 @@ def forward_difference(array, delta=None, axis=-1):
     """
     n = array.shape[axis]
     if delta is None:
-        delta = 1 / n
+        delta = 1 / (n - 1)
 
     point_ndim_slc = (slice(None),) * (abs(axis) - 1)
 
@@ -64,7 +64,7 @@ def centered_difference(array, delta=None, axis=-1, endpoints=False):
     """
     n = array.shape[axis]
     if delta is None:
-        delta = 1 / n
+        delta = 1 / (n - 1)
 
     point_ndim_slc = (slice(None),) * (abs(axis) - 1)
 
@@ -113,7 +113,7 @@ def second_centered_difference(array, delta=None, axis=-1):
     """
     n = array.shape[axis]
     if delta is None:
-        delta = 1 / n
+        delta = 1 / (n - 1)
 
     point_ndim_slc = (slice(None),) * (abs(axis) - 1)
 
