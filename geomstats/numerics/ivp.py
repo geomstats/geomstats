@@ -45,7 +45,7 @@ class OdeResult(scipy.optimize.OptimizeResult):
         return self.y[-1]
 
 
-class ODEIVPSolver(ABC):
+class ODEIVPIntegrator(ABC):
     """Abstract class for ode ivp solvers.
 
     Parameters
@@ -100,7 +100,7 @@ class ODEIVPSolver(ABC):
         raise NotImplementedError("Can't solve for chosen evaluating points.")
 
 
-class GSIVPIntegrator(ODEIVPSolver):
+class GSIVPIntegrator(ODEIVPIntegrator):
     """In-house ODE integrator.
 
     Parameters
@@ -187,7 +187,7 @@ class GSIVPIntegrator(ODEIVPSolver):
         return result
 
 
-class ScipySolveIVP(ODEIVPSolver):
+class ScipySolveIVP(ODEIVPIntegrator):
     """Wrapper for scipy.integrate.solve_ivp.
 
     Check

@@ -64,7 +64,7 @@ class ExpODESolver(ExpSolver):
 
     Parameters
     ----------
-    integrator : ODEIVPSolver
+    integrator : ODEIVPIntegrator
         Instance of ODEIVP integrator.
     """
 
@@ -79,7 +79,7 @@ class ExpODESolver(ExpSolver):
 
     @property
     def integrator(self):
-        """An instance of ODEIVPSolver."""
+        """An instance of ODEIVPIntegrator."""
         return self._integrator
 
     @integrator.setter
