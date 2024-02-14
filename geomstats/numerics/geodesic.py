@@ -6,6 +6,10 @@ import geomstats.backend as gs
 from geomstats.numerics.bvp import ScipySolveBVP
 from geomstats.numerics.ivp import GSIVPIntegrator
 from geomstats.numerics.optimizers import ScipyMinimize
+from geomstats.numerics.path import (
+    UniformlySampledDiscretePath,
+    UniformlySampledPathEnergy,
+)
 
 
 class ExpSolver(ABC):
@@ -605,4 +609,200 @@ class LogODESolver(_LogBatchMixins, LogSolver):
     def _simplify_result_t(self, result, space):
         return gs.moveaxis(
             gs.reshape(result[: result.shape[0] // 2, :], space.shape + (-1,)), -1, 0
+        )
+
+
+class PathStraightening(LogSolver):
+    """Class to solve the geodesic boundary value problem with path-straightening.
+
+    Parameters
+    ----------
+    path_energy : callable
+        Method to compute Riemannian path energy.
+    n_nodes : int
+        Number of midpoints.
+    optimizer : ScipyMinimize
+        An optimizer to solve path energy minimization problem.
+    initialization : callable
+        A method to get initial guess for optimization.
+
+    References
+    ----------
+    .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
+        Sobolev metrics: a comprehensive numerical framework".
+        arXiv:2204.04238 [cs.CV], 25 Sep 2022
+    """
+
+    def __init__(
+        self, path_energy=None, n_nodes=100, optimizer=None, initialization=None
+    ):
+        super().__init__(solves_bvp=True)
+        if optimizer is None:
+            optimizer = ScipyMinimize(
+                method="L-BFGS-B",
+                jac="autodiff",
+                options={"disp": False},
+            )
+
+        if path_energy is None:
+            path_energy = UniformlySampledPathEnergy()
+
+        if initialization is None:
+            initialization = self._default_initialization
+
+        self.n_nodes = n_nodes
+        self.optimizer = optimizer
+        self.path_energy = path_energy
+        self.initialization = initialization
+
+    def _default_initialization(self, space, point, base_point):
+        """Linear initialization.
+
+        Parameters
+        ----------
+        space : Manifold
+        point : array-like, shape=[..., *point_shape]
+        base_point : array-like, shape=[..., *point_shape]
+        """
+        times = gs.linspace(0.0, 1.0, self.n_nodes)
+        linear_deformation = point - base_point
+        return base_point + gs.einsum("t,...->t...", times, linear_deformation)
+
+    def _discrete_geodesic_bvp_single(self, space, point, base_point):
+        """Solve boundary value problem (BVP).
+
+        Given an initial point and an end point, solve the geodesic equation
+        via minimizing the Riemannian path energy.
+
+        Parameters
+        ----------
+        space : Manifold
+        point : array-like, shape=[*point_shape]
+        base_point : array-like, shape=[*point_shape]
+
+        Returns
+        -------
+        discr_geod_path : array-like, shape=[n_times, *point_shape]
+            Discrete geodesic.
+        """
+        init_path = self.initialization(space, point, base_point)
+        init_midpoints = init_path[1:-1]
+
+        base_point = gs.expand_dims(base_point, axis=0)
+        point = gs.expand_dims(point, axis=0)
+
+        def objective(midpoints):
+            """Compute path energy of paths going through a midpoint.
+
+            Parameters
+            ----------
+            midpoint : array-like, shape=[(self.n_steps-2) * math.prod(*point_shape)]
+                Midpoints of the path.
+
+            Returns
+            -------
+            _ : array-like, shape=[...,]
+                Energy of the path going through this midpoint.
+            """
+            midpoints = gs.reshape(midpoints, (self.n_nodes - 2,) + space.shape)
+            path = gs.concatenate(
+                [
+                    base_point,
+                    midpoints,
+                    point,
+                ],
+            )
+            return self.path_energy(space, path)
+
+        init_midpoints = gs.reshape(init_midpoints, (-1,))
+        sol = self.optimizer.minimize(objective, init_midpoints)
+
+        solution_midpoints = gs.reshape(
+            gs.array(sol.x), (self.n_nodes - 2,) + space.shape
+        )
+
+        return gs.concatenate(
+            [
+                base_point,
+                solution_midpoints,
+                point,
+            ],
+            axis=0,
+        )
+
+    def discrete_geodesic_bvp(self, space, point, base_point):
+        """Solve boundary value problem (BVP).
+
+        Given an initial point and an end point, solve the geodesic equation
+        via minimizing the Riemannian path energy.
+
+        Parameters
+        ----------
+        space : Manifold
+        point : array-like, shape=[..., *point_shape]
+        base_point : array-like, shape=[..., *point_shape]
+
+        Returns
+        -------
+        discr_geod_path : array-like, shape=[..., n_times, *point_shape]
+            Discrete geodesic.
+        """
+        if point.ndim != base_point.ndim:
+            point, base_point = gs.broadcast_arrays(point, base_point)
+
+        is_batch = point.ndim > space.point_ndim
+        if not is_batch:
+            return self._discrete_geodesic_bvp_single(space, point, base_point)
+
+        return gs.stack(
+            [
+                self._discrete_geodesic_bvp_single(space, point_, base_point_)
+                for point_, base_point_ in zip(point, base_point)
+            ]
+        )
+
+    def log(self, space, point, base_point):
+        """Logarithm map.
+
+        Parameters
+        ----------
+        space : Manifold
+            Equipped manifold.
+        end_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+        base_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *point_shape]
+            Tangent vector at the base point.
+        """
+        discr_geod_path = self.discrete_geodesic_bvp(space, point, base_point)
+        point_ndim_slc = (slice(None),) * space.point_ndim
+        return self.n_nodes * (
+            discr_geod_path[..., 1, *point_ndim_slc]
+            - discr_geod_path[..., 0, *point_ndim_slc]
+        )
+
+    def geodesic_bvp(self, space, point, base_point):
+        """Geodesic curve for boundary value problem.
+
+        Parameters
+        ----------
+        space : Manifold
+            Equipped manifold.
+        end_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+        base_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        path : callable
+            Time parametrized geodesic curve. `f(t)`.
+        """
+        discr_geod_path = self.discrete_geodesic_bvp(space, point, base_point)
+        return UniformlySampledDiscretePath(
+            discr_geod_path, point_ndim=space.point_ndim
         )
