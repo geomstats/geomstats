@@ -47,7 +47,7 @@ class TestForwardDifference(FiniteDifferenceTestCase, metaclass=DataBasedParamet
 
         finite_diffs = forward_difference(path, axis=-(self.space.point_ndim + 1))
 
-        delta = 1 / n_times
+        delta = 1 / (n_times - 1)
         point_ndim_slc = tuple([slice(None)] * self.space.point_ndim)
         point_ = (
             path[..., -2, *point_ndim_slc]
@@ -82,7 +82,7 @@ class TestCenteredDifference(FiniteDifferenceTestCase, metaclass=DataBasedParame
         next_point = path[..., index + 1, *point_ndim_slc]
         diff = finite_diffs[..., fd_index, *point_ndim_slc]
 
-        delta = 1 / n_times
+        delta = 1 / (n_times - 1)
         expected_diff = (next_point - previous_point) / (2 * delta)
         self.assertAllClose(diff, expected_diff, atol=atol)
 
@@ -117,6 +117,6 @@ class TestSecondCenteredDifference(
         next_point = path[..., index + 1, *point_ndim_slc]
         diff = finite_diffs[..., fd_index, *point_ndim_slc]
 
-        delta = 1 / n_times
+        delta = 1 / (n_times - 1)
         expected_diff = (next_point + previous_point - 2 * point) / (delta**2)
         self.assertAllClose(diff, expected_diff, atol=atol)
