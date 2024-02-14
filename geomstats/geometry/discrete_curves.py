@@ -20,130 +20,12 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
+from geomstats.numerics.finite_differences import (
+    centered_difference,
+    forward_difference,
+    second_centered_difference,
+)
 from geomstats.vectorization import check_is_batch, get_batch_shape
-
-
-def forward_difference(array, delta=None, axis=-1):
-    """Forward difference in a Euclidean space.
-
-    Points live in R^n, but are a 1d embedding (e.g. a curve).
-
-    Parameters
-    ----------
-    array : array-like
-        Values of a function.
-    delta : float
-        Spacing between points.
-    axis : int
-        Axis in which perform the difference.
-        Must be given backwards.
-
-    Returns
-    -------
-    forward_diff : array-like
-        Shape in the specified axis reduces by one.
-    """
-    n = array.shape[axis]
-    if delta is None:
-        delta = 1 / (n - 1)
-
-    none_slc = (slice(None),) * (abs(axis) - 1)
-
-    slc = (..., slice(1, n)) + none_slc
-    forward = array[slc]
-
-    slc = (..., slice(0, n - 1)) + none_slc
-    center = array[slc]
-    return (forward - center) / delta
-
-
-def centered_difference(array, delta=None, axis=-1, endpoints=False):
-    """Centered difference in a Euclidean space.
-
-    Points live in R^n, but are a 1d embedding (e.g. a curve).
-
-    Parameters
-    ----------
-    array : array-like
-        Values of a function.
-    delta : float
-        Spacing between points.
-    axis : int
-        Axis in which perform the difference.
-        Must be given backwards.
-    endpoints : bool
-        If True, endpoints are computed by backward and forward differences,
-        respectively.
-
-    Returns
-    -------
-    centered_diff : array-like
-        Same shape as array.
-    """
-    n = array.shape[axis]
-    if delta is None:
-        delta = 1 / (n - 1)
-
-    none_slc = (slice(None),) * (abs(axis) - 1)
-
-    slc = (..., slice(2, n)) + none_slc
-    forward = array[slc]
-
-    slc = (..., slice(0, n - 2)) + none_slc
-    backward = array[slc]
-    diff = (forward - backward) / (2 * delta)
-
-    if endpoints:
-        slc_left = (..., [0]) + none_slc
-        slc_left_forward = (..., [1]) + none_slc
-        diff_left = (array[slc_left_forward] - array[slc_left]) / delta
-
-        slc_right = (..., [-1]) + none_slc
-        slc_right_backward = (..., [-2]) + none_slc
-        diff_right = (array[slc_right] - array[slc_right_backward]) / delta
-
-        slc_right = (..., [-1]) + none_slc
-        return gs.concatenate((diff_left, diff, diff_right), axis=axis)
-
-    return diff
-
-
-def second_centered_difference(array, delta=None, axis=-1):
-    """Second centered difference in a Euclidean space.
-
-    Points live in R^n, but are a 1d embedding (e.g. a curve).
-
-    Parameters
-    ----------
-    array : array-like
-        Values of a function.
-    delta : float
-        Spacing between points.
-    axis : int
-        Axis in which perform the difference.
-        Must be given backwards.
-
-    Returns
-    -------
-    second_centered_diff : array-like
-        Shape in the specified axis reduces by two (endpoints).
-    """
-    n = array.shape[axis]
-    if delta is None:
-        delta = 1 / (n - 1)
-
-    none_slc = (slice(None),) * (abs(axis) - 1)
-
-    slc = (..., slice(2, n)) + none_slc
-    forward = array[slc]
-
-    slc = (..., slice(0, n - 2)) + none_slc
-    backward = array[slc]
-
-    slc = (..., slice(1, n - 1)) + none_slc
-    central = array[slc]
-
-    return (forward + backward - 2 * central) / (delta**2)
 
 
 def insert_zeros(array, axis=-1, end=False):
@@ -446,7 +328,7 @@ class SRVTransform(Diffeo):
         """
         image_point_norm = self.ambient_manifold.metric.norm(image_point)
 
-        dt = 1 / (self.k_sampling_points - 1)
+        dt = 1 / self.k_sampling_points
 
         pointwise_delta_points = gs.einsum(
             "...,...i->...i", dt * image_point_norm, image_point
@@ -552,7 +434,7 @@ class SRVTransform(Diffeo):
         )
         d_vec = image_tangent_vec + tangent_vec_tangential
         d_vec = gs.einsum("...ij,...i->...ij", d_vec, velocity_norm ** (1 / 2))
-        increment = d_vec / (self.k_sampling_points - 1)
+        increment = d_vec / self.k_sampling_points
 
         return gs.cumsum(increment, axis=-2)
 
@@ -706,7 +588,7 @@ class FTransform(AutodiffDiffeo):
         image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             F_transform of the curve.
         """
-        coeff = self.k_sampling_points - 1
+        coeff = self.k_sampling_points
 
         base_point_with_origin = insert_zeros(base_point, axis=-self._space_point_ndim)
 
@@ -741,13 +623,11 @@ class FTransform(AutodiffDiffeo):
         point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Curve starting at the origin retrieved from its square-root velocity.
         """
-        coef = self.k_sampling_points - 1
-
         f_polar = self._cartesian_to_polar(image_point)
         f_norms = f_polar[..., :, 0]
         f_args = f_polar[..., :, 1]
 
-        dt = 1 / coef
+        dt = 1 / self.k_sampling_points
 
         delta_points_x = gs.einsum(
             "...i,...i->...i", dt * f_norms**2, gs.cos(2 * self.b / self.a * f_args)
