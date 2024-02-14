@@ -328,7 +328,7 @@ class SRVTransform(Diffeo):
         """
         image_point_norm = self.ambient_manifold.metric.norm(image_point)
 
-        dt = 1 / (self.k_sampling_points - 1)
+        dt = 1 / self.k_sampling_points
 
         pointwise_delta_points = gs.einsum(
             "...,...i->...i", dt * image_point_norm, image_point
@@ -434,7 +434,7 @@ class SRVTransform(Diffeo):
         )
         d_vec = image_tangent_vec + tangent_vec_tangential
         d_vec = gs.einsum("...ij,...i->...ij", d_vec, velocity_norm ** (1 / 2))
-        increment = d_vec / (self.k_sampling_points - 1)
+        increment = d_vec / self.k_sampling_points
 
         return gs.cumsum(increment, axis=-2)
 
@@ -588,7 +588,7 @@ class FTransform(AutodiffDiffeo):
         image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             F_transform of the curve.
         """
-        coeff = self.k_sampling_points - 1
+        coeff = self.k_sampling_points
 
         base_point_with_origin = insert_zeros(base_point, axis=-self._space_point_ndim)
 
@@ -623,13 +623,11 @@ class FTransform(AutodiffDiffeo):
         point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Curve starting at the origin retrieved from its square-root velocity.
         """
-        coef = self.k_sampling_points - 1
-
         f_polar = self._cartesian_to_polar(image_point)
         f_norms = f_polar[..., :, 0]
         f_args = f_polar[..., :, 1]
 
-        dt = 1 / coef
+        dt = 1 / self.k_sampling_points
 
         delta_points_x = gs.einsum(
             "...i,...i->...i", dt * f_norms**2, gs.cos(2 * self.b / self.a * f_args)
