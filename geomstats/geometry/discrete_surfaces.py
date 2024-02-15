@@ -8,8 +8,11 @@ import math
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.numerics.finite_differences import forward_difference
 from geomstats.numerics.optimizers import ScipyMinimize
+from geomstats.vectorization import get_batch_shape
 
 
 class DiscreteSurfaces(Manifold):
@@ -175,20 +178,13 @@ class DiscreteSurfaces(Manifold):
             vertex_i : array-like, shape=[..., n_faces, 3]
                 3D coordinates of the ith vertex of that face.
         """
-        vertex = []
-        for i in range(3):
-            if point.ndim == 2:
-                vertex_i = [point[index, :] for index in self.faces[:, i]]
-            if point.ndim == 3:
-                vertex_i = [point[:, index, :] for index in self.faces[:, i]]
-            vertex.append(gs.stack(vertex_i, axis=-2))
-        vertex_0, vertex_1, vertex_2 = vertex
-
-        if point.ndim == 3 and vertex_0.ndim == 2:
-            vertex_0 = gs.expand_dims(vertex_0, axis=0)
-            vertex_1 = gs.expand_dims(vertex_1, axis=0)
-            vertex_2 = gs.expand_dims(vertex_2, axis=0)
-        return vertex_0, vertex_1, vertex_2
+        slc = tuple([slice(None)] * len(point.shape[:-2]))
+        face_coordinates = point[*slc, self.faces]
+        return (
+            face_coordinates[*slc, :, 0],
+            face_coordinates[*slc, :, 1],
+            face_coordinates[*slc, :, 2],
+        )
 
     def _triangle_areas(self, point):
         """Compute triangle areas for each face of the surface.
@@ -235,29 +231,31 @@ class DiscreteSurfaces(Manifold):
 
         Returns
         -------
-        vertex_areas :  array-like, shape=[..., n_vertices, 1]
+        vertex_areas :  array-like, shape=[..., n_vertices]
             Vertex area for each vertex.
         """
         batch_shape = point.shape[:-2]
         n_vertices = point.shape[-2]
         n_faces = self.faces.shape[0]
+
         area = self._triangle_areas(point)
+
         id_vertices = gs.broadcast_to(
-            gs.flatten(self.faces), batch_shape + (math.prod(self.faces.shape),)
+            gs.reshape(self.faces, (-1,)), batch_shape + (math.prod(self.faces.shape),)
         )
-        incident_areas = gs.zeros(batch_shape + (n_vertices,))
         val = gs.reshape(
             gs.broadcast_to(gs.expand_dims(area, axis=-2), batch_shape + (3, n_faces)),
             batch_shape + (-1,),
         )
+        incident_areas = gs.zeros(batch_shape + (n_vertices,), dtype=val.dtype)
+
         incident_areas = gs.scatter_add(
-            gs.cast(incident_areas, dtype=val.dtype),
-            dim=len(batch_shape),
+            incident_areas,
+            dim=-1,
             index=id_vertices,
             src=val,
         )
-        vertex_areas = 2 * incident_areas / 3.0
-        return vertex_areas
+        return 2 * incident_areas / 3.0
 
     def normals(self, point):
         """Compute normals at each face of a triangulated surface.
@@ -267,17 +265,16 @@ class DiscreteSurfaces(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_vertices, 3]
+        point : array-like, shape=[..., n_vertices, 3]
             Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
         -------
-        normals_at_point : array-like, shape=[n_faces, 3]
+        normals_at_point : array-like, shape=[..., n_faces, 3]
             Normals of each face of the mesh.
         """
         vertex_0, vertex_1, vertex_2 = self._vertices(point)
-        normals_at_point = 0.5 * gs.cross(vertex_1 - vertex_0, vertex_2 - vertex_0)
-        return normals_at_point
+        return 0.5 * gs.cross(vertex_1 - vertex_0, vertex_2 - vertex_0)
 
     def surface_one_forms(self, point):
         """Compute the vector valued one-forms.
@@ -298,8 +295,7 @@ class DiscreteSurfaces(Manifold):
             One form evaluated at each face of the triangulated surface.
         """
         vertex_0, vertex_1, vertex_2 = self._vertices(point)
-        one_forms = gs.stack([vertex_1 - vertex_0, vertex_2 - vertex_0], axis=-2)
-        return one_forms
+        return gs.stack([vertex_1 - vertex_0, vertex_2 - vertex_0], axis=-2)
 
     def face_areas(self, point):
         """Compute the areas for each face of a triangulated surface.
@@ -310,12 +306,12 @@ class DiscreteSurfaces(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_vertices, 3]
+        point : array-like, shape=[..., n_vertices, 3]
             Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
         -------
-        _ : array-like, shape=[n_faces,]
+        _ : array-like, shape=[..., n_faces,]
             Area computed at each face of the triangulated surface.
         """
         surface_metrics_bp = self.surface_metric_matrices(point)
@@ -334,14 +330,11 @@ class DiscreteSurfaces(Manifold):
 
         Returns
         -------
-        metric_mats : array-like, shape=[n_faces, 2, 2]
+        metric_mats : array-like, shape=[..., n_faces, 2, 2]
             Surface metric matrices evaluated at each face of
             the triangulated surface.
         """
-        ndim = one_forms.ndim
-        transpose_axes = tuple(range(ndim - 2)) + tuple(reversed(range(ndim - 2, ndim)))
-        transposed_one_forms = gs.transpose(one_forms, axes=transpose_axes)
-        return gs.matmul(one_forms, transposed_one_forms)
+        return gs.matmul(one_forms, Matrices.transpose(one_forms))
 
     def surface_metric_matrices(self, point):
         """Compute the surface metric matrices.
@@ -354,17 +347,16 @@ class DiscreteSurfaces(Manifold):
 
         Parameters
         ----------
-        point : array like, shape=[n_vertices, 3]
+        point : array like, shape=[..., n_vertices, 3]
             Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
         -------
-        metric_mats : array-like, shape=[n_faces, 2, 2]
+        metric_mats : array-like, shape=[..., n_faces, 2, 2]
             Surface metric matrices evaluated at each face of
             the triangulated surface.
         """
         one_forms = self.surface_one_forms(point)
-
         return self._surface_metric_matrices_from_one_forms(one_forms)
 
     def laplacian(self, point):
@@ -377,7 +369,7 @@ class DiscreteSurfaces(Manifold):
 
         Parameters
         ----------
-        point :  array-like, shape=[n_vertices, 3]
+        point :  array-like, shape=[..., n_vertices, 3]
             Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
@@ -409,13 +401,15 @@ class DiscreteSurfaces(Manifold):
         cot_12 = (sq_len_edge_02 + sq_len_edge_01 - sq_len_edge_12) / area
         cot_02 = (sq_len_edge_12 + sq_len_edge_01 - sq_len_edge_02) / area
         cot_01 = (sq_len_edge_12 + sq_len_edge_02 - sq_len_edge_01) / area
-        cot = gs.stack([cot_12, cot_02, cot_01], axis=1)
+        cot = gs.stack([cot_12, cot_02, cot_01], axis=-1)
         cot /= 2.0
         id_vertices_120 = self.faces[:, [1, 2, 0]]
         id_vertices_201 = self.faces[:, [2, 0, 1]]
         id_vertices = gs.reshape(
             gs.stack([id_vertices_120, id_vertices_201], axis=0), (2, n_faces * 3)
         )
+
+        cot_flatten = gs.expand_dims(gs.reshape(cot, point.shape[:-2] + (-1,)), axis=-1)
 
         def _laplacian(tangent_vec):
             """Evaluate the mesh Laplacian operator.
@@ -437,37 +431,36 @@ class DiscreteSurfaces(Manifold):
                 Mesh Laplacian operator of the triangulated surface applied
                 to one its tangent vector tangent_vec.
             """
-            to_squeeze = False
-            if tangent_vec.ndim == 2:
-                tangent_vec = gs.expand_dims(tangent_vec, axis=0)
-                to_squeeze = True
-            n_tangent_vecs = len(tangent_vec)
+            batch_shape = get_batch_shape(2, point, tangent_vec)
+            slc = tuple([slice(None)] * len(batch_shape))
+
             tangent_vec_diff = (
-                tangent_vec[:, id_vertices[0]] - tangent_vec[:, id_vertices[1]]
+                tangent_vec[*slc, id_vertices[0]] - tangent_vec[*slc, id_vertices[1]]
             )
+
             values = gs.einsum(
-                "bd,nbd->nbd", gs.stack([gs.flatten(cot)] * 3, axis=1), tangent_vec_diff
+                "...bd,...bd->...bd",
+                gs.broadcast_to(cot_flatten, batch_shape + (n_faces * 3, 3)),
+                tangent_vec_diff,
             )
 
-            laplacian_at_tangent_vec = gs.zeros((n_tangent_vecs, n_vertices, 3))
+            laplacian_at_tangent_vec = gs.zeros(
+                batch_shape + (n_vertices, 3), dtype=values.dtype
+            )
 
-            id_vertices_201_repeated = gs.tile(id_vertices[1, :], (n_tangent_vecs, 1))
+            id_vertices_201 = id_vertices[1, :]
+            id_vertices_201 = gs.broadcast_to(
+                id_vertices_201, batch_shape + id_vertices_201.shape
+            )
 
             for i_dim in range(3):
-                laplacian_at_tangent_vec[:, :, i_dim] = gs.scatter_add(
-                    input=gs.cast(
-                        laplacian_at_tangent_vec[:, :, i_dim],
-                        dtype=values[:, :, i_dim].dtype,
-                    ),
-                    dim=1,
-                    index=id_vertices_201_repeated,
-                    src=values[:, :, i_dim],
+                laplacian_at_tangent_vec[*slc, :, i_dim] = gs.scatter_add(
+                    input=laplacian_at_tangent_vec[*slc, :, i_dim],
+                    dim=-1,
+                    index=id_vertices_201,
+                    src=values[*slc, :, i_dim],
                 )
-            return (
-                gs.squeeze(laplacian_at_tangent_vec, axis=0)
-                if to_squeeze
-                else laplacian_at_tangent_vec
-            )
+            return laplacian_at_tangent_vec
 
         return _laplacian
 
@@ -541,12 +534,12 @@ class ElasticMetric(RiemannianMetric):
             Tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., n_vertices, 3]
             Tangent vector at base point.
-        vertex_areas : array-like, shape=[n_vertices, 1]
+        vertex_areas : array-like, shape=[..., n_vertices, 1]
             Vertex areas for each vertex of the base_point.
 
         Returns
         -------
-        _ : array-like, shape=[...]
+        _ : array-like, shape=[...,]
             Term of order 0, and coefficient a0, of the inner-product.
 
         References
@@ -586,7 +579,7 @@ class ElasticMetric(RiemannianMetric):
 
         Returns
         -------
-        _ : array-like, shape=[...]
+        _ : array-like, shape=[...,]
             Term of order 0, and coefficient a1, of the inner-product.
 
         References
@@ -625,7 +618,7 @@ class ElasticMetric(RiemannianMetric):
 
         Returns
         -------
-        _ : array-like, shape=[...]
+        _ : array-like, shape=[...,]
             Term of order 0, and coefficient b1, of the inner-product.
 
         References
@@ -666,7 +659,7 @@ class ElasticMetric(RiemannianMetric):
 
         Returns
         -------
-        _ : array-like, shape=[...]
+        _ : array-like, shape=[...,]
             Term of order 0, and coefficient c1, of the inner-product.
 
         References
@@ -710,7 +703,7 @@ class ElasticMetric(RiemannianMetric):
 
         Returns
         -------
-        _ : array-like, shape=[...]
+        _ : array-like, shape=[...,]
             Term of order 0, and coefficient d1, of the inner-product.
 
         References
@@ -719,22 +712,22 @@ class ElasticMetric(RiemannianMetric):
             Sobolev metrics: a comprehensive numerical framework".
             arXiv:2204.04238 [cs.CV], 25 Sep 2022.
         """
-        one_forms_bp_t = gs.transpose(one_forms_bp, (0, 2, 1))
+        one_forms_bp_t = Matrices.transpose(one_forms_bp)
 
-        one_forms_a_t = gs.transpose(one_forms_a, (0, 1, 3, 2))
+        one_forms_a_t = Matrices.transpose(one_forms_a)
         xa = one_forms_a_t - one_forms_bp_t
 
         xa_0 = gs.matmul(
             gs.matmul(one_forms_bp_t, inv_surface_metrics_bp),
-            gs.matmul(gs.transpose(xa, (0, 1, 3, 2)), one_forms_bp_t)
+            gs.matmul(Matrices.transpose(xa), one_forms_bp_t)
             - gs.matmul(one_forms_bp, xa),
         )
 
-        one_forms_b_t = gs.transpose(one_forms_b, (0, 1, 3, 2))
+        one_forms_b_t = Matrices.transpose(one_forms_b)
         xb = one_forms_b_t - one_forms_bp_t
         xb_0 = gs.matmul(
             gs.matmul(one_forms_bp_t, inv_surface_metrics_bp),
-            gs.matmul(gs.transpose(xb, (0, 1, 3, 2)), one_forms_bp_t)
+            gs.matmul(Matrices.transpose(xb), one_forms_bp_t)
             - gs.matmul(one_forms_bp, xb),
         )
 
@@ -744,11 +737,13 @@ class ElasticMetric(RiemannianMetric):
                 gs.matmul(
                     xa_0,
                     gs.matmul(
-                        inv_surface_metrics_bp, gs.transpose(xb_0, axes=(0, 1, 3, 2))
+                        inv_surface_metrics_bp,
+                        Matrices.transpose(xb_0),
                     ),
                 ),
             )
-            * areas_bp
+            * areas_bp,
+            axis=-1,
         )
 
     def _inner_product_a2(
@@ -778,7 +773,7 @@ class ElasticMetric(RiemannianMetric):
 
         Returns
         -------
-        _ : array-like, shape=[...]
+        _ : array-like, shape=[...,]
             Term of order 2, and coefficient a2, of the inner-product.
 
         References
@@ -841,25 +836,21 @@ class ElasticMetric(RiemannianMetric):
             Sobolev metrics: a comprehensive numerical framework".
             arXiv:2204.04238 [cs.CV], 25 Sep 2022.
         """
-        to_squeeze = False
-        if tangent_vec_a.ndim == 2 and tangent_vec_b.ndim == 2:
-            to_squeeze = True
-        if tangent_vec_a.ndim == 2:
-            tangent_vec_a = gs.expand_dims(tangent_vec_a, axis=0)
-        if tangent_vec_b.ndim == 2:
-            tangent_vec_b = gs.expand_dims(tangent_vec_b, axis=0)
+        inner_prod_a0 = 0.0
+        inner_prod_a1 = 0.0
+        inner_prod_a2 = 0.0
+        inner_prod_b1 = 0.0
+        inner_prod_c1 = 0.0
+        inner_prod_d1 = 0.0
 
-        point_a = base_point + tangent_vec_a
-        point_b = base_point + tangent_vec_b
-        inner_prod = gs.zeros((1, gs.maximum(len(tangent_vec_a), len(tangent_vec_b))))
         if self.a0 > 0 or self.a2 > 0:
             vertex_areas_bp = self._space.vertex_areas(base_point)
             if self.a0 > 0:
-                inner_prod += self._inner_product_a0(
+                inner_prod_a0 = self._inner_product_a0(
                     tangent_vec_a, tangent_vec_b, vertex_areas_bp=vertex_areas_bp
                 )
             if self.a2 > 0:
-                inner_prod += self._inner_product_a2(
+                inner_prod_a2 = self._inner_product_a2(
                     tangent_vec_a,
                     tangent_vec_b,
                     base_point=base_point,
@@ -870,11 +861,14 @@ class ElasticMetric(RiemannianMetric):
             surface_metrics_bp = self._space._surface_metric_matrices_from_one_forms(
                 one_forms_bp
             )
-            normals_bp = self._space.normals(base_point)
             areas_bp = gs.sqrt(gs.linalg.det(surface_metrics_bp))
 
+            point_a = base_point + tangent_vec_a
+            point_b = base_point + tangent_vec_b
+
             if self.c1 > 0:
-                inner_prod += self._inner_product_c1(
+                normals_bp = self._space.normals(base_point)
+                inner_prod_c1 = self._inner_product_c1(
                     point_a, point_b, normals_bp, areas_bp
                 )
             if self.d1 > 0 or self.b1 > 0 or self.a1 > 0:
@@ -882,7 +876,7 @@ class ElasticMetric(RiemannianMetric):
                 one_forms_a = self._space.surface_one_forms(point_a)
                 one_forms_b = self._space.surface_one_forms(point_b)
                 if self.d1 > 0:
-                    inner_prod += self._inner_product_d1(
+                    inner_prod_d1 = self._inner_product_d1(
                         one_forms_a,
                         one_forms_b,
                         one_forms_bp,
@@ -892,22 +886,32 @@ class ElasticMetric(RiemannianMetric):
 
                 if self.b1 > 0 or self.a1 > 0:
                     dga = (
-                        gs.matmul(
-                            one_forms_a, gs.transpose(one_forms_a, axes=(0, 1, 3, 2))
-                        )
+                        gs.matmul(one_forms_a, Matrices.transpose(one_forms_a))
                         - surface_metrics_bp
                     )
                     dgb = (
-                        gs.matmul(
-                            one_forms_b, gs.transpose(one_forms_b, axes=(0, 1, 3, 2))
-                        )
+                        gs.matmul(one_forms_b, Matrices.transpose(one_forms_b))
                         - surface_metrics_bp
                     )
                     ginvdga = gs.matmul(ginv_bp, dga)
                     ginvdgb = gs.matmul(ginv_bp, dgb)
-                    inner_prod += self._inner_product_a1(ginvdga, ginvdgb, areas_bp)
-                    inner_prod += self._inner_product_b1(ginvdga, ginvdgb, areas_bp)
-        return gs.squeeze(inner_prod, axis=0) if to_squeeze else inner_prod
+                    if self.a1 > 0:
+                        inner_prod_a1 = self._inner_product_a1(
+                            ginvdga, ginvdgb, areas_bp
+                        )
+                    if self.b1 > 0:
+                        inner_prod_b1 = self._inner_product_b1(
+                            ginvdga, ginvdgb, areas_bp
+                        )
+
+        return (
+            inner_prod_a0
+            + inner_prod_a1
+            + inner_prod_a2
+            + inner_prod_b1
+            + inner_prod_c1
+            + inner_prod_d1
+        )
 
     def path_energy_per_time(self, path):
         """Compute stepwise path energy of a path in the space of discrete surfaces.
@@ -922,23 +926,12 @@ class ElasticMetric(RiemannianMetric):
         energy : array-like, shape=[..., n_times - 1,]
             Stepwise path energy.
         """
-        need_squeeze = False
-        if path.ndim == 3:
-            path = gs.expand_dims(path, axis=0)
-            need_squeeze = True
-        n_times = path.shape[-3]
-        surface_diffs = path[:, 1:, :, :] - path[:, :-1, :, :]
-        surface_midpoints = path[:, : n_times - 1, :, :] + surface_diffs / 2
-        energy_per_path = []
-        for one_surface_diffs, one_surface_midpoints in zip(
-            surface_diffs, surface_midpoints
-        ):
-            energy = []
-            for diff, midpoint in zip(one_surface_diffs, one_surface_midpoints):
-                energy.extend([n_times * self.squared_norm(diff, midpoint)])
-            energy_per_path.append(gs.array(energy))
-        energy_per_path = gs.array(energy_per_path)
-        return gs.squeeze(energy_per_path, axis=0) if need_squeeze else energy_per_path
+        n_time = path.shape[-3]
+        tangent_vecs = forward_difference(path, axis=-3)
+        return self.squared_norm(
+            tangent_vecs,
+            path[:-1],
+        ) / (2 * n_time)
 
     def path_energy(self, path):
         """Compute path energy of a path in the space of discrete surfaces.
@@ -953,7 +946,7 @@ class ElasticMetric(RiemannianMetric):
         energy : array-like, shape=[...,]
             Path energy.
         """
-        return 0.5 * gs.sum(self.path_energy_per_time(path), axis=(-1, -2))
+        return gs.sum(self.path_energy_per_time(path), axis=-1)
 
     def exp(self, tangent_vec, base_point):
         """Compute the exponential map.
