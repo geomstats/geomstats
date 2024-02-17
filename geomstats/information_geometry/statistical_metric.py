@@ -50,24 +50,24 @@ class StatisticalMetric(RiemannianMetric):
         dual_divergence_christoffels = self.dual_divergence_christoffels(base_point)
         return dual_divergence_christoffels - divergence_christoffels
 
-breg_div = bregman_divergence(lambda x: gs.sum(x**4))
+# breg_div = bregman_divergence(lambda x: gs.sum(x**4))
 
-statmetric = StatisticalMetric(dim=2, divergence=breg_div)
+# statmetric = StatisticalMetric(dim=2, divergence=breg_div)
 
-# print(statmetric.amari_divergence_tensor(base_point=gs.array([1.0, 1.0])))
-# jac_1 = gs.autodiff.jacobian(lambda x: gs.sum(x**4))
-# jac_2 = gs.autodiff.jacobian(jac_1)
-# jac_3 = gs.autodiff.jacobian(jac_2)
-# print(jac_3(gs.array([1.,1.])))
+# # print(statmetric.amari_divergence_tensor(base_point=gs.array([1.0, 1.0])))
+# # jac_1 = gs.autodiff.jacobian(lambda x: gs.sum(x**4))
+# # jac_2 = gs.autodiff.jacobian(jac_1)
+# # jac_3 = gs.autodiff.jacobian(jac_2)
+# # print(jac_3(gs.array([1.,1.])))
 
-print(statmetric.metric_matrix(gs.array([1.,1.])))
-# print(gs.autodiff.hessian(lambda x: gs.sum(x**2))(gs.array([1., 1.]) ) )
+# print(statmetric.metric_matrix(gs.array([1.,1.])))
+# # print(gs.autodiff.hessian(lambda x: gs.sum(x**2))(gs.array([1., 1.]) ) )
 
-# hess = gs.autodiff.hessian(breg_div)
-# # print(hess(gs.array([1., 1., 1., 1.])))
+# # hess = gs.autodiff.hessian(breg_div)
+# # # print(hess(gs.array([1., 1., 1., 1.])))
 
-# third_der = gs.autodiff.jacobian(hess)
+# # third_der = gs.autodiff.jacobian(hess)
 
-# print(third_der(gs.array([1., 1., 1., 1.]))[:2, :2, 2:])
+# # print(third_der(gs.array([1., 1., 1., 1.]))[:2, :2, 2:])
 
-# print(gs.autodiff.hessian(lambda x: gs.sum(x**2))(gs.array([1., 1.]) ) )
+# # print(gs.autodiff.hessian(lambda x: gs.sum(x**2))(gs.array([1., 1.]) ) )
