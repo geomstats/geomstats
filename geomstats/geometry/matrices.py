@@ -14,7 +14,13 @@ from geomstats.vectorization import repeat_out
 
 
 class FlattenDiffeo(VectorSpaceDiffeo):
-    """A diffeo from matrices to Euclidean by flattening."""
+    """A diffeo from matrices to Euclidean by flattening.
+
+    Parameters
+    ----------
+    m, n : int
+        Integers representing the shapes of the matrices: m x n.
+    """
 
     def __init__(self, m, n=None):
         super().__init__(space_ndim=2, image_space_ndim=1)
@@ -58,7 +64,12 @@ class FlattenDiffeo(VectorSpaceDiffeo):
 
 
 class BasisRepresentationDiffeo(VectorSpaceDiffeo):
-    """A diffeo from matrices to Euclidean through basis representation."""
+    """A diffeo from matrices to Euclidean through basis representation.
+
+    Parameters
+    ----------
+    space : MatrixVectorSpace
+    """
 
     def __init__(self, space):
         super().__init__(space_ndim=2, image_space_ndim=1)
@@ -848,6 +859,7 @@ class MatricesDiagMetric(FlatRiemannianMetric):
 
     Parameters
     ----------
+    space : MatrixVectorSpace
     metric_coeffs: array-like, shape=[m,n]
     """
 
@@ -862,6 +874,7 @@ class MatricesDiagMetric(FlatRiemannianMetric):
 
     @staticmethod
     def _check_metric_coeffs(space, metric_coeffs):
+        """Check shape of metric coefficients."""
         if metric_coeffs is None:
             return
 
