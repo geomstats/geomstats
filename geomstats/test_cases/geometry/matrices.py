@@ -5,7 +5,9 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import MatrixVectorSpaceTestCase
-from geomstats.test_cases.geometry.euclidean import EuclideanMetricTestCase
+from geomstats.test_cases.geometry.flat_riemannian_metric import (
+    FlatRiemannianMetricTestCase,
+)
 
 
 class MatrixOperationsTestCase(TestCase):
@@ -365,5 +367,5 @@ class MatricesTestCase(MatrixVectorSpaceTestCase):
         self.assertAllClose(point, point_, atol=atol)
 
 
-class MatricesMetricTestCase(EuclideanMetricTestCase):
+class MatricesMetricTestCase(FlatRiemannianMetricTestCase):
     pass

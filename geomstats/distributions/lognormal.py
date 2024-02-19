@@ -77,9 +77,9 @@ class LogNormalEuclidean:
 
     @staticmethod
     def _check_metric(space):
-        if type(space.metric) not in (EuclideanMetric, MatricesMetric):
+        if not isinstance(space.metric, (EuclideanMetric, MatricesMetric)):
             raise ValueError(
-                "Invalid Metric, " "Should be of type EuclideanMetric or MatricesMetric"
+                "Invalid Metric. Should be of type EuclideanMetric or MatricesMetric"
             )
 
     def sample(self, n_samples):

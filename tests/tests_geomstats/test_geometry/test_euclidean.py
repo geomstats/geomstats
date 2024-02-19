@@ -16,35 +16,13 @@ from .data.euclidean import (
 )
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def spaces(request):
-    request.cls.space = Euclidean(dim=request.param, equip=False)
-
-
-@pytest.mark.usefixtures("spaces")
 class TestEuclidean(EuclideanTestCase, metaclass=DataBasedParametrizer):
+    space = Euclidean(dim=random.randint(2, 5), equip=False)
     testing_data = EuclideanTestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def equipped_spaces(request):
-    request.cls.space = Euclidean(dim=request.param)
-
-
-@pytest.mark.usefixtures("equipped_spaces")
 class TestEuclideanMetric(EuclideanMetricTestCase, metaclass=DataBasedParametrizer):
+    space = Euclidean(dim=random.randint(2, 5))
     testing_data = EuclideanMetricTestData()
 
 

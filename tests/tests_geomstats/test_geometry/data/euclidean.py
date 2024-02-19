@@ -2,8 +2,8 @@ import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from .base import VectorSpaceTestData
+from .flat_riemannian_metric import FlatRiemannianMetricTestData
 from .mixins import GroupExpMixinsTestData
-from .riemannian_metric import RiemannianMetricTestData
 
 
 class EuclideanTestData(GroupExpMixinsTestData, VectorSpaceTestData):
@@ -14,17 +14,11 @@ class EuclideanTestData(GroupExpMixinsTestData, VectorSpaceTestData):
         return self.generate_tests([dict()])
 
 
-class EuclideanMetricTestData(RiemannianMetricTestData):
+class EuclideanMetricTestData(FlatRiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
     def cometrix_matrix_is_identity_test_data(self):
-        return self.generate_random_data()
-
-    def inner_product_derivative_matrix_is_zeros_test_data(self):
-        return self.generate_random_data()
-
-    def christoffels_are_zeros_test_data(self):
         return self.generate_random_data()
 
 

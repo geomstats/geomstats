@@ -2,7 +2,7 @@ import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 from geomstats.test.data import TestData
 
-from .matrices import MatricesMetricTestData
+from .matrices import RiemannianMetricTestData
 
 
 class Grassmannian32TestData(TestData):
@@ -18,8 +18,9 @@ class Grassmannian32TestData(TestData):
         return self.generate_tests(data)
 
 
-class GrassmannianCanonicalMetricTestData(MatricesMetricTestData):
+class GrassmannianCanonicalMetricTestData(RiemannianMetricTestData):
     fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False
     trials = 3
 
     xfails = ("log_after_exp",)
