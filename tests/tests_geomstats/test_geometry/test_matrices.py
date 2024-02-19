@@ -3,19 +3,28 @@ import random
 import pytest
 
 import geomstats.backend as gs
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import SquareMatrices
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import (
+    BasisRepresentationDiffeo,
+    FlattenDiffeo,
+    Matrices,
+    MatricesDiagMetric,
+    MatricesMetric,
+)
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.matrices import (
     MatricesMetricTestCase,
     MatricesTestCase,
     MatrixOperationsTestCase,
 )
 
+from .data.diffeo import DiffeoTestData
 from .data.matrices import (
     MatricesMetric22TestData,
     MatricesMetricTestData,
@@ -23,6 +32,26 @@ from .data.matrices import (
     MatrixOperationsSmokeTestData,
     MatrixOperationsTestData,
 )
+
+
+class TestFlattenDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    _m = random.randint(3, 5)
+    _n = random.randint(3, 5)
+
+    space = Matrices(m=_m, n=_n, equip=False)
+    image_space = Euclidean(dim=_m * _n, equip=False)
+    diffeo = FlattenDiffeo(_m, _n)
+    testing_data = DiffeoTestData()
+
+
+class TestBasisRepresentationDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    _m = random.randint(3, 5)
+    _n = random.randint(3, 5)
+
+    space = Matrices(m=_m, n=_n, equip=False)
+    image_space = Euclidean(dim=_m * _n, equip=False)
+    diffeo = BasisRepresentationDiffeo(space)
+    testing_data = DiffeoTestData()
 
 
 class MatrixOperationsDataGenerator:
@@ -115,37 +144,17 @@ class TestMatrixOperationsSmokeTestData(
     testing_data = MatrixOperationsSmokeTestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        (2, 3),
-        (random.randint(3, 5), random.randint(3, 5)),
-    ],
-)
-def spaces(request):
-    m, n = request.param
-    request.cls.space = Matrices(m=m, n=n, equip=False)
-
-
-@pytest.mark.usefixtures("spaces")
 class TestMatrices(MatricesTestCase, metaclass=DataBasedParametrizer):
+    _m = random.randint(2, 5)
+    _n = random.randint(2, 5)
+    space = Matrices(m=_m, n=_n, equip=False)
     testing_data = MatricesTestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        (2, 3),
-        (random.randint(3, 5), random.randint(3, 5)),
-    ],
-)
-def equipped_spaces(request):
-    m, n = request.param
-    request.cls.space = Matrices(m=m, n=n)
-
-
-@pytest.mark.usefixtures("equipped_spaces")
 class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
+    _m = random.randint(2, 5)
+    _n = random.randint(2, 5)
+    space = Matrices(m=_m, n=_n)
     testing_data = MatricesMetricTestData()
 
 
@@ -154,3 +163,10 @@ class TestMatricesMetric22(MatricesMetricTestCase, metaclass=DataBasedParametriz
     space = Matrices(2, 2, equip=False)
     space.equip_with_metric(MatricesMetric)
     testing_data = MatricesMetric22TestData()
+
+
+class TestMatricesDiagMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
+    _m = random.randint(2, 5)
+    _n = random.randint(2, 5)
+    space = Matrices(m=_m, n=_n, equip=False).equip_with_metric(MatricesDiagMetric)
+    testing_data = MatricesMetricTestData()
