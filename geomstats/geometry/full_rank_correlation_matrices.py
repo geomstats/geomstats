@@ -6,8 +6,8 @@ Lead authors: Yann Thanwerdas and Olivier Bisson.
 References
 ----------
 .. [T2022] Yann Thanwerdas. Riemannian and stratified
-geometries on covariance and correlation matrices. Differential
-Geometry [math.DG]. Université Côte d'Azur, 2022.
+    geometries on covariance and correlation matrices. Differential
+    Geometry [math.DG]. Université Côte d'Azur, 2022.
 """
 
 import logging
@@ -357,6 +357,92 @@ def off_map(matrix):
     return matrix - Matrices.to_diagonal(matrix)
 
 
+class UniqueDiagonalMatrixAlgorithm:
+    """Find unique diagonal matrix corresponding to a full-rank correlation matrix.
+
+    That is, for all symmetric matrix :math:`S`,
+    there exists a unique diagonal matrix :math:`D` such that
+    :math:`expm(D+S)` is a full-rank correlation matrix.
+
+    Converges in logarithmic time to the solution of the equation, no closed form.
+
+    Check out Theorem 8.10 of [T2022]_ for more details.
+
+    Parameters
+    ----------
+    atol : float
+        Tolerance to check algorithm convergence.
+    max_iter : int
+        Maximum iterations.
+
+    References
+    ----------
+    .. [AH2020] Ilya Archakov, and Peter Reinhard Hansen.
+        “A New Parametrization of Correlation Matrices.” arXiv, December 3, 2020.
+        https://doi.org/10.48550/arXiv.2012.02395.
+    """
+
+    def __init__(self, atol=gs.atol, max_iter=100):
+        self.atol = atol
+        self.max_iter = max_iter
+
+    def _check_convergence(self, new_matrix, matrix):
+        mat_diff = new_matrix - matrix
+        return gs.linalg.norm(mat_diff, axis=(-2, -1)) < self.atol
+
+    def _apply_single(self, sym_mat):
+        r"""Find unique diagonal matrix corresponding to a full-rank correlation matrix.
+
+        Parameters
+        ----------
+        sym_mat : array-like, shape=[n, n]
+
+        Returns
+        -------
+        diag_mat : array-like, shape=[n, n]
+        """
+        diag_mat = gs.zeros_like(sym_mat)
+
+        for _ in range(self.max_iter):
+            approx_cor_mat = expmh(diag_mat + sym_mat)
+            new_diag_mat = diag_mat - logmh(Matrices.to_diagonal(approx_cor_mat))
+
+            if self._check_convergence(new_diag_mat, diag_mat):
+                return diag_mat
+
+            diag_mat = new_diag_mat
+        else:
+            logging.warning(
+                "Maximum number of iterations %d reached. The mean may be inaccurate",
+                self.max_iter,
+            )
+
+        return diag_mat
+
+    def apply(self, sym_mat):
+        r"""Find unique diagonal matrix corresponding to a full-rank correlation matrix.
+
+        Parameters
+        ----------
+        sym_mat : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        diag_mat : array-like, shape=[..., n, n]
+        """
+        if sym_mat.ndim == 2:
+            return self._apply_single(sym_mat)
+
+        batch_shape = sym_mat.shape[:-2]
+        if len(batch_shape) == 1:
+            return gs.stack([self._apply_single(sym_mat_) for sym_mat_ in sym_mat])
+
+        mat_shape = sym_mat.shape[-2:]
+        flat_sym_mat = gs.reshape(sym_mat, (-1,) + mat_shape)
+        out = gs.stack([self._apply_single(sym_mat_) for sym_mat_ in flat_sym_mat])
+        return gs.reshape(out, batch_shape + mat_shape)
+
+
 class OffLogDiffeo(Diffeo):
     r"""Off-log diffeomorphism from Cor+ to Hol.
 
@@ -370,79 +456,9 @@ class OffLogDiffeo(Diffeo):
     Check out chapter 8 of [T2022]_ for more details.
     """
 
-    def __init__(self, space, atol=gs.atol, max_iter=100):
-        self.space = space
-        self.atol = atol
-        self.max_iter = max_iter
-
-    def _unique_diag_mat_single(self, sym_mat):
-        r"""Find unique diagonal matrix corresponding to a Cor+ mat.
-
-        That is, for all symmetric matrix :math:`S`,
-        there exists a unique diagonal matrix :math:`D` such that
-        :math:`exp(D+S)` is a full-rank correlation matrix.
-
-        Converges in logarithmic time to the solution of the equation, no closed form.
-
-        Parameters
-        ----------
-        sym_mat : array-like, shape=[n, n]
-
-        Returns
-        -------
-        diag_mat : array-like, shape=[n, n]
-        """
-        diag_mat = gs.zeros_like(sym_mat)
-
-        approx_cor_mat = expmh(diag_mat + sym_mat)
-        if self.space.belongs(approx_cor_mat, atol=self.atol):
-            return diag_mat
-
-        for _ in range(self.max_iter):
-            diag_mat = diag_mat - logmh(Matrices.to_diagonal(approx_cor_mat))
-            approx_cor_mat = expmh(diag_mat + sym_mat)
-            if self.space.belongs(approx_cor_mat, atol=self.atol):
-                return diag_mat
-        else:
-            logging.warning(
-                "Maximum number of iterations %d reached. The mean may be inaccurate",
-                self.max_iter,
-            )
-
-        return diag_mat
-
-    def _unique_diag_mat(self, sym_mat):
-        r"""Find unique diagonal matrix corresponding to a Cor+ mat.
-
-        That is, for all symmetric matrix :math:`S`,
-        there exists a unique diagonal matrix :math:`D` such that
-        :math:`exp(D+S)` is a full-rank correlation matrix.
-
-        Converges in logarithmic time to the solution of the equation, no closed form.
-
-        Parameters
-        ----------
-        sym_mat : array-like, shape=[..., n, n]
-
-        Returns
-        -------
-        diag_mat : array-like, shape=[..., n, n]
-        """
-        if sym_mat.ndim == 2:
-            return self._unique_diag_mat_single(sym_mat)
-
-        batch_shape = sym_mat.shape[:-2]
-        if len(batch_shape) == 1:
-            return gs.stack(
-                [self._unique_diag_mat_single(sym_mat_) for sym_mat_ in sym_mat]
-            )
-
-        mat_shape = sym_mat.shape[-2:]
-        flat_sym_mat = gs.reshape(sym_mat, (-1,) + mat_shape)
-        out = gs.stack(
-            [self._unique_diag_mat_single(sym_mat_) for sym_mat_ in flat_sym_mat]
-        )
-        return gs.reshape(out, batch_shape + mat_shape)
+    def __init__(self):
+        super().__init__()
+        self.unique_diag_mat_algo = UniqueDiagonalMatrixAlgorithm()
 
     def diffeomorphism(self, base_point):
         """Diffeomorphism at base point.
@@ -474,7 +490,7 @@ class OffLogDiffeo(Diffeo):
         base_point : array-like, shape=[..., n, n]
             Base point.
         """
-        return expmh(self._unique_diag_mat(image_point) + image_point)
+        return expmh(self.unique_diag_mat_algo.apply(image_point) + image_point)
 
     def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
         r"""Tangent diffeomorphism at base point.
@@ -521,7 +537,7 @@ class OffLogDiffeo(Diffeo):
 
         Parameters
         ----------
-        eigvals : array-like, shape=[n]
+        eigvals : array-like, shape=[..., n]
             Typically eigenvalues of the matrix.
 
         Returns
@@ -549,8 +565,8 @@ class OffLogDiffeo(Diffeo):
             gs.divide(exp_eigvals_ - exp_eigvals_t, eigvals_diff, ignore_div_zero=True),
         )
 
-    def _build_H_0_matrix(self, image_base_point=None, base_point=None):
-        r"""Build the H_0 matrix.
+    def _build_tangent_diag_aux_mat(self, image_point=None, base_point=None):
+        r"""Build auxiliar matrix for tangent diagonal map computation.
 
         The :math:`H_0` matrix is a SPD matrix where each coefficient is
 
@@ -559,37 +575,38 @@ class OffLogDiffeo(Diffeo):
             (H_0)_il = \sum_{j,k} P_ij*P_ik*P_lj*P_lk*exp^(1)(d_j, d_k)
 
         where :math:`PDP^t = D+S`, with :math:`D` being a diagonal matrix obtained
-        using `_unique_diag_mat` and :math:`S` is a hollow matrix.
+        using `UniqueDiagonalMatrixAlgorithm` and :math:`S` is a hollow matrix.
 
-        It is used to compute the pushforward of the `_unique_diag_mat` application.
+        It is used to compute the pushforward of the
+        `UniqueDiagonalMatrixAlgorithm` application.
 
         Parameters
         ----------
-        image_base_point : array-like, shape=[..., n, n]
+        image_point : array-like, shape=[..., n, n]
             Image of base point by the diffeomorphism.
-        base_point : array-like, optional
+        base_point : array-like, shape=[..., n, n]
             Base point.
 
         Returns
         -------
-        H_0 : array-like, shape=[..., n, n]
-            matrix H_0.
+        h0_mat : array-like, shape=[..., n, n]
+            H_0 matrix.
         mat : array-like, shape=[..., n, n]
             Matrix such that its exponential is Cor^+.
         """
-        n = self.space.n
         if base_point is None:
-            sym_mat = image_base_point
-            mat = sym_mat + self._unique_diag_mat(sym_mat)
+            sym_mat = image_point
+            mat = sym_mat + self.unique_diag_mat_algo.apply(sym_mat)
         else:
             mat = logmh(base_point)
 
         eigvals, eigvecs = gs.linalg.eigh(mat)
 
-        H_0 = gs.zeros(mat.shape[:-2] + (self.space.n, self.space.n))
+        h0_mat = gs.zeros(mat.shape)
 
         divided_diffs = self._divided_difference_exp(eigvals)
 
+        n = h0_mat.shape[-1]
         for index_i in range(n):
             for index_j in range(n):
                 val = 0
@@ -602,14 +619,12 @@ class OffLogDiffeo(Diffeo):
                             * eigvecs[..., index_j, index_l]
                             * divided_diffs[..., index_k, index_l]
                         )
-                H_0[..., index_i, index_j] = val
+                h0_mat[..., index_i, index_j] = val
 
-        return H_0, mat
+        return h0_mat, mat
 
-    def _tangent_diag_map(
-        self, image_tangent_vec, image_base_point=None, base_point=None
-    ):
-        r"""Tangent _unique_diag_mat at base point.
+    def _tangent_diag_map(self, image_tangent_vec, image_point=None, base_point=None):
+        r"""Tangent unique diagonal matrix at image point.
 
         Parameters
         ----------
@@ -627,12 +642,12 @@ class OffLogDiffeo(Diffeo):
         mat : array-like, shape=[..., n, n]
             Matrix such that its exponential is Cor^+.
         """
-        H_0, mat = self._build_H_0_matrix(
-            image_base_point=image_base_point, base_point=base_point
+        h0_mat, mat = self._build_tangent_diag_aux_mat(
+            image_point=image_point, base_point=base_point
         )
-        e = gs.ones(self.space.n)
+        e = gs.ones(h0_mat.shape[-1])
         vec = gs.matvec(
-            gs.linalg.inv(H_0),
+            gs.linalg.inv(h0_mat),
             gs.matvec(
                 Matrices.to_diagonal(
                     SymMatrixLog.inverse_tangent_diffeomorphism(
@@ -666,7 +681,7 @@ class OffLogDiffeo(Diffeo):
             Tangent vector at base point.
         """
         diff_D, sym_mat = self._tangent_diag_map(
-            image_base_point=image_point,
+            image_point=image_point,
             base_point=base_point,
             image_tangent_vec=image_tangent_vec,
         )
@@ -682,10 +697,20 @@ class OffLogMetric(PullbackDiffeoMetric):
     hollow matrices endowed with a permutation-invariant metric.
 
     For more details, check section 8.2.2 [T2022]_.
+
+    Parameters
+    ----------
+    space : FullRankCorrelationMatrices
+    alpha : float
+        Scalar multiplying first term of quadratic form.
+    beta : float
+        Scalar multiplying second term of quadratic form.
+    gamma : float
+        Scalar multiplying third term of quadratic form.
     """
 
     def __init__(self, space, alpha=1.0, beta=1.0, gamma=1.0):
-        diffeo = OffLogDiffeo(space)
+        diffeo = OffLogDiffeo()
 
         image_space = SymmetricHollowMatrices(n=space.n, equip=False).equip_with_metric(
             HollowMatricesPermutationInvariantMetric,

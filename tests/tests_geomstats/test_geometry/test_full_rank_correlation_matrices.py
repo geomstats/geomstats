@@ -10,8 +10,10 @@ from geomstats.geometry.full_rank_correlation_matrices import (
     OffLogDiffeo,
     OffLogMetric,
     PolyHyperbolicCholeskyMetric,
+    UniqueDiagonalMatrixAlgorithm,
 )
 from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.hermitian_matrices import expmh
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.open_hemisphere import (
@@ -23,8 +25,13 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     UnitNormedRowsPLTMatrices,
 )
 from geomstats.geometry.spd_matrices import CholeskyMap, SPDMatrices
-from geomstats.geometry.symmetric_matrices import SymmetricHollowMatrices
+from geomstats.geometry.symmetric_matrices import (
+    SymmetricHollowMatrices,
+    SymmetricMatrices,
+)
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.random import RandomDataGenerator
+from geomstats.test.test_case import TestCase
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
 from geomstats.test_cases.geometry.full_rank_correlation_matrices import (
@@ -40,6 +47,7 @@ from .data.full_rank_correlation_matrices import (
     FullRankCorrelationMatricesTestData,
     OffLogMetricTestData,
     PolyHyperbolicCholeskyMetricTestData,
+    UniqueDiagonalMatrixAlgorithmTestData,
 )
 
 
@@ -169,11 +177,29 @@ class TestPolyHyperbolicCholeskyMetric(
     testing_data = PolyHyperbolicCholeskyMetricTestData()
 
 
+class TestUniqueDiagonalMatrixAlgorithm(TestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(2, 5)
+    algo = UniqueDiagonalMatrixAlgorithm()
+    sym_data_generator = RandomDataGenerator(SymmetricMatrices(n=_n, equip=False))
+    full_rank_cor = FullRankCorrelationMatrices(n=_n, equip=False)
+    testing_data = UniqueDiagonalMatrixAlgorithmTestData()
+
+    @pytest.mark.random
+    def test_belongs_to_full_rank_cor(self, n_points, atol):
+        sym_mat = self.sym_data_generator.random_point(n_points)
+
+        diag_mat = self.algo.apply(sym_mat)
+        cor_mat = expmh(diag_mat + sym_mat)
+        res = self.full_rank_cor.belongs(cor_mat, atol=atol)
+        expected = gs.ones_like(res)
+        self.assertAllEqual(res, expected)
+
+
 class TestOffLogDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
     _n = random.randint(2, 5)
     space = FullRankCorrelationMatrices(n=_n, equip=False)
     image_space = SymmetricHollowMatrices(n=_n, equip=False)
-    diffeo = OffLogDiffeo(space)
+    diffeo = OffLogDiffeo()
     testing_data = DiffeoTestData()
 
 
