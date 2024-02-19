@@ -1,3 +1,5 @@
+from geomstats.test.data import TestData
+
 from .base import LevelSetTestData
 from .fiber_bundle import FiberBundleTestData
 from .pullback_metric import PullbackDiffeoMetricTestData
@@ -44,6 +46,16 @@ class FullRankCorrelationAffineQuotientMetricTestData(QuotientMetricTestData):
     }
 
 
+class UniqueDiagonalMatrixAlgorithmTestData(TestData):
+    def belongs_to_full_rank_cor_test_data(self):
+        return self.generate_random_data()
+
+
 class PolyHyperbolicCholeskyMetricTestData(PullbackDiffeoMetricTestData):
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
+
+
+class OffLogMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
