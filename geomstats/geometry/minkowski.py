@@ -5,7 +5,8 @@ Lead author: Nina Miolane.
 
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.euclidean import Euclidean, FlatRiemannianMetric
+from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.flat_riemannian_metric import FlatRiemannianMetric
 
 
 class Minkowski(Euclidean):

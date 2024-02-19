@@ -38,9 +38,9 @@ References
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.base import LevelSet
-from geomstats.geometry.euclidean import RiemannianMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.vectorization import repeat_out
 

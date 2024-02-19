@@ -8,7 +8,7 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import flip_determinant, from_vector_to_diagonal_matrix
 from geomstats.geometry.base import MatrixVectorSpace
-from geomstats.geometry.euclidean import FlatRiemannianMetric
+from geomstats.geometry.flat_riemannian_metric import FlatRiemannianMetric
 from geomstats.vectorization import repeat_out
 
 

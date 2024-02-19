@@ -3,7 +3,7 @@ import math
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .euclidean import FlatRiemannianMetricTestData
+from .flat_riemannian_metric import FlatRiemannianMetricTestData
 
 
 class MinkowskiTestData(TestData):

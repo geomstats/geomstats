@@ -4,8 +4,8 @@ import pytest
 
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.euclidean import (
-    EuclideanTestCase,
+from geomstats.test_cases.geometry.euclidean import EuclideanTestCase
+from geomstats.test_cases.geometry.flat_riemannian_metric import (
     FlatRiemannianMetricTestCase,
 )
 
