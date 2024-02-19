@@ -376,7 +376,9 @@ class OffLogDiffeo(Diffeo):
         self.max_iter = max_iter
 
     def _unique_diag_mat_single(self, sym_mat):
-        """Find unique diagonal matrix corresponding to a Cor+ mat.
+        """Find unique diagonal matrix corresponding to a Cor+ mat. That is, for all
+        symmetric matrix S, there exists a unique diagonal matrix D such that
+        exp(D+S) is a full-rank correlation matrix. 
 
         Converges in logarithmic time to the solution of the equation, no closed form.
 
@@ -408,7 +410,9 @@ class OffLogDiffeo(Diffeo):
         return diag_mat
 
     def _unique_diag_mat(self, sym_mat):
-        """Find unique diagonal matrix corresponding to a Cor+ mat.
+        """Find unique diagonal matrix corresponding to a Cor+ mat. That is, for all
+        symmetric matrix S, there exists a unique diagonal matrix D such that
+        exp(D+S) is a full-rank correlation matrix. 
 
         Parameters
         ----------
@@ -495,6 +499,22 @@ class OffLogDiffeo(Diffeo):
         )
 
     def _divided_difference_exp(self, eigvals):
+        r"""
+        First divided difference function of the exponential, exp^(1).
+
+        exp^(1) = (exp(x)-exp(y))/(x-y) if x!=y, exp'(x)=exp(x) if x=y.
+
+        Parameters
+        ----------
+        eigvals : array-like, shape=[n]
+            Typically eigenvalues of the matrix.
+
+        Returns
+        -------
+        divided_diffs : array-like, shape=[..., n, n]
+            First divided difference function of the exponential.
+
+        """
         eigvals_ = gs.expand_dims(eigvals, axis=-2)
         eigvals_t = gs.expand_dims(eigvals, axis=-1)
 
@@ -515,6 +535,27 @@ class OffLogDiffeo(Diffeo):
         )
 
     def _build_H_0_matrix(self, image_base_point=None, base_point=None):
+        r"""
+        Builds the SPD matrix H_0 where each coefficient is 
+        (H_0)_il = \sum_{j,k} P_ij*P_ik*P_lj*P_lk*exp^(1)(d_j, d_k)
+        where PDP^t = _unique_diag_mat(S)+S, S hollow matrix. Used to
+        compute the pushforward of the _unique_diag_mat application.
+
+        Parameters
+        ----------
+        image_base_point : array-like, shape=[..., n, n]
+            Image of base point by the diffeomorphism.
+        base_point : array-like, optional
+            Base point.
+
+        Returns
+        -------
+        H_0 : array-like, shape=[..., n, n]
+            matrix H_0.
+        mat : array-like, shape=[..., n, n]
+            Matrix such that its exponential is Cor^+.
+
+        """
         n = self.space.n
         if base_point is None:
             sym_mat = image_base_point
@@ -547,6 +588,24 @@ class OffLogDiffeo(Diffeo):
     def _tangent_diag_map(
         self, image_tangent_vec, image_base_point=None, base_point=None
     ):
+        r"""Tangent _unique_diag_mat at base point.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Image tangent vector at image of the base point.
+        mat : array-like, shape=[..., n, n]
+            Matrix such that its exponential is Cor^+.
+        """
         H_0, mat = self._build_H_0_matrix(
             image_base_point=image_base_point, base_point=base_point
         )
