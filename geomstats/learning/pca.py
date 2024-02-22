@@ -11,6 +11,8 @@ from sklearn.decomposition._base import _BasePCA
 from sklearn.utils.extmath import stable_cumsum, svd_flip
 
 import geomstats.backend as gs
+from geomstats.geometry._hyperbolic import HyperbolicMetric
+from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.learning.exponential_barycenter import ExponentialBarycenter
@@ -353,3 +355,164 @@ class TangentPCA(_BasePCA):
         self.singular_values_ = singular_values_[:n_components]
 
         return U, S, V
+
+
+class HyperbolicPlanePCA(_BasePCA):
+    """Exact Principal Geodesic Analysis in the hyperbolic plane.
+
+    The first principal component is computed by finding the direction
+    in a unit ball around the mean that minimizes the variance of the
+    projections on the induced geodesic. The projections are given by
+    closed form expressions in extrinsic coordinates. The second principal
+    component is the direction at the mean that is orthogonal to the first
+    principal component.
+
+    References:
+    ----------
+    .. [CSV2016] R. Chakraborty, D. Seo, and B. C. Vemuri,
+        "An efficient exact-pga algorithm for constant curvature manifolds."
+        Proceedings of the IEEE conference on computer vision and pattern
+        recognition. 2016.
+    """
+
+    def __init__(self, space, n_vec=100):
+        self.space = space
+        self.half_space = Hyperbolic(2, coords_type="half-space")
+        self.space_ext = Hyperbolic(2, coords_type="extrinsic")
+        self.n_vec = n_vec
+
+    def _project_on_geodesic_extrinsic(self, point_ext, mean_ext, vector_ext):
+        """Project on geodesic in extrinsic coordinates.
+
+        Project point onto geodesic going through mean in direction of vector.
+        """
+        inner_prod_1 = self.space_ext.metric.inner_product(point_ext, vector_ext)
+        inner_prod_2 = self.space_ext.metric.inner_product(point_ext, mean_ext)
+        norm_v = self.space_ext.metric.norm(vector_ext, mean_ext)
+        dist_to_proj = gs.arctanh(-inner_prod_1 / inner_prod_2 / norm_v)
+        proj = gs.einsum("...,i->...i", gs.cosh(dist_to_proj), mean_ext) + gs.einsum(
+            "...,i->...i", gs.sinh(dist_to_proj), vector_ext / norm_v
+        )
+        return proj
+
+    def _fit(self, X, y=None):
+        """Fit the model with X.
+
+        Parameters
+        ----------
+        X : array-like, shape=[..., n_features]
+            Training data in the hyperbolic plane. If the space is
+            the Poincare half-space or Poincare ball, n_features is
+            2. If it is the hyperboloid, n_features is 3.
+        y : Ignored (Compliance with scikit-learn interface)
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        """
+        estimator = FrechetMean(space=self.space).fit(X)
+        self.mean_ = estimator.estimate_
+
+        mean_half_space = self.space.to_coordinates(self.mean_, "half-space")
+        mean_ext = self.space.to_coordinates(self.mean_, "extrinsic")
+        X_ext = self.space.to_coordinates(X, "extrinsic")
+
+        angles_half_space = gs.linspace(0.0, 2 * gs.pi, self.n_vec)
+        angles_half_space = gs.expand_dims(angles_half_space, axis=1)
+        vectors_half_space = gs.hstack(
+            (gs.cos(angles_half_space), gs.sin(angles_half_space))
+        )
+        norms = self.half_space.metric.norm(vectors_half_space, mean_half_space)
+        vectors_half_space = gs.einsum("ij,i->ij", vectors_half_space, 1 / norms)
+        vectors_ext = self.space.half_space_to_extrinsic_tangent(
+            vectors_half_space, mean_half_space
+        )
+
+        def variance_of_projections(pt_ext, mn_ext, vec_ext):
+            projections = self._project_on_geodesic(pt_ext, mn_ext, vec_ext)
+            costs = self.space_ext.metric.dist(mn_ext, projections) ** 2
+            return gs.sum(costs)
+
+        costs = [
+            variance_of_projections(X_ext, mean_ext, vec_ext) for vec_ext in vectors_ext
+        ]
+        axis_1 = vectors_half_space[gs.argmin(costs)]
+        axis_2 = gs.array([-axis_1[1], axis_1[0]])
+        components_half_space = gs.stack((axis_1, axis_2))
+        self.components_ = self.space.to_tangent_coordinates(
+            components_half_space, "half-space"
+        )
+        return self
+
+    def fit(self, X, y=None):
+        """Fit the model with X.
+
+        Parameters
+        ----------
+        X : array-like, shape=[..., n_features]
+            Training data in the hyperbolic plane. If the space is
+            the Poincare half-space or Poincare ball, n_features is
+            2. If it is the hyperboloid, n_features is 3.
+        y : Ignored (Compliance with scikit-learn interface)
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        """
+        self._fit(X)
+        return self
+
+    def fit_transform(self, X, y=None):
+        """Project X on the principal components.
+
+        Parameters
+        ----------
+         X : array-like, shape=[..., n_features]
+             Training data in the hyperbolic plane. If the space is
+             the Poincare half-space or Poincare ball, n_features is
+             2. If it is the hyperboloid, n_features is 3.
+         y : Ignored (Compliance with scikit-learn interface)
+
+        Returns
+        -------
+        X_1 : array-like, shape=[..., n_features]
+            Projections of the data on the first component.
+        X_2 : array-like, shape=[..., n_features]
+            Projections of the data on the second component.
+        """
+        self._fit(X)
+        axis_1, axis_2 = self.components_
+        axis_1_ext = self.space.to_tangent_coordinates(axis_1, self.mean_, "extrinsic")
+        axis_2_ext = self.space.to_tangent_coordinates(axis_2, self.mean_, "extrinsic")
+        X_ext = self.space.to_coordinates(X, "extrinsic")
+        mean_ext = self.space.to_coordinates(self.mean_, "extrinsic")
+
+        proj1_ext = self._project_on_geodesic(X_ext, mean_ext, axis_1_ext)
+        proj2_ext = self._project_on_geodesic(X_ext, mean_ext, axis_2_ext)
+        X_1 = self.space.from_coordinates(proj1_ext, "extrinsic")
+        X_2 = self.space.from_coordinates(proj2_ext, "extrinsic")
+
+        return X_1, X_2
+
+
+class ExactPGA(_BasePCA):
+    r"""Exact Principal Geodesic Analysis.
+
+    Parameters
+    ----------
+    space : Manifold
+        Equipped manifold.
+    """
+
+    def __new__(cls, space, **kwargs):
+        """Interface for instantiating proper algorithm."""
+        if isinstance(space.metric, HyperbolicMetric) and space.dim == 2:
+            return HyperbolicPlanePCA(space, **kwargs)
+
+        else:
+            raise NotImplementedError(
+                "Exact PGA is only implemented for the two-dimensional "
+                "hyperbolic space."
+            )
