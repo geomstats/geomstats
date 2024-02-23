@@ -17,9 +17,9 @@ class GroupAction(ABC):
 
         Parameters
         ----------
-        group_elem : array-like
+        group_elem : array-like, shape=[..., *group.shape]
             The element of a group.
-        point : array-like
+        point : array-like, shape=[..., *space.shape]
             A point on a manifold.
 
         Returns
@@ -97,7 +97,20 @@ class RowPermutationAction(GroupAction):
 
 
 def permutation_matrix_from_vector(group_elem, dtype=gs.int64):
-    """Transform a permutation vector into a matrix."""
+    """Transform a permutation vector into a matrix.
+
+    Parameters
+    ----------
+    group_elem : array-like, shape=[..., n]
+        The element of a group.
+    dtype: gs.dtype
+        Array dtype
+
+    Returns
+    -------
+    mat_group_element : array-like, shape=[..., n, n]
+        Matrix representation of group element.
+    """
     batch_shape = get_batch_shape(1, group_elem)
     n = group_elem.shape[-1]
 
