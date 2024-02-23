@@ -80,7 +80,7 @@ class FAQAligner(GraphSpaceAlignerAlgorithm):
         else:
             self.perm_ = gs.array(self._align_single(point, base_point))
 
-        return total_space.group_action.act(self.perm_, point)
+        return total_space.group_action(self.perm_, point)
 
 
 class ExhaustiveAligner(GraphSpaceAlignerAlgorithm):
@@ -111,7 +111,7 @@ class ExhaustiveAligner(GraphSpaceAlignerAlgorithm):
         """Get optimal element of the group."""
         perms = self._get_all_perms(total_space.n_nodes)
 
-        aligned_points = total_space.group_action.act(perms, point)
+        aligned_points = total_space.group_action(perms, point)
         dists = total_space.metric.dist(base_point, aligned_points)
         return perms[gs.argmin(dists)]
 
@@ -146,7 +146,7 @@ class ExhaustiveAligner(GraphSpaceAlignerAlgorithm):
         else:
             self.perm_ = gs.array(self._align_single(total_space, point, base_point))
 
-        return total_space.group_action.act(self.perm_, point)
+        return total_space.group_action(self.perm_, point)
 
 
 class PointToGeodesicAlignerBase(ABC):
@@ -379,7 +379,7 @@ class _GeodesicToPointAligner(PointToGeodesicAlignerBase):
         _, perms = self._compute_squared_dist(total_space, geodesic, point)
 
         self.perm_ = perms
-        return total_space.group_action.act(self.perm_, point)
+        return total_space.group_action(self.perm_, point)
 
 
 class GraphSpace(Matrices):

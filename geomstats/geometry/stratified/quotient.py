@@ -33,6 +33,7 @@ class Aligner(ABC):
     """Bundle structure."""
 
     def __init__(self, total_space, aligner_algorithm=None):
+        # TODO: make private
         self._total_space = total_space
         if aligner_algorithm is not None:
             self.aligner_algorithm = aligner_algorithm
