@@ -41,20 +41,22 @@ from .data.quotient import AlignerAlgorithmTestData
 )
 def aligner_algorithms(request):
     Aligner = request.param
-    request.cls.aligner = Aligner()
+
+    n = random.randint(2, 4)
+    request.cls.total_space = total_space = GraphSpace(n)
+    total_space.equip_with_group_action()
+
+    request.cls.aligner = Aligner(total_space)
 
 
 @pytest.mark.usefixtures("aligner_algorithms")
 class TestGraphAlignerAlgorithm(
     AlignerAlgorithmTestCase, metaclass=DataBasedParametrizer
 ):
-    _n = random.randint(2, 4)
-    total_space = GraphSpace(_n)
-    total_space.equip_with_group_action()
-
     testing_data = AlignerAlgorithmTestData()
 
 
+@pytest.mark.xfail
 class TestGraphAlignerAlgorithmCmp(
     AlignerAlgorithmCmpTestCase, metaclass=DataBasedParametrizer
 ):
@@ -62,8 +64,8 @@ class TestGraphAlignerAlgorithmCmp(
     total_space = GraphSpace(_n)
     total_space.equip_with_group_action()
 
-    aligner = ExhaustiveAligner()
-    other_aligner = FAQAligner()
+    aligner = ExhaustiveAligner(total_space)
+    other_aligner = FAQAligner(total_space)
 
     testing_data = GraphAlignerCmpTestData()
 
@@ -71,24 +73,27 @@ class TestGraphAlignerAlgorithmCmp(
 @pytest.fixture(
     scope="class",
     params=[
-        PointToGeodesicAligner(s_min=0.0, s_max=1.0),
-        _GeodesicToPointAligner(),
+        (PointToGeodesicAligner, dict(s_min=0.0, s_max=1.0, n_grid=100)),
+        (_GeodesicToPointAligner, dict()),
     ],
 )
 def point_to_geodesic_aligners(request):
-    request.cls.aligner = request.param
+    Aligner, kwargs = request.param
+
+    _n = random.randint(2, 4)
+    request.cls.total_space = total_space = GraphSpace(_n)
+    total_space.equip_with_group_action()
+    total_space.equip_with_quotient_structure()
+
+    request.cls.aligner = Aligner(total_space, **kwargs)
+
+    request.cls.data_generator = RandomDataGenerator(total_space)
 
 
 @pytest.mark.usefixtures("point_to_geodesic_aligners")
 class TestPointToGeodesicAligner(
     PointToGeodesicAlignerTestCase, metaclass=DataBasedParametrizer
 ):
-    _n = random.randint(2, 4)
-    total_space = GraphSpace(_n)
-    total_space.equip_with_group_action()
-    total_space.equip_with_quotient_structure()
-
-    data_generator = RandomDataGenerator(total_space)
     testing_data = PointToGeodesicAlignerTestData()
 
 

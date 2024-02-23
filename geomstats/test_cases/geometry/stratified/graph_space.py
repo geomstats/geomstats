@@ -7,7 +7,7 @@ from geomstats.test.vectorization import generate_vectorization_data
 
 class PointToGeodesicAlignerTestCase(TestCase):
     def test_align(self, geodesic, point, expected, atol):
-        res = self.aligner.align(self.total_space, geodesic, point)
+        res = self.aligner.align(geodesic, point)
         self.assertAllClose(res, expected, atol=atol)
 
     def test_align_with_endpoints(
@@ -24,7 +24,7 @@ class PointToGeodesicAlignerTestCase(TestCase):
         geodesic = self.total_space.quotient.metric.geodesic(initial_point, end_point)
         point = self.data_generator.random_point()
 
-        expected = self.aligner.align(self.total_space, geodesic, point)
+        expected = self.aligner.align(geodesic, point)
 
         vec_data = generate_vectorization_data(
             data=[
@@ -43,7 +43,7 @@ class PointToGeodesicAlignerTestCase(TestCase):
         self._test_vectorization(vec_data, test_fnc_name="test_align_with_endpoints")
 
     def test_dist(self, geodesic, point, expected, atol):
-        res = self.aligner.dist(self.total_space, geodesic, point)
+        res = self.aligner.dist(geodesic, point)
         self.assertAllClose(res, expected, atol=atol)
 
     def test_dist_with_endpoints(self, initial_point, end_point, point, expected, atol):
@@ -58,7 +58,7 @@ class PointToGeodesicAlignerTestCase(TestCase):
         geodesic = self.total_space.quotient.metric.geodesic(initial_point, end_point)
         point = self.data_generator.random_point()
 
-        expected = self.aligner.dist(self.total_space, geodesic, point)
+        expected = self.aligner.dist(geodesic, point)
 
         vec_data = generate_vectorization_data(
             data=[

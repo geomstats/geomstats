@@ -10,12 +10,13 @@ from geomstats.test_cases.geometry.stratified.point_set import (
 
 
 class AlignerAlgorithmTestCase(TestCase):
+    # TODO: add align against itself test
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = RandomDataGenerator(self.total_space)
 
     def test_align(self, point, base_point, expected, atol):
-        res = self.aligner.align(self.total_space, point, base_point)
+        res = self.aligner.align(point, base_point)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
@@ -24,7 +25,7 @@ class AlignerAlgorithmTestCase(TestCase):
         point = self.data_generator.random_point()
         base_point = self.data_generator.random_point()
 
-        expected = self.aligner.align(self.total_space, point, base_point)
+        expected = self.aligner.align(point, base_point)
 
         vec_data = generate_vectorization_data(
             data=[
@@ -47,9 +48,8 @@ class AlignerAlgorithmCmpTestCase(TestCase):
         point = self.data_generator.random_point(n_points)
         base_point = self.data_generator.random_point(n_points)
 
-        total_space = self.total_space
-        aligned = self.aligner.align(total_space, point, base_point)
-        other_aligned = self.other_aligner.align(total_space, point, base_point)
+        aligned = self.aligner.align(point, base_point)
+        other_aligned = self.other_aligner.align(point, base_point)
 
         self.assertAllClose(aligned, other_aligned, atol=atol)
 

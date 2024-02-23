@@ -166,7 +166,13 @@ class PointSet(ABC):
 
 
 class PointSetMetric(ABC):
-    r"""Class for the lenght spaces."""
+    r"""Class for the lenght spaces.
+
+    Parameters
+    ----------
+    space : PointSet
+        Set to equip with metric.
+    """
 
     def __init__(self, space):
         self._space = space

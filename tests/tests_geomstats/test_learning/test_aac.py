@@ -3,7 +3,10 @@ import random
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.stratified.graph_space import GraphSpace
+from geomstats.geometry.stratified.graph_space import (
+    GraphSpace,
+    _GeodesicToPointAligner,
+)
 from geomstats.learning.aac import _AACGGPCA, AAC, _AACFrechetMean, _AACRegression
 from geomstats.test.parametrizers import DataBasedParametrizer, Parametrizer
 from geomstats.test.test_case import TestCase
@@ -41,7 +44,7 @@ class TestAACFrechetMean(
     _space = GraphSpace(_n)
     _space.equip_with_group_action()
     _space.equip_with_quotient_structure()
-    _space.aligner.set_aligner_algorithm("exhaustive")
+    _space.aligner.set_alignment_algorithm("exhaustive")
 
     estimator = _AACFrechetMean(_space, init_point=gs.zeros((_n, _n)))
 
@@ -50,12 +53,16 @@ class TestAACFrechetMean(
 
 class TestAACGGPCA(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
     _n = random.randint(3, 4)
-    _space = GraphSpace(_n)
-    _space.equip_with_group_action()
-    _space.equip_with_quotient_structure()
-    _space.aligner.set_aligner_algorithm("exhaustive")
+    _total_space = GraphSpace(_n)
+    _total_space.equip_with_group_action()
+    _total_space.equip_with_quotient_structure()
+    _total_space.aligner.set_alignment_algorithm("exhaustive")
 
-    estimator = _AACGGPCA(_space, init_point=gs.zeros((_n, _n)))
+    _total_space.aligner.set_point_to_geodesic_aligner(
+        _GeodesicToPointAligner(_total_space)
+    )
+
+    estimator = _AACGGPCA(_total_space, init_point=gs.zeros((_n, _n)), epsilon=1e-6)
 
     testing_data = AACGGPCATestData()
 
@@ -78,10 +85,7 @@ class TestAACGGPCA(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
         new_geo = total_space.metric.geodesic(
             initial_point=mean, initial_tangent_vec=direc
         )
-
-        dists = total_space.aligner.point_to_geodesic_aligner.dist(
-            total_space, new_geo, X
-        )
+        dists = total_space.aligner.point_to_geodesic_aligner.dist(new_geo, X)
         self.assertAllClose(dists, gs.zeros_like(dists), atol=atol)
 
 
@@ -90,7 +94,7 @@ class TestAACRegression(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
     _space = GraphSpace(_n)
     _space.equip_with_group_action()
     _space.equip_with_quotient_structure()
-    _space.aligner.set_aligner_algorithm("exhaustive")
+    _space.aligner.set_alignment_algorithm("exhaustive")
 
     estimator = _AACRegression(_space, init_point=gs.zeros((_n, _n)))
     testing_data = AACRegressionTestData()

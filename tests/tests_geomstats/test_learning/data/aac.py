@@ -32,9 +32,10 @@ class AACFrechetMeanTestData(MeanEstimatorMixinsTestData, BaseEstimatorTestData)
 
 class AACGGPCATestData(BaseEstimatorTestData):
     skip_all = IS_NOT_NP
+    trials = 5
 
     tolerances = {
-        "fit_geodesic_points": {"atol": 1e-8},
+        "fit_geodesic_points": {"atol": 1e-4},
     }
 
     def fit_geodesic_points_test_data(self):

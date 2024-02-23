@@ -76,7 +76,7 @@ class _AACFrechetMean(BaseEstimator):
         self,
         space,
         *,
-        epsilon=1e-6,
+        epsilon=1e-3,
         max_iter=20,
         init_point=None,
         total_space_estimator_kwargs=None,
@@ -193,7 +193,7 @@ class _AACGGPCA(BaseEstimator):
         space,
         *,
         n_components=2,
-        epsilon=1e-6,
+        epsilon=1e-3,
         max_iter=20,
         init_point=None,
         save_last_X=True,
@@ -207,6 +207,7 @@ class _AACGGPCA(BaseEstimator):
 
         self.total_space_estimator = WrappedPCA(n_components=self.n_components)
         self.n_iter_ = None
+        self.aligned_X_ = None
 
     @property
     def components_(self):
@@ -337,7 +338,7 @@ class _AACRegression(BaseEstimator):
         self,
         space,
         *,
-        epsilon=1e-6,
+        epsilon=1e-3,
         max_iter=20,
         init_point=None,
         total_space_estimator_kwargs=None,

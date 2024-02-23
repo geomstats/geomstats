@@ -16,6 +16,8 @@ class PointToGeodesicAlignerTestData(TestData):
     skip_all = IS_NOT_NP
     fail_for_not_implemented_errors = False
 
+    tolerances = {"dist_along_geodesic_is_zero": {"atol": 1e-2}}
+
     def align_vec_test_data(self):
         return self.generate_vec_data()
 

@@ -7,20 +7,27 @@ from geomstats.geometry.stratified.point_set import PointSetMetric
 
 
 class AlignerAlgorithm(ABC):
-    """Base class for point to point aligner."""
+    """Base class for point to point aligner.
+
+    Parameters
+    ----------
+    total_space : PointSet
+        Set with quotient structure.
+    """
+
+    def __init__(self, total_space):
+        self._total_space = total_space
 
     @abstractmethod
-    def align(self, total_space, point, base_point):
+    def align(self, point, base_point):
         """Align point to base point.
 
         Parameters
         ----------
-        total_space : PointSet
-            Set with quotient structure.
         point : array-like, shape=[..., *point_shape]
             Point to align.
         base_point : array-like, shape=[..., *point_shape]
-            Reference point.
+            Base point.
 
         Returns
         -------
@@ -30,13 +37,20 @@ class AlignerAlgorithm(ABC):
 
 
 class Aligner(ABC):
-    """Bundle structure."""
+    """Bundle structure.
 
-    def __init__(self, total_space, aligner_algorithm=None):
-        # TODO: make private
+    Parameters
+    ----------
+    total_space : PointSet
+        Set with quotient structure.
+    align_algo : AlignerAlgorithm
+        Algorihtm performing alignment.
+    """
+
+    def __init__(self, total_space, align_algo=None):
         self._total_space = total_space
-        if aligner_algorithm is not None:
-            self.aligner_algorithm = aligner_algorithm
+        if align_algo is not None:
+            self.align_algo = align_algo
 
     def align(self, point, base_point):
         """Align point to base point.
@@ -52,17 +66,25 @@ class Aligner(ABC):
         -------
         aligned_point: list, shape = [..., *point_shape]
         """
-        if hasattr(self, "aligner_algorithm"):
-            return self.aligner_algorithm.align(self._total_space, point, base_point)
+        if hasattr(self, "align_algo"):
+            return self.align_algo.align(point, base_point)
 
         raise NotImplementedError("`align` is not implemented")
 
 
 class QuotientMetric(PointSetMetric, ABC):
-    """Quotient metric."""
+    """Quotient metric.
+
+    Parameters
+    ----------
+    space : PointSet
+        Set to equip with metric.
+    total_space : PointSet
+        Set with quotient structure.
+    """
 
     def __init__(self, space, total_space):
-        self.total_space = total_space
+        self._total_space = total_space
         super().__init__(space)
 
     def squared_dist(self, point_a, point_b):
@@ -78,8 +100,8 @@ class QuotientMetric(PointSetMetric, ABC):
         distance : array-like, shape=[...]
             Distance between the points.
         """
-        aligned_point_b = self.total_space.aligner.align(point_b, point_a)
-        return self.total_space.metric.squared_dist(
+        aligned_point_b = self._total_space.aligner.align(point_b, point_a)
+        return self._total_space.metric.squared_dist(
             point_a,
             aligned_point_b,
         )
@@ -114,7 +136,7 @@ class QuotientMetric(PointSetMetric, ABC):
         geodesic : callable
             Geodesic function.
         """
-        aligned_end_point = self.total_space.aligner.align(end_point, initial_point)
-        return self.total_space.metric.geodesic(
+        aligned_end_point = self._total_space.aligner.align(end_point, initial_point)
+        return self._total_space.metric.geodesic(
             initial_point=initial_point, end_point=aligned_end_point
         )
