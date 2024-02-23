@@ -70,6 +70,7 @@ class ScalarProductMetric:
         "scalar_curvature",
     ]
     INVERSE_SQRT_LIST = ["normalize", "random_unit_tangent_vec", "normal_basis"]
+    RESERVED_NAMES = ("underlying_metric", "scale")
 
     def __init__(self, underlying_metric, scale):
         """Load all attributes from the underlying metric."""
@@ -82,9 +83,8 @@ class ScalarProductMetric:
             self.underlying_metric = underlying_metric
             self.scale = scale
 
-        reserved_names = ("underlying_metric", "scale")
         for attr_name in dir(self.underlying_metric):
-            if attr_name.startswith("_") or attr_name in reserved_names:
+            if attr_name.startswith("_") or attr_name in type(self).RESERVED_NAMES:
                 continue
 
             attr = getattr(self.underlying_metric, attr_name)
@@ -159,3 +159,50 @@ class ScalarProductMetric:
         if func_name in cls.INVERSE_SQRT_LIST:
             return 1.0 / gs.sqrt(scale)
         return None
+
+    @classmethod
+    def add_scaled_method(cls, func_name, scaling_type):
+        """Configure ScalarProductMetric to scale an attribute
+
+        The ScalarProductMetric class rescales various methods of a
+        RiemannianMetric by the correct factor. The default behaviour is to
+        rescale linearly. This method allows the use to add a new method to be
+        rescaled according to a different rule.
+
+        Note that this method must be called before the ScalarProductMetric is
+        instantiated. It does not affect objects which already exist.
+
+        Parameters
+        ----------
+        func_name : str
+            The name of a method from a RiemannianMetric object which must be
+            rescaled.
+        scaling_type : str, {'sqrt',
+                             'linear',
+                             'quadratic',
+                             'inverse',
+                             'inverse_sqrt'}
+            How the method should be rescaled as a function of
+            ScalarProductMetric.scale.
+        """
+        scaling_lists = [
+            cls.SQRT_LIST,
+            cls.LINEAR_LIST,
+            cls.QUADRATIC_LIST,
+            cls.INVERSE_LIST,
+            cls.INVERSE_SQRT_LIST,
+        ]
+        scaling_types = ["sqrt", "linear", "quadratic", "inverse", "inverse_sqrt"]
+        scaling_dict = dict(zip(scaling_types, scaling_lists))
+
+        if func_name in cls.RESERVED_NAMES:
+            raise ValueError(f"'{func_name}' is reserved for internal use.")
+        try:
+            scaling_dict[scaling_type].append(func_name)
+        except KeyError:
+            msg = (
+                f"'{scaling_type}' is not an admissible value. Please "
+                "provide one of 'sqrt', 'linear', 'quadratic', "
+                "'inverse', 'inverse_sqrt'."
+            )
+            raise ValueError(msg)
