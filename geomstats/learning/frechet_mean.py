@@ -12,14 +12,14 @@ from sklearn.base import BaseEstimator
 import geomstats.backend as gs
 import geomstats.errors as error
 from geomstats.geometry.discrete_curves import ElasticMetric, SRVMetric
-from geomstats.geometry.flat_riemannian_metric import FlatRiemannianMetric
+from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.hypersphere import HypersphereMetric
 
 ELASTIC_METRICS = [SRVMetric, ElasticMetric]
 
 
 def _is_linear_metric(metric):
-    return isinstance(metric, FlatRiemannianMetric)
+    return isinstance(metric, EuclideanMetric)
 
 
 def _is_elastic_metric(metric):

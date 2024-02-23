@@ -1,7 +1,7 @@
 """LogNormal Distribution."""
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
+from geomstats.geometry.euclidean import CanonicalEuclideanMetric, Euclidean
 from geomstats.geometry.hermitian_matrices import expmh, powermh
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.spd_matrices import (
@@ -77,9 +77,10 @@ class LogNormalEuclidean:
 
     @staticmethod
     def _check_metric(space):
-        if not isinstance(space.metric, (EuclideanMetric, MatricesMetric)):
+        if not isinstance(space.metric, (CanonicalEuclideanMetric, MatricesMetric)):
             raise ValueError(
-                "Invalid Metric. Should be of type EuclideanMetric or MatricesMetric"
+                "Invalid Metric. Should be of type CanonicalEuclideanMetric"
+                "or MatricesMetric"
             )
 
     def sample(self, n_samples):

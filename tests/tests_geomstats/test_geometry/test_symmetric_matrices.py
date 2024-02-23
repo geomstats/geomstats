@@ -12,7 +12,7 @@ from geomstats.test_cases.geometry.base import (
     LevelSetTestCase,
     MatrixVectorSpaceTestCase,
 )
-from geomstats.test_cases.geometry.euclidean import FlatRiemannianMetricTestCase
+from geomstats.test_cases.geometry.euclidean import EuclideanMetricTestCase
 from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 
 from .data.matrices import MatricesMetricTestData
@@ -97,6 +97,6 @@ def equipped_hollow_matrices(request):
 
 @pytest.mark.usefixtures("equipped_hollow_matrices")
 class TestHollowMatricesPermutationInvariantMetric(
-    FlatRiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    EuclideanMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = HollowMatricesPermutationInvariantMetricTestData()

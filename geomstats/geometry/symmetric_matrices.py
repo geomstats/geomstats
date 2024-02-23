@@ -5,7 +5,7 @@ Lead author: Yann Thanwerdas.
 
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet, MatrixVectorSpace
-from geomstats.geometry.euclidean import FlatRiemannianMetric
+from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.vectorization import repeat_out
 
@@ -243,7 +243,7 @@ class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
         return point - Matrices.to_diagonal(point)
 
 
-class HollowMatricesPermutationInvariantMetric(FlatRiemannianMetric):
+class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
     r"""A permutation-invariant metric on the space of hollow matrices.
 
     It is flat Riemannian metric invariant by the congruence action
