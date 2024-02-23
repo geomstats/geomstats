@@ -28,19 +28,6 @@ class GroupAction(ABC):
             A point on the orbit of point.
         """
 
-    @abstractmethod
-    def inverse_element(self, group_elem):
-        """Inverse element.
-
-        Parameters
-        ----------
-        group_elem: : array-like, shape=[..., dim]
-
-        Returns
-        -------
-        group_elem : array-like, shape=[..., dim]
-        """
-
 
 class CongruenceAction(GroupAction):
     """Congruence action."""
@@ -62,59 +49,8 @@ class CongruenceAction(GroupAction):
         """
         return Matrices.mul(group_elem, point, Matrices.transpose(group_elem))
 
-    def inverse_element(self, group_elem):
-        """Inverse element.
 
-        Parameters
-        ----------
-        group_elem : array-like, shape=[..., n, n]
-
-        Returns
-        -------
-        inverse_group_elem : array-like, shape=[..., n, n]
-        """
-        return gs.linalg.inv(group_elem)
-
-
-class _PermutationActionMixins:
-    """Methods shared by the permutation action classes."""
-
-    def _inverse_element_single(self, group_elem):
-        """Inverse element.
-
-        Parameters
-        ----------
-        group_elem : array-like, shape=[dim]
-
-        Returns
-        -------
-        inverse_group_elem : array-like, shape=[dim]
-        """
-        inverse_group_elem = gs.zeros_like(group_elem)
-        for val, index in enumerate(group_elem):
-            inverse_group_elem[index] = val
-        return inverse_group_elem
-
-    def inverse_element(self, group_elem):
-        """Inverse element.
-
-        Parameters
-        ----------
-        group_elem : array-like, shape=[..., dim]
-
-        Returns
-        -------
-        inverse_group_elem : array-like, shape=[..., dim]
-        """
-        if group_elem.ndim == 1:
-            return self._inverse_element_single(group_elem)
-
-        return gs.stack(
-            [self._inverse_element_single(group_elem_) for group_elem_ in group_elem]
-        )
-
-
-class PermutationAction(_PermutationActionMixins, CongruenceAction):
+class PermutationAction(CongruenceAction):
     """Congruence action of the permutation group on matrices."""
 
     def __call__(self, group_elem, point):
@@ -137,7 +73,7 @@ class PermutationAction(_PermutationActionMixins, CongruenceAction):
         return super().__call__(perm_mat, point)
 
 
-class RowPermutationAction(_PermutationActionMixins, GroupAction):
+class RowPermutationAction(GroupAction):
     """Action of the permutation group on matrices by multiplication."""
 
     def __call__(self, group_elem, point):

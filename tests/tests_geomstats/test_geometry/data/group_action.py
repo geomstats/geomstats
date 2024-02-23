@@ -11,7 +11,7 @@ class GroupActionTestData(TestData):
     def action_vec_test_data(self):
         return self.generate_vec_data()
 
-    def inverse_element_action_test_data(self):
+    def inverse_action_test_data(self):
         return self.generate_random_data()
 
 
