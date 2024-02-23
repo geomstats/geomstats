@@ -9,7 +9,7 @@ import geomstats.errors
 from geomstats.algebra_utils import flip_determinant, from_vector_to_diagonal_matrix
 from geomstats.geometry.base import MatrixVectorSpace
 from geomstats.geometry.diffeo import VectorSpaceDiffeo
-from geomstats.geometry.flat_riemannian_metric import FlatRiemannianMetric
+from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.vectorization import repeat_out
 
 
@@ -782,7 +782,7 @@ class Matrices(MatrixVectorSpace):
         return Matrices.mul(point, left, cls.transpose(flipped))
 
 
-class MatricesMetric(FlatRiemannianMetric):
+class MatricesMetric(EuclideanMetric):
     """Euclidean metric on matrices given by Frobenius inner-product."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -854,7 +854,7 @@ class MatricesMetric(FlatRiemannianMetric):
         return repeat_out(self._space.point_ndim, norm, vector, base_point)
 
 
-class MatricesDiagMetric(FlatRiemannianMetric):
+class MatricesDiagMetric(EuclideanMetric):
     """Flat metric on matrices given by a diagonal metric matrix.
 
     Parameters

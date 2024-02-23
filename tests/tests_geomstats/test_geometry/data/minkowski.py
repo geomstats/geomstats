@@ -3,7 +3,7 @@ import math
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .flat_riemannian_metric import FlatRiemannianMetricTestData
+from .euclidean import EuclideanMetricTestData
 
 
 class MinkowskiTestData(TestData):
@@ -11,7 +11,7 @@ class MinkowskiTestData(TestData):
         return None
 
 
-class MinkowskiMetricTestData(FlatRiemannianMetricTestData):
+class MinkowskiMetricTestData(EuclideanMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 

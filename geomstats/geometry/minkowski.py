@@ -5,8 +5,7 @@ Lead author: Nina Miolane.
 
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.flat_riemannian_metric import FlatRiemannianMetric
+from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 
 
 class Minkowski(Euclidean):
@@ -33,8 +32,8 @@ class Minkowski(Euclidean):
         return space
 
 
-class MinkowskiMetric(FlatRiemannianMetric):
-    """Class for the pseudo-Riemannian Minkowski metric."""
+class MinkowskiMetric(EuclideanMetric):
+    """Class for the pseudo-Euclidean Minkowski metric."""
 
     def __init__(self, space):
         signature = (space.dim - 1, 1)
