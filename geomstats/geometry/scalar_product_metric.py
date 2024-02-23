@@ -195,8 +195,16 @@ class ScalarProductMetric:
         scaling_types = ["sqrt", "linear", "quadratic", "inverse", "inverse_sqrt"]
         scaling_dict = dict(zip(scaling_types, scaling_lists))
 
+        for list_of_methods in scaling_lists:
+            if func_name in list_of_methods:
+                msg = (
+                    f"'{func_name}' already has an assigned scaling rule "
+                    "which cannot be changed."
+                )
+                raise ValueError(msg)
         if func_name in cls.RESERVED_NAMES:
             raise ValueError(f"'{func_name}' is reserved for internal use.")
+
         try:
             scaling_dict[scaling_type].append(func_name)
         except KeyError:
