@@ -156,3 +156,5 @@ venv/
 
 #ignore benchmarks generated timings
 benchmarks/*.json
+
+.metals
