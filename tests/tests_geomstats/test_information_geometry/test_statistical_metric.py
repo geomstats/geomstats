@@ -2,11 +2,12 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.information_geometry.statistical_metric import StatisticalMetric
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.test.test_case import TestCase, autograd_only
 
 
 @autograd_only
-@pytest.mark.slow
+# @pytest.mark.slow
 class TestStatisticalMetric(TestCase):
     """
     Test StatisticalMetric class by verifying expected induced metric, connection,
@@ -35,7 +36,8 @@ class TestStatisticalMetric(TestCase):
 
         self.potential_function = potential_function
         self.breg_divergence = bregman_divergence(self.potential_function)
-        self.stat_metric = StatisticalMetric(dim=2, divergence=self.breg_divergence)
+        self.euclidean_space = Euclidean(dim=2)
+        self.stat_metric = StatisticalMetric(space=self.euclidean_space, divergence=self.breg_divergence)
         self.base_point = gs.random.uniform(low=-10, high=10, size=(2,))
 
     def test_metric_matrix(self,):
