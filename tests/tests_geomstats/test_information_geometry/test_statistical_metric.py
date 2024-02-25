@@ -1,8 +1,8 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.information_geometry.statistical_metric import StatisticalMetric
 from geomstats.geometry.euclidean import Euclidean
+from geomstats.information_geometry.statistical_metric import StatisticalMetric
 from geomstats.test.test_case import TestCase, autograd_only
 
 
@@ -37,17 +37,23 @@ class TestStatisticalMetric(TestCase):
         self.potential_function = potential_function
         self.breg_divergence = bregman_divergence(self.potential_function)
         self.euclidean_space = Euclidean(dim=2)
-        self.stat_metric = StatisticalMetric(space=self.euclidean_space, divergence=self.breg_divergence)
+        self.stat_metric = StatisticalMetric(
+            space=self.euclidean_space, divergence=self.breg_divergence
+        )
         self.base_point = gs.random.uniform(low=-10, high=10, size=(2,))
 
-    def test_metric_matrix(self,):
+    def test_metric_matrix(
+        self,
+    ):
         """Test equation (58) on page 15"""
         potential_hessian = gs.autodiff.hessian(self.potential_function)
         potential_hessian_base_point = potential_hessian(self.base_point)
         metric_matrix_base_point = self.stat_metric.metric_matrix(self.base_point)
         self.assertAllClose(metric_matrix_base_point, potential_hessian_base_point)
 
-    def test_divergence_christoffels(self,):
+    def test_divergence_christoffels(
+        self,
+    ):
         """Test equation (59) on page 15"""
         divergence_christoffels_base_point = self.stat_metric.divergence_christoffels(
             self.base_point
@@ -57,10 +63,14 @@ class TestStatisticalMetric(TestCase):
             gs.zeros(divergence_christoffels_base_point.shape),
         )
 
-    def test_dual_divergence_christoffels(self,):
+    def test_dual_divergence_christoffels(
+        self,
+    ):
         pass
 
-    def test_amari_divergence_tensor(self,):
+    def test_amari_divergence_tensor(
+        self,
+    ):
         """Test equation (60) on page 15"""
         potential_func_first = gs.autodiff.jacobian(self.potential_function)
         potential_func_second = gs.autodiff.jacobian(potential_func_first)

@@ -1,7 +1,7 @@
 2024.02.24 14:46:03 INFO  Started: Metals version 1.2.2 in folders '/Users/danielralston/Desktop/geomstats' for client Visual Studio Code 1.86.2.
 14:46:04.209 [pool-1-thread-4] INFO org.flywaydb.core.internal.license.VersionPrinter -- Flyway Community Edition 9.22.3 by Redgate
 14:46:04.210 [pool-1-thread-4] INFO org.flywaydb.core.internal.license.VersionPrinter -- See release notes here: https://rd.gt/416ObMi
-14:46:04.210 [pool-1-thread-4] INFO org.flywaydb.core.internal.license.VersionPrinter -- 
+14:46:04.210 [pool-1-thread-4] INFO org.flywaydb.core.internal.license.VersionPrinter --
 14:46:04.211 [pool-1-thread-4] DEBUG org.flywaydb.core.internal.scanner.classpath.ClassPathScanner -- Scanning for classpath resources at 'classpath:db/callback' ...
 14:46:04.211 [pool-1-thread-4] DEBUG org.flywaydb.core.internal.scanner.classpath.ClassPathScanner -- Determining location urls for classpath:db/callback using ClassLoader jdk.internal.loader.ClassLoaders$AppClassLoader@1cf4f579 ...
 14:46:04.211 [pool-1-thread-4] DEBUG org.flywaydb.core.internal.scanner.classpath.ClassPathScanner -- Unable to resolve location classpath:db/callback.
@@ -22,7 +22,7 @@
 14:46:04.258 [pool-1-thread-4] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:h2:file:/Users/danielralston/Desktop/geomstats/.metals/metals (H2 2.2)
 14:46:04.258 [pool-1-thread-4] DEBUG org.flywaydb.core.FlywayExecutor -- Driver: H2 JDBC Driver 2.2.224 (2023-09-17)
 14:46:04.258 [pool-1-thread-4] DEBUG org.flywaydb.core.FlywayExecutor -- DDL Transactions Supported: false
-14:46:04.259 [pool-1-thread-4] DEBUG org.flywaydb.core.internal.schemahistory.SchemaHistoryFactory -- Schemas: 
+14:46:04.259 [pool-1-thread-4] DEBUG org.flywaydb.core.internal.schemahistory.SchemaHistoryFactory -- Schemas:
 14:46:04.259 [pool-1-thread-4] DEBUG org.flywaydb.core.internal.schemahistory.SchemaHistoryFactory -- Default schema: null
 14:46:04.260 [pool-1-thread-4] WARN org.flywaydb.core.internal.database.base.Database -- Flyway upgrade recommended: H2 2.2.224 is newer than this version of Flyway and support has not been tested. The latest supported version of H2 is 2.2.220.
 14:46:04.261 [pool-1-thread-4] DEBUG org.flywaydb.core.internal.callback.SqlScriptCallbackFactory -- Scanning for SQL callbacks ...
@@ -232,5 +232,5 @@ create table fingerprints(
 14:46:04.303 [pool-1-thread-4] DEBUG org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Schema History table "PUBLIC"."flyway_schema_history" successfully updated to reflect changes
 14:46:04.305 [pool-1-thread-4] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 4 migrations to schema "PUBLIC", now at version v4 (execution time 00:00.007s)
 14:46:04.312 [pool-1-thread-4] DEBUG org.flywaydb.core.FlywayExecutor -- Memory usage: 73 of 104M
-2024.02.24 14:46:04 WARN  no build tool detected in workspace '/Users/danielralston/Desktop/geomstats'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
+2024.02.24 14:46:04 WARN  no build tool detected in workspace '/Users/danielralston/Desktop/geomstats'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt.
 2024.02.24 14:46:04 WARN  Build server is not auto-connectable.
