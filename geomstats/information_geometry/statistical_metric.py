@@ -10,11 +10,13 @@ class DivergenceConjugateConnection(Connection):
 
     Given an :math:`n` manifold :math:`M` with coordinates :math:`x`
     and a divergence :math:`D: \mathbb{R}^n \times \mathbb{R}^n \to \mathbb{R}`,
-    the conjugate connections :math:`\nabla^D` and :math:`\nabla^{D^*}` can be defined in terms of their
-    corresponding Christoffel symbols :math:`\Gamma^D` and :math:`\Gamma^{D^*}`.
+    the conjugate connections :math:`\nabla^D` and :math:`\nabla^{D^*}` can be defined
+    in terms of their corresponding Christoffel symbols :math:`\Gamma^D`
+    and :math:`\Gamma^{D^*}`.
 
-    These connections are said to be conjugate with respect to the divergence induced metric :math:`g^D`
-    because for any smooth vector fields :math:`X, Y, Z` on :math:`M` we have:
+    These connections are said to be conjugate with respect to the divergence induced
+    metric :math:`g^D` because for any smooth vector fields :math:`X, Y, Z`
+    on :math:`M` we have:
 
     .. math::
         X(g^D(Y, Z)) = g^D(\nabla^D_X Y, Z) + g^D(Y, \nabla^{D^*}_X Z)
@@ -47,7 +49,7 @@ class DivergenceConjugateConnection(Connection):
         self.divergence = self._unpack_inputs(divergence)
 
     def _unpack_inputs(self, func):
-        r"""Wrapper function to unpack inputs to divergence function.
+        r"""Wrap function to unpack inputs to divergence function.
 
         Compose the divergence function :math:`D` with a wrapper :math:`f`
         to identify
@@ -79,7 +81,8 @@ class DivergenceConjugateConnection(Connection):
 
         .. math::
             \Gamma^D_{i j k} =
-            -1 \cdot \frac{\partial^2}{\partial x^i \partial x^j} \frac{\partial}{\partial y^k} D(x, y) \bigg|_{x=y}
+            -1 \cdot \frac{\partial^2}{\partial x^i \partial x^j}
+                \frac{\partial}{\partial y^k} D(x, y) \bigg|_{x=y}
 
         Parameters
         ----------
@@ -99,12 +102,13 @@ class DivergenceConjugateConnection(Connection):
     def dual_divergence_christoffels(self, base_point):
         r"""Compute the Christoffel symbols of the dual divergence connection.
 
-        Compute the Christoffel symbols of the dual divergence connection :math:`\nabla^{D^*}`
-        at the tangent space of the base point.
+        Compute the Christoffel symbols of the dual divergence connection
+        :math:`\nabla^{D^*}` at the tangent space of the base point.
 
         .. math::
             \Gamma^{D^*}_{i j k} =
-            -1 \cdot \frac{\partial^2}{\partial x^i} \frac{\partial^2}{\partial y^j \partial y^k} D(x, y) \bigg|_{x=y}
+            -1 \cdot \frac{\partial^2}{\partial x^i}
+                \frac{\partial^2}{\partial y^j \partial y^k} D(x, y) \bigg|_{x=y}
 
         Parameters
         ----------
@@ -151,7 +155,7 @@ class StatisticalMetric(RiemannianMetric):
     def __init__(self, space, divergence):
         super().__init__(space=space, signature=(space.dim, 0))
         assert space.intrinsic, (
-            "The manifold must be parametrized by an" "intrinsic coordinate system."
+            "The manifold must be parametrized by an intrinsic coordinate system."
         )
         self.divergence_conjugate_connection = DivergenceConjugateConnection(
             space=space, divergence=divergence
@@ -181,7 +185,7 @@ class StatisticalMetric(RiemannianMetric):
         return getattr(self.divergence_conjugate_connection, attr)
 
     def _unpack_inputs(self, func):
-        r"""Wrapper function to unpack inputs to divergence function.
+        r"""Wrap function to unpack inputs to divergence function.
 
         Compose the divergence function :math:`D` with a wrapper :math:`f`
         to identify
@@ -213,7 +217,8 @@ class StatisticalMetric(RiemannianMetric):
 
         .. math::
             g^D_{i,j}(x) =
-            -1 \cdot \frac{\partial}{\parital x^i} \frac{\partial}{\partial y^j} D(x, y) \bigg|_{x=y}
+            -1 \cdot \frac{\partial}{\parital x^i}
+                \frac{\partial}{\partial y^j} D(x, y) \bigg|_{x=y}
 
         In the case of Kullback-Leibler divergence, the Fisher-Rao metric is recovered.
 

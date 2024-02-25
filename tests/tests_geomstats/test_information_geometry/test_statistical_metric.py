@@ -1,14 +1,15 @@
-import pytest
+
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.information_geometry.statistical_metric import StatisticalMetric
-from geomstats.test.test_case import TestCase, autograd_only
+from geomstats.test.test_case import autograd_only
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
 @autograd_only
 # @pytest.mark.slow
-class TestStatisticalMetric(TestCase):
+class TestStatisticalMetric(RiemannianMetricTestCase):
     """
     Test StatisticalMetric class by verifying expected induced metric, connection,
     and dual connection properties in the case of Bregman divergence.
