@@ -29,7 +29,7 @@ def broadcast_lists(list_a, list_b):
 
 
 def _manipulate_input(arg):
-    if not (type(arg) in [list, tuple]):
+    if type(arg) not in [list, tuple]:
         return [arg]
 
     return arg
@@ -166,13 +166,19 @@ class PointSet(ABC):
 
 
 class PointSetMetric(ABC):
-    r"""Class for the lenght spaces."""
+    r"""Class for the lenght spaces.
+
+    Parameters
+    ----------
+    space : PointSet
+        Set to equip with metric.
+    """
 
     def __init__(self, space):
         self._space = space
 
     @abstractmethod
-    def dist(self, point_a, point_b, **kwargs):
+    def dist(self, point_a, point_b):
         """Distance between two points in the PointSet.
 
         Parameters
@@ -189,7 +195,7 @@ class PointSetMetric(ABC):
         """
 
     @abstractmethod
-    def geodesic(self, initial_point, end_point, **kwargs):
+    def geodesic(self, initial_point, end_point):
         """Compute the geodesic in the PointSet.
 
         Parameters

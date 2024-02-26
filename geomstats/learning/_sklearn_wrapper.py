@@ -37,6 +37,14 @@ class WrappedPCA(PCA):
         # to use *args and **kwargs
         return object.__repr__(self)
 
+    def _from_numpy(self):
+        """Transform learned attributes in the right backend."""
+        self.components_ = gs.from_numpy(self.components_)
+        self.explained_variance_ = gs.from_numpy(self.explained_variance_)
+        self.explained_variance_ratio_ = gs.from_numpy(self.explained_variance_ratio_)
+        self.singular_values_ = gs.from_numpy(self.singular_values_)
+        self.mean_ = gs.from_numpy(self.mean_)
+
     @property
     def reshaped_components_(self):
         if self.components_ is None:
@@ -58,10 +66,14 @@ class WrappedPCA(PCA):
         return self._reshape(X)
 
     def fit(self, X, y=None):
-        return super().fit(self._reshape_X(X))
+        super().fit(self._reshape_X(X))
+        self._from_numpy()
+        return self
 
     def fit_transform(self, X, y=None):
-        return super().fit_transform(self._reshape_X(X))
+        out = super().fit_transform(self._reshape_X(X))
+        self._from_numpy()
+        return out
 
     def score_samples(self, X, y=None):
         return super().score_samples(self._reshape(X))
@@ -92,6 +104,18 @@ class WrappedLinearRegression(LinearRegression):
         # to use *args and **kwargs
         return object.__repr__(self)
 
+    def _from_numpy(self):
+        """Transform learned attributes in the right backend."""
+        self.coef_ = gs.from_numpy(self.coef_)
+        self.singular_ = gs.from_numpy(self.singular_)
+        self.intercept_ = gs.from_numpy(self.intercept_)
+
+    def _validate_data(self, X, y=None, **kwargs):
+        # hack to avoid tensor conversion within validate data
+        if y is None:
+            return X
+        return X, y
+
     def _reshape(self, x):
         return gs.reshape(x, (x.shape[0], -1))
 
@@ -107,7 +131,9 @@ class WrappedLinearRegression(LinearRegression):
         return gs.reshape(out, (out.shape[0], *self._init_shape_y[1:]))
 
     def fit(self, X, y):
-        return super().fit(self._reshape_X(X), y=self._reshape_y(y))
+        super().fit(self._reshape_X(X), y=self._reshape_y(y))
+        self._from_numpy()
+        return self
 
     def predict(self, X):
         return self._reshape_out(super().predict(self._reshape(X)))

@@ -8,10 +8,11 @@ from geomstats.test_cases.geometry.connection import (
     ConnectionComparisonTestCase,
     ConnectionTestCase,
 )
+from geomstats.test_cases.geometry.mixins import DistTestCaseMixins
 from geomstats.vectorization import get_batch_shape
 
 
-class RiemannianMetricTestCase(ConnectionTestCase):
+class RiemannianMetricTestCase(DistTestCaseMixins, ConnectionTestCase):
     def test_metric_matrix(self, base_point, expected, atol):
         res = self.space.metric.metric_matrix(base_point)
         self.assertAllClose(res, expected, atol=atol)
@@ -156,48 +157,6 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         res = gs.all(squared_dist_ > -atol)
         self.assertTrue(res)
 
-    def test_dist(self, point_a, point_b, expected, atol):
-        # TODO: dist properties mixins? (thinking about stratified)
-        res = self.space.metric.dist(point_a, point_b)
-        self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.random
-    def test_dist_is_symmetric(self, n_points, atol):
-        """Check distance is symmetric.
-
-        Parameters
-        ----------
-        n_points : int
-            Number of random points to generate.
-        atol : float
-            Absolute tolerance.
-        """
-        point_a = self.data_generator.random_point(n_points)
-        point_b = self.data_generator.random_point(n_points)
-
-        dist_ab = self.space.metric.dist(point_a, point_b)
-        dist_ba = self.space.metric.dist(point_b, point_a)
-
-        self.assertAllClose(dist_ab, dist_ba, atol=atol)
-
-    @pytest.mark.random
-    def test_dist_is_positive(self, n_points, atol):
-        """Check distance is positive.
-
-        Parameters
-        ----------
-        n_points : int
-            Number of random points to generate.
-        atol : float
-            Absolute tolerance.
-        """
-        point_a = self.data_generator.random_point(n_points)
-        point_b = self.data_generator.random_point(n_points)
-
-        dist_ = self.space.metric.dist(point_a, point_b)
-        res = gs.all(dist_ > -atol)
-        self.assertTrue(res)
-
     @pytest.mark.random
     def test_dist_is_log_norm(self, n_points, atol):
         """Check distance is norm of log.
@@ -217,48 +176,6 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         )
         dist_ = self.space.metric.dist(point_a, point_b)
         self.assertAllClose(dist_, log_norm, atol=atol)
-
-    @pytest.mark.random
-    def test_dist_point_to_itself_is_zero(self, n_points, atol):
-        """Check distance of a point to itself is zero.
-
-        Parameters
-        ----------
-        n_points : int
-            Number of random points to generate.
-        atol : float
-            Absolute tolerance.
-        """
-        point = self.data_generator.random_point(n_points)
-
-        dist_ = self.space.metric.dist(point, point)
-
-        expected_shape = get_batch_shape(self.space.point_ndim, point)
-        expected = gs.zeros(expected_shape)
-        self.assertAllClose(dist_, expected, atol=atol)
-
-    @pytest.mark.random
-    def test_dist_triangle_inequality(self, n_points, atol):
-        """Check distance satifies triangle inequality.
-
-        Parameters
-        ----------
-        n_points : int
-            Number of random points to generate.
-        atol : float
-            Absolute tolerance.
-        """
-        point_a = self.data_generator.random_point(n_points)
-        point_b = self.data_generator.random_point(n_points)
-        point_c = self.data_generator.random_point(n_points)
-
-        dist_ab = self.space.metric.dist(point_a, point_b)
-        dist_bc = self.space.metric.dist(point_b, point_c)
-        rhs = dist_ac = self.space.metric.dist(point_a, point_c)
-
-        lhs = dist_ab + dist_bc
-        res = gs.all(lhs + atol >= rhs)
-        self.assertTrue(res, f"lhs: {lhs}, rhs: {dist_ac}, diff: {lhs-rhs}")
 
     def test_diameter(self, points, expected, atol):
         res = self.space.metric.diameter(points)
