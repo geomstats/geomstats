@@ -50,6 +50,11 @@ class TestAACFrechetMean(
 
     testing_data = AACFrechetMeanTestData()
 
+    def _self_assert_same_point(self, point, point_, atol):
+        dist = self.estimator.space.quotient.metric.dist(point, point_)
+        expected = gs.zeros_like(dist)
+        self.assertAllClose(dist, expected, atol)
+
 
 class TestAACGGPCA(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
     _n = random.randint(3, 4)
