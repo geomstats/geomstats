@@ -8,8 +8,6 @@ IS_NOT_NP = not np_backend()
 
 
 class AACTestData(TestData):
-    skip_all = IS_NOT_NP
-
     def init_test_data(self):
         data = [
             dict(
@@ -27,11 +25,10 @@ class AACTestData(TestData):
 
 
 class AACFrechetMeanTestData(MeanEstimatorMixinsTestData, BaseEstimatorTestData):
-    skip_all = IS_NOT_NP
+    pass
 
 
 class AACGGPCATestData(BaseEstimatorTestData):
-    skip_all = IS_NOT_NP
     trials = 5
 
     tolerances = {
@@ -43,7 +40,5 @@ class AACGGPCATestData(BaseEstimatorTestData):
 
 
 class AACRegressionTestData(BaseEstimatorTestData):
-    skip_all = IS_NOT_NP
-
     def fit_and_predict_constant_test_data(self):
         return self.generate_random_data()

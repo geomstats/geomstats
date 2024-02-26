@@ -18,10 +18,11 @@ from autograd.numpy.linalg import (
     svd,
 )
 from autograd.scipy.linalg import expm
+from scipy.optimize import quadratic_assignment as _quadratic_assignment
 
 from .._shared_numpy.linalg import fractional_matrix_power, is_single_matrix_pd
 from .._shared_numpy.linalg import logm as _logm
-from .._shared_numpy.linalg import qr, quadratic_assignment, solve_sylvester, sqrtm
+from .._shared_numpy.linalg import qr, solve_sylvester, sqrtm
 
 
 def _adjoint(_ans, x, fn):
@@ -48,3 +49,7 @@ logm = _primitive(_logm)
 
 _logm_vjp = _functools.partial(_adjoint, fn=logm)
 _defvjp(logm, _logm_vjp)
+
+
+def quadratic_assignment(a, b, options):
+    return list(_quadratic_assignment(a, b, options=options).col_ind)

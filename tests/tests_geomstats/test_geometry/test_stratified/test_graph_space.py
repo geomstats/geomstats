@@ -23,13 +23,9 @@ from geomstats.test_cases.geometry.stratified.quotient import (
     QuotientMetricWithArrayTestCase,
 )
 
-from .data.graph_space import (
-    GraphAlignerCmpTestData,
-    GraphSpaceQuotientMetricTestData,
-    GraphSpaceTestData,
-    PointToGeodesicAlignerTestData,
-)
-from .data.quotient import AlignerAlgorithmTestData
+from ..data.matrices import MatricesTestData
+from .data.graph_space import GraphAlignerCmpTestData, PointToGeodesicAlignerTestData
+from .data.quotient import AlignerAlgorithmTestData, QuotientMetricWithArrayTestData
 
 
 @pytest.fixture(
@@ -100,7 +96,7 @@ class TestPointToGeodesicAligner(
 class TestGraphSpace(MatricesTestCase, metaclass=DataBasedParametrizer):
     _n = random.randint(2, 5)
     space = GraphSpace(_n, equip=False)
-    testing_data = GraphSpaceTestData()
+    testing_data = MatricesTestData()
 
 
 class TestGraphSpaceQuotientMetric(
@@ -113,4 +109,4 @@ class TestGraphSpaceQuotientMetric(
 
     space = total_space.quotient
 
-    testing_data = GraphSpaceQuotientMetricTestData()
+    testing_data = QuotientMetricWithArrayTestData()
