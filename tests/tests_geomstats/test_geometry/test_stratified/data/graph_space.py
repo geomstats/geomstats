@@ -1,9 +1,6 @@
 from geomstats.test.data import TestData
-from geomstats.test.test_case import np_backend
 
 from .quotient import AlignerAlgorithmCmpTestData
-
-IS_NOT_NP = not np_backend()
 
 
 class GraphAlignerCmpTestData(AlignerAlgorithmCmpTestData):

@@ -7,6 +7,8 @@ import functools
 import itertools
 from abc import ABC, abstractmethod
 
+import geomstats.backend as gs
+
 
 def broadcast_lists(list_a, list_b):
     """Broadcast two lists.
@@ -29,10 +31,10 @@ def broadcast_lists(list_a, list_b):
 
 
 def _manipulate_input(arg):
-    if type(arg) not in [list, tuple]:
-        return [arg]
+    if not isinstance(arg, (list, tuple)):
+        return [arg], True
 
-    return arg
+    return arg, False
 
 
 def _vectorize_point(*args_positions, manipulate_input=_manipulate_input):
@@ -52,14 +54,24 @@ def _vectorize_point(*args_positions, manipulate_input=_manipulate_input):
     def _dec(func):
         @functools.wraps(func)
         def _wrapped(*args, **kwargs):
+            to_list = True
             args = list(args)
             for pos, name in args_positions:
                 if name in kwargs:
-                    kwargs[name] = manipulate_input(kwargs[name])
+                    kwargs[name], to_list_ = manipulate_input(kwargs[name])
                 else:
-                    args[pos] = manipulate_input(args[pos])
+                    args[pos], to_list_ = manipulate_input(args[pos])
 
-            return func(*args, **kwargs)
+                to_list = to_list and to_list_
+
+            out = func(*args, **kwargs)
+            if not gs.is_array(out):
+                return out
+
+            if to_list:
+                return gs.array(out[0])
+
+            return out
 
         return _wrapped
 
@@ -70,21 +82,18 @@ class Point(ABC):
     r"""Class for points of a set."""
 
     @abstractmethod
-    def __repr__(self):
-        """Produce a string with a verbal description of the point."""
+    def equal(self, point, atol=gs.atol):
+        """Check equality against another point.
 
-    @abstractmethod
-    def __hash__(self):
-        """Define a hash for the point."""
-
-    @abstractmethod
-    def to_array(self):
-        """Turn the point into a numpy array.
+        Parameters
+        ----------
+        point : Point or list[Point]
+            Point to compare against point.
+        atol : float
 
         Returns
         -------
-        array_point : array-like, shape=[...]
-            An array representation of the Point type.
+        is_equal : array-like, shape=[...]
         """
 
 
@@ -115,12 +124,12 @@ class PointSet(ABC):
         self.metric = Metric(self, **metric_kwargs)
 
     @abstractmethod
-    def belongs(self, point, atol):
+    def belongs(self, point, atol=gs.atol):
         r"""Evaluate if a point belongs to the set.
 
         Parameters
         ----------
-        point : Point-like, shape=[...]
+        point : Point or list[Point]
             Point to evaluate.
         atol : float
             Absolute tolerance.
@@ -144,23 +153,7 @@ class PointSet(ABC):
 
         Returns
         -------
-        samples : List of Point
-            Points sampled on the PointSet.
-        """
-
-    @abstractmethod
-    def set_to_array(self, points):
-        """Convert a set of points into an array.
-
-        Parameters
-        ----------
-        points : list of Point, shape=[...]
-            Number of samples of point type to turn
-            into an array.
-
-        Returns
-        -------
-        points_array : array-like, shape=[...]
+        samples : Point or list[Point]
             Points sampled on the PointSet.
         """
 
@@ -183,9 +176,9 @@ class PointSetMetric(ABC):
 
         Parameters
         ----------
-        point_a: Point or List of Point, shape=[...]
+        point_a: Point or list[Point]
             Point in the PointSet.
-        point_b: Point or List of Point, shape=[...]
+        point_b: Point or list[Point]
             Point in the PointSet.
 
         Returns
@@ -200,9 +193,9 @@ class PointSetMetric(ABC):
 
         Parameters
         ----------
-        initial_point: Point or List of Points, shape=[...]
+        initial_point: Point or list[Point]
             Point in the PointSet.
-        end_point: Point or List of Points, shape=[...]
+        end_point: Point or list[Point]
             Point in the PointSet.
 
         Returns

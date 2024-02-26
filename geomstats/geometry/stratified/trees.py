@@ -382,13 +382,18 @@ class Split:
         return b1 or b2
 
 
-class BaseTopology:
+class ForestTopology:
     r"""The topology of a forest, using a split-based graph-structure representation.
+
+    A forest topology is a partition into non-empty sets of the set
+    :math:`\{0,\dots,n-1\}`, together with a set of splits for each element of the
+    partition, where every split is a two-set partition of the respective element.
+    A structure basically describes a phylogenetic forest, where each set of splits
+    gives the structure of the tree with the labels of the corresponding element of
+    the partition.
 
     Parameters
     ----------
-    n_labels : int
-        Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
     partition : tuple
         A tuple of tuples that is a partition of the set :math:`\{0,\dots,n-1\}`,
         representing the label sets of each connected component of the forest topology.
@@ -401,6 +406,10 @@ class BaseTopology:
 
     Attributes
     ----------
+    n_labels : int
+        Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
+    n_splits : int
+        Number of splits.
     where : dict
         Give the index of a split in the flattened list of all splits.
     sep : list of int
@@ -419,12 +428,11 @@ class BaseTopology:
         uv-th entry is ``True`` if the split separates the labels u and v, else
         ``False``.
     """
-    # TODO: do we need all this machinery? can we simplify?
 
-    def __init__(self, n_labels, partition, split_sets):
-        self._check_init(n_labels, partition, split_sets)
+    def __init__(self, partition, split_sets):
+        self._check_init(partition, split_sets)
 
-        self.n_labels = n_labels
+        self.n_labels = len(set.union(*[set(part) for part in partition]))
         partition = [tuple(sorted(x)) for x in partition]
         seq = [part[0] for part in partition]
         sort_key = sorted(range(len(seq)), key=seq.__getitem__)
@@ -454,17 +462,20 @@ class BaseTopology:
                     _support[self.where[split]][u][v] = True
                     _support[self.where[split]][v][u] = True
         self.support = gs.reshape(
-            gs.array([m for m in self.flatten(_support)]), (-1, n_labels, n_labels)
+            gs.array([m for m in self.flatten(_support)]),
+            (-1, self.n_labels, self.n_labels),
         )
         self._chart_gradient = None
 
-    def _check_init(self, n_labels, partition, split_sets):
+        self.n_splits = gs.sum(
+            gs.array([len(splits) for splits in self.split_sets]), dtype=int
+        )
+
+    def _check_init(self, partition, split_sets):
         if len(split_sets) != len(partition):
             raise ValueError(
                 "Number of split sets is not equal to number of " "components."
             )
-        if set.union(*[set(part) for part in partition]) != set(range(n_labels)):
-            raise ValueError("The partition is not a partition of the set (0,...,n-1).")
         for _part, _splits in zip(partition, split_sets):
             for _sp in _splits:
                 if (_sp.part1 | _sp.part2) != set(_part):
@@ -477,7 +488,7 @@ class BaseTopology:
 
         Parameters
         ----------
-        other : Topology
+        other : ForestTopology
             The other topology.
 
         Returns
@@ -495,7 +506,7 @@ class BaseTopology:
 
         Parameters
         ----------
-        other : Topology
+        other : ForestTopology
             The other topology.
 
         Returns
@@ -511,7 +522,7 @@ class BaseTopology:
 
         Parameters
         ----------
-        other : Topology
+        other : ForestTopology
             The other topology.
 
         Returns
@@ -549,7 +560,7 @@ class BaseTopology:
 
         Parameters
         ----------
-        other : Topology
+        other : ForestTopology
             The structure to which self is compared to.
 
         Returns
@@ -598,7 +609,7 @@ class BaseTopology:
 
         Parameters
         ----------
-        other : Topology
+        other : ForestTopology
             The other topology.
 
         Returns
@@ -652,7 +663,9 @@ class BaseTopology:
         corr = gs.zeros((self.n_labels, self.n_labels))
         for path_dict in self.paths:
             for (u, v), path in path_dict.items():
-                corr[u][v] = gs.prod([1 - x[self.where[split]] for split in path])
+                corr[u][v] = gs.prod(
+                    gs.array([1 - x[self.where[split]] for split in path])
+                )
                 corr[v][u] = corr[u][v]
 
         corr = gs.array(corr)
@@ -694,6 +707,7 @@ class BaseTopology:
         x_nested : list[list]
             The nested list of lists.
         """
+        # TODO: make private?
         return [x[i:j] for i, j in zip(self.sep[:-1], self.sep[1:])]
 
     @staticmethod
@@ -710,8 +724,5 @@ class BaseTopology:
         x_flat : list, tuple
             The flatted list.
         """
+        # TODO: make private?
         return [y for z in x for y in z]
-
-    @property
-    def n_splits(self):
-        return gs.sum(a=[len(splits) for splits in self.split_sets], dtype=int)

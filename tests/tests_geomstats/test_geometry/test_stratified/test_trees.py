@@ -1,11 +1,10 @@
-from tests.conftest import Parametrizer, TestCase, np_backend
-from tests.data.trees_data import BaseTopologyTestData, SplitTestData
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.test_case import TestCase
 
-IS_NOT_NP = not np_backend()
+from .data.trees import BaseTopologyTestData, SplitTestData
 
 
-class TestSplit(TestCase, metaclass=Parametrizer):
-    skip_all = IS_NOT_NP
+class TestSplit(TestCase, metaclass=DataBasedParametrizer):
     testing_data = SplitTestData()
 
     def test_restrict_to(self, split, subset, expected):
@@ -40,8 +39,7 @@ class TestSplit(TestCase, metaclass=Parametrizer):
         self.assertEqual(result, expected)
 
 
-class TestBaseTopology(TestCase, metaclass=Parametrizer):
-    skip_all = IS_NOT_NP
+class TestBaseTopology(TestCase, metaclass=DataBasedParametrizer):
     testing_data = BaseTopologyTestData()
 
     def test_partition(self, st_a, st_b, expected):

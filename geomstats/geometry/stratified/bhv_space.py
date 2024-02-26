@@ -1,39 +1,22 @@
 """Class for the BHV Tree Space.
 
-Class ``Tree``.
-A tree is essentially a phylogenetic tree with edges having length greater than zero.
-The representation of the tree is via splits, the edge lengths are stored in a vector.
-
-Class ``TreeSpace``.
-A topological space. Points in Tree space are instances of the class :class:`Tree`:
-phylogenetic trees with edge lengths between 0 and infinity.
-For the space of trees see also [BHV01].
-
-Class ``BHVSpace``.
-The BHV Tree Space as it is introduced in [BHV01], a metric space that is CAT(0), and
-there exist unique geodesics between each pair of points in the BHV Space.
-The polynomial time algorithm for computing the distance and geodesic between two points
-is implemented, following the definitions and results of [OP11].
-There, computing the geodesic between two trees is called the 'Geodesic Tree Path'
-problem, and that is why some methods below (not visible to the user though) start with
-the letters 'gtp'.
-
 Lead author: Jonas Lueg
 
 References
 ----------
-[BHV01] Billera, L. J., S. P. Holmes, K. Vogtmann.
-        "Geometry of the Space of Phylogenetic Trees."
-        Advances in Applied Mathematics,
-        volume 27, issue 4, pages 733-767, 2001.
-        https://doi.org/10.1006%2Faama.2001.0759
+.. [BHV01] Billera, L. J., S. P. Holmes, K. Vogtmann.
+    "Geometry of the Space of Phylogenetic Trees."
+    Advances in Applied Mathematics,
+    volume 27, issue 4, pages 733-767, 2001.
+    https://doi.org/10.1006%2Faama.2001.0759
 
-[OP11]  Owen, M., J. S. Provan.
-        "A Fast Algorithm for Computing Geodesic Distances in Tree Space."
-        IEEE/ACM Transactions on Computational Biology and Bioinformatics,
-        volume 8, issue 1, pages 2-13, 2011.
-        https://doi.org/10.1109/TCBB.2010.3
+.. [OP11]  Owen, M., J. S. Provan.
+    "A Fast Algorithm for Computing Geodesic Distances in Tree Space."
+    IEEE/ACM Transactions on Computational Biology and Bioinformatics,
+    volume 8, issue 1, pages 2-13, 2011.
+    https://doi.org/10.1109/TCBB.2010.3
 """
+
 import itertools as it
 
 import networkx as nx
@@ -47,15 +30,13 @@ from geomstats.geometry.stratified.point_set import (
     PointSet,
     PointSetMetric,
     _vectorize_point,
-    broadcast_lists,
 )
 from geomstats.geometry.stratified.trees import (
-    BaseTopology,
+    ForestTopology,
     Split,
     delete_splits,
     generate_splits,
 )
-from geomstats.geometry.stratified.wald_space import Wald
 
 
 def generate_random_tree(n_labels, p_keep=0.9, btol=1e-8):
@@ -81,75 +62,102 @@ def generate_random_tree(n_labels, p_keep=0.9, btol=1e-8):
     x = gs.minimum(gs.maximum(btol, x), 1 - btol)
     lengths = gs.maximum(btol, gs.abs(gs.log(1 - x)))
 
-    return Tree(n_labels, splits, lengths)
+    return Tree(splits, lengths)
 
 
-class Topology(BaseTopology):
+class TreeTopology(ForestTopology):
     r"""The topology of a tree, using a split-based representation.
 
     Parameters
     ----------
-    n_labels : int
-        Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
     splits : list[Split]
         The structure of the tree in form of a set of splits of the set of labels.
+
+    Attributes
+    ----------
+    n_labels : int
+        Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
+    where : dict
+        Give the index of a split in the flattened list of all splits.
+    sep : list of int
+        An increasing list of numbers between 0 and m, where m is the total number
+        of splits in ``self.split_sets``, starting with 0, where each number
+        indicates that a new connected component starts at that index.
+        Useful for example for unraveling the tuple of all splits into
+        ``self.split_sets``.
+    paths : list of dict
+        A list of dictionaries, each dictionary is for the respective connected
+        component of the forest, and the items of each dictionary are for each pair
+        of labels u, v, u < v in the respective component, a list of the splits on the
+        unique path between the labels u and v.
+    support : list of array-like
+        For each split, give an :math:`n\times n` dimensional matrix, where the
+        uv-th entry is ``True`` if the split separates the labels u and v, else
+        ``False``.
     """
 
-    def __init__(self, n_labels, splits):
+    def __init__(self, splits):
         super().__init__(
-            n_labels=n_labels,
-            partition=(tuple(i for i in range(n_labels)),),
+            partition=(tuple(splits[0].part1.union(splits[0].part2)),),
             split_sets=(splits,),
         )
 
+    @property
+    def splits(self):
+        """Splits.
 
-class Tree(Wald, Point):
+        Returns
+        -------
+        splits : list[Split]
+            The structure of the tree in form of a set of splits of the set of labels.
+        """
+        return self.split_sets[0]
+
+    @property
+    def labels(self):
+        """Node labels.
+
+        Returns
+        -------
+        labels : tuple[int]
+            Node labels.
+        """
+        return self.partition[0]
+
+
+class Tree(Point):
     r"""A class for trees, that are phylogenetic trees, elements of the BHV space.
+
+    A tree is essentially a phylogenetic tree with edges having length greater
+    than zero.
+    The representation of the tree is via splits, the edge lengths are stored in
+    a vector.
 
     Parameters
     ----------
-    n_labels : int
-        Number of labels, the set of labels is then :math:`\{0,\dots,n_labels-1\}`.
     splits : list[Split]
         The structure of the tree in form of a set of splits of the set of labels.
-    lengths : array-like
+    lengths : array-like, shape=[n_splits]
+        The edge lengths of the splits, a vector containing positive numbers.
+
+    Attributes
+    ----------
+    topology : TreeTopology
+        The topology of the tree.
+    lengths : array-like, shape=[n_splits]
         The edge lengths of the splits, a vector containing positive numbers.
     """
 
-    def __init__(self, n_labels, splits, lengths):
-        # TODO: need to inherit from Wald? Can we simplify?
-        top = Topology(
-            n_labels=n_labels,
-            splits=splits,
-        )
+    def __init__(self, splits, lengths):
+        self.topology = TreeTopology(splits=splits)
         self.lengths = gs.array(
             [
                 length
                 for _, length in sorted(
-                    zip(splits, lengths), key=lambda x: top.where.get(x[0])
+                    zip(splits, lengths), key=lambda x: self.topology.where.get(x[0])
                 )
             ]
         )
-
-        super().__init__(topology=top, weights=1 - gs.exp(-self.lengths))
-
-    @property
-    def splits(self):
-        return self.topology.split_sets[0]
-
-    @property
-    def labels(self):
-        return self.topology.partition[0]
-
-    def to_array(self):
-        """Turn the tree into a numpy array, namely its distance matrix.
-
-        Returns
-        -------
-        array_of_tree : array-like, shape=[n_labels, n_labels]
-            The distance matrix corresponding to the wald.
-        """
-        return gs.abs(gs.log(self.corr))
 
     def __repr__(self):
         """Return the string representation of the tree.
@@ -162,7 +170,7 @@ class Tree(Wald, Point):
         string_of_tree : str
             Return the string representation of the tree.
         """
-        return repr((self.splits, tuple(self.lengths)))
+        return repr((self.topology.splits, tuple(self.lengths)))
 
     def __str__(self):
         """Return the fancy printable string representation of the tree.
@@ -178,45 +186,69 @@ class Tree(Wald, Point):
         """
         return f"({self.topology};{str(self.lengths)})"
 
+    def _equal_single(self, point, atol=gs.atol):
+        """Check equality against another point.
+
+        Parameters
+        ----------
+        point : Tree
+            Point to compare against point.
+        atol : float
+
+        Returns
+        -------
+        is_equal : bool
+        """
+        if self.topology != point.topology:
+            return False
+
+        return gs.all(gs.abs(self.lengths - point.lengths) < atol)
+
+    @_vectorize_point((1, "point"))
+    def equal(self, point, atol=gs.atol):
+        """Check equality against another point.
+
+        Parameters
+        ----------
+        point : Tree or list[Tree]
+            Point to compare against point.
+        atol : float
+
+        Returns
+        -------
+        is_equal : array-like, shape=[...]
+        """
+        return gs.array([self._equal_single(point_, atol) for point_ in point])
+
 
 class TreeSpace(PointSet):
     """Class for the Tree space, a point set containing phylogenetic trees.
+
+    A topological space. Points in Tree space are instances of the class :class:`Tree`:
+    phylogenetic trees with edge lengths between 0 and infinity.
+    For the space of trees see also [BHV01]_.
 
     Parameters
     ----------
     n_labels : int
         The number of labels in the trees.
-    splits : list[Split]
-        A list of splits of the set of labels.
     """
 
-    def __init__(self, n_labels):
-        super().__init__()
+    def __init__(self, n_labels, equip=True):
         self.n_labels = n_labels
+        super().__init__(equip)
 
-    @_vectorize_point((1, "points"))
-    def set_to_array(self, points):
-        """Convert a set of points into an array.
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return BHVMetric
 
-        Parameters
-        ----------
-        points : list of Tree, shape=[...]
-            Number of samples of trees to turn into an array.
-
-        Returns
-        -------
-        points_array : array-like, shape=[...]
-            Array of the trees that are turned into arrays.
-        """
-        return gs.array([tree.to_array() for tree in points])
-
-    @_vectorize_point((1, "point"))
-    def belongs(self, point, atol=gs.atol):
+    def _belongs_single(self, point, atol=gs.atol):
         """Check if a point belongs to Tree space.
 
         Parameters
         ----------
-        point : Tree or list of Tree
+        point : Tree
             The point to be checked.
         atol : float
             Absolute tolerance.
@@ -225,11 +257,30 @@ class TreeSpace(PointSet):
         Returns
         -------
         belongs : bool
-            Boolean denoting if `point` belongs to Tree space.
+            Boolean denoting if point belongs to Tree space.
         """
-        return gs.array([gs.all(tree.lengths > -atol) for tree in point]) & gs.array(
-            [point_.n_labels == self.n_labels for point_ in point]
-        )
+        if point.topology.n_labels != self.n_labels:
+            return False
+        return gs.all(point.lengths > -atol)
+
+    @_vectorize_point((1, "point"))
+    def belongs(self, point, atol=gs.atol):
+        """Check if a point belongs to Tree space.
+
+        Parameters
+        ----------
+        point : Tree or list[Tree]
+            The point to be checked.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...]
+            Boolean denoting if point belongs to Tree space.
+        """
+        return gs.array([self._belongs_single(point_, atol) for point_ in point])
 
     def random_point(self, n_samples=1, p_keep=0.9, btol=1e-8):
         """Sample a random point in Tree space.
@@ -249,7 +300,7 @@ class TreeSpace(PointSet):
 
         Returns
         -------
-        samples : Tree or list of Tree, shape=[n_samples]
+        samples : Tree or list[Tree]
             Points sampled in Tree space.
         """
         trees = [
@@ -265,37 +316,39 @@ class TreeSpace(PointSet):
 class BHVMetric(PointSetMetric):
     """BHV metric for Tree Space for phylogenetic trees.
 
+    The BHV Tree Space as it is introduced in [BHV01], a metric space that
+    is CAT(0), and there exist unique geodesics between each pair of points
+    in the BHV Space.
+    The polynomial time algorithm for computing the distance and geodesic
+    between two points is implemented, following the definitions and results
+    of [OP11].
+    There, computing the geodesic between two trees is called the 'Geodesic
+    Tree Path' problem, and that is why some methods below (not visible to the
+    user though) start with the letters 'gtp'.
+
     Parameters
     ----------
-    n_labels : int
-        The number of labels.
-    tol : float
-        Tolerance for the algorithm, in particular for the decision problem in the
-        GTP algorithm in [OP11]_ to avoid unambiguity.
+    total_space : TreeSpace
+        Set with quotient structure.
     """
 
-    def __init__(self, space, tol=1e-8):
-        # TODO: we don't really need to add space here
+    def __init__(self, space):
         super().__init__(space=space)
-        self.geodesic_solver = GTPSolver(n_labels=space.n_labels, tol=tol)
-
-    @property
-    def n_labels(self):
-        return self.space.n_labels
+        self.geodesic_solver = GTPSolver(n_labels=space.n_labels)
 
     def squared_dist(self, point_a, point_b):
         """Compute the squared distance between two points.
 
         Parameters
         ----------
-        point_a : Tree
+        point_a : Tree or list[Tree]
             A point in BHV Space.
-        point_b : Tree
+        point_b : Tree or list[Tree]
             A point in BHV Space.
 
         Returns
         -------
-        squared_dist : float
+        squared_dist : array-like, shape=[...]
             The squared distance between the two points.
         """
         return self.geodesic_solver.squared_dist(point_a, point_b)
@@ -305,26 +358,26 @@ class BHVMetric(PointSetMetric):
 
         Parameters
         ----------
-        point_a : Tree
+        point_a : Tree or list[Tree]
             A point in BHV Space.
-        point_b : Tree
+        point_b : Tree or list[Tree]
             A point in BHV Space.
 
         Returns
         -------
-        dist : float
+        dist : array-like, shape=[...]
             The distance between the two points.
         """
         return self.geodesic_solver.dist(point_a, point_b)
 
-    def geodesic(self, point_a, point_b):
+    def geodesic(self, initial_point, end_point):
         """Compute the geodesic between two points.
 
         Parameters
         ----------
-        point_a : Tree
+        initial_point : Tree or list[Tree]
             A point in BHV Space.
-        point_b : Tree
+        end_point : Tree or list[Tree]
             A point in BHV Space.
 
         Returns
@@ -333,7 +386,9 @@ class BHVMetric(PointSetMetric):
             The geodesic between the two points. Takes parameter t, that is the time
             between 0 and 1 at which the corresponding point on the path is returned.
         """
-        return self.geodesic_solver.geodesic(point_a=point_a, point_b=point_b)
+        return self.geodesic_solver.geodesic(
+            initial_point=initial_point, end_point=end_point
+        )
 
 
 class GTPSolver:
@@ -352,9 +407,29 @@ class GTPSolver:
         self.n_labels = n_labels
         self.tol = tol
 
-    def _point_squared_dist(self, point_a, point_b):
-        sp_a = {split: length for split, length in zip(point_a.splits, point_a.lengths)}
-        sp_b = {split: length for split, length in zip(point_b.splits, point_b.lengths)}
+    def _squared_dist_single(self, point_a, point_b):
+        """Compute the squared distance between two points.
+
+        Parameters
+        ----------
+        point_a : Tree
+            A point in BHV Space.
+        point_b : Tree
+            A point in BHV Space.
+
+        Returns
+        -------
+        squared_dist : array-like, shape=[...]
+            The squared distance between the two points.
+        """
+        sp_a = {
+            split: length
+            for split, length in zip(point_a.topology.splits, point_a.lengths)
+        }
+        sp_b = {
+            split: length
+            for split, length in zip(point_b.topology.splits, point_b.lengths)
+        }
         common_a, common_b, supports = self._trees_with_common_support(
             sp_a,
             sp_b,
@@ -385,14 +460,12 @@ class GTPSolver:
 
         Returns
         -------
-        squared_dist : float or gs.array
+        squared_dist : array-like, shape=[...]
             The squared distance between the two points.
         """
-        point_a, point_b = broadcast_lists(point_a, point_b)
-
         sq_dists = gs.array(
             [
-                self._point_squared_dist(point_a_, point_b_)
+                self._squared_dist_single(point_a_, point_b_)
                 for point_a_, point_b_ in zip(point_a, point_b)
             ]
         )
@@ -407,26 +480,26 @@ class GTPSolver:
 
         Parameters
         ----------
-        point_a : Tree
+        point_a : Tree or list[Tree]
             A point in BHV Space.
-        point_b : Tree
+        point_b : Tree or list[Tree]
             A point in BHV Space.
 
         Returns
         -------
-        dist : float
+        dist : array-like, shape=[...]
             The distance between the two points.
         """
         return gs.sqrt(self.squared_dist(point_a, point_b))
 
-    def _point_geodesic(self, point_a, point_b):
+    def _geodesic_single(self, initial_point, end_point):
         """Compute the geodesic between two points.
 
         Parameters
         ----------
-        point_a : Tree
+        initial_point : Tree
             A point in BHV Space.
-        point_b : Tree
+        end_point : Tree
             A point in BHV Space.
 
         Returns
@@ -435,8 +508,8 @@ class GTPSolver:
             The geodesic between the two points. Takes parameter t, that is the time
             between 0 and 1 at which the corresponding point on the path is returned.
         """
-        sp_a = dict(zip(point_a.splits, point_a.lengths))
-        sp_b = dict(zip(point_b.splits, point_b.lengths))
+        sp_a = dict(zip(initial_point.topology.splits, initial_point.lengths))
+        sp_b = dict(zip(end_point.topology.splits, end_point.lengths))
         common_a, common_b, supports = self._trees_with_common_support(
             sp_a,
             sp_b,
@@ -451,9 +524,9 @@ class GTPSolver:
 
         def geodesic_t(t):
             if t == 0.0:
-                return point_a
+                return initial_point
             elif t == 1.0:
-                return point_b
+                return end_point
 
             t_ratio = t / (1 - t)
             splits_t = {s: (1 - t) * common_a[s] + t * common_b[s] for s in common_a}
@@ -477,7 +550,6 @@ class GTPSolver:
                 if length > self.tol
             ]
             tree_t = Tree(
-                n_labels=self.n_labels,
                 splits=[sl[0] for sl in splits_lengths],
                 lengths=[sl[1] for sl in splits_lengths],
             )
@@ -491,15 +563,15 @@ class GTPSolver:
 
         return geodesic_
 
-    @_vectorize_point((1, "point_a"), (2, "point_b"))
-    def geodesic(self, point_a, point_b):
+    @_vectorize_point((1, "initial_point"), (2, "end_point"))
+    def geodesic(self, initial_point, end_point):
         """Compute the geodesic between two points.
 
         Parameters
         ----------
-        point_a : Tree or list[Tree]
+        initial_point : Tree or list[Tree]
             A point in BHV Space.
-        point_b : Tree or list[Tree]
+        end_point : Tree or list[Tree]
             A point in BHV Space.
 
         Returns
@@ -509,18 +581,15 @@ class GTPSolver:
             between 0 and 1 at which the corresponding point on the path is returned.
         """
 
-        # TODO: generalize; also used in spider?
         def _vec(t, fncs):
             if len(fncs) == 1:
                 return fncs[0](t)
 
             return [fnc(t) for fnc in fncs]
 
-        point_a, point_b = broadcast_lists(point_a, point_b)
-
         fncs = [
-            self._point_geodesic(point_a_, point_b_)
-            for point_a_, point_b_ in zip(point_a, point_b)
+            self._geodesic_single(initial_point_, end_point_)
+            for initial_point_, end_point_ in zip(initial_point, end_point)
         ]
 
         return lambda t: _vec(t, fncs=fncs)

@@ -1,5 +1,5 @@
-from geomstats.geometry.stratified.trees import BaseTopology, Split
-from tests.data_generation import TestData
+from geomstats.geometry.stratified.trees import ForestTopology, Split
+from geomstats.test.data import TestData
 
 
 class SplitTestData(TestData):
@@ -122,20 +122,16 @@ class BaseTopologyTestData(TestData):
         # TODO: add false example
         smoke_data = [
             dict(
-                st_a=BaseTopology(
-                    n_labels=3, partition=((1, 0), (2,)), split_sets=((), ())
-                ),
-                st_b=BaseTopology(
-                    n_labels=3, partition=((2,), (0, 1)), split_sets=((), ())
-                ),
+                st_a=ForestTopology(partition=((1, 0), (2,)), split_sets=((), ())),
+                st_b=ForestTopology(partition=((2,), (0, 1)), split_sets=((), ())),
                 expected=True,
             ),
             dict(
-                st_a=BaseTopology(
-                    n_labels=3, partition=((1,), (0,), (2,)), split_sets=((), (), ())
+                st_a=ForestTopology(
+                    partition=((1,), (0,), (2,)), split_sets=((), (), ())
                 ),
-                st_b=BaseTopology(
-                    n_labels=3, partition=((0,), (1,), (2,)), split_sets=((), (), ())
+                st_b=ForestTopology(
+                    partition=((0,), (1,), (2,)), split_sets=((), (), ())
                 ),
                 expected=True,
             ),
@@ -151,10 +147,8 @@ class BaseTopologyTestData(TestData):
 
         smoke_data.append(
             dict(
-                st_a=BaseTopology(
-                    n_labels=2, partition=((0, 1),), split_sets=split_sets1
-                ),
-                st_b=BaseTopology(n_labels=2, partition=((0, 1),), split_sets=((),)),
+                st_a=ForestTopology(partition=((0, 1),), split_sets=split_sets1),
+                st_b=ForestTopology(partition=((0, 1),), split_sets=((),)),
                 expected=[True, True, False, False, False, True],
             )
         )
@@ -174,12 +168,8 @@ class BaseTopologyTestData(TestData):
 
         smoke_data.append(
             dict(
-                st_a=BaseTopology(
-                    n_labels=4, partition=((0, 1, 2, 3),), split_sets=split_sets1
-                ),
-                st_b=BaseTopology(
-                    n_labels=4, partition=((1, 2), (0, 3)), split_sets=split_sets2
-                ),
+                st_a=ForestTopology(partition=((0, 1, 2, 3),), split_sets=split_sets1),
+                st_b=ForestTopology(partition=((1, 2), (0, 3)), split_sets=split_sets2),
                 expected=[True, True, False, False, False, True],
             )
         )
@@ -199,12 +189,8 @@ class BaseTopologyTestData(TestData):
 
         smoke_data.append(
             dict(
-                st_a=BaseTopology(
-                    n_labels=4, partition=((0, 1, 2, 3),), split_sets=split_sets1
-                ),
-                st_b=BaseTopology(
-                    n_labels=4, partition=((1, 2), (0, 3)), split_sets=split_sets2
-                ),
+                st_a=ForestTopology(partition=((0, 1, 2, 3),), split_sets=split_sets1),
+                st_b=ForestTopology(partition=((1, 2), (0, 3)), split_sets=split_sets2),
                 expected=[False, False, False, False, False, True],
             )
         )
@@ -232,12 +218,8 @@ class BaseTopologyTestData(TestData):
 
         smoke_data.append(
             dict(
-                st_a=BaseTopology(
-                    n_labels=4, partition=((0, 1, 2, 3),), split_sets=split_sets1
-                ),
-                st_b=BaseTopology(
-                    n_labels=4, partition=((0, 1, 2, 3),), split_sets=split_sets2
-                ),
+                st_a=ForestTopology(partition=((0, 1, 2, 3),), split_sets=split_sets1),
+                st_b=ForestTopology(partition=((0, 1, 2, 3),), split_sets=split_sets2),
                 expected=[False, False, False, False, False, True],
             )
         )
@@ -251,12 +233,8 @@ class BaseTopologyTestData(TestData):
 
         smoke_data.append(
             dict(
-                st_a=BaseTopology(
-                    n_labels=4, partition=((0, 1, 2, 3),), split_sets=split_sets1
-                ),
-                st_b=BaseTopology(
-                    n_labels=4, partition=((1, 2), (0, 3)), split_sets=split_sets2
-                ),
+                st_a=ForestTopology(partition=((0, 1, 2, 3),), split_sets=split_sets1),
+                st_b=ForestTopology(partition=((1, 2), (0, 3)), split_sets=split_sets2),
                 expected=[False, False, False, False, False, True],
             )
         )
