@@ -26,6 +26,24 @@ class TestKleinBottle(ManifoldTestCase, metaclass=DataBasedParametrizer):
         smaller_one = gs.all(regularized_computed < 1)
         self.assertTrue(greater_zero and smaller_one)
 
+    @pytest.mark.random
+    def test_intrinsic_to_extrinsic_coords(self):
+        point_intrinsic = self.data_generator.random_point(1)
+        point_extrinsic = self.intrinsic_to_extrinsic_coords(point_intrinsic)
+        self.assertTrue(gs.len(point_extrinsic) == 4)
+
+    @pytest.mark.random
+    def test_intrinsic_to_bagel_coords(self):
+        point_intrinsic = self.data_generator.random_point(1)
+        point_bagel = self.intrinsic_to_bagel_coords(point_intrinsic)
+        self.assertTrue(gs.len(point_bagel) == 3)
+
+    @pytest.mark.random
+    def test_intrinsic_to_bottle_coords(self):
+        point_intrinsic = self.data_generator.random_point(1)
+        point_bottle = self.intrinsic_to_bottle_coords(point_intrinsic)
+        self.assertTrue(gs.len(point_bottle) == 3)
+
 
 class TestKleinBottleMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     space = KleinBottle()
