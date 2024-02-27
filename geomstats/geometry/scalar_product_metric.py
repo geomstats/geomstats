@@ -162,7 +162,7 @@ class ScalarProductMetric:
 
     @classmethod
     def add_scaled_method(cls, func_name, scaling_type):
-        """Configure ScalarProductMetric to scale an attribute
+        """Configure ScalarProductMetric to scale an attribute.
 
         The ScalarProductMetric class rescales various methods of a
         RiemannianMetric by the correct factor. The default behaviour is to
