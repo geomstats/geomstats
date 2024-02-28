@@ -74,6 +74,14 @@ class KleinBottleTestData(ManifoldTestData):
     def regularize_correct_domain_test_data(self):
         return self.generate_random_data()
 
+    def to_coords_vec_test_data(self):
+        data = []
+        for coords_type in ["extrinsic", "bottle", "bagel"]:
+            for n_reps in self.N_VEC_REPS:
+                data.append(dict(n_reps=n_reps, coords_type=coords_type))
+
+        return self.generate_tests(data)
+
 
 class KleinBottleMetricTestData(RiemannianMetricTestData):
     fail_for_not_implemented_errors = False

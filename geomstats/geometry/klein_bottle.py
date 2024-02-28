@@ -37,14 +37,7 @@ class KleinBottle(Manifold):
         """Metric to equip the space with if equip is True."""
         return KleinBottleMetric
 
-    def random_point(
-        self,
-        n_samples=1,
-        bound=None,
-        extrinsic=False,
-        bagel_parametrization=False,
-        bottle_parametrization=False,
-    ):
+    def random_point(self, n_samples=1, bound=None):
         """Uniformly sample points on the manifold.
 
         Parameters
@@ -59,46 +52,9 @@ class KleinBottle(Manifold):
         samples : array-like, shape=[n_samples, 2]
             Points sampled on the manifold.
         """
-
-        if extrinsic and bagel_parametrization and bottle_parametrization:
-            raise Exception(
-                "Please pick a parametrization for the random points on the Klein Bottle"
-            )
-
         samples = gs.random.uniform(size=(n_samples, 2))
-        if extrinsic:
-            samples_ext = gs.empty(n_samples, 4)
-            for i, s in enumerate(samples):
-                samples_ext[i] = self.intrinsic_to_extrinsic_coords(s)
-
-            if n_samples == 1:
-                return gs.squeeze(samples_ext, axis=0)
-
-            return samples_ext
-
-        if bagel_parametrization:
-            samples_bagel = gs.empty(n_samples, 3)
-            for i, s in enumerate(samples):
-                samples_bagel[i] = self.intrinsic_to_bagel_coords(s)
-
-            if n_samples == 1:
-                return gs.squeeze(samples_bagel, axis=0)
-
-            return samples_bagel
-
-        if bottle_parametrization:
-            samples_bottle = gs.empty(n_samples, 3)
-            for i, s in enumerate(samples):
-                samples_bottle[i] = self.intrinsic_to_bottle_coords(s)
-
-            if n_samples == 1:
-                return gs.squeeze(samples_bottle, axis=0)
-
-            return samples_bottle
-
         if n_samples == 1:
             return gs.squeeze(samples, axis=0)
-
         return samples
 
     def to_tangent(self, vector, base_point=None):
@@ -230,8 +186,27 @@ class KleinBottle(Manifold):
         point_odd = gs.stack([x_canonical, y_canonical_odd], axis=-1)
         return gs.where(gs.mod(num_steps, 2) == 0, point_even, point_odd)
 
-    def intrinsic_to_extrinsic_coords(self, point_intrinsic):
-        """Convert point from intrinsic to extrinsic coordinates.
+    def to_coords(self, point, coords_type):
+        """Convert point from intrinsic to coordinates type.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 2]
+            Point on the Klein bottle, in intrinsic coordinates.
+        coords_type : str
+            One of the following: "extrinsic", "bottle", "bagel"
+
+        Returns
+        -------
+        transformed_point : array-like, shape=[..., repr_dim]
+            Point in new representation.
+        """
+        coords_func = getattr(self, f"to_{coords_type}_coords")
+        return coords_func(point)
+
+    @staticmethod
+    def to_extrinsic_coords(point):
+        r"""Convert point to extrinsic coordinates.
 
         Convert from the intrinsic coordinates in the Klein bottle (2 parameters),
         to the extrinsic coordinates in Euclidean space (4 parameters).
@@ -243,25 +218,23 @@ class KleinBottle(Manifold):
         z = P cos(\theta)(1+\epsilon sin(v))
         w = P sin(\theta)(1+\epsilon sin(v))
 
-        for 0\leq\theta<2\pi and 0\leq v<2\pi. P and R are constants to determine the aspect ratio.
+        for 0\leq\theta<2\pi and 0\leq v<2\pi. P and R are constants to determine
+        the aspect ratio.
         ε is any small constant .
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[2]
+        point : array-like, shape=[..., 2]
             Point on the Klein bottle, in intrinsic coordinates.
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[4]
+        point_extrinsic : array-like, shape=[..., 4]
             Point on the Klein bottle, in extrinsic coordinates in
             Euclidean space.
         """
-        if self.dim != 2:
-            raise Exception("Intrinsic dimension of Klein bottle should be 2.")
-
-        theta = 2 * gs.pi * point_intrinsic[0]
-        v = 2 * gs.pi * point_intrinsic[1]
+        theta = 2 * gs.pi * point[..., 0]
+        v = 2 * gs.pi * point[..., 1]
         R = 1
         P = 1
         epsilon = 0.1
@@ -271,31 +244,30 @@ class KleinBottle(Manifold):
         z = P * gs.cos(theta) * (1 + epsilon * gs.sin(v))
         w = P * gs.sin(theta) * (1 + epsilon * gs.sin(v))
 
-        return gs.array([x, y, z, w])
+        return gs.stack([x, y, z, w], axis=-1)
 
-    def intrinsic_to_bottle_coords(self, point_intrinsic):
-        """Convert point from intrinsic to coordinates in R^3 parametrizing the Klein bottle.
+    @staticmethod
+    def to_bottle_coords(point):
+        r"""Convert point to coordinates in R^3 parametrizing the Klein bottle.
 
         Convert from the intrinsic coordinates in the Klein bottle (2 parameters),
-        to the coordinates of the Klein bottle parametrization in 3d Euclidean space (3 parameters).
+        to the coordinates of the Klein bottle parametrization in 3d Euclidean space
+        (3 parameters).
         For intrinsic parameters (\theta,v) the Klein bottle parametrization is
         [https://en.wikipedia.org/wiki/Klein_bottle#Bottle_shape]
+
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[2]
+        point_intrinsic : array-like, shape=[..., 2]
             Point on the Klein bottle, in intrinsic coordinates.
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[4]
+        point_extrinsic : array-like, shape=[..., 4]
             Point on the Klein bottle, in the Klein bagel parametrization.
         """
-
-        if self.dim != 2:
-            raise Exception("Intrinsic dimension of Klein bottle should be 2.")
-
-        u = 2 * gs.pi * point_intrinsic[0]
-        v = 2 * gs.pi * point_intrinsic[1]
+        u = 2 * gs.pi * point[..., 0]
+        v = 2 * gs.pi * point[..., 1]
 
         fx1, fx2, fx3, fx4, fx5, fx6 = [2 / 15, 3, 30, 90, 60, 5]
 
@@ -343,13 +315,15 @@ class KleinBottle(Manifold):
         fz1, fz2, fz3 = [2 / 15, 3, 5]
         z = fz1 * (fz2 + fz3 * gs.cos(u) * gs.sin(u)) * gs.sin(v)
 
-        return gs.array([x, y, z])
+        return gs.stack([x, y, z], axis=-1)
 
-    def intrinsic_to_bagel_coords(self, point_intrinsic):
-        """Convert point from intrinsic to coordinates in R^3 parametrizing the Klein bagel.
+    @staticmethod
+    def to_bagel_coords(point):
+        r"""Convert point to coordinates in R^3 parametrizing the Klein bagel.
 
         Convert from the intrinsic coordinates in the Klein bottle (2 parameters),
-        to the coordinates of the Klein bagel parametrization in 3d Euclidean space (3 parameters).
+        to the coordinates of the Klein bagel parametrization in 3d Euclidean space
+        (3 parameters).
         For intrinsic parameters (\theta,v) the Klein bagel parametrization is
         [https://en.wikipedia.org/wiki/Klein_bottle#The_figure_8_immersion]:
 
@@ -357,24 +331,21 @@ class KleinBottle(Manifold):
         y = \left(r + cos(\theta/2)sin(v) - sin(\theta/2)sin(2v)\right)sin(theta)
         z = sin(\theta/2)sin(v) + cos(\theta/2)sin(2v)
 
-        for 0\leq\theta<2\pi and 0\leq v<2\pi. r is a constant to determine the aspect ratio.
+        for 0\leq\theta<2\pi and 0\leq v<2\pi. r is a constant to determine
+        the aspect ratio.
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[2]
+        point_intrinsic : array-like, shape=[..., 2]
             Point on the Klein bottle, in intrinsic coordinates.
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[4]
+        point_extrinsic : array-like, shape=[..., 4]
             Point on the Klein bottle, in the Klein bagel parametrization.
         """
-
-        if self.dim != 2:
-            raise Exception("Intrinsic dimension of Klein bottle should be 2.")
-
-        theta = 2 * gs.pi * point_intrinsic[0]
-        v = 2 * gs.pi * point_intrinsic[1]
+        theta = 2 * gs.pi * point[..., 0]
+        v = 2 * gs.pi * point[..., 1]
         r = 5
 
         x = (
@@ -385,7 +356,7 @@ class KleinBottle(Manifold):
         ) * gs.sin(theta)
         z = gs.sin(theta / 2) * gs.sin(v) + gs.cos(theta / 2) * gs.sin(2 * v)
 
-        return gs.array([x, y, z])
+        return gs.stack([x, y, z], axis=-1)
 
 
 class KleinBottleMetric(RiemannianMetric):
