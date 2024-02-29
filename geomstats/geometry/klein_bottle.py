@@ -318,7 +318,7 @@ class KleinBottle(Manifold):
         return gs.stack([x, y, z], axis=-1)
 
     @staticmethod
-    def to_bagel_coords(point):
+    def to_bagel_coords(point, r = 5):
         r"""Convert point to coordinates in R^3 parametrizing the Klein bagel.
 
         Convert from the intrinsic coordinates in the Klein bottle (2 parameters),
@@ -346,7 +346,6 @@ class KleinBottle(Manifold):
         """
         theta = 2 * gs.pi * point[..., 0]
         v = 2 * gs.pi * point[..., 1]
-        r = 5
 
         x = (
             r + gs.cos(theta / 2) * gs.sin(v) - gs.sin(theta / 2) * gs.sin(2 * v)
