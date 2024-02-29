@@ -16,6 +16,8 @@ References
 """
 
 import geomstats.backend as gs
+from geomstats.geometry.hermitian_matrices import powermh
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.stratified.point_set import (
     Point,
@@ -469,7 +471,7 @@ class WaldSpaceMetric(PointSetMetric):
 
         Parameters
         ----------
-        point_a: Wald or WaldCollection
+        point_a: Wald or WaldCollectionb
             Point in the WaldSpace.
         point_b: Wald or WaldCollection
             Point in the WaldSpace.
@@ -503,7 +505,67 @@ class WaldSpaceMetric(PointSetMetric):
         return self.projection_solver.projection(ambient_point, **kwargs)
 
 
-def _squared_dist_value_and_grad_euclidean(space, topology, ambient_point):
+def _squared_dist_and_grad_affine(space, topology, ambient_point):
+    """Squared distance and gradient wrt weights.
+
+    See section 5.1 of [Garba2021]_.
+
+    Parameters
+    ----------
+    space : WaldSpace
+    topology : ForestTopology
+    ambient_point : array-like, shape=[n_nodes, n_nodes]
+        Point wrt measure distance.
+
+    Returns
+    -------
+    value_and_grad : callable
+        A callable that takes weights and outputs value and grad.
+    """
+    sqrt_ambient_point, inv_sqrt_ambient_point = powermh(
+        ambient_point, [1.0 / 2, -1.0 / 2]
+    )
+
+    def _value_and_grad(weights):
+        corr = topology.corr(weights)
+        inv_corr = gs.linalg.inv(corr)
+        grad = topology.corr_gradient(weights)
+
+        target = space.ambient_space.metric.squared_dist(corr, ambient_point)
+
+        target_grad = 0.5 * gs.trace(
+            Matrices.mul(
+                gs.linalg.logm(
+                    Matrices.mul(inv_sqrt_ambient_point, corr, inv_sqrt_ambient_point)
+                ),
+                sqrt_ambient_point,
+                inv_corr,
+                grad,
+                inv_sqrt_ambient_point,
+            )
+        )
+
+        return target, target_grad
+
+    return _value_and_grad
+
+
+def _squared_dist_and_grad_euclidean(space, topology, ambient_point):
+    """Squared distance and gradient wrt weights.
+
+    Parameters
+    ----------
+    space : WaldSpace
+    topology : ForestTopology
+    ambient_point : array-like, shape=[n_nodes, n_nodes]
+        Point wrt measure distance.
+
+    Returns
+    -------
+    value_and_grad : callable
+        A callable that takes weights and outputs value and grad.
+    """
+
     def _value_and_grad(weights):
         corr = topology.corr(weights)
         grad = topology.corr_gradient(weights)
@@ -516,7 +578,8 @@ def _squared_dist_value_and_grad_euclidean(space, topology, ambient_point):
 
 
 _AMBIENT_METRIC_TO_SQUARED_DIST_GRAD = {
-    "SPDEuclideanMetric": _squared_dist_value_and_grad_euclidean,
+    "SPDAffineMetric": _squared_dist_and_grad_affine,
+    "SPDEuclideanMetric": _squared_dist_and_grad_euclidean,
 }
 
 
