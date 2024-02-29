@@ -24,14 +24,16 @@ from geomstats.geometry.stratified.point_set import (
     PointCollection,
     PointSet,
     PointSetMetric,
-    _manipulate_output,
-    _vectorize_point,
 )
 from geomstats.geometry.stratified.trees import (
     ForestTopology,
     Split,
     delete_splits,
     generate_splits,
+)
+from geomstats.geometry.stratified.vectorization import (
+    _manipulate_output,
+    vectorize_point,
 )
 from geomstats.numerics.optimizers import ScipyMinimize
 
@@ -254,7 +256,7 @@ class Wald(Point):
 
         return gs.all(gs.abs(self.weights - point.weights) < atol)
 
-    @_vectorize_point((1, "point"))
+    @vectorize_point((1, "point"))
     def equal(self, point, atol=gs.atol):
         """Check equality against another point.
 
@@ -366,7 +368,7 @@ class WaldSpace(PointSet):
 
         return False
 
-    @_vectorize_point((1, "point"))
+    @vectorize_point((1, "point"))
     def belongs(self, point, atol=gs.atol):
         """Check if a point `wald` belongs to Wald space.
 
@@ -426,7 +428,7 @@ class WaldSpace(PointSet):
 
         return WaldCollection(forests)
 
-    @_vectorize_point((1, "point"))
+    @vectorize_point((1, "point"))
     def lift(self, point):
         """Lift a point to the ambient space.
 
@@ -636,7 +638,7 @@ class LocalProjectionSolver:
 
         return Wald(topology=topology, weights=weights)
 
-    @_vectorize_point(
+    @vectorize_point(
         (1, "ambient_point"),
         (2, "topology"),
         manipulate_input=_manipulate_input_with_array,

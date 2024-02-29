@@ -30,7 +30,6 @@ from geomstats.geometry.stratified.point_set import (
     PointCollection,
     PointSet,
     PointSetMetric,
-    _vectorize_point,
 )
 from geomstats.geometry.stratified.trees import (
     ForestTopology,
@@ -38,6 +37,7 @@ from geomstats.geometry.stratified.trees import (
     delete_splits,
     generate_splits,
 )
+from geomstats.geometry.stratified.vectorization import vectorize_point
 
 
 def generate_random_tree(n_labels, p_keep=0.9, btol=1e-8):
@@ -205,7 +205,7 @@ class Tree(Point):
 
         return gs.all(gs.abs(self.lengths - point.lengths) < atol)
 
-    @_vectorize_point((1, "point"))
+    @vectorize_point((1, "point"))
     def equal(self, point, atol=gs.atol):
         """Check equality against another point.
 
@@ -288,7 +288,7 @@ class TreeSpace(PointSet):
             return False
         return gs.all(point.lengths > -atol)
 
-    @_vectorize_point((1, "point"))
+    @vectorize_point((1, "point"))
     def belongs(self, point, atol=gs.atol):
         """Check if a point belongs to Tree space.
 
@@ -472,7 +472,7 @@ class GTPSolver:
 
         return sq_dist_common + sq_dist_parts
 
-    @_vectorize_point((1, "point_a"), (2, "point_b"))
+    @vectorize_point((1, "point_a"), (2, "point_b"))
     def squared_dist(self, point_a, point_b):
         """Compute the squared distance between two points.
 
@@ -588,7 +588,7 @@ class GTPSolver:
 
         return geodesic_
 
-    @_vectorize_point((1, "initial_point"), (2, "end_point"))
+    @vectorize_point((1, "initial_point"), (2, "end_point"))
     def geodesic(self, initial_point, end_point):
         """Compute the geodesic between two points.
 

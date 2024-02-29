@@ -10,8 +10,8 @@ from geomstats.geometry.stratified.point_set import (
     PointCollection,
     PointSet,
     PointSetMetric,
-    _vectorize_point,
 )
+from geomstats.geometry.stratified.vectorization import vectorize_point
 
 
 class SpiderPoint(Point):
@@ -53,7 +53,7 @@ class SpiderPoint(Point):
         """
         return self.stratum == point.stratum and abs(self.coord - point.coord) < gs.atol
 
-    @_vectorize_point((1, "point"))
+    @vectorize_point((1, "point"))
     def equal(self, point, atol=gs.atol):
         """Check equality against another point.
 
@@ -122,7 +122,7 @@ class Spider(PointSet):
 
         return PointCollection(random_point)
 
-    @_vectorize_point((1, "point"))
+    @vectorize_point((1, "point"))
     def belongs(self, point, atol=gs.atol):
         r"""Check if a random point belongs to the spider set.
 
@@ -211,7 +211,7 @@ class SpiderMetric(PointSetMetric):
 
         return self._stratum_metric.dist(-point_a.coord, point_b.coord)
 
-    @_vectorize_point((1, "a"), (2, "b"))
+    @vectorize_point((1, "a"), (2, "b"))
     def dist(self, point_a, point_b):
         """Compute the distance between two points on the Spider using the ray geometry.
 
@@ -237,7 +237,7 @@ class SpiderMetric(PointSetMetric):
             ]
         )
 
-    @_vectorize_point((1, "initial_point"), (2, "end_point"))
+    @vectorize_point((1, "initial_point"), (2, "end_point"))
     def geodesic(self, initial_point, end_point):
         """Return the geodesic between two lists of Spider points.
 
