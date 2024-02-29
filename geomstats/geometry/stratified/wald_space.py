@@ -592,8 +592,7 @@ class LocalProjectionSolver:
         self.optimizer = ScipyMinimize(
             method="L-BFGS-B",
             jac=True,
-            tol=None,
-            options=dict(gtol=1e-5, ftol=2.22e-9),
+            tol=gs.atol,
         )
 
     def _get_bounds(self, n_splits):
@@ -621,11 +620,10 @@ class LocalProjectionSolver:
         )
 
         n_splits = topology.n_splits
-        bounds = self._get_bounds(n_splits)
 
         initial_weights = gs.ones(n_splits) * 0.5
 
-        self.optimizer.bounds = bounds
+        self.optimizer.bounds = self._get_bounds(n_splits)
         res = self.optimizer.minimize(value_and_grad, initial_weights)
 
         if res.status != 0:
