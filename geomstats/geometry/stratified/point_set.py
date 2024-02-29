@@ -37,7 +37,36 @@ def _manipulate_input(arg):
     return arg, False
 
 
-def _vectorize_point(*args_positions, manipulate_input=_manipulate_input):
+def _manipulate_output_iterable(out):
+    return PointCollection(out)
+
+
+def _manipulate_output(
+    out, to_list, manipulate_output_iterable=_manipulate_output_iterable
+):
+    is_array = gs.is_array(out)
+    is_iterable = isinstance(out, (list, tuple))
+
+    if not (gs.is_array(out) or is_iterable):
+        return out
+
+    if to_list:
+        if is_array:
+            return gs.array(out[0])
+        if is_iterable:
+            return out[0]
+
+    if is_iterable:
+        return manipulate_output_iterable(out)
+
+    return out
+
+
+def _vectorize_point(
+    *args_positions,
+    manipulate_input=_manipulate_input,
+    manipulate_output=_manipulate_output,
+):
     """Check point type and transform in iterable if not the case.
 
     Parameters
@@ -65,13 +94,8 @@ def _vectorize_point(*args_positions, manipulate_input=_manipulate_input):
                 to_list = to_list and to_list_
 
             out = func(*args, **kwargs)
-            if not gs.is_array(out):
-                return out
 
-            if to_list:
-                return gs.array(out[0])
-
-            return out
+            return manipulate_output(out, to_list)
 
         return _wrapped
 
@@ -79,7 +103,7 @@ def _vectorize_point(*args_positions, manipulate_input=_manipulate_input):
 
 
 class Point(ABC):
-    r"""Class for points of a set."""
+    """Class for points of a set."""
 
     @abstractmethod
     def equal(self, point, atol=gs.atol):
@@ -95,6 +119,31 @@ class Point(ABC):
         -------
         is_equal : array-like, shape=[...]
         """
+
+
+class PointCollection(ABC, list):
+    """Class for point collections."""
+
+    def equal(self, point, atol=gs.atol):
+        """Check equality against another point.
+
+        Parameters
+        ----------
+        point : Point or PointCollection
+            Point to compare against point.
+        atol : float
+        """
+        if isinstance(point, (list, tuple)):
+            return gs.array(
+                [
+                    collection_point.equal(point_, atol)
+                    for collection_point, point_ in zip(self, point)
+                ]
+            )
+
+        return gs.array(
+            [collection_point.equal(point, atol) for collection_point in self]
+        )
 
 
 class PointSet(ABC):
@@ -129,7 +178,7 @@ class PointSet(ABC):
 
         Parameters
         ----------
-        point : Point or list[Point]
+        point : Point or PointCollection
             Point to evaluate.
         atol : float
             Absolute tolerance.
@@ -153,7 +202,7 @@ class PointSet(ABC):
 
         Returns
         -------
-        samples : Point or list[Point]
+        samples : Point or PointCollection
             Points sampled on the PointSet.
         """
 

@@ -19,8 +19,10 @@ import geomstats.backend as gs
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.stratified.point_set import (
     Point,
+    PointCollection,
     PointSet,
     PointSetMetric,
+    _manipulate_output,
     _vectorize_point,
 )
 from geomstats.geometry.stratified.trees import (
@@ -30,6 +32,22 @@ from geomstats.geometry.stratified.trees import (
     generate_splits,
 )
 from geomstats.numerics.optimizers import ScipyMinimize
+
+
+def _manipulate_input_with_array(arg):
+    if gs.is_array(arg):
+        if arg.ndim > 2:
+            return arg, False
+        return gs.expand_dims(arg, axis=0), True
+
+    if not isinstance(arg, (list, tuple)):
+        return [arg], True
+
+    return arg, False
+
+
+def _manipulate_output_wald(out, to_list):
+    return _manipulate_output(out, to_list, manipulate_output_iterable=WaldCollection)
 
 
 def make_splits(n_labels):
@@ -175,9 +193,11 @@ class Wald(Point):
     ----------
     topology : ForestTopology
         The structure of the forest.
-    weights : array-like
+    weights : array-like, shape=[n_splits]
         The edge weights, array of floats between 0 and 1, with m entries, where m is
         the total number of splits/edges in the structure ``top``.
+    corr : array-like, shape=[n_labels, n_labels]
+        Correlation matrix of the topology with edge weights.
     """
 
     def __init__(self, topology, weights):
@@ -238,7 +258,7 @@ class Wald(Point):
 
         Parameters
         ----------
-        point : Wald or list[Wald]
+        point : Wald or WaldCollection
             Point to compare against point.
         atol : float
 
@@ -247,6 +267,40 @@ class Wald(Point):
         is_equal : array-like, shape=[...]
         """
         return gs.array([self._equal_single(point_, atol) for point_ in point])
+
+
+class WaldCollection(PointCollection):
+    """Wald collection."""
+
+    @property
+    def topology(self):
+        """Forest topology.
+
+        Returns
+        -------
+        topology : list[ForestTopology]
+        """
+        return [point.topology for point in self]
+
+    @property
+    def weights(self):
+        """Edge weights.
+
+        Returns
+        -------
+        array-like, shape=[n_points, n_splits]
+        """
+        return gs.stack([point.weights for point in self])
+
+    @property
+    def corr(self):
+        """Correlation matrix of the topology with edge weights.
+
+        Returns
+        -------
+        array-like, shape=[n_points, n_nodes, n_nodes]
+        """
+        return gs.stack([point.corr for point in self])
 
 
 class WaldSpace(PointSet):
@@ -320,7 +374,7 @@ class WaldSpace(PointSet):
 
         Parameters
         ----------
-        point : Wald or list[Wald]
+        point : Wald or WaldCollection
             The point to be checked.
         atol : float
             Absolute tolerance.
@@ -368,7 +422,7 @@ class WaldSpace(PointSet):
         if n_samples == 1:
             return forests[0]
 
-        return forests
+        return WaldCollection(forests)
 
     @_vectorize_point((1, "point"))
     def lift(self, point):
@@ -376,7 +430,7 @@ class WaldSpace(PointSet):
 
         Parameters
         ----------
-        point : Wald or list[Wald]
+        point : Wald or WaldCollection
             The point to be lifted.
 
         Returns
@@ -415,9 +469,9 @@ class WaldSpaceMetric(PointSetMetric):
 
         Parameters
         ----------
-        point_a: Wald or list[Wald]
+        point_a: Wald or WaldCollection
             Point in the WaldSpace.
-        point_b: Wald or list[Wald]
+        point_b: Wald or WaldCollection
             Point in the WaldSpace.
 
         Returns
@@ -432,7 +486,7 @@ class WaldSpaceMetric(PointSetMetric):
 
         Parameters
         ----------
-        initial_point: Wald or list[Wald]
+        initial_point: Wald or WaldCollection
             Point in the WaldSpace.
         end_point: Point or list[Point]
             Point in the WaldSpace.
@@ -482,7 +536,7 @@ class LocalProjectionSolver:
     def _get_bounds(self, n_splits):
         return [(self.btol, 1 - self.btol)] * n_splits
 
-    def projection(self, ambient_point, topology):
+    def _projection_single(self, ambient_point, topology):
         """Project ambient point into wald space.
 
         Parameters
@@ -520,3 +574,24 @@ class LocalProjectionSolver:
         ]
 
         return Wald(topology=topology, weights=weights)
+
+    @_vectorize_point(
+        (1, "ambient_point"),
+        (2, "topology"),
+        manipulate_input=_manipulate_input_with_array,
+        manipulate_output=_manipulate_output_wald,
+    )
+    def projection(self, ambient_point, topology):
+        """Project ambient point into wald space.
+
+        Parameters
+        ----------
+        ambient_point : array-like, shape=[..., n_nodes, n_nodes]
+            Ambient point to project.
+        topology : ForestTopology or list[ForestTopology]
+            Stratum topology.
+        """
+        return [
+            self._projection_single(ambient_point_, topology_)
+            for ambient_point_, topology_ in zip(ambient_point, topology)
+        ]

@@ -27,6 +27,7 @@ import numpy as np
 import geomstats.backend as gs
 from geomstats.geometry.stratified.point_set import (
     Point,
+    PointCollection,
     PointSet,
     PointSetMetric,
     _vectorize_point,
@@ -210,7 +211,7 @@ class Tree(Point):
 
         Parameters
         ----------
-        point : Tree or list[Tree]
+        point : Tree or TreeCollection
             Point to compare against point.
         atol : float
 
@@ -219,6 +220,30 @@ class Tree(Point):
         is_equal : array-like, shape=[...]
         """
         return gs.array([self._equal_single(point_, atol) for point_ in point])
+
+
+class TreeCollection(PointCollection):
+    """Tree collection."""
+
+    @property
+    def topology(self):
+        """Tree topology.
+
+        Returns
+        -------
+        topology : list[TreeTopology]
+        """
+        return [point.topology for point in self]
+
+    @property
+    def lengths(self):
+        """Edge lengths.
+
+        Returns
+        -------
+        array-like, shape=[n_points, n_splits]
+        """
+        return gs.array([point.lengths for point in self])
 
 
 class TreeSpace(PointSet):
@@ -269,7 +294,7 @@ class TreeSpace(PointSet):
 
         Parameters
         ----------
-        point : Tree or list[Tree]
+        point : Tree or TreeCollection
             The point to be checked.
         atol : float
             Absolute tolerance.
@@ -300,7 +325,7 @@ class TreeSpace(PointSet):
 
         Returns
         -------
-        samples : Tree or list[Tree]
+        samples : Tree or TreeCollection
             Points sampled in Tree space.
         """
         trees = [
@@ -310,7 +335,7 @@ class TreeSpace(PointSet):
         if n_samples == 1:
             return trees[0]
 
-        return trees
+        return TreeCollection(trees)
 
 
 class BHVMetric(PointSetMetric):
@@ -341,9 +366,9 @@ class BHVMetric(PointSetMetric):
 
         Parameters
         ----------
-        point_a : Tree or list[Tree]
+        point_a : Tree or TreeCollection
             A point in BHV Space.
-        point_b : Tree or list[Tree]
+        point_b : Tree or TreeCollection
             A point in BHV Space.
 
         Returns
@@ -358,9 +383,9 @@ class BHVMetric(PointSetMetric):
 
         Parameters
         ----------
-        point_a : Tree or list[Tree]
+        point_a : Tree or TreeCollection
             A point in BHV Space.
-        point_b : Tree or list[Tree]
+        point_b : Tree or TreeCollection
             A point in BHV Space.
 
         Returns
@@ -375,9 +400,9 @@ class BHVMetric(PointSetMetric):
 
         Parameters
         ----------
-        initial_point : Tree or list[Tree]
+        initial_point : Tree or TreeCollection
             A point in BHV Space.
-        end_point : Tree or list[Tree]
+        end_point : Tree or TreeCollection
             A point in BHV Space.
 
         Returns
@@ -453,9 +478,9 @@ class GTPSolver:
 
         Parameters
         ----------
-        point_a : Tree or list[Tree]
+        point_a : Tree or TreeCollection
             A point in BHV Space.
-        point_b : Tree or list[Tree]
+        point_b : Tree or TreeCollection
             A point in BHV Space.
 
         Returns
@@ -480,9 +505,9 @@ class GTPSolver:
 
         Parameters
         ----------
-        point_a : Tree or list[Tree]
+        point_a : Tree or TreeCollection
             A point in BHV Space.
-        point_b : Tree or list[Tree]
+        point_b : Tree or TreeCollection
             A point in BHV Space.
 
         Returns
@@ -559,7 +584,7 @@ class GTPSolver:
             if isinstance(t, (float, int)):
                 t = gs.array([t])
 
-            return [geodesic_t(t_) for t_ in t]
+            return TreeCollection([geodesic_t(t_) for t_ in t])
 
         return geodesic_
 
@@ -569,9 +594,9 @@ class GTPSolver:
 
         Parameters
         ----------
-        initial_point : Tree or list[Tree]
+        initial_point : Tree or TreeCollection
             A point in BHV Space.
-        end_point : Tree or list[Tree]
+        end_point : Tree or TreeCollection
             A point in BHV Space.
 
         Returns

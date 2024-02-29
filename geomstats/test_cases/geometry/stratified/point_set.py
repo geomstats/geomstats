@@ -28,11 +28,7 @@ class PointTestCase(TestCase):
     def test_point_is_equal_to_itself(self, n_points, atol):
         initial_point = self.data_generator.random_point(n_points)
 
-        if n_points == 1:
-            self.assertTrue(gs.all(initial_point.equal(initial_point, atol=atol)))
-        else:
-            for initial_point_ in initial_point:
-                self.assertTrue(gs.all(initial_point_.equal(initial_point_, atol=atol)))
+        self.assertTrue(gs.all(initial_point.equal(initial_point, atol=atol)))
 
 
 class PointSetTestCase(TestCase):
@@ -66,16 +62,18 @@ class PointSetMetricTestCase(DistTestCaseMixins, TestCase):
 
         geod_func = self.space.metric.geodesic(initial_point, end_point)
 
-        res = geod_func(time)
+        geod_points = geod_func(time)
 
         if n_points == 1:
             initial_point = [initial_point]
             end_point = [end_point]
-            res = [res]
+            geod_points = [geod_points]
 
-        for res_, initial_point_, end_point_ in zip(res, initial_point, end_point):
-            self.assertTrue(initial_point_.equal(res_[0], atol=atol))
-            self.assertTrue(end_point_.equal(res_[1], atol=atol))
+        for geod_point_, initial_point_, end_point_ in zip(
+            geod_points, initial_point, end_point
+        ):
+            self.assertTrue(initial_point_.equal(geod_point_[0], atol=atol))
+            self.assertTrue(end_point_.equal(geod_point_[1], atol=atol))
 
     @pytest.mark.random
     def test_geodesic_bvp_reverse(self, n_points, n_times, atol):
@@ -89,16 +87,15 @@ class PointSetMetricTestCase(DistTestCaseMixins, TestCase):
             end_point, end_point=initial_point
         )
 
-        res = geod_func(time)
-        res_ = geod_func_reverse(1.0 - time)
+        geod_point = geod_func(time)
+        geod_point_reverse = geod_func_reverse(1.0 - time)
 
         if n_points == 1:
-            res = [res]
-            res_ = [res_]
+            geod_point = [geod_point]
+            geod_point_reverse = [geod_point_reverse]
 
-        for inner_res, inner_res_ in zip(res, res_):
-            for point, other_point in zip(inner_res, inner_res_):
-                self.assertTrue(point.equal(other_point, atol=atol))
+        for geod_point_, geod_point_reverse_ in zip(geod_point, geod_point_reverse):
+            self.assertTrue(gs.all(geod_point_.equal(geod_point_reverse_, atol)))
 
 
 class PointSetMetricWithArrayTestCase(
