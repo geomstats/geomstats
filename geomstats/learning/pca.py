@@ -11,7 +11,7 @@ from sklearn.decomposition._base import _BasePCA
 from sklearn.utils.extmath import stable_cumsum, svd_flip
 
 import geomstats.backend as gs
-from geomstats.geometry._hyperbolic import HyperbolicMetric
+from geomstats.geometry._hyperbolic import _Hyperbolic, HyperbolicMetric
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -361,11 +361,27 @@ class HyperbolicPlanePCA(_BasePCA):
     """Exact Principal Geodesic Analysis in the hyperbolic plane.
 
     The first principal component is computed by finding the direction
-    in a unit ball around the mean that minimizes the variance of the
+    in a unit ball around the mean that maximizes the variance of the
     projections on the induced geodesic. The projections are given by
     closed form expressions in extrinsic coordinates. The second principal
     component is the direction at the mean that is orthogonal to the first
     principal component.
+
+    Parameters
+    ----------
+    space : Hyperbolic
+        Two-dimensional hyperbolic space.
+    n_vec : int
+        Number of vectors used to discretize the unit ball when finding
+        the direction of maximal variance.
+
+    Attributes
+    ----------
+    components_ : array-like, shape=[n_components, 2]
+        Principal axes, representing the directions of maximal variance in the
+        data. They are the initial velocities of the principal geodesics.
+    mean_ : array-like, shape=[2,]
+        Intrinsic mean of the data points.
 
     References:
     ----------
@@ -430,18 +446,18 @@ class HyperbolicPlanePCA(_BasePCA):
         )
 
         def variance_of_projections(pt_ext, mn_ext, vec_ext):
-            projections = self._project_on_geodesic(pt_ext, mn_ext, vec_ext)
+            projections = self._project_on_geodesic_extrinsic(pt_ext, mn_ext, vec_ext)
             costs = self.space_ext.metric.dist(mn_ext, projections) ** 2
             return gs.sum(costs)
 
         costs = [
             variance_of_projections(X_ext, mean_ext, vec_ext) for vec_ext in vectors_ext
         ]
-        axis_1 = vectors_half_space[gs.argmin(costs)]
+        axis_1 = vectors_half_space[gs.argmax(costs)]
         axis_2 = gs.array([-axis_1[1], axis_1[0]])
         components_half_space = gs.stack((axis_1, axis_2))
-        self.components_ = self.space.to_tangent_coordinates(
-            components_half_space, "half-space"
+        self.components_ = self.space.from_tangent_coordinates(
+            components_half_space, mean_half_space, "half-space"
         )
         return self
 
@@ -469,7 +485,7 @@ class HyperbolicPlanePCA(_BasePCA):
 
         Parameters
         ----------
-         X : array-like, shape=[..., n_features]
+         X : array-like, shape=[n_points, 2]
              Training data in the hyperbolic plane. If the space is
              the Poincare half-space or Poincare ball, n_features is
              2. If it is the hyperboloid, n_features is 3.
@@ -477,10 +493,9 @@ class HyperbolicPlanePCA(_BasePCA):
 
         Returns
         -------
-        X_1 : array-like, shape=[..., n_features]
-            Projections of the data on the first component.
-        X_2 : array-like, shape=[..., n_features]
-            Projections of the data on the second component.
+        X_new : array-like, shape=[n_components, n_points, 2]
+            Projections of the data on the first principal geodesic (first line
+            of the array) and on the second principal geodesic (second line).
         """
         self._fit(X)
         axis_1, axis_2 = self.components_
@@ -489,12 +504,17 @@ class HyperbolicPlanePCA(_BasePCA):
         X_ext = self.space.to_coordinates(X, "extrinsic")
         mean_ext = self.space.to_coordinates(self.mean_, "extrinsic")
 
-        proj1_ext = self._project_on_geodesic(X_ext, mean_ext, axis_1_ext)
-        proj2_ext = self._project_on_geodesic(X_ext, mean_ext, axis_2_ext)
-        X_1 = self.space.from_coordinates(proj1_ext, "extrinsic")
-        X_2 = self.space.from_coordinates(proj2_ext, "extrinsic")
+        proj1_ext = self._project_on_geodesic_extrinsic(X_ext, mean_ext, axis_1_ext)
+        proj2_ext = self._project_on_geodesic_extrinsic(X_ext, mean_ext, axis_2_ext)
 
-        return X_1, X_2
+        var_1 = gs.mean(self.space_ext.metric.dist(mean_ext, proj1_ext) ** 2)
+        var_2 = gs.mean(self.space_ext.metric.dist(mean_ext, proj2_ext) ** 2)
+        self.explained_variance_ = gs.stack((var_1, var_2))
+
+        return gs.stack([
+            self.space.from_coordinates(proj1_ext, "extrinsic"),
+            self.space.from_coordinates(proj2_ext, "extrinsic"),
+        ])
 
 
 class ExactPGA(_BasePCA):
@@ -508,7 +528,7 @@ class ExactPGA(_BasePCA):
 
     def __new__(cls, space, **kwargs):
         """Interface for instantiating proper algorithm."""
-        if isinstance(space.metric, HyperbolicMetric) and space.dim == 2:
+        if isinstance(space, _Hyperbolic) and space.dim == 2:
             return HyperbolicPlanePCA(space, **kwargs)
 
         else:
