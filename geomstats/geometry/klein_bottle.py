@@ -186,7 +186,7 @@ class KleinBottle(Manifold):
         point_odd = gs.stack([x_canonical, y_canonical_odd], axis=-1)
         return gs.where(gs.mod(num_steps, 2) == 0, point_even, point_odd)
 
-    def to_coords(self, point, coords_type):
+    def to_coords(self, point, coords_type, **kwargs):
         """Convert point from intrinsic to coordinates type.
 
         Parameters
@@ -202,7 +202,7 @@ class KleinBottle(Manifold):
             Point in new representation.
         """
         coords_func = getattr(self, f"to_{coords_type}_coords")
-        return coords_func(point)
+        return coords_func(point, **kwargs)
 
     @staticmethod
     def to_extrinsic_coords(point):
@@ -258,7 +258,7 @@ class KleinBottle(Manifold):
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[..., 2]
+        point : array-like, shape=[..., 2]
             Point on the Klein bottle, in intrinsic coordinates.
 
         Returns
@@ -318,7 +318,7 @@ class KleinBottle(Manifold):
         return gs.stack([x, y, z], axis=-1)
 
     @staticmethod
-    def to_bagel_coords(point, r = 5):
+    def to_bagel_coords(point, radius=5.0):
         r"""Convert point to coordinates in R^3 parametrizing the Klein bagel.
 
         Convert from the intrinsic coordinates in the Klein bottle (2 parameters),
@@ -336,8 +336,10 @@ class KleinBottle(Manifold):
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[..., 2]
+        point : array-like, shape=[..., 2]
             Point on the Klein bottle, in intrinsic coordinates.
+        radius : float
+            Radius of the circle.
 
         Returns
         -------
@@ -348,10 +350,10 @@ class KleinBottle(Manifold):
         v = 2 * gs.pi * point[..., 1]
 
         x = (
-            r + gs.cos(theta / 2) * gs.sin(v) - gs.sin(theta / 2) * gs.sin(2 * v)
+            radius + gs.cos(theta / 2) * gs.sin(v) - gs.sin(theta / 2) * gs.sin(2 * v)
         ) * gs.cos(theta)
         y = (
-            r + gs.cos(theta / 2) * gs.sin(v) - gs.sin(theta / 2) * gs.sin(2 * v)
+            radius + gs.cos(theta / 2) * gs.sin(v) - gs.sin(theta / 2) * gs.sin(2 * v)
         ) * gs.sin(theta)
         z = gs.sin(theta / 2) * gs.sin(v) + gs.cos(theta / 2) * gs.sin(2 * v)
 

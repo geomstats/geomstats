@@ -8,7 +8,7 @@ from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
-from .data.klein_bottle import KleinBottleMetricTestData, KleinBottleTestData, KleinBottleParametrizationTestData
+from .data.klein_bottle import KleinBottleMetricTestData, KleinBottleTestData
 
 
 class TestKleinBottle(ManifoldTestCase, metaclass=DataBasedParametrizer):
@@ -44,13 +44,6 @@ class TestKleinBottle(ManifoldTestCase, metaclass=DataBasedParametrizer):
         )
         self._test_vectorization(vec_data)
 
-    @pytest.mark.smoke
-    #class TestKleinBottleCoordChange():
-        #testing_data = KleinBottleParametrizationTestData()
-
-        #def test_smoke_data_match_experiment(self, point, coords_type):
-            #transformed_point = self.space.to_coords(point, coords_type)
-            #self.assertAllClose(transformed_point, testing_data)
 
 class TestKleinBottleMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     space = KleinBottle()
