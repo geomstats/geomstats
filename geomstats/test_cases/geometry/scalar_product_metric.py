@@ -1,6 +1,6 @@
 from geomstats.geometry.scalar_product_metric import (
     ScalarProductMetric,
-    _get_scaling_factor,
+    _ScaledMethodsRegistry,
     _wrap_attr,
 )
 from geomstats.test.test_case import TestCase
@@ -16,11 +16,11 @@ class WrapperTestCase(TestCase):
         self.assertAllClose(res, scaled_res / scale)
 
     def test_scaling_factor(self, func_name, scale, expected):
-        scaling_factor = _get_scaling_factor(func_name, scale)
+        scaling_factor = _ScaledMethodsRegistry._get_scaling_factor(func_name, scale)
         self.assertAllClose(scaling_factor, expected)
 
     def test_non_scaled(self, func_name, scale):
-        scaling_factor = _get_scaling_factor(func_name, scale)
+        scaling_factor = _ScaledMethodsRegistry._get_scaling_factor(func_name, scale)
         assert scaling_factor is None
 
 
