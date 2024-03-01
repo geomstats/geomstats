@@ -1,30 +1,42 @@
 """Decorator to handle vectorization."""
 
 import functools
-import itertools
 
 import geomstats.backend as gs
 from geomstats.geometry.stratified.point_set import PointCollection
 
 
-def broadcast_lists(list_a, list_b):
-    """Broadcast two lists.
+def broadcast_lists(*lists):
+    """Broadcast lists.
 
     Similar behavior as ``gs.broadcast_arrays``, but for lists.
+
+    Parameters
+    ----------
+    *lists : list
+
+    Returns
+    -------
+    *broadcasted_lists : list
+        Lists with broadcasted length.
     """
-    n_a = len(list_a)
-    n_b = len(list_b)
+    lens = [len(list_) for list_ in lists]
+    n_max = max(lens)
+    if n_max == 1:
+        return lists
 
-    if n_a == n_b:
-        return list_a, list_b
+    out = []
+    for len_, list_ in zip(lens, lists):
+        if len_ == 1:
+            out.append([list_[0]] * n_max)
 
-    if n_a == 1:
-        return itertools.zip_longest(list_a, list_b, fillvalue=list_a[0])
+        elif len_ == n_max:
+            out.append(list_)
 
-    if n_b == 1:
-        return itertools.zip_longest(list_a, list_b, fillvalue=list_b[0])
+        else:
+            raise Exception(f"Cannot broadcast lens: {lens}")
 
-    raise Exception(f"Cannot broadcast lens {n_a} and {n_b}")
+    return out
 
 
 def _manipulate_input(arg):

@@ -33,6 +33,7 @@ from geomstats.geometry.stratified.trees import (
 )
 from geomstats.geometry.stratified.vectorization import (
     _manipulate_output,
+    broadcast_lists,
     vectorize_point,
 )
 from geomstats.numerics.optimizers import ScipyMinimize
@@ -654,6 +655,7 @@ class LocalProjectionSolver:
         topology : ForestTopology or list[ForestTopology]
             Stratum topology.
         """
+        ambient_point, topology = broadcast_lists(ambient_point, topology)
         return [
             self._projection_single(ambient_point_, topology_)
             for ambient_point_, topology_ in zip(ambient_point, topology)

@@ -11,7 +11,7 @@ from geomstats.geometry.stratified.point_set import (
     PointSet,
     PointSetMetric,
 )
-from geomstats.geometry.stratified.vectorization import vectorize_point
+from geomstats.geometry.stratified.vectorization import broadcast_lists, vectorize_point
 
 
 class SpiderPoint(Point):
@@ -211,7 +211,7 @@ class SpiderMetric(PointSetMetric):
 
         return self._stratum_metric.dist(-point_a.coord, point_b.coord)
 
-    @vectorize_point((1, "a"), (2, "b"))
+    @vectorize_point((1, "point_a"), (2, "point_b"))
     def dist(self, point_a, point_b):
         """Compute the distance between two points on the Spider using the ray geometry.
 
@@ -230,6 +230,7 @@ class SpiderMetric(PointSetMetric):
         dist : array-like, shape=[...]
             Distance between points.
         """
+        point_a, point_b = broadcast_lists(point_a, point_b)
         return gs.array(
             [
                 self._dist_single(point_a_, point_b_)
@@ -253,6 +254,7 @@ class SpiderMetric(PointSetMetric):
         path : callable
             Return a vectorized geodesic function.
         """
+        initial_point, end_point = broadcast_lists(initial_point, end_point)
 
         def _vec(t, fncs):
             if len(fncs) == 1:

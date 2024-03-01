@@ -37,7 +37,7 @@ from geomstats.geometry.stratified.trees import (
     delete_splits,
     generate_splits,
 )
-from geomstats.geometry.stratified.vectorization import vectorize_point
+from geomstats.geometry.stratified.vectorization import broadcast_lists, vectorize_point
 
 
 def generate_random_tree(n_labels, p_keep=0.9, btol=1e-8):
@@ -488,6 +488,7 @@ class GTPSolver:
         squared_dist : array-like, shape=[...]
             The squared distance between the two points.
         """
+        point_a, point_b = broadcast_lists(point_a, point_b)
         sq_dists = gs.array(
             [
                 self._squared_dist_single(point_a_, point_b_)
@@ -605,6 +606,7 @@ class GTPSolver:
             The geodesic between the two points. Takes parameter t, that is the time
             between 0 and 1 at which the corresponding point on the path is returned.
         """
+        initial_point, end_point = broadcast_lists(initial_point, end_point)
 
         def _vec(t, fncs):
             if len(fncs) == 1:
