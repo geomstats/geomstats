@@ -4,6 +4,7 @@ import geomstats.backend as gs
 from geomstats.geometry.klein_bottle import KleinBottle
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
+from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
@@ -25,6 +26,23 @@ class TestKleinBottle(ManifoldTestCase, metaclass=DataBasedParametrizer):
         greater_zero = gs.all(regularized_computed >= 0)
         smaller_one = gs.all(regularized_computed < 1)
         self.assertTrue(greater_zero and smaller_one)
+
+    def test_to_coords(self, point, coords_type, expected, atol):
+        transformed_point = self.space.to_coords(point, coords_type)
+        self.assertAllClose(transformed_point, expected, atol)
+
+    @pytest.mark.vec
+    def test_to_coords_vec(self, coords_type, n_reps, atol):
+        point = self.data_generator.random_point()
+        res = self.space.to_coords(point, coords_type)
+
+        vec_data = generate_vectorization_data(
+            data=[dict(point=point, coords_type=coords_type, expected=res, atol=atol)],
+            arg_names=["point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
 
 
 class TestKleinBottleMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):

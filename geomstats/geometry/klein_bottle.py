@@ -186,6 +186,179 @@ class KleinBottle(Manifold):
         point_odd = gs.stack([x_canonical, y_canonical_odd], axis=-1)
         return gs.where(gs.mod(num_steps, 2) == 0, point_even, point_odd)
 
+    def to_coords(self, point, coords_type, **kwargs):
+        """Convert point from intrinsic to coordinates type.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 2]
+            Point on the Klein bottle, in intrinsic coordinates.
+        coords_type : str
+            One of the following: "extrinsic", "bottle", "bagel"
+
+        Returns
+        -------
+        transformed_point : array-like, shape=[..., repr_dim]
+            Point in new representation.
+        """
+        coords_func = getattr(self, f"to_{coords_type}_coords")
+        return coords_func(point, **kwargs)
+
+    @staticmethod
+    def to_extrinsic_coords(point):
+        r"""Convert point to extrinsic coordinates.
+
+        Convert from the intrinsic coordinates in the Klein bottle (2 parameters),
+        to the extrinsic coordinates in Euclidean space (4 parameters).
+        For intrinsic parameters (\theta,v) the extrinsic Euclidean parametrization is
+        [https://en.wikipedia.org/wiki/Klein_bottle#4-D_non-intersecting]:
+
+        x = R \left(cos(\theta/2)cos(v) - sin(\theta/2)sin(2v)\right)
+        y = R \left(sin(\theta/2)cos(v) + cos(\theta/2)sin(2v)\right)
+        z = P cos(\theta)(1+\epsilon sin(v))
+        w = P sin(\theta)(1+\epsilon sin(v))
+
+        for 0\leq\theta<2\pi and 0\leq v<2\pi. P and R are constants to determine
+        the aspect ratio.
+        ε is any small constant .
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 2]
+            Point on the Klein bottle, in intrinsic coordinates.
+
+        Returns
+        -------
+        point_extrinsic : array-like, shape=[..., 4]
+            Point on the Klein bottle, in extrinsic coordinates in
+            Euclidean space.
+        """
+        theta = 2 * gs.pi * point[..., 0]
+        v = 2 * gs.pi * point[..., 1]
+        R = 1
+        P = 1
+        epsilon = 0.1
+
+        x = R * (gs.cos(theta / 2) * gs.cos(v) - gs.sin(theta / 2) * gs.sin(2 * v))
+        y = R * (gs.sin(theta / 2) * gs.cos(v) + gs.cos(theta / 2) * gs.sin(2 * v))
+        z = P * gs.cos(theta) * (1 + epsilon * gs.sin(v))
+        w = P * gs.sin(theta) * (1 + epsilon * gs.sin(v))
+
+        return gs.stack([x, y, z, w], axis=-1)
+
+    @staticmethod
+    def to_bottle_coords(point):
+        r"""Convert point to coordinates in R^3 parametrizing the Klein bottle.
+
+        Convert from the intrinsic coordinates in the Klein bottle (2 parameters),
+        to the coordinates of the Klein bottle parametrization in 3d Euclidean space
+        (3 parameters).
+        For intrinsic parameters (\theta,v) the Klein bottle parametrization is
+        [https://en.wikipedia.org/wiki/Klein_bottle#Bottle_shape]
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 2]
+            Point on the Klein bottle, in intrinsic coordinates.
+
+        Returns
+        -------
+        point_extrinsic : array-like, shape=[..., 4]
+            Point on the Klein bottle, in the Klein bagel parametrization.
+        """
+        u = 2 * gs.pi * point[..., 0]
+        v = 2 * gs.pi * point[..., 1]
+
+        fx1, fx2, fx3, fx4, fx5, fx6 = [2 / 15, 3, 30, 90, 60, 5]
+
+        x = (
+            -fx1
+            * gs.cos(u)
+            * (
+                fx2 * gs.cos(v)
+                - fx3 * gs.sin(u)
+                + fx4 * (gs.cos(u)) ** 4 * gs.sin(u)
+                - fx5 * (gs.cos(u)) ** 6 * gs.sin(u)
+                + fx6 * gs.cos(u) * gs.cos(v) * gs.sin(u)
+            )
+        )
+
+        fy1, fy2, fy3, fy4, fy5, fy6, fy7, fy8, fy9, fy10 = [
+            1 / 15,
+            3,
+            3,
+            48,
+            48,
+            60,
+            5,
+            5,
+            80,
+            80,
+        ]
+
+        y = (
+            -fy1
+            * gs.sin(u)
+            * (
+                fy2 * gs.cos(v)
+                - fy3 * (gs.cos(u)) ** 2 * gs.cos(v)
+                - fy4 * (gs.cos(u)) ** 4 * gs.cos(v)
+                + fy5 * (gs.cos(u)) ** 6 * gs.cos(v)
+                - fy6 * gs.sin(u)
+                + fy7 * gs.cos(u) * gs.cos(v) * gs.sin(u)
+                - fy8 * (gs.cos(u)) ** 3 * gs.cos(v) * gs.sin(u)
+                - fy9 * (gs.cos(u)) ** 5 * gs.cos(v) * gs.sin(u)
+                + fy10 * (gs.cos(u)) ** 10 * gs.cos(v) * gs.sin(u)
+            )
+        )
+
+        fz1, fz2, fz3 = [2 / 15, 3, 5]
+        z = fz1 * (fz2 + fz3 * gs.cos(u) * gs.sin(u)) * gs.sin(v)
+
+        return gs.stack([x, y, z], axis=-1)
+
+    @staticmethod
+    def to_bagel_coords(point, radius=5.0):
+        r"""Convert point to coordinates in R^3 parametrizing the Klein bagel.
+
+        Convert from the intrinsic coordinates in the Klein bottle (2 parameters),
+        to the coordinates of the Klein bagel parametrization in 3d Euclidean space
+        (3 parameters).
+        For intrinsic parameters (\theta,v) the Klein bagel parametrization is
+        [https://en.wikipedia.org/wiki/Klein_bottle#The_figure_8_immersion]:
+
+        x = \left(r + cos(\theta/2)sin(v) - sin(\theta/2)sin(2v)\right)cos(theta)
+        y = \left(r + cos(\theta/2)sin(v) - sin(\theta/2)sin(2v)\right)sin(theta)
+        z = sin(\theta/2)sin(v) + cos(\theta/2)sin(2v)
+
+        for 0\leq\theta<2\pi and 0\leq v<2\pi. r is a constant to determine
+        the aspect ratio.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 2]
+            Point on the Klein bottle, in intrinsic coordinates.
+        radius : float
+            Radius of the circle.
+
+        Returns
+        -------
+        point_extrinsic : array-like, shape=[..., 4]
+            Point on the Klein bottle, in the Klein bagel parametrization.
+        """
+        theta = 2 * gs.pi * point[..., 0]
+        v = 2 * gs.pi * point[..., 1]
+
+        x = (
+            radius + gs.cos(theta / 2) * gs.sin(v) - gs.sin(theta / 2) * gs.sin(2 * v)
+        ) * gs.cos(theta)
+        y = (
+            radius + gs.cos(theta / 2) * gs.sin(v) - gs.sin(theta / 2) * gs.sin(2 * v)
+        ) * gs.sin(theta)
+        z = gs.sin(theta / 2) * gs.sin(v) + gs.cos(theta / 2) * gs.sin(2 * v)
+
+        return gs.stack([x, y, z], axis=-1)
+
 
 class KleinBottleMetric(RiemannianMetric):
     """Class for the Klein Bottle Metric.
