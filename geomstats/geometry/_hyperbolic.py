@@ -359,7 +359,7 @@ class _Hyperbolic:
     @classmethod
     def extrinsic_to_half_space_tangent(cls, tangent_vec, base_point):
         tangent_vec_ball = cls.extrinsic_to_ball_tangent(tangent_vec, base_point)
-        base_point_ball = cls.extrinsic_to_ball_coordinates(base_point)
+        base_point_ball = cls._extrinsic_to_ball_coordinates(base_point)
         return cls.ball_to_half_space_tangent(tangent_vec_ball, base_point_ball)
 
     @staticmethod
@@ -424,7 +424,7 @@ class _Hyperbolic:
         Convert the parameterization of a tangent vector in the hyperbolic space
         from current given coordinate system to an other also given in parameters.
          The possible coordinates system are 'extrinsic', 'ball' and
-        'half-plane' that correspond respectivelly to extrinsic coordinates in the
+        'half-plane' that correspond respectively to extrinsic coordinates in the
         hyperboloid, coordinates in the Poincare ball model and coordinates in the
         Poincare upper half-space model.
 
@@ -447,12 +447,12 @@ class _Hyperbolic:
             to_coordinates_system.
         """
         coords_transform = {
-            "ball-extrinsic": _Hyperbolic._ball_to_extrinsic_tangent,
-            "extrinsic-ball": _Hyperbolic._extrinsic_to_ball_tangent,
+            "ball-extrinsic": _Hyperbolic.ball_to_extrinsic_tangent,
+            "extrinsic-ball": _Hyperbolic.extrinsic_to_ball_tangent,
             "ball-half-space": _Hyperbolic.ball_to_half_space_tangent,
             "half-space-ball": _Hyperbolic.half_space_to_ball_tangent,
-            "extrinsic-half-space": _Hyperbolic._extrinsic_to_half_space_tangent,
-            "half-space-extrinsic": _Hyperbolic._half_space_to_extrinsic_tangent,
+            "extrinsic-half-space": _Hyperbolic.extrinsic_to_half_space_tangent,
+            "half-space-extrinsic": _Hyperbolic.half_space_to_extrinsic_tangent,
         }
 
         if from_coordinates_system == to_coordinates_system:

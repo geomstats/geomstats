@@ -49,6 +49,9 @@ class HyperbolicCoordsTransformTestCase(TestCase):
     def _get_random_point(self, coords_type, n_points=1):
         return self._get_space(coords_type).random_point(n_points)
 
+    def _get_random_tangent_vec(self, base_point, coords_type, n_vecs=1):
+        return self._get_space(coords_type).random_tangent_vec(base_point, n_vecs)
+
     def _test_from_space_to_other_space_tangent_is_tangent(
         self, n_points, from_, other, atol
     ):
@@ -176,6 +179,41 @@ class HyperbolicCoordsTransformTestCase(TestCase):
             point_other, to_coordinates_system, from_coordinates_system
         )
         self.assertAllClose(point_, point, atol=atol)
+
+    def test_change_tangent_coordinates_system(
+        self, tangent_vec, base_point, from_coordinates_system, to_coordinates_system, expected, atol
+    ):
+        res = self.space.change_tangent_coordinates_system(
+            tangent_vec, base_point, from_coordinates_system, to_coordinates_system
+        )
+        self.assertAllClose(res, expected, atol=atol)
+
+    # @pytest.mark.vec
+    # def test_change_tangent_coordinates_system_vec(
+    #     self, n_reps, from_coordinates_system, to_coordinates_system, atol
+    # ):
+    #     base_point = self._get_random_point(from_coordinates_system)
+    #     tangent_vec = self._get_random_tangent_vec(base_point, from_coordinates_system)
+    #     expected = self.space.change_tangent_coordinates_system(
+    #         tangent_vec, base_point, from_coordinates_system, to_coordinates_system
+    #     )
+    #
+    #     vec_data = generate_vectorization_data(
+    #         data=[
+    #             dict(
+    #                 tangent_vec=tangent_vec,
+    #                 base_point=base_point,
+    #                 from_coordinates_system=from_coordinates_system,
+    #                 to_coordinates_system=to_coordinates_system,
+    #                 expected=expected,
+    #                 atol=atol,
+    #             )
+    #         ],
+    #         arg_names=["tangent_vec", "base_point"],
+    #         expected_name="expected",
+    #         n_reps=n_reps,
+    #     )
+    #     self._test_vectorization(vec_data)
 
 
 class HyperbolicMetricTestCase(RiemannianMetricTestCase):
