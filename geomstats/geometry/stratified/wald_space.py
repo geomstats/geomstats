@@ -15,6 +15,8 @@ References
     https://doi.org/10.1007/978-3-030-80209-7_76.
 """
 
+from abc import ABC
+
 import geomstats.backend as gs
 from geomstats.geometry.hermitian_matrices import powermh
 from geomstats.geometry.matrices import Matrices
@@ -429,6 +431,30 @@ class WaldSpace(PointSet):
 
         return WaldCollection(forests)
 
+    def random_grove_point(self, topology, n_samples=1):
+        """Sample a random point in a given grove of wald spcae.
+
+        Parameters
+        ----------
+        topology : ForestTopology
+        n_samples : int
+            Number of samples. Defaults to 1.
+
+        Returns
+        -------
+        samples : Wald or list of Wald, shape=[n_samples]
+            Points sampled in Wald space.
+        """
+        n_splits = topology.n_splits
+        weights = gs.random.uniform(size=(n_samples, n_splits))
+
+        forests = [Wald(topology, weights_) for weights_ in weights]
+
+        if n_samples == 1:
+            return forests[0]
+
+        return WaldCollection(forests)
+
     @vectorize_point((1, "point"))
     def lift(self, point):
         """Lift a point to the ambient space.
@@ -455,19 +481,21 @@ class WaldSpaceMetric(PointSetMetric):
         Set to equip with metric.
     projection_solver : ProjectionSolver
         Numerical solver to solve projection problem.
+    geodesic_solver : GeodesicSolver
+        Numerical solver to solve geodesic problem.
     """
 
-    def __init__(self, space, projection_solver=None):
+    def __init__(self, space, projection_solver=None, geodesic_solver=None):
         super().__init__(space)
 
         if projection_solver is None:
             projection_solver = LocalProjectionSolver(space)
-        self.projection_solver = projection_solver
 
-    @property
-    def ambient_metric(self):
-        """Metric on ambient space."""
-        return self._space.ambient_space.metric
+        if geodesic_solver is None:
+            geodesic_solver = NaiveProjectionGeodesicSolver(space)
+
+        self.projection_solver = projection_solver
+        self.geodesic_solver = geodesic_solver
 
     def dist(self, point_a, point_b):
         """Distance between two points in the WaldSpace.
@@ -484,7 +512,25 @@ class WaldSpaceMetric(PointSetMetric):
         distance : array-like, shape=[...]
             Distance.
         """
-        raise NotImplementedError("dist is not yet implemented.")
+        discrete_path = self.discrete_geodesic(point_a, point_b)
+        is_list = not isinstance(discrete_path, WaldCollection)
+        if not is_list:
+            discrete_path = [discrete_path]
+
+        dists = [
+            gs.sum(
+                self._space.ambient_space.metric.dist(
+                    discrete_path_.corr[1:], discrete_path_.corr[:-1]
+                ),
+                axis=-1,
+            )
+            for discrete_path_ in discrete_path
+        ]
+
+        if is_list:
+            return gs.stack(dists)
+
+        return gs.squeeze(dists)
 
     def geodesic(self, initial_point, end_point):
         """Compute the geodesic in the WaldSpace.
@@ -501,11 +547,36 @@ class WaldSpaceMetric(PointSetMetric):
         path : callable
             Time parameterized geodesic curve.
         """
-        raise NotImplementedError("geodesic is not yet implemented.")
+        return self.geodesic_solver.geodesic(initial_point, end_point)
 
-    def projection(self, ambient_point, **kwargs):
-        """Projects a point into Wald space."""
-        return self.projection_solver.projection(ambient_point, **kwargs)
+    def discrete_geodesic(self, initial_point, end_point):
+        """Compute a discrete geodesic in the WaldSpace.
+
+        Parameters
+        ----------
+        initial_point: Wald or WaldCollection
+            Point in the WaldSpace.
+        end_point: Point or list[Point]
+            Point in the WaldSpace.
+
+        Returns
+        -------
+        geod_points : WaldCollection or list[WaldCollection]
+            Time parameterized geodesic curve.
+        """
+        return self.geodesic_solver.discrete_geodesic(initial_point, end_point)
+
+    def projection(self, ambient_point, topology):
+        """Projects a point into Wald space.
+
+        Parameters
+        ----------
+        ambient_point : array-like, shape=[..., n_nodes, n_nodes]
+            Ambient point to project.
+        topology : ForestTopology or list[ForestTopology]
+            Stratum topology.
+        """
+        return self.projection_solver.projection(ambient_point, topology)
 
 
 def _squared_dist_and_grad_affine(space, topology, ambient_point):
@@ -660,3 +731,257 @@ class LocalProjectionSolver:
             self._projection_single(ambient_point_, topology_)
             for ambient_point_, topology_ in zip(ambient_point, topology)
         ]
+
+
+class BasicWaldGeodesicSolver(ABC):
+    """Abstract class for wald geodesic solver.
+
+    Parameters
+    ----------
+    space : WaldSpace
+    """
+
+    def __init__(self, space):
+        self._space = space
+
+    @vectorize_point(
+        (1, "initial_point"),
+        (2, "end_point"),
+        manipulate_input=_manipulate_input_with_array,
+        manipulate_output=lambda out, to_list: _manipulate_output(
+            out, to_list, manipulate_output_iterable=lambda x: x
+        ),
+    )
+    def discrete_geodesic(self, initial_point, end_point):
+        """Compute a discrete geodesic in the WaldSpace.
+
+        Parameters
+        ----------
+        initial_point: Wald or WaldCollection
+            Point in the WaldSpace.
+        end_point: Point or list[Point]
+            Point in the WaldSpace.
+
+        Returns
+        -------
+        geod_points : WaldCollection or list[WaldCollection]
+            Time parameterized geodesic curve.
+        """
+        initial_point, end_point = broadcast_lists(initial_point, end_point)
+        return [
+            self._discrete_geodesic_single(
+                initial_point_,
+                end_point_,
+            )
+            for initial_point_, end_point_ in zip(initial_point, end_point)
+        ]
+
+    def geodesic(self, initial_point, end_point):
+        """Compute the geodesic in the WaldSpace.
+
+        Parameters
+        ----------
+        initial_point: Wald or WaldCollection
+            Point in the WaldSpace.
+        end_point: Point or list[Point]
+            Point in the WaldSpace.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve.
+        """
+
+        def _vec(t, fncs):
+            if len(fncs) == 1:
+                return fncs[0](t)
+
+            return [fnc(t) for fnc in fncs]
+
+        discrete_path = self.discrete_geodesic(initial_point, end_point)
+
+        if isinstance(discrete_path, WaldCollection):
+            return DiscreteWaldPath(self._space, discrete_path)
+
+        return lambda t: _vec(
+            t,
+            fncs=[
+                DiscreteWaldPath(self._space, discrete_path_)
+                for discrete_path_ in discrete_path
+            ],
+        )
+
+
+class NaiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
+    """Naive geodesic projection solver.
+
+    Implementation of algorithm 1 from [Lueg21]_.
+    """
+
+    def __init__(self, space, n_grid=5):
+        super().__init__(space)
+        self.n_grid = n_grid
+
+    def _discrete_geodesic_single(self, initial_point, end_point):
+        """Compute a discrete geodesic in the WaldSpace.
+
+        Parameters
+        ----------
+        initial_point: Wald or WaldCollection
+            Point in the WaldSpace.
+        end_point: Point or list[Point]
+            Point in the WaldSpace.
+
+        Returns
+        -------
+        geod_points : WaldCollection or list[WaldCollection]
+            Time parameterized geodesic curve.
+        """
+        if initial_point.topology != end_point.topology:
+            raise ValueError("Can only handle points in the same grove.")
+
+        topology = initial_point.topology
+
+        initial_corr = self._space.lift(initial_point)
+        end_corr = self._space.lift(end_point)
+
+        ambient_geod_func = self._space.ambient_space.metric.geodesic(
+            initial_corr, end_point=end_corr
+        )
+
+        time = gs.linspace(0, 1, self.n_grid)[1:-1]
+        mid_ambient_point = ambient_geod_func(time)
+
+        mid_point = self._space.metric.projection(mid_ambient_point, topology)
+
+        return WaldCollection([initial_point] + mid_point + [end_point])
+
+
+class LinearInterpolator1D:
+    """A 1D linear interpolator.
+
+    Assumes interpolation occurs in the unit interval.
+
+    Parameters
+    ----------
+    times : array-like, [n_times]
+    data : array-like, [..., *point_shape]
+    point_ndim : int
+        Dimension of point.
+    """
+
+    # TODO: this handles arrays -> can be moved to numerics.interpolation
+    # TODO: take more advantage of already existing interpolation
+
+    def __init__(self, times, data, point_ndim=1):
+        self.times = times
+        self.data = data
+        self.point_ndim = point_ndim
+        self._delta = self.times[1:] - self.times[:-1]
+
+    def __call__(self, t):
+        """Interpolate data.
+
+        Parameters
+        ----------
+        t : array-like, shape=[n_time]
+            Interpolation time.
+
+        Returns
+        -------
+        point : array-like, shape=[..., n_time, *point_shape]
+        """
+        return self.interpolate(t)
+
+    def _from_t_to_interval(self, t):
+        """Get interval index from time.
+
+        Parameters
+        ----------
+        t : array-like, shape=[n_time]
+            Interpolation time.
+
+        Returns
+        -------
+        interval_index : array-like, shape=[n_times]
+        """
+        # TODO: differs from other
+        # NB: assumes t is sorted
+        indices = gs.searchsorted(self.times, t) - 1
+        return gs.where(indices < 0, 0, indices)
+
+    def interpolate(self, t):
+        """Interpolate data.
+
+        Parameters
+        ----------
+        t : array-like, shape=[n_time]
+            Interpolation time.
+
+        Returns
+        -------
+        point : array-like, shape=[..., n_time, *point_shape]
+        """
+        interval_index = self._from_t_to_interval(t)
+
+        point_ndim_slc = (slice(None),) * self.point_ndim
+
+        max_bound_reached = interval_index == self._n_times - 1
+
+        end_index = gs.where(max_bound_reached, interval_index, interval_index + 1)
+
+        initial_point = self.data[..., interval_index, *point_ndim_slc]
+        end_point = self.data[..., end_index, *point_ndim_slc]
+        delta = self._delta[interval_index]
+
+        diff = end_point - initial_point
+        # TODO: only part that differs from other
+        ratio = (delta - (self.times[end_index] - t)) / delta
+
+        ijk = "ijk"[self.point_ndim]
+        return initial_point + gs.einsum(f"t,...t{ijk}->...t{ijk}", ratio, diff)
+
+
+class DiscreteWaldPath:
+    """A uniformly-sampled discrete path.
+
+    Parameters
+    ----------
+    space : WaldSpace
+    path : WaldCollection
+        Wald collection with common topology.
+    interpolator : Interpolator1D
+    """
+
+    def __init__(self, space, path, interpolator=None, **interpolator_kwargs):
+        # NB: assumes common topology
+        self._topology = path[0].topology
+
+        times = self._get_times(space, path)
+
+        if interpolator is None:
+            interpolator = LinearInterpolator1D(
+                times, path.weights, point_ndim=1, **interpolator_kwargs
+            )
+        self.interpolator = interpolator
+
+    def _get_times(self, space, path):
+        """Compute times for linear interpolation."""
+        dists = space.ambient_space.metric.dist(path[1:].corr, path[:-1].corr)
+        cum_dists = gs.cumsum(dists)
+        return gs.concatenate([gs.array([0.0]), cum_dists / cum_dists[-1]])
+
+    def __call__(self, t):
+        """Interpolate path.
+
+        Parameters
+        ----------
+        t : array-like, shape=[n_time]
+            Interpolation time.
+
+        Returns
+        -------
+        path : WaldCollection
+        """
+        weights = self.interpolator(t)
+        return WaldCollection([Wald(self._topology, weights_) for weights_ in weights])

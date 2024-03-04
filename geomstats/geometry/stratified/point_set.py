@@ -30,6 +30,12 @@ class Point(ABC):
 class PointCollection(ABC, list):
     """Class for point collections."""
 
+    def __getitem__(self, key):
+        """Get item."""
+        if isinstance(key, int):
+            return list.__getitem__(self, key)
+        return self.__class__(list.__getitem__(self, key))
+
     def equal(self, point, atol=gs.atol):
         """Check equality against another point.
 
