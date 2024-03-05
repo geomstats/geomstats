@@ -3,26 +3,15 @@ import random
 import pytest
 
 from geomstats.geometry.hyperbolic import Hyperbolic
-from geomstats.geometry.hyperboloid import Hyperboloid
-from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
-from geomstats.test_cases.geometry.hyperbolic import (
-    BallToHalfSpace,
-    HyperbolicDiffeo,
-    HyperbolicTransformer,
-)
+from geomstats.test_cases.geometry.hyperbolic import HyperbolicDiffeo
 from geomstats.test_cases.geometry.riemannian_metric import (
     RiemannianMetricComparisonTestCase,
 )
 
 from .data.diffeo import DiffeoTestData
-from .data.hyperbolic import (
-    ExtrinsicToBall3TestData,
-    HalfSpaceToBall2TestData,
-    HyperbolicCmpWithTransformTestData,
-)
+from .data.hyperbolic import ExtrinsicToBall3TestData, HalfSpaceToBall2TestData
 from .data.riemannian_metric import RiemannianMetricCmpWithPointTransformTestData
 
 
@@ -77,41 +66,22 @@ class TestExtrinsicToBall3(DiffeoTestCase, metaclass=DataBasedParametrizer):
 @pytest.fixture(
     scope="class",
     params=[
-        (random.randint(3, 5), Hyperboloid, PoincareBall),
-        (random.randint(3, 5), Hyperboloid, PoincareHalfSpace),
-    ],
-)
-def point_cmp_spaces(request):
-    dim, Space, OtherSpace = request.param
-    space = request.cls.space = Space(dim)
-    other_space = request.cls.other_space = OtherSpace(dim)
-
-    request.cls.point_transformer = HyperbolicTransformer(space, other_space)
-
-
-@pytest.mark.usefixtures("point_cmp_spaces")
-class TestHyperbolicCmpWithPointTransform(
-    RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = RiemannianMetricCmpWithPointTransformTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        (random.randint(3, 5), PoincareBall, PoincareHalfSpace),
+        (random.randint(3, 5), "extrinsic", "ball"),
+        (random.randint(3, 5), "extrinsic", "half-space"),
+        (random.randint(3, 5), "ball", "half-space"),
     ],
 )
 def cmp_spaces(request):
-    dim, Space, OtherSpace = request.param
-    space = request.cls.space = Space(dim)
-    other_space = request.cls.other_space = OtherSpace(dim)
+    dim, from_, to = request.param
 
-    request.cls.point_transformer = BallToHalfSpace(space, other_space)
+    request.cls.space = Hyperbolic(dim, from_)
+    request.cls.other_space = Hyperbolic(dim, to)
+
+    request.cls.diffeo = HyperbolicDiffeo(from_, to)
 
 
 @pytest.mark.usefixtures("cmp_spaces")
-class TestHyperbolicCmpWithTransform(
+class TestHyperbolicCmpWithOther(
     RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
 ):
-    testing_data = HyperbolicCmpWithTransformTestData()
+    testing_data = RiemannianMetricCmpWithPointTransformTestData()

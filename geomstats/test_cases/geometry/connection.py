@@ -5,7 +5,7 @@ import pytest
 import geomstats.backend as gs
 from geomstats.test.random import RandomDataGenerator, get_random_times
 from geomstats.test.test_case import TestCase
-from geomstats.test.utils import IdentityPointTransformer
+from geomstats.test.utils import IdentityPointTransformer, PointTransformerFromDiffeo
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.vectorization import get_batch_shape
 
@@ -474,6 +474,9 @@ class ConnectionComparisonTestCase(TestCase):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = RandomDataGenerator(self.space)
+
+        if not hasattr(self, "point_transformer") and hasattr(self, "diffeo"):
+            self.point_transformer = PointTransformerFromDiffeo(self.diffeo)
 
         if not hasattr(self, "point_transformer"):
             self.point_transformer = IdentityPointTransformer()
