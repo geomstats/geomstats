@@ -250,9 +250,8 @@ class _Hyperbolic:
 
         Returns
         -------
-        tangent_vec_half_spacel : array-like, shape=[..., dim]
+        tangent_vec_half_space : array-like, shape=[..., dim]
             Tangent vector in the Poincare half-space.
-
         """
         sq_norm = gs.sum(base_point**2, axis=-1)
         den = 1 + sq_norm - 2 * base_point[..., -1]

@@ -11,7 +11,7 @@ from sklearn.decomposition._base import _BasePCA
 from sklearn.utils.extmath import stable_cumsum, svd_flip
 
 import geomstats.backend as gs
-from geomstats.geometry._hyperbolic import _Hyperbolic, HyperbolicMetric
+from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -383,7 +383,7 @@ class HyperbolicPlanePCA(_BasePCA):
     mean_ : array-like, shape=[2,]
         Intrinsic mean of the data points.
 
-    References:
+    References
     ----------
     .. [CSV2016] R. Chakraborty, D. Seo, and B. C. Vemuri,
         "An efficient exact-pga algorithm for constant curvature manifolds."
@@ -511,10 +511,12 @@ class HyperbolicPlanePCA(_BasePCA):
         var_2 = gs.mean(self.space_ext.metric.dist(mean_ext, proj2_ext) ** 2)
         self.explained_variance_ = gs.stack((var_1, var_2))
 
-        return gs.stack([
-            self.space.from_coordinates(proj1_ext, "extrinsic"),
-            self.space.from_coordinates(proj2_ext, "extrinsic"),
-        ])
+        return gs.stack(
+            [
+                self.space.from_coordinates(proj1_ext, "extrinsic"),
+                self.space.from_coordinates(proj2_ext, "extrinsic"),
+            ]
+        )
 
 
 class ExactPGA(_BasePCA):
