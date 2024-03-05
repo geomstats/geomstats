@@ -1,10 +1,6 @@
-import pytest
-
-import geomstats.backend as gs
-from geomstats.geometry.hyperbolic import Hyperbolic
-from geomstats.test.test_case import TestCase
+from geomstats.geometry._hyperbolic import _Hyperbolic
+from geomstats.geometry.diffeo import Diffeo
 from geomstats.test.utils import PointTransformer
-from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
@@ -42,178 +38,115 @@ class BallToHalfSpace(HyperbolicTransformer):
         )
 
 
-class HyperbolicCoordsTransformTestCase(TestCase):
-    def _get_space(self, coords_type):
-        return Hyperbolic(dim=self.dim, coords_type=coords_type)
+class HyperbolicDiffeo(Diffeo):
+    """Diffeomorphism between hyperbolic coordinates.
 
-    def _get_random_point(self, coords_type, n_points=1):
-        return self._get_space(coords_type).random_point(n_points)
+    Parameters
+    ----------
+    from_coordinates_system : str, {'extrinsic', 'ball', 'half-space'}
+        Coordinates type.
+    to_coordinates_system : str, {'extrinsic', 'ball', 'half-space'}
+        Coordinates type.
+    """
 
-    def _get_random_tangent_vec(self, base_point, coords_type, n_vecs=1):
-        return self._get_space(coords_type).random_tangent_vec(base_point, n_vecs)
+    def __init__(self, from_coordinates_system, to_coordinates_system):
+        self.from_coordinates_system = from_coordinates_system
+        self.to_coordinates_system = to_coordinates_system
 
-    def _test_from_space_to_other_space_tangent_is_tangent(
-        self, n_points, from_, other, atol
+    def diffeomorphism(self, base_point):
+        """Diffeomorphism at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *space_shape]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., *image_shape]
+            Image point.
+        """
+        return _Hyperbolic.change_coordinates_system(
+            base_point, self.from_coordinates_system, self.to_coordinates_system
+        )
+
+    def inverse_diffeomorphism(self, image_point):
+        r"""Inverse diffeomorphism at image point.
+
+        :math:`f^{-1}: N \rightarrow M`
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., *image_shape]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., *space_shape]
+            Base point.
+        """
+        return _Hyperbolic.change_coordinates_system(
+            image_point, self.to_coordinates_system, self.from_coordinates_system
+        )
+
+    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+        r"""Tangent diffeomorphism at base point.
+
+        df_p is a linear map from T_pM to T_f(p)N.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space_shape]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., *space_shape]
+            Base point.
+        image_point : array-like, shape=[..., *image_shape]
+            Image point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., *image_shape]
+            Image tangent vector at image of the base point.
+        """
+        if base_point is None:
+            base_point = self.inverse_diffeomorphism(image_point)
+        return _Hyperbolic.change_tangent_coordinates_system(
+            tangent_vec,
+            base_point,
+            self.from_coordinates_system,
+            self.to_coordinates_system,
+        )
+
+    def inverse_tangent_diffeomorphism(
+        self, image_tangent_vec, image_point=None, base_point=None
     ):
-        space = self._get_space(from_)
-        base_point = space.random_point(n_points)
-        tangent_vec = space.random_tangent_vec(base_point)
+        r"""Inverse tangent diffeomorphism at image point.
 
-        func_to_tangent = getattr(
-            self.space,
-            f'{from_.replace("-", "_")}_to_{other.replace("-", "_")}_tangent',
+        df^-1_p is a linear map from T_f(p)N to T_pM
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., *image_shape]
+            Image tangent vector at image point.
+        image_point : array-like, shape=[..., *image_shape]
+            Image point.
+        base_point : array-like, shape=[..., *space_shape]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *space_shape]
+            Tangent vector at base point.
+        """
+        if image_point is None:
+            image_point = self.diffeomorphism(base_point)
+
+        return _Hyperbolic.change_tangent_coordinates_system(
+            image_tangent_vec,
+            image_point,
+            self.to_coordinates_system,
+            self.from_coordinates_system,
         )
-        tangent_vec_other = func_to_tangent(tangent_vec, base_point)
-        base_point_other = self.space.change_coordinates_system(
-            base_point, from_, other
-        )
-
-        other_space = self._get_space(other)
-        res = other_space.is_tangent(tangent_vec_other, base_point_other, atol=atol)
-        expected = gs.ones(n_points, dtype=bool)
-        self.assertAllEqual(res, expected)
-
-    def _test_from_to_other_space_tangent_vec(self, n_reps, from_, other, atol):
-        space = self._get_space(from_)
-        base_point = space.random_point()
-        tangent_vec = space.random_tangent_vec(base_point)
-
-        func_to_tangent = getattr(
-            self.space,
-            f'{from_.replace("-", "_")}_to_{other.replace("-", "_")}_tangent',
-        )
-        expected = func_to_tangent(tangent_vec, base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec=tangent_vec,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec", "base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(
-            vec_data,
-            test_fnc_name=f'test_{from_.replace("-", "_")}_to_{other.replace("-", "_")}_tangent',
-        )
-
-    def test_half_space_to_ball_tangent(self, tangent_vec, base_point, expected, atol):
-        res = self.space.half_space_to_ball_tangent(tangent_vec, base_point)
-        self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_half_space_to_ball_tangent_vec(self, n_reps, atol):
-        return self._test_from_to_other_space_tangent_vec(
-            n_reps, "half-space", "ball", atol
-        )
-
-    @pytest.mark.random
-    def test_half_space_to_ball_tangent_is_tangent(self, n_points, atol):
-        return self._test_from_space_to_other_space_tangent_is_tangent(
-            n_points, "half-space", "ball", atol
-        )
-
-    def test_ball_to_half_space_tangent(self, tangent_vec, base_point, expected, atol):
-        res = self.space.ball_to_half_space_tangent(tangent_vec, base_point)
-        self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_ball_to_half_space_tangent_vec(self, n_reps, atol):
-        return self._test_from_to_other_space_tangent_vec(
-            n_reps, "ball", "half-space", atol
-        )
-
-    @pytest.mark.random
-    def test_ball_to_half_space_tangent_is_tangent(self, n_points, atol):
-        return self._test_from_space_to_other_space_tangent_is_tangent(
-            n_points, "ball", "half-space", atol
-        )
-
-    def test_change_coordinates_system(
-        self, point, from_coordinates_system, to_coordinates_system, expected, atol
-    ):
-        res = self.space.change_coordinates_system(
-            point, from_coordinates_system, to_coordinates_system
-        )
-        self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_change_coordinates_system_vec(
-        self, n_reps, from_coordinates_system, to_coordinates_system, atol
-    ):
-        point = self._get_random_point(from_coordinates_system)
-        expected = self.space.change_coordinates_system(
-            point, from_coordinates_system, to_coordinates_system
-        )
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    point=point,
-                    from_coordinates_system=from_coordinates_system,
-                    to_coordinates_system=to_coordinates_system,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    @pytest.mark.vec
-    def test_change_coordinates_system_after_change_coordinates_system(
-        self, n_points, from_coordinates_system, to_coordinates_system, atol
-    ):
-        point = self._get_random_point(from_coordinates_system, n_points)
-        point_other = self.space.change_coordinates_system(
-            point, from_coordinates_system, to_coordinates_system
-        )
-        point_ = self.space.change_coordinates_system(
-            point_other, to_coordinates_system, from_coordinates_system
-        )
-        self.assertAllClose(point_, point, atol=atol)
-
-    def test_change_tangent_coordinates_system(
-        self, tangent_vec, base_point, from_coordinates_system, to_coordinates_system, expected, atol
-    ):
-        res = self.space.change_tangent_coordinates_system(
-            tangent_vec, base_point, from_coordinates_system, to_coordinates_system
-        )
-        self.assertAllClose(res, expected, atol=atol)
-
-    # @pytest.mark.vec
-    # def test_change_tangent_coordinates_system_vec(
-    #     self, n_reps, from_coordinates_system, to_coordinates_system, atol
-    # ):
-    #     base_point = self._get_random_point(from_coordinates_system)
-    #     tangent_vec = self._get_random_tangent_vec(base_point, from_coordinates_system)
-    #     expected = self.space.change_tangent_coordinates_system(
-    #         tangent_vec, base_point, from_coordinates_system, to_coordinates_system
-    #     )
-    #
-    #     vec_data = generate_vectorization_data(
-    #         data=[
-    #             dict(
-    #                 tangent_vec=tangent_vec,
-    #                 base_point=base_point,
-    #                 from_coordinates_system=from_coordinates_system,
-    #                 to_coordinates_system=to_coordinates_system,
-    #                 expected=expected,
-    #                 atol=atol,
-    #             )
-    #         ],
-    #         arg_names=["tangent_vec", "base_point"],
-    #         expected_name="expected",
-    #         n_reps=n_reps,
-    #     )
-    #     self._test_vectorization(vec_data)
 
 
 class HyperbolicMetricTestCase(RiemannianMetricTestCase):
