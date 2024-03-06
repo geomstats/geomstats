@@ -10,7 +10,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.numerics.finite_differences import forward_difference
+from geomstats.numerics.geodesic import PathStraightening
 from geomstats.numerics.optimizers import ScipyMinimize
 from geomstats.vectorization import get_batch_shape
 
@@ -514,7 +514,13 @@ class ElasticMetric(RiemannianMetric):
         self.a2 = a2
 
         self.exp_solver = _ExpSolver(n_steps=10)
-        self.log_solver = _LogSolver(n_steps=10)
+
+        optimizer = ScipyMinimize(
+            method="L-BFGS-B",
+            jac="autodiff",
+            options={"disp": False, "ftol": 0.001},
+        )
+        self.log_solver = PathStraightening(n_nodes=10, optimizer=optimizer)
 
     def _inner_product_a0(self, tangent_vec_a, tangent_vec_b, vertex_areas_bp):
         r"""Compute term of order 0 within the inner-product.
@@ -913,77 +919,6 @@ class ElasticMetric(RiemannianMetric):
             + inner_prod_d1
         )
 
-    def path_energy_per_time(self, path):
-        """Compute stepwise path energy of a path in the space of discrete surfaces.
-
-        Parameters
-        ----------
-        path : array-like, shape=[..., n_times, n_vertices, 3]
-            Piecewise linear path of discrete surfaces.
-
-        Returns
-        -------
-        energy : array-like, shape=[..., n_times - 1,]
-            Stepwise path energy.
-        """
-        n_time = path.shape[-3]
-        tangent_vecs = forward_difference(path, axis=-3)
-        return self.squared_norm(
-            tangent_vecs,
-            path[:-1],
-        ) / (2 * n_time)
-
-    def path_energy(self, path):
-        """Compute path energy of a path in the space of discrete surfaces.
-
-        Parameters
-        ----------
-        path : array-like, shape=[..., n_times, n_vertices, 3]
-            Piecewise linear path of discrete surfaces.
-
-        Returns
-        -------
-        energy : array-like, shape=[...,]
-            Path energy.
-        """
-        return gs.sum(self.path_energy_per_time(path), axis=-1)
-
-    def exp(self, tangent_vec, base_point):
-        """Compute the exponential map.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n_vertices, 3]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., n_vertices, 3]
-            Base point.
-
-        Returns
-        -------
-        exp : array-like, shape=[..., n_vertices, 3]
-            End point of the geodesic starting at base_point with
-            initial velocity tangent_vec and stopping at time 1.
-        """
-        return self.exp_solver.exp(self._space, tangent_vec, base_point)
-
-    def log(self, point, base_point):
-        """Compute the logarithm map.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n_vertices, 3]
-            Point.
-        base_point : array-like, shape=[..., n_vertices, 3]
-            Base point.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., n_vertices, 3]
-            Initial velocity of the geodesic starting at base_point and
-            reaching point at time 1.
-        """
-        return self.log_solver.log(self._space, point, base_point)
-
 
 class _ExpSolver:
     """Class to solve the initial value problem (IVP) for exp."""
@@ -1168,131 +1103,3 @@ class _ExpSolver:
         )
 
         return gs.reshape(gs.array(sol.x), (n_vertices, 3))
-
-
-class _LogSolver:
-    """Class to solve the boundary value problem (BVP) for exp."""
-
-    def __init__(self, n_steps=10, optimizer=None):
-        if optimizer is None:
-            optimizer = ScipyMinimize(
-                method="L-BFGS-B",
-                jac="autodiff",
-                options={"disp": False, "ftol": 0.001},
-            )
-
-        self.n_steps = n_steps
-        self.optimizer = optimizer
-
-    def log(self, space, point, base_point):
-        """Compute logarithm map associated to the Riemannian metric.
-
-        Solve the boundary value problem associated to the geodesic equation
-        using path straightening.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n_vertices,3]
-            Point on the manifold.
-        base_point : array-like, shape=[..., n_vertices,3]
-            Point on the manifold.
-
-        Returns
-        -------
-        logs : array-like, shape=[..., n_vertices, 3]
-            Tangent vector at the base point.
-        """
-        if gs.__name__.endswith("autograd"):
-            return (
-                "This LogSolver works for the pytorch backend."
-                "Change backend via the command "
-                "export GEOMSTATS_BACKEND=pytorch in a terminal"
-            )
-
-        logs = []
-        need_squeeze = False
-        if point.ndim == 2:
-            point = gs.expand_dims(point, axis=0)
-            need_squeeze = True
-        if base_point.ndim == 2:
-            base_point = gs.expand_dims(base_point, axis=0)
-            need_squeeze = True
-        n_logs = gs.maximum(point.shape[0], base_point.shape[0])
-        point = gs.broadcast_to(point, (n_logs,) + point.shape[1:])
-        base_point = gs.broadcast_to(base_point, (n_logs,) + base_point.shape[1:])
-
-        for one_point, one_base_point in zip(point, base_point):
-            geod = self._bvp(space, one_base_point, one_point)
-            logs.append((geod[1] - geod[0]) * self.n_steps)
-
-        logs = gs.array(logs)
-        if need_squeeze:
-            logs = gs.squeeze(logs, axis=0)
-        return logs
-
-    def _bvp(self, space, initial_point, end_point):
-        """Solve boundary value problem (BVP).
-
-        Given an initial point and an end point, solve the geodesic equation
-        via minimizing the energy function.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[n_vertices, 3]
-            Initial point, i.e. initial discrete surface.
-        end_point : array-like, shape=[n_vertices, 3]
-            End point, i.e. end discrete surface.
-
-        Returns
-        -------
-        geod : array-like, shape=[n_times, n_vertices, 3]
-            Geodesic discretized on the times given as inputs.
-        """
-        times = gs.linspace(0.0, 1.0, self.n_steps)
-        n_points = initial_point.shape[-2]
-        step = end_point - initial_point
-        geod = gs.array([initial_point + i * step for i in times])
-        midpoints = geod[1 : self.n_steps - 1]
-
-        initial_point = gs.expand_dims(initial_point, axis=0)
-        end_point = gs.expand_dims(end_point, axis=0)
-
-        def objective(midpoint):
-            """Compute path energy of paths going through a midpoint.
-
-            Parameters
-            ----------
-            midpoint : array-like, shape=[(self.n_steps-2) * n_points * 3]
-                Midpoints of the path.
-
-            Returns
-            -------
-            _ : array-like, shape=[...]
-                Energy of the path going through this midpoint.
-            """
-            midpoint = gs.reshape(gs.array(midpoint), (self.n_steps - 2, n_points, 3))
-            paths = gs.concatenate(
-                [
-                    initial_point,
-                    midpoint,
-                    end_point,
-                ],
-                axis=0,
-            )
-            return space.metric.path_energy(paths)
-
-        initial_geod = gs.flatten(midpoints)
-        sol = self.optimizer.minimize(objective, initial_geod)
-
-        solution_midpoint = gs.reshape(gs.array(sol.x), (self.n_steps - 2, n_points, 3))
-
-        geod = gs.concatenate(
-            [
-                initial_point,
-                solution_midpoint,
-                end_point,
-            ],
-            axis=0,
-        )
-
-        return geod

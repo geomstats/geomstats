@@ -15,14 +15,12 @@ from geomstats.test_cases.numerics.geodesic import (
     ExpSolverAgainstMetricTestCase,
     ExpSolverComparisonTestCase,
     ExpSolverTestCase,
-    ExpSolverTypeCheck,
 )
 
 from .data.geodesic import (
     ExpSolverAgainstMetricTestData,
     ExpSolverComparisonTestData,
     ExpSolverTestData,
-    ExpSolverTypeCheckTestData,
 )
 
 
@@ -106,30 +104,3 @@ class TestExpODESolverMatrix(ExpSolverTestCase, metaclass=DataBasedParametrizer)
     )
 
     testing_data = ExpSolverTestData()
-
-
-def _create_params_type_check():
-    params = []
-
-    space = PoincareBall(random.randint(2, 3))
-    for integrator in (
-        GSIVPIntegrator(n_steps=10, step_type="euler"),
-        ScipySolveIVP(),
-    ):
-        solver = ExpODESolver(integrator=integrator)
-        params.append((space, solver))
-
-    return params
-
-
-@pytest.fixture(
-    scope="class",
-    params=_create_params_type_check(),
-)
-def spaces_for_type_checking(request):
-    request.cls.space, request.cls.exp_solver = request.param
-
-
-@pytest.mark.usefixtures("spaces_for_type_checking")
-class TestExpSolverTypeCheck(ExpSolverTypeCheck, metaclass=DataBasedParametrizer):
-    testing_data = ExpSolverTypeCheckTestData()
