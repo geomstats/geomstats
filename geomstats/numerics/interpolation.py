@@ -3,10 +3,11 @@
 import geomstats.backend as gs
 
 
-class LinearInterpolator1D:
+class UniformUnitIntervalLinearInterpolator:
     """A 1D linear interpolator.
 
-    Assumes interpolation occurs in the unit interval.
+    Assumes interpolation occurs in the unit interval and
+    data is uniformly sampled.
 
     Parameters
     ----------

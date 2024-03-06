@@ -2,7 +2,7 @@
 
 import geomstats.backend as gs
 from geomstats.numerics.finite_differences import forward_difference
-from geomstats.numerics.interpolation import LinearInterpolator1D
+from geomstats.numerics.interpolation import UniformUnitIntervalLinearInterpolator
 
 
 class UniformlySampledPathEnergy:
@@ -22,9 +22,9 @@ class UniformlySampledPathEnergy:
         energy : array-like, shape=[...,]
             Path energy.
         """
-        return self.path_energy(space, path)
+        return self.energy(space, path)
 
-    def path_energy_per_time(self, space, path):
+    def energy_per_time(self, space, path):
         """Compute Riemannian path enery per time.
 
         Parameters
@@ -46,9 +46,9 @@ class UniformlySampledPathEnergy:
         return space.metric.squared_norm(
             tangent_vecs,
             path[..., :-1, *point_ndim_slc],
-        ) / (2 * n_time)
+        ) / (2 * (n_time - 1))
 
-    def path_energy(self, space, path):
+    def energy(self, space, path):
         """Compute Riemannian path energy.
 
         Parameters
@@ -62,7 +62,7 @@ class UniformlySampledPathEnergy:
         energy : array-like, shape=[...,]
             Path energy.
         """
-        return gs.sum(self.path_energy_per_time(space, path), axis=-1)
+        return gs.sum(self.energy_per_time(space, path), axis=-1)
 
 
 class UniformlySampledDiscretePath:
@@ -76,7 +76,9 @@ class UniformlySampledDiscretePath:
 
     def __init__(self, path, interpolator=None, **interpolator_kwargs):
         if interpolator is None:
-            interpolator = LinearInterpolator1D(path, **interpolator_kwargs)
+            interpolator = UniformUnitIntervalLinearInterpolator(
+                path, **interpolator_kwargs
+            )
         self.interpolator = interpolator
 
     def __call__(self, t):
@@ -91,4 +93,9 @@ class UniformlySampledDiscretePath:
         -------
         point : array-like, shape=[..., n_time, *point_shape]
         """
+        if not gs.is_array(t):
+            t = gs.array([t])
+
+        if gs.ndim(t) == 0:
+            t = gs.expand_dims(t, axis=0)
         return self.interpolator(t)
