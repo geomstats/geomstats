@@ -257,7 +257,7 @@ class ExpSolverTypeCheck(_SolverTestCase):
 
 
 class LogSolverTypeCheckTestCase(_SolverTestCase):
-    @pytest.mark.random
+    @pytest.mark.type
     def test_log_type(self, n_points):
         base_point = self.data_generator.random_point(n_points)
         end_point = self.data_generator.random_point(n_points)
@@ -265,7 +265,7 @@ class LogSolverTypeCheckTestCase(_SolverTestCase):
         res = self.log_solver.log(self.space, end_point, base_point)
         self.assertTrue(gs.is_array(res), f"Wrong type: {type(res)}")
 
-    @pytest.mark.random
+    @pytest.mark.type
     def test_geodesic_bvp_type(self, n_points, n_times):
         base_point = self.data_generator.random_point(n_points)
         end_point = self.data_generator.random_point(n_points)

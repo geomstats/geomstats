@@ -2,18 +2,18 @@ import pytest
 
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
-from geomstats.geometry.discrete_surfaces import DiscreteSurfaces, ElasticMetric
+from geomstats.geometry.discrete_surfaces import DiscreteSurfaces
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.test_case import torch_only
+from geomstats.test.test_case import pytorch_backend, torch_only
 from geomstats.test_cases.geometry.discrete_surfaces import (
     DiscreteSurfacesTestCase,
-    ElasticMetricTestCase,
+    SurfacesLocalRandomDataGenerator,
 )
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.discrete_surfaces import (
     DiscreteSurfacesSmokeTestData,
     DiscreteSurfacesTestData,
-    ElasticMetricSmokeTestData,
     ElasticMetricTestData,
 )
 
@@ -54,23 +54,18 @@ class TestDiscreteSurfacesSmoke(
 
 
 @torch_only
-@pytest.mark.skip
-class TestElasticMetric(ElasticMetricTestCase, metaclass=DataBasedParametrizer):
-    vertices, faces = data_utils.load_cube()
-    vertices = gs.array(vertices, dtype=gs.float64)
-    faces = gs.array(faces)
-    space = DiscreteSurfaces(faces)
+class TestElasticMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+    _vertices, _faces = data_utils.load_cube()
+    _vertices = gs.array(_vertices, dtype=gs.float64)
+    _faces = gs.array(_faces)
 
+    if pytorch_backend():
+        space = DiscreteSurfaces(_faces)
+
+        space.metric.log_solver.n_nodes = 100
+        space.metric.exp_solver.n_steps = 100
+
+        data_generator = SurfacesLocalRandomDataGenerator(
+            space, _vertices, amplitude=10.0
+        )
     testing_data = ElasticMetricTestData()
-
-
-@torch_only
-@pytest.mark.smoke
-class TestElasticMetricSmoke(ElasticMetricTestCase, metaclass=DataBasedParametrizer):
-    vertices, faces = data_utils.load_cube()
-    vertices = gs.array(vertices, dtype=gs.float64)
-    faces = gs.array(faces)
-    space = DiscreteSurfaces(faces, equip=False)
-    space.equip_with_metric(ElasticMetric, a0=1, a1=1, b1=1, c1=1, d1=1, a2=1)
-
-    testing_data = ElasticMetricSmokeTestData()
