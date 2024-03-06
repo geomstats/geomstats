@@ -105,7 +105,7 @@ class Connection(ABC):
             Point on the manifold.
         """
         _check_exp_solver(self)
-        return self.exp_solver.exp(self._space, tangent_vec, base_point)
+        return self.exp_solver.exp(tangent_vec, base_point)
 
     def log(self, point, base_point):
         """Compute logarithm map associated to the affine connection.
@@ -135,7 +135,7 @@ class Connection(ABC):
             Tangent vector at the base point.
         """
         _check_log_solver(self)
-        return self.log_solver.log(self._space, point, base_point)
+        return self.log_solver.log(point, base_point)
 
     def _pole_ladder_step(
         self, base_point, next_point, base_shoot, return_geodesics=False
@@ -656,9 +656,7 @@ class Connection(ABC):
             initial_point with velocity initial_tangent_vec.
         """
         if _check_exp_solver(self, raise_=False) and self.exp_solver.solves_ivp:
-            return self.exp_solver.geodesic_ivp(
-                self._space, initial_tangent_vec, initial_point
-            )
+            return self.exp_solver.geodesic_ivp(initial_tangent_vec, initial_point)
 
         return self._geodesic_from_exp(initial_point, initial_tangent_vec)
 
@@ -682,11 +680,7 @@ class Connection(ABC):
             initial_point and ending at end_point.
         """
         if _check_log_solver(self, raise_=False) and self.log_solver.solves_bvp:
-            return self.log_solver.geodesic_bvp(
-                self._space,
-                end_point,
-                initial_point,
-            )
+            return self.log_solver.geodesic_bvp(end_point, initial_point)
         return NotImplemented
 
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
