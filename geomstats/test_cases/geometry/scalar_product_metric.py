@@ -38,17 +38,25 @@ class InstantiationTestCase(TestCase):
         self.assertAllClose(scale * dist, dist_2)
 
     def test_scaling_scalar_metric(self, scale):
-        scaled_metric_1 = ScalarProductMetric(self.space.metric, scale)
-        scaled_metric_2_a = ScalarProductMetric(scaled_metric_1, scale)
-        scaled_metric_2_b = scale * scaled_metric_1
-        scaled_metric_2_c = scaled_metric_1 * scale
-
         point_a, point_b = self.space.random_point(2)
+
         dist = self.space.metric.squared_dist(point_a, point_b)
-        dist_1 = scaled_metric_1.squared_dist(point_a, point_b)
-        dist_2_a = scaled_metric_2_a.squared_dist(point_a, point_b)
-        dist_2_b = scaled_metric_2_b.squared_dist(point_a, point_b)
-        dist_2_c = scaled_metric_2_c.squared_dist(point_a, point_b)
+
+        self.space.equip_with_metric(ScalarProductMetric(self.space, scale))
+        dist_1 = self.space.metric.squared_dist(point_a, point_b)
+
+        self.space.equip_with_metric(ScalarProductMetric(self.space, scale))
+        dist_2_a = self.space.metric.squared_dist(point_a, point_b)
+
+        self.space.equip_with_metric().equip_with_metric(
+            ScalarProductMetric(self.space, scale)
+        ).equip_with_metric(scale * self.space.metric)
+        dist_2_b = self.space.metric.squared_dist(point_a, point_b)
+
+        self.space.equip_with_metric().equip_with_metric(
+            ScalarProductMetric(self.space, scale)
+        ).equip_with_metric(self.space.metric * scale)
+        dist_2_c = self.space.metric.squared_dist(point_a, point_b)
 
         self.assertAllClose(scale * dist, dist_1)
         self.assertAllClose(scale**2 * dist, dist_2_a)

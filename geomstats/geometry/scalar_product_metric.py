@@ -169,8 +169,11 @@ class ScalarProductMetric:
     def __init__(self, space, scale):
         """Load all attributes from the underlying metric."""
         geomstats.errors.check_positive(scale, "scale")
+        if not hasattr(space, "metric"):
+            raise ValueError("The variable 'space' must be equipped with a metric.")
 
         self._space = space
+
         if isinstance(space.metric, ScalarProductMetric):
             self.underlying_metric = space.metric.underlying_metric
             self.scale = scale * space.metric.scale
@@ -221,7 +224,7 @@ class ScalarProductMetric:
         """
         if not isinstance(scalar, float):
             return NotImplemented
-        return ScalarProductMetric(self, scalar)
+        return ScalarProductMetric(self._space, scalar)
 
     def __rmul__(self, scalar):
         """Multiply the metric by a scalar.
