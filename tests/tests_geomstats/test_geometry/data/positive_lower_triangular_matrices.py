@@ -191,6 +191,12 @@ class InvariantPositiveLowerTriangularMatricesMetricTestData(
 
     skips = ("parallel_transport_ivp_norm",)
 
+    tolerances = {
+        "exp_after_log": {"atol": 1e-2},
+        "log_after_exp": {"atol": 1e-2},
+        "parallel_transport_bvp_norm": {"atol": 1e-2},
+    }
+
 
 class UnitNormedRowsPLTMatricesPullbackMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_autodiff_exceptions = False

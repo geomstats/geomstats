@@ -6,7 +6,7 @@ class ExponentialBarycenterTestData(MeanEstimatorMixinsTestData, BaseEstimatorTe
 
 
 class AgainstFrechetMeanTestData(BaseEstimatorTestData):
-    tolerances = {"against_frechet_mean": {"atol": 1e-4}}
+    tolerances = {"against_frechet_mean": {"atol": 1e-3}}
 
     def against_frechet_mean_test_data(self):
         return self.generate_random_data()

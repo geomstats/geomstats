@@ -20,7 +20,7 @@ class ExpSolverAgainstMetricTestCase(_SolverTestCase):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        res_ = self.exp_solver.exp(self.space, tangent_vec, base_point)
+        res_ = self.exp_solver.exp(tangent_vec, base_point)
         res = self.space.metric.exp(tangent_vec, base_point)
         self.assertAllClose(res, res_, atol=atol)
 
@@ -30,7 +30,7 @@ class ExpSolverAgainstMetricTestCase(_SolverTestCase):
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
         time = get_random_times(n_times)
 
-        res_ = self.exp_solver.geodesic_ivp(self.space, tangent_vec, base_point)(time)
+        res_ = self.exp_solver.geodesic_ivp(tangent_vec, base_point)(time)
         res = self.space.metric.geodesic(base_point, initial_tangent_vec=tangent_vec)(
             time
         )
@@ -45,8 +45,8 @@ class ExpSolverComparisonTestCase(_SolverTestCase):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        res = self.exp_solver.exp(self.space, tangent_vec, base_point)
-        res_ = self.cmp_exp_solver.exp(self.space, tangent_vec, base_point)
+        res = self.exp_solver.exp(tangent_vec, base_point)
+        res_ = self.cmp_exp_solver.exp(tangent_vec, base_point)
 
         self.assertAllClose(res, res_, atol=atol)
 
@@ -56,10 +56,8 @@ class ExpSolverComparisonTestCase(_SolverTestCase):
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
         time = get_random_times(n_times)
 
-        res = self.exp_solver.geodesic_ivp(self.space, tangent_vec, base_point)(time)
-        res_ = self.cmp_exp_solver.geodesic_ivp(self.space, tangent_vec, base_point)(
-            time
-        )
+        res = self.exp_solver.geodesic_ivp(tangent_vec, base_point)(time)
+        res_ = self.cmp_exp_solver.geodesic_ivp(tangent_vec, base_point)(time)
 
         self.assertAllClose(res, res_, atol=atol)
 
@@ -70,7 +68,7 @@ class ExpSolverTestCase(TestCase):
             self.data_generator = RandomDataGenerator(self.space)
 
     def test_exp(self, tangent_vec, base_point, expected, atol):
-        res = self.exp_solver.exp(self.space, tangent_vec, base_point)
+        res = self.exp_solver.exp(tangent_vec, base_point)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
@@ -78,7 +76,7 @@ class ExpSolverTestCase(TestCase):
         base_point = self.data_generator.random_point()
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        expected = self.exp_solver.exp(self.space, tangent_vec, base_point)
+        expected = self.exp_solver.exp(tangent_vec, base_point)
 
         vec_data = generate_vectorization_data(
             data=[
@@ -97,7 +95,7 @@ class ExpSolverTestCase(TestCase):
         self._test_vectorization(vec_data)
 
     def test_geodesic_ivp(self, tangent_vec, base_point, time, expected, atol):
-        res = self.exp_solver.geodesic_ivp(self.space, tangent_vec, base_point)(time)
+        res = self.exp_solver.geodesic_ivp(tangent_vec, base_point)(time)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
@@ -106,9 +104,7 @@ class ExpSolverTestCase(TestCase):
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
         time = get_random_times(n_times)
 
-        expected = self.exp_solver.geodesic_ivp(self.space, tangent_vec, base_point)(
-            time
-        )
+        expected = self.exp_solver.geodesic_ivp(tangent_vec, base_point)(time)
 
         vec_data = generate_vectorization_data(
             data=[
@@ -136,7 +132,7 @@ class LogSolverAgainstMetricTestCase(_SolverTestCase):
         base_point = self.data_generator.random_point(n_points)
         end_point = self.data_generator.random_point(n_points)
 
-        res_ = self.log_solver.log(self.space, end_point, base_point)
+        res_ = self.log_solver.log(end_point, base_point)
         res = self.space.metric.log(end_point, base_point)
         self.assertAllClose(res, res_, atol=atol)
 
@@ -146,7 +142,7 @@ class LogSolverAgainstMetricTestCase(_SolverTestCase):
         end_point = self.data_generator.random_point(n_points)
         time = get_random_times(n_times)
 
-        res_ = self.log_solver.geodesic_bvp(self.space, end_point, base_point)(time)
+        res_ = self.log_solver.geodesic_bvp(end_point, base_point)(time)
         res = self.space.metric.geodesic(base_point, end_point=end_point)(time)
         self.assertAllClose(res, res_, atol=atol)
 
@@ -159,8 +155,8 @@ class LogSolverComparisonTestCase(_SolverTestCase):
         base_point = self.data_generator.random_point(n_points)
         end_point = self.data_generator.random_point(n_points)
 
-        res = self.log_solver.log(self.space, end_point, base_point)
-        res_ = self.cmp_log_solver.log(self.space, end_point, base_point)
+        res = self.log_solver.log(end_point, base_point)
+        res_ = self.cmp_log_solver.log(end_point, base_point)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
@@ -169,8 +165,8 @@ class LogSolverComparisonTestCase(_SolverTestCase):
         end_point = self.data_generator.random_point(n_points)
         time = get_random_times(n_times)
 
-        res = self.log_solver.geodesic_bvp(self.space, end_point, base_point)(time)
-        res_ = self.cmp_log_solver.geodesic_bvp(self.space, end_point, base_point)(time)
+        res = self.log_solver.geodesic_bvp(end_point, base_point)(time)
+        res_ = self.cmp_log_solver.geodesic_bvp(end_point, base_point)(time)
         self.assertAllClose(res, res_, atol=atol)
 
 
@@ -180,7 +176,7 @@ class LogSolverTestCase(TestCase):
             self.data_generator = RandomDataGenerator(self.space)
 
     def test_log(self, point, base_point, expected, atol):
-        res = self.log_solver.log(self.space, point, base_point)
+        res = self.log_solver.log(point, base_point)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.random
@@ -194,7 +190,7 @@ class LogSolverTestCase(TestCase):
         self.test_log(end_point, base_point, tangent_vec, atol)
 
     def test_geodesic_bvp(self, point, base_point, time, expected, atol):
-        res = self.log_solver.geodesic_bvp(self.space, point, base_point)(time)
+        res = self.log_solver.geodesic_bvp(point, base_point)(time)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
@@ -203,7 +199,7 @@ class LogSolverTestCase(TestCase):
         point = self.data_generator.random_point()
         time = get_random_times(n_times)
 
-        expected = self.log_solver.geodesic_bvp(self.space, point, base_point)(time)
+        expected = self.log_solver.geodesic_bvp(point, base_point)(time)
 
         vec_data = generate_vectorization_data(
             data=[
@@ -243,7 +239,7 @@ class ExpSolverTypeCheck(_SolverTestCase):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        res = self.exp_solver.exp(self.space, tangent_vec, base_point)
+        res = self.exp_solver.exp(tangent_vec, base_point)
         self.assertTrue(gs.is_array(res), f"Wrong type: {type(res)}")
 
     @pytest.mark.type
@@ -252,7 +248,7 @@ class ExpSolverTypeCheck(_SolverTestCase):
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
         time = get_random_times(n_times)
 
-        res = self.exp_solver.geodesic_ivp(self.space, tangent_vec, base_point)(time)
+        res = self.exp_solver.geodesic_ivp(tangent_vec, base_point)(time)
         self.assertTrue(gs.is_array(res), f"Wrong type: {type(res)}")
 
 
@@ -262,7 +258,7 @@ class LogSolverTypeCheckTestCase(_SolverTestCase):
         base_point = self.data_generator.random_point(n_points)
         end_point = self.data_generator.random_point(n_points)
 
-        res = self.log_solver.log(self.space, end_point, base_point)
+        res = self.log_solver.log(end_point, base_point)
         self.assertTrue(gs.is_array(res), f"Wrong type: {type(res)}")
 
     @pytest.mark.type
@@ -271,5 +267,5 @@ class LogSolverTypeCheckTestCase(_SolverTestCase):
         end_point = self.data_generator.random_point(n_points)
         time = get_random_times(n_times)
 
-        res = self.log_solver.geodesic_bvp(self.space, end_point, base_point)(time)
+        res = self.log_solver.geodesic_bvp(end_point, base_point)(time)
         self.assertTrue(gs.is_array(res), f"Wrong type: {type(res)}")

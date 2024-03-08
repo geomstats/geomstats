@@ -15,17 +15,17 @@ from .data.path import UniformlySampledPathEnergyTestData
 class TestUniformlySampledPathEnergy(TestCase, metaclass=DataBasedParametrizer):
     _dim = random.randint(2, 3)
     space = PoincareBall(_dim)
-    path_energy = UniformlySampledPathEnergy()
+    path_energy = UniformlySampledPathEnergy(space)
 
     data_generator = RandomDataGenerator(space)
     testing_data = UniformlySampledPathEnergyTestData()
 
     def test_energy(self, path, expected, atol):
-        res = self.path_energy.energy(self.space, path)
+        res = self.path_energy.energy(path)
         self.assertAllClose(res, expected, atol=atol)
 
     def test_energy_per_time(self, path, expected, atol):
-        res = self.path_energy.energy_per_time(self.space, path)
+        res = self.path_energy.energy_per_time(path)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.random
@@ -37,7 +37,7 @@ class TestUniformlySampledPathEnergy(TestCase, metaclass=DataBasedParametrizer):
         times = gs.linspace(0, 1.0, num=n_times)
         geod_points = geod_func(times)
 
-        energy_per_time = self.path_energy.energy_per_time(self.space, geod_points)
+        energy_per_time = self.path_energy.energy_per_time(geod_points)
 
         delta = 1 / (n_times - 1)
         dist_from_energy_per_time = gs.sum(

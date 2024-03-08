@@ -35,10 +35,10 @@ class PullbackMetric(RiemannianMetric):
 
     def _instantiate_solvers(self):
         if not gs.__name__.endswith("numpy"):
-            self.log_solver = LogShootingSolver()
+            self.log_solver = LogShootingSolver(self._space)
 
         self.exp_solver = ExpODESolver(
-            integrator=GSIVPIntegrator(n_steps=100, step_type="euler"),
+            self._space, integrator=GSIVPIntegrator(n_steps=100, step_type="euler")
         )
 
     def metric_matrix(self, base_point):

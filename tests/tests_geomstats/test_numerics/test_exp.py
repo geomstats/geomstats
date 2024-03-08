@@ -32,7 +32,7 @@ def _create_params():
             GSIVPIntegrator(n_steps=20, step_type="rk4"),
             ScipySolveIVP(rtol=1e-8),
         ):
-            solver = ExpODESolver(integrator=integrator)
+            solver = ExpODESolver(space, integrator=integrator)
             params.append((space, solver))
 
     return params
@@ -74,10 +74,11 @@ class TestExpODESolverMatrixComparison(
     space.metric.exp_solver = None
 
     exp_solver = InvariantMetricMatrixExpODESolver(
+        space,
         integrator=GSIVPIntegrator(n_steps=15, step_type="rk4"),
     )
     cmp_exp_solver = InvariantMetricMatrixExpODESolver(
-        integrator=ScipySolveIVP(rtol=1e-8, point_ndim=2)
+        space, integrator=ScipySolveIVP(rtol=1e-8, point_ndim=2)
     )
 
     testing_data = ExpSolverComparisonTestData()
@@ -97,10 +98,11 @@ class TestExpODESolverMatrix(ExpSolverTestCase, metaclass=DataBasedParametrizer)
     space.metric.exp_solver = None
 
     exp_solver = InvariantMetricMatrixExpODESolver(
+        space,
         integrator=ScipySolveIVP(
             rtol=1e-8,
             point_ndim=2,
-        )
+        ),
     )
 
     testing_data = ExpSolverTestData()

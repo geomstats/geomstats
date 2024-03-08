@@ -6,14 +6,22 @@ from geomstats.numerics.interpolation import UniformUnitIntervalLinearInterpolat
 
 
 class UniformlySampledPathEnergy:
-    """Riemannian path energy of a uniformly-sampled path."""
+    """Riemannian path energy of a uniformly-sampled path.
 
-    def __call__(self, space, path):
+    Parameters
+    ----------
+    space : Manifold
+        Equipped manifold.
+    """
+
+    def __init__(self, space):
+        self._space = space
+
+    def __call__(self, path):
         """Compute Riemannian path energy.
 
         Parameters
         ----------
-        space : Manifold
         path : array-like, shape=[..., n_times, *point_shape]
             Piecewise linear path.
 
@@ -22,14 +30,13 @@ class UniformlySampledPathEnergy:
         energy : array-like, shape=[...,]
             Path energy.
         """
-        return self.energy(space, path)
+        return self.energy(path)
 
-    def energy_per_time(self, space, path):
+    def energy_per_time(self, path):
         """Compute Riemannian path enery per time.
 
         Parameters
         ----------
-        space : Manifold
         path : array-like, shape=[..., n_times, *point_shape]
             Piecewise linear path.
 
@@ -38,22 +45,21 @@ class UniformlySampledPathEnergy:
         energy : array-like, shape=[..., n_times - 1,]
             Stepwise path energy.
         """
-        time_axis = -(space.point_ndim + 1)
-        point_ndim_slc = tuple([slice(None)] * space.point_ndim)
+        time_axis = -(self._space.point_ndim + 1)
+        point_ndim_slc = tuple([slice(None)] * self._space.point_ndim)
 
         n_time = path.shape[time_axis]
         tangent_vecs = forward_difference(path, axis=time_axis)
-        return space.metric.squared_norm(
+        return self._space.metric.squared_norm(
             tangent_vecs,
             path[..., :-1, *point_ndim_slc],
         ) / (2 * (n_time - 1))
 
-    def energy(self, space, path):
+    def energy(self, path):
         """Compute Riemannian path energy.
 
         Parameters
         ----------
-        space : Manifold
         path : array-like, shape=[..., n_times, *point_shape]
             Piecewise linear path.
 
@@ -62,7 +68,7 @@ class UniformlySampledPathEnergy:
         energy : array-like, shape=[...,]
             Path energy.
         """
-        return gs.sum(self.energy_per_time(space, path), axis=-1)
+        return gs.sum(self.energy_per_time(path), axis=-1)
 
 
 class UniformlySampledDiscretePath:

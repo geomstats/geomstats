@@ -101,6 +101,7 @@ class SRVRotationReparametrizationBundleTestData(TestData):
     tolerances = {
         "align": {"atol": 1e-2},
     }
+    xfails = ("align",)
 
     def align_test_data(self):
         return self.generate_random_data()

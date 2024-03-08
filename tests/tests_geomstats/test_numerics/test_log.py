@@ -38,15 +38,15 @@ def _create_params_autodiff():
     spaces_1d = [PoincareBall(random.randint(2, 3))]
 
     for space in spaces_1d:
-        for solver in (LogODESolver(n_nodes=10, use_jac=False),):
+        for solver in (LogODESolver(space, n_nodes=10, use_jac=False),):
             params.append((space, solver))
 
     spaces_2d = [SPDMatrices(random.randint(2, 3))]
 
     for space in spaces_1d + spaces_2d:
         for solver in (
-            LogShootingSolver(flatten=True),
-            LogShootingSolver(flatten=False),
+            LogShootingSolver(space, flatten=True),
+            LogShootingSolver(space, flatten=False),
         ):
             params.append((space, solver))
 
@@ -80,7 +80,7 @@ class TestPathStraighteningAgainstClosedForm(
     _dim = random.randint(2, 3)
     space = PoincareBall(_dim)
     if ALLOWS_AUTODIFF:
-        log_solver = PathStraightening()
+        log_solver = PathStraightening(space)
 
     testing_data = PathStraighteningAgainstClosedFormTestData()
 
@@ -93,6 +93,7 @@ class TestLogODESolverMatrix(LogSolverTestCase, metaclass=DataBasedParametrizer)
     )
     space.metric.log_solver = None
     log_solver = InvariantMetricMatrixLogODESolver(
+        space,
         n_nodes=10,
         use_jac=False,
     )

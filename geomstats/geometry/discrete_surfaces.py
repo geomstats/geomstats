@@ -513,14 +513,14 @@ class ElasticMetric(RiemannianMetric):
         self.d1 = d1
         self.a2 = a2
 
-        self.exp_solver = _ExpSolver(n_steps=10)
+        self.exp_solver = _ExpSolver(space, n_steps=10)
 
         optimizer = ScipyMinimize(
             method="L-BFGS-B",
             jac="autodiff",
             options={"disp": False, "ftol": 0.001},
         )
-        self.log_solver = PathStraightening(n_nodes=10, optimizer=optimizer)
+        self.log_solver = PathStraightening(space, n_nodes=10, optimizer=optimizer)
 
     def _inner_product_a0(self, tangent_vec_a, tangent_vec_b, vertex_areas_bp):
         r"""Compute term of order 0 within the inner-product.
@@ -923,7 +923,8 @@ class ElasticMetric(RiemannianMetric):
 class _ExpSolver:
     """Class to solve the initial value problem (IVP) for exp."""
 
-    def __init__(self, n_steps=10, optimizer=None):
+    def __init__(self, space, n_steps=10, optimizer=None):
+        self._space = space
         if optimizer is None:
             optimizer = ScipyMinimize(
                 method="L-BFGS-B",
@@ -934,7 +935,7 @@ class _ExpSolver:
         self.n_steps = n_steps
         self.optimizer = optimizer
 
-    def exp(self, space, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point):
         """Compute exponential map associated to the Riemmannian metric.
 
         Exponential map at base_point of tangent_vec computed
@@ -973,7 +974,7 @@ class _ExpSolver:
         tangent_vec = gs.broadcast_to(tangent_vec, (n_exps,) + tangent_vec.shape[1:])
         base_point = gs.broadcast_to(base_point, (n_exps,) + base_point.shape[1:])
         for one_tangent_vec, one_base_point in zip(tangent_vec, base_point):
-            geod = self._ivp(space, one_base_point, one_tangent_vec)
+            geod = self._ivp(one_base_point, one_tangent_vec)
             exps.append(geod[-1])
 
         exps = gs.array(exps)
@@ -981,7 +982,7 @@ class _ExpSolver:
             exps = gs.squeeze(exps, axis=0)
         return exps
 
-    def _ivp(self, space, initial_point, initial_tangent_vec):
+    def _ivp(self, initial_point, initial_tangent_vec):
         """Solve initial value problem (IVP).
 
         Given an initial point and an initial vector, solve the geodesic equation.
@@ -1003,12 +1004,12 @@ class _ExpSolver:
         next_point = initial_point + initial_tangent_vec
         geod = [initial_point, next_point]
         for _ in range(2, self.n_steps):
-            next_next_point = self._stepforward(space, initial_point, next_point)
+            next_next_point = self._stepforward(initial_point, next_point)
             geod += [next_next_point]
             initial_point, next_point = next_point, next_next_point
         return gs.stack(geod, axis=0)
 
-    def _stepforward(self, space, current_point, next_point):
+    def _stepforward(self, current_point, next_point):
         """Compute the next point on the geodesic.
 
         Parameters
@@ -1054,7 +1055,7 @@ class _ExpSolver:
                 current point, i.e. discrete surface, to the next point on the
                 geodesic that is being computed.
                 """
-                return space.metric.inner_product(
+                return self._space.metric.inner_product(
                     current_to_next, tangent_vec, current_point
                 )
 
@@ -1065,7 +1066,7 @@ class _ExpSolver:
                 next point, i.e. discrete surface, to the next next point on the
                 geodesic that is being computed.
                 """
-                return space.metric.inner_product(
+                return self._space.metric.inner_product(
                     next_to_next_next, tangent_vec, next_point
                 )
 
@@ -1076,7 +1077,7 @@ class _ExpSolver:
                 next point, i.e. discrete surface, to the next next point on the
                 geodesic that is being computed.
                 """
-                return space.metric.squared_norm(next_to_next_next, base_point)
+                return self._space.metric.squared_norm(next_to_next_next, base_point)
 
             _, energy_1 = gs.autodiff.value_and_grad(
                 _inner_product_with_current_to_next,
