@@ -38,6 +38,7 @@ from torch import repeat_interleave as repeat
 from torch import (
     reshape,
     scatter_add,
+    searchsorted,
     stack,
     trapz,
     uint8,
@@ -76,13 +77,6 @@ _DTYPES = {
     complex64: 4,
     complex128: 5,
 }
-
-
-def _raise_not_implemented_error(*args, **kwargs):
-    raise NotImplementedError
-
-
-searchsorted = _raise_not_implemented_error
 
 
 abs = _box_unary_scalar(target=_torch.abs)

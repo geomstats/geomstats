@@ -38,6 +38,7 @@ from geomstats.geometry.stratified.vectorization import (
     broadcast_lists,
     vectorize_point,
 )
+from geomstats.numerics.interpolation import LinearInterpolator1D
 from geomstats.numerics.optimizers import ScipyMinimize
 
 
@@ -855,91 +856,6 @@ class NaiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
         mid_point = self._space.metric.projection(mid_ambient_point, topology)
 
         return WaldBatch([initial_point] + mid_point + [end_point])
-
-
-class LinearInterpolator1D:
-    """A 1D linear interpolator.
-
-    Assumes interpolation occurs in the unit interval.
-
-    Parameters
-    ----------
-    times : array-like, [n_times]
-    data : array-like, [..., *point_shape]
-    point_ndim : int
-        Dimension of point.
-    """
-
-    # TODO: this handles arrays -> can be moved to numerics.interpolation
-    # TODO: take more advantage of already existing interpolation
-
-    def __init__(self, times, data, point_ndim=1):
-        self.times = times
-        self.data = data
-        self.point_ndim = point_ndim
-        self._delta = self.times[1:] - self.times[:-1]
-
-    def __call__(self, t):
-        """Interpolate data.
-
-        Parameters
-        ----------
-        t : array-like, shape=[n_time]
-            Interpolation time.
-
-        Returns
-        -------
-        point : array-like, shape=[..., n_time, *point_shape]
-        """
-        return self.interpolate(t)
-
-    def _from_t_to_interval(self, t):
-        """Get interval index from time.
-
-        Parameters
-        ----------
-        t : array-like, shape=[n_time]
-            Interpolation time.
-
-        Returns
-        -------
-        interval_index : array-like, shape=[n_times]
-        """
-        # TODO: differs from other
-        # NB: assumes t is sorted
-        indices = gs.searchsorted(self.times, t) - 1
-        return gs.where(indices < 0, 0, indices)
-
-    def interpolate(self, t):
-        """Interpolate data.
-
-        Parameters
-        ----------
-        t : array-like, shape=[n_time]
-            Interpolation time.
-
-        Returns
-        -------
-        point : array-like, shape=[..., n_time, *point_shape]
-        """
-        interval_index = self._from_t_to_interval(t)
-
-        point_ndim_slc = (slice(None),) * self.point_ndim
-
-        max_bound_reached = interval_index == self._n_times - 1
-
-        end_index = gs.where(max_bound_reached, interval_index, interval_index + 1)
-
-        initial_point = self.data[..., interval_index, *point_ndim_slc]
-        end_point = self.data[..., end_index, *point_ndim_slc]
-        delta = self._delta[interval_index]
-
-        diff = end_point - initial_point
-        # TODO: only part that differs from other
-        ratio = (delta - (self.times[end_index] - t)) / delta
-
-        ijk = "ijk"[self.point_ndim]
-        return initial_point + gs.einsum(f"t,...t{ijk}->...t{ijk}", ratio, diff)
 
 
 class DiscreteWaldPath:
