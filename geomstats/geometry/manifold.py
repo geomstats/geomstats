@@ -7,6 +7,7 @@ Lead author: Nina Miolane.
 """
 
 import abc
+import inspect
 
 import geomstats.backend as gs
 import geomstats.errors
@@ -59,7 +60,7 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        Metric : RiemannianMetric object
+        Metric : RiemannianMetric object or instance or ScalarProductMetric instance
             If None, default metric will be used.
         """
         if Metric is None:
@@ -71,7 +72,11 @@ class Manifold(abc.ABC):
             else:
                 Metric = out
 
-        self.metric = Metric(self, **metric_kwargs)
+        if inspect.isclass(Metric):
+            self.metric = Metric(self, **metric_kwargs)
+        else:
+            self.metric = Metric
+            self.metric._space = self
 
         return self
 
