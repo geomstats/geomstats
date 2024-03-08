@@ -44,13 +44,14 @@ class RiemannianMetric(Connection, ABC):
         metric : ScalarProductMetric
             The metric multiplied by the scalar
         """
-        from geomstats.geometry.scalar_product_metric import \
-            ScalarProductMetric
+        from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 
         if not isinstance(scalar, float):
             return NotImplemented
         if self != self._space.metric:
-            raise ValueError("A space must be equipped with this metric before it is scaled.")
+            raise ValueError(
+                "A space must be equipped with this metric before it is scaled."
+            )
         return ScalarProductMetric(self._space, scalar)
 
     def __rmul__(self, scalar):
