@@ -925,7 +925,7 @@ class _InvariantMetricVector(RiemannianMetric):
 
         return self._space.regularize(exp)
 
-    def exp(self, tangent_vec, base_point=None, **kwargs):
+    def exp(self, tangent_vec, base_point=None):
         """Compute Riemannian exponential of tan. vector wrt to base point.
 
         Parameters
@@ -1011,7 +1011,7 @@ class _InvariantMetricVector(RiemannianMetric):
         left_log = self.left_log_from_identity(inv_point)
         return -left_log
 
-    def log(self, point, base_point=None, **kwargs):
+    def log(self, point, base_point=None):
         """Compute Riemannian logarithm of a point from a base point.
 
         Parameters
@@ -1148,7 +1148,7 @@ class BiInvariantMetric(RiemannianMetric):
         if not ("SpecialOrthogonal" in space.__str__() or "SO" in space.__str__()):
             raise ValueError("The bi-invariant metric is only implemented for SO(n)")
 
-    def exp(self, tangent_vec, base_point=None, **kwargs):
+    def exp(self, tangent_vec, base_point=None):
         """Compute Riemannian exponential of tangent vector from the identity.
 
         For a bi-invariant metric, this corresponds to the group exponential.
@@ -1175,7 +1175,7 @@ class BiInvariantMetric(RiemannianMetric):
         """
         return self._space.exp(tangent_vec, base_point)
 
-    def log(self, point, base_point=None, **kwargs):
+    def log(self, point, base_point=None):
         """Compute Riemannian logarithm of a point wrt the identity.
 
         For a bi-invariant metric this corresponds to the group logarithm.

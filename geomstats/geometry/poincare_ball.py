@@ -99,7 +99,7 @@ class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
 class PoincareBallMetric(RiemannianMetric):
     """Class that defines operations using a Poincare ball."""
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -129,7 +129,7 @@ class PoincareBallMetric(RiemannianMetric):
             base_point, gs.einsum("...,...i->...i", factor, direction)
         )
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
 
         Parameters

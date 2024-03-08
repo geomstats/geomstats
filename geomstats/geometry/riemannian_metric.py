@@ -330,7 +330,7 @@ class RiemannianMetric(Connection, ABC):
         random_vector = gs.random.rand(*vec_shape)
         return self.normalize(random_vector, base_point)
 
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Squared geodesic distance between two points.
 
         Parameters
@@ -345,11 +345,11 @@ class RiemannianMetric(Connection, ABC):
         sq_dist : array-like, shape=[...,]
             Squared distance.
         """
-        log = self.log(point=point_b, base_point=point_a, **kwargs)
+        log = self.log(point=point_b, base_point=point_a)
 
         return self.squared_norm(vector=log, base_point=point_a)
 
-    def dist(self, point_a, point_b, **kwargs):
+    def dist(self, point_a, point_b):
         """Geodesic distance between two points.
 
         Note: It only works for positive definite
@@ -367,7 +367,7 @@ class RiemannianMetric(Connection, ABC):
         dist : array-like, shape=[...,]
             Distance.
         """
-        sq_dist = self.squared_dist(point_a, point_b, **kwargs)
+        sq_dist = self.squared_dist(point_a, point_b)
         return gs.sqrt(sq_dist)
 
     def dist_broadcast(self, point_a, point_b):

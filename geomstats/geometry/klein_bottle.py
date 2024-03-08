@@ -411,7 +411,7 @@ class KleinBottleMetric(RiemannianMetric):
         """
         return gs.dot(tangent_vec_a, tangent_vec_b)
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Exponential map.
 
         Computed by adding tangent_vec to base_point and finding canonical
@@ -436,7 +436,7 @@ class KleinBottleMetric(RiemannianMetric):
         point = base_point_canonical + tangent_vec
         return self._space.regularize(point)
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Logarithm map.
 
         Computed by finding the representative of point closest to base_point and
