@@ -46,11 +46,8 @@ References
     and Means With Applications to Radar Signal Processing, IEEE, 2013.
 """
 
-from geomstats.geometry.complex_poincare_disk import (
-    ComplexPoincareDisk,
-    ComplexPoincareDiskMetric,
-)
-from geomstats.geometry.positive_reals import PositiveReals, PositiveRealsMetric
+from geomstats.geometry.complex_poincare_disk import ComplexPoincareDisk
+from geomstats.geometry.positive_reals import PositiveReals
 from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 

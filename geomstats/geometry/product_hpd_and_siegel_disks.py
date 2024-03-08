@@ -27,10 +27,10 @@ References
     https://epubs.siam.org/doi/pdf/10.1137/15M102112X
 """
 
-from geomstats.geometry.hpd_matrices import HPDAffineMetric, HPDMatrices
+from geomstats.geometry.hpd_matrices import HPDMatrices
 from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
-from geomstats.geometry.siegel import Siegel, SiegelMetric
+from geomstats.geometry.siegel import Siegel
 
 
 class ProductHPDMatricesAndSiegelDisks(ProductManifold):
