@@ -137,13 +137,13 @@ class _ScaledMethodsRegistry:
 class ScalarProductMetric:
     """Class for scalar products of Riemannian and pseudo-Riemannian metrics.
 
-    This class multiplies the (0,2) metric tensor 'underlying_metric' by a
+    This class multiplies the (0,2) metric tensor 'space.metric' by a
     scalar 'scaling_factor'. Note that this does not scale distances by
     'scaling_factor'. That would require multiplication by the square of the
     scalar.
 
     An object of this type can also be instantiated by the expression
-    scaling_factor * underlying_metric.
+    scaling_factor * space.metric.
 
     This class acts as a wrapper for the underlying Riemannian metric. All
     public attributes apart from 'underlying_metric' and 'scaling_factor' are
@@ -158,23 +158,24 @@ class ScalarProductMetric:
 
     Parameters
     ----------
-    underlying_metric : RiemannianMetric
-        The original metric of the manifold which is being scaled.
+    space : Manifold
+        A manifold equipped with a metric which is being scaled.
     scale : float
         The value by which to scale the metric. Note that this rescales the
         (0,2) metric tensor, so distances are rescaled by the square root of
         this.
     """
 
-    def __init__(self, underlying_metric, scale):
+    def __init__(self, space, scale):
         """Load all attributes from the underlying metric."""
         geomstats.errors.check_positive(scale, "scale")
 
-        if hasattr(underlying_metric, "underlying_metric"):
-            self.underlying_metric = underlying_metric.underlying_metric
-            self.scale = scale * underlying_metric.scale
+        self._space = space
+        if isinstance(space.metric, ScalarProductMetric):
+            self.underlying_metric = space.metric.underlying_metric
+            self.scale = scale * space.metric.scale
         else:
-            self.underlying_metric = underlying_metric
+            self.underlying_metric = space.metric
             self.scale = scale
 
         for attr_name in dir(self.underlying_metric):
