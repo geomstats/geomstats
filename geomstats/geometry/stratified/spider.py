@@ -7,7 +7,7 @@ import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.stratified.point_set import (
     Point,
-    PointCollection,
+    PointBatch,
     PointSet,
     PointSetMetric,
 )
@@ -59,7 +59,7 @@ class SpiderPoint(Point):
 
         Parameters
         ----------
-        point : Point or PointCollection
+        point : Point or PointBatch
             Point to compare against.
         atol : float
 
@@ -109,7 +109,7 @@ class Spider(PointSet):
 
         Returns
         -------
-        samples : SpiderPoint or PointCollection
+        samples : SpiderPoint or PointBatch
             List of SpiderPoints randomly sampled from the Spider.
         """
         s = gs.random.randint(low=0, high=self.n_rays, size=(n_samples,))
@@ -120,7 +120,7 @@ class Spider(PointSet):
         if n_samples == 1:
             return random_point[0]
 
-        return PointCollection(random_point)
+        return PointBatch(random_point)
 
     @vectorize_point((1, "point"))
     def belongs(self, point, atol=gs.atol):
@@ -128,7 +128,7 @@ class Spider(PointSet):
 
         Parameters
         ----------
-        point : SpiderPoint or PointCollection
+        point : SpiderPoint or PointBatch
              Point to be checked.
 
         Returns
@@ -220,9 +220,9 @@ class SpiderMetric(PointSetMetric):
 
         Parameters
         ----------
-        point_a : SpiderPoint or PointCollection
+        point_a : SpiderPoint or PointBatch
              Point in the Spider.
-        point_b : SpiderPoint or PointCollection
+        point_b : SpiderPoint or PointBatch
              Point in the Spider.
 
         Returns
@@ -244,9 +244,9 @@ class SpiderMetric(PointSetMetric):
 
         Parameters
         ----------
-        initial_point : SpiderPoint or PointCollection
+        initial_point : SpiderPoint or PointBatch
              Point in the Spider.
-        end_point : SpiderPoint or PointCollection
+        end_point : SpiderPoint or PointBatch
              Point in the Spider.
 
         Returns
@@ -292,7 +292,7 @@ class SpiderMetric(PointSetMetric):
                 )
 
                 ray_geod_points = ray_geod_func(t)
-                return PointCollection(
+                return PointBatch(
                     [
                         SpiderPoint(stratum=initial_point.stratum, coord=coord)
                         for coord in ray_geod_points
@@ -307,7 +307,7 @@ class SpiderMetric(PointSetMetric):
                 end_point=end_point.coord,
             )
             pseudo_ray_geod_points = pseudo_ray_geod_func(t)
-            return PointCollection(
+            return PointBatch(
                 [
                     (
                         SpiderPoint(stratum=initial_point.stratum, coord=-coord)

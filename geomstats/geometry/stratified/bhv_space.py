@@ -27,7 +27,7 @@ import numpy as np
 import geomstats.backend as gs
 from geomstats.geometry.stratified.point_set import (
     Point,
-    PointCollection,
+    PointBatch,
     PointSet,
     PointSetMetric,
 )
@@ -211,7 +211,7 @@ class Tree(Point):
 
         Parameters
         ----------
-        point : Tree or TreeCollection
+        point : Tree or TreeBatch
             Point to compare against point.
         atol : float
 
@@ -222,8 +222,8 @@ class Tree(Point):
         return gs.array([self._equal_single(point_, atol) for point_ in point])
 
 
-class TreeCollection(PointCollection):
-    """Tree collection."""
+class TreeBatch(PointBatch):
+    """Tree batch."""
 
     @property
     def topology(self):
@@ -294,7 +294,7 @@ class TreeSpace(PointSet):
 
         Parameters
         ----------
-        point : Tree or TreeCollection
+        point : Tree or TreeBatch
             The point to be checked.
         atol : float
             Absolute tolerance.
@@ -325,7 +325,7 @@ class TreeSpace(PointSet):
 
         Returns
         -------
-        samples : Tree or TreeCollection
+        samples : Tree or TreeBatch
             Points sampled in Tree space.
         """
         trees = [
@@ -335,7 +335,7 @@ class TreeSpace(PointSet):
         if n_samples == 1:
             return trees[0]
 
-        return TreeCollection(trees)
+        return TreeBatch(trees)
 
 
 class BHVMetric(PointSetMetric):
@@ -366,9 +366,9 @@ class BHVMetric(PointSetMetric):
 
         Parameters
         ----------
-        point_a : Tree or TreeCollection
+        point_a : Tree or TreeBatch
             A point in BHV Space.
-        point_b : Tree or TreeCollection
+        point_b : Tree or TreeBatch
             A point in BHV Space.
 
         Returns
@@ -383,9 +383,9 @@ class BHVMetric(PointSetMetric):
 
         Parameters
         ----------
-        point_a : Tree or TreeCollection
+        point_a : Tree or TreeBatch
             A point in BHV Space.
-        point_b : Tree or TreeCollection
+        point_b : Tree or TreeBatch
             A point in BHV Space.
 
         Returns
@@ -400,9 +400,9 @@ class BHVMetric(PointSetMetric):
 
         Parameters
         ----------
-        initial_point : Tree or TreeCollection
+        initial_point : Tree or TreeBatch
             A point in BHV Space.
-        end_point : Tree or TreeCollection
+        end_point : Tree or TreeBatch
             A point in BHV Space.
 
         Returns
@@ -478,9 +478,9 @@ class GTPSolver:
 
         Parameters
         ----------
-        point_a : Tree or TreeCollection
+        point_a : Tree or TreeBatch
             A point in BHV Space.
-        point_b : Tree or TreeCollection
+        point_b : Tree or TreeBatch
             A point in BHV Space.
 
         Returns
@@ -506,9 +506,9 @@ class GTPSolver:
 
         Parameters
         ----------
-        point_a : Tree or TreeCollection
+        point_a : Tree or TreeBatch
             A point in BHV Space.
-        point_b : Tree or TreeCollection
+        point_b : Tree or TreeBatch
             A point in BHV Space.
 
         Returns
@@ -585,7 +585,7 @@ class GTPSolver:
             if isinstance(t, (float, int)):
                 t = gs.array([t])
 
-            return TreeCollection([geodesic_t(t_) for t_ in t])
+            return TreeBatch([geodesic_t(t_) for t_ in t])
 
         return geodesic_
 
@@ -595,9 +595,9 @@ class GTPSolver:
 
         Parameters
         ----------
-        initial_point : Tree or TreeCollection
+        initial_point : Tree or TreeBatch
             A point in BHV Space.
-        end_point : Tree or TreeCollection
+        end_point : Tree or TreeBatch
             A point in BHV Space.
 
         Returns

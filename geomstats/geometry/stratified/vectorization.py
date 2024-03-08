@@ -3,7 +3,7 @@
 import functools
 
 import geomstats.backend as gs
-from geomstats.geometry.stratified.point_set import PointCollection
+from geomstats.geometry.stratified.point_set import PointBatch
 
 
 def broadcast_lists(*lists):
@@ -47,7 +47,7 @@ def _manipulate_input(arg):
 
 
 def _manipulate_output_iterable(out):
-    return PointCollection(out)
+    return PointBatch(out)
 
 
 def _manipulate_output(

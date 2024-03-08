@@ -27,8 +27,8 @@ class Point(ABC):
         """
 
 
-class PointCollection(ABC, list):
-    """Class for point collections."""
+class PointBatch(ABC, list):
+    """Class for point batch."""
 
     def __getitem__(self, key):
         """Get item."""
@@ -41,7 +41,7 @@ class PointCollection(ABC, list):
 
         Parameters
         ----------
-        point : Point or PointCollection
+        point : Point or PointBatch
             Point to compare against point.
         atol : float
         """
@@ -90,7 +90,7 @@ class PointSet(ABC):
 
         Parameters
         ----------
-        point : Point or PointCollection
+        point : Point or PointBatch
             Point to evaluate.
         atol : float
             Absolute tolerance.
@@ -114,7 +114,7 @@ class PointSet(ABC):
 
         Returns
         -------
-        samples : Point or PointCollection
+        samples : Point or PointBatch
             Points sampled on the PointSet.
         """
 

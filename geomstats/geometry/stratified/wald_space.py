@@ -23,7 +23,7 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.stratified.point_set import (
     Point,
-    PointCollection,
+    PointBatch,
     PointSet,
     PointSetMetric,
 )
@@ -54,7 +54,7 @@ def _manipulate_input_with_array(arg):
 
 
 def _manipulate_output_wald(out, to_list):
-    return _manipulate_output(out, to_list, manipulate_output_iterable=WaldCollection)
+    return _manipulate_output(out, to_list, manipulate_output_iterable=WaldBatch)
 
 
 def make_splits(n_labels):
@@ -265,7 +265,7 @@ class Wald(Point):
 
         Parameters
         ----------
-        point : Wald or WaldCollection
+        point : Wald or WaldBatch
             Point to compare against point.
         atol : float
 
@@ -276,8 +276,8 @@ class Wald(Point):
         return gs.array([self._equal_single(point_, atol) for point_ in point])
 
 
-class WaldCollection(PointCollection):
-    """Wald collection."""
+class WaldBatch(PointBatch):
+    """Wald batch."""
 
     @property
     def topology(self):
@@ -381,7 +381,7 @@ class WaldSpace(PointSet):
 
         Parameters
         ----------
-        point : Wald or WaldCollection
+        point : Wald or WaldBatch
             The point to be checked.
         atol : float
             Absolute tolerance.
@@ -429,7 +429,7 @@ class WaldSpace(PointSet):
         if n_samples == 1:
             return forests[0]
 
-        return WaldCollection(forests)
+        return WaldBatch(forests)
 
     def random_grove_point(self, topology, n_samples=1):
         """Sample a random point in a given grove of wald spcae.
@@ -453,7 +453,7 @@ class WaldSpace(PointSet):
         if n_samples == 1:
             return forests[0]
 
-        return WaldCollection(forests)
+        return WaldBatch(forests)
 
     @vectorize_point((1, "point"))
     def lift(self, point):
@@ -461,7 +461,7 @@ class WaldSpace(PointSet):
 
         Parameters
         ----------
-        point : Wald or WaldCollection
+        point : Wald or WaldBatch
             The point to be lifted.
 
         Returns
@@ -502,9 +502,9 @@ class WaldSpaceMetric(PointSetMetric):
 
         Parameters
         ----------
-        point_a: Wald or WaldCollectionb
+        point_a: Wald or WaldBatchb
             Point in the WaldSpace.
-        point_b: Wald or WaldCollection
+        point_b: Wald or WaldBatch
             Point in the WaldSpace.
 
         Returns
@@ -513,7 +513,7 @@ class WaldSpaceMetric(PointSetMetric):
             Distance.
         """
         discrete_path = self.discrete_geodesic(point_a, point_b)
-        is_list = not isinstance(discrete_path, WaldCollection)
+        is_list = not isinstance(discrete_path, WaldBatch)
         if not is_list:
             discrete_path = [discrete_path]
 
@@ -537,7 +537,7 @@ class WaldSpaceMetric(PointSetMetric):
 
         Parameters
         ----------
-        initial_point: Wald or WaldCollection
+        initial_point: Wald or WaldBatch
             Point in the WaldSpace.
         end_point: Point or list[Point]
             Point in the WaldSpace.
@@ -554,14 +554,14 @@ class WaldSpaceMetric(PointSetMetric):
 
         Parameters
         ----------
-        initial_point: Wald or WaldCollection
+        initial_point: Wald or WaldBatch
             Point in the WaldSpace.
         end_point: Point or list[Point]
             Point in the WaldSpace.
 
         Returns
         -------
-        geod_points : WaldCollection or list[WaldCollection]
+        geod_points : WaldBatch or list[WaldBatch]
             Time parameterized geodesic curve.
         """
         return self.geodesic_solver.discrete_geodesic(initial_point, end_point)
@@ -757,14 +757,14 @@ class BasicWaldGeodesicSolver(ABC):
 
         Parameters
         ----------
-        initial_point: Wald or WaldCollection
+        initial_point: Wald or WaldBatch
             Point in the WaldSpace.
         end_point: Point or list[Point]
             Point in the WaldSpace.
 
         Returns
         -------
-        geod_points : WaldCollection or list[WaldCollection]
+        geod_points : WaldBatch or list[WaldBatch]
             Time parameterized geodesic curve.
         """
         initial_point, end_point = broadcast_lists(initial_point, end_point)
@@ -781,7 +781,7 @@ class BasicWaldGeodesicSolver(ABC):
 
         Parameters
         ----------
-        initial_point: Wald or WaldCollection
+        initial_point: Wald or WaldBatch
             Point in the WaldSpace.
         end_point: Point or list[Point]
             Point in the WaldSpace.
@@ -800,7 +800,7 @@ class BasicWaldGeodesicSolver(ABC):
 
         discrete_path = self.discrete_geodesic(initial_point, end_point)
 
-        if isinstance(discrete_path, WaldCollection):
+        if isinstance(discrete_path, WaldBatch):
             return DiscreteWaldPath(self._space, discrete_path)
 
         return lambda t: _vec(
@@ -827,14 +827,14 @@ class NaiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
 
         Parameters
         ----------
-        initial_point: Wald or WaldCollection
+        initial_point: Wald or WaldBatch
             Point in the WaldSpace.
         end_point: Point or list[Point]
             Point in the WaldSpace.
 
         Returns
         -------
-        geod_points : WaldCollection or list[WaldCollection]
+        geod_points : WaldBatch or list[WaldBatch]
             Time parameterized geodesic curve.
         """
         if initial_point.topology != end_point.topology:
@@ -854,7 +854,7 @@ class NaiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
 
         mid_point = self._space.metric.projection(mid_ambient_point, topology)
 
-        return WaldCollection([initial_point] + mid_point + [end_point])
+        return WaldBatch([initial_point] + mid_point + [end_point])
 
 
 class LinearInterpolator1D:
@@ -948,7 +948,7 @@ class DiscreteWaldPath:
     Parameters
     ----------
     space : WaldSpace
-    path : WaldCollection
+    path : WaldBatch
         Wald collection with common topology.
     interpolator : Interpolator1D
     """
@@ -981,7 +981,7 @@ class DiscreteWaldPath:
 
         Returns
         -------
-        path : WaldCollection
+        path : WaldBatch
         """
         weights = self.interpolator(t)
-        return WaldCollection([Wald(self._topology, weights_) for weights_ in weights])
+        return WaldBatch([Wald(self._topology, weights_) for weights_ in weights])
