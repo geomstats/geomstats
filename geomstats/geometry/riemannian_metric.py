@@ -76,7 +76,6 @@ class RiemannianMetric(Connection, ABC):
         ----------
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -97,7 +96,6 @@ class RiemannianMetric(Connection, ABC):
         ----------
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -118,7 +116,6 @@ class RiemannianMetric(Connection, ABC):
         ----------
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -128,7 +125,7 @@ class RiemannianMetric(Connection, ABC):
         """
         return gs.autodiff.jacobian_vec(self.metric_matrix)(base_point)
 
-    def christoffels(self, base_point):
+    def christoffels(self, base_point=None):
         r"""Compute Christoffel symbols of the Levi-Civita connection.
 
         The Koszul formula defining the Levi-Civita connection gives the
@@ -168,7 +165,7 @@ class RiemannianMetric(Connection, ABC):
 
         return 0.5 * (term_1 + term_2 + term_3)
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
 
         Parameters
@@ -189,7 +186,7 @@ class RiemannianMetric(Connection, ABC):
         aux = gs.einsum("...j,...jk->...k", tangent_vec_a, inner_prod_mat)
         return gs.dot(aux, tangent_vec_b)
 
-    def inner_coproduct(self, cotangent_vec_a, cotangent_vec_b, base_point):
+    def inner_coproduct(self, cotangent_vec_a, cotangent_vec_b, base_point=None):
         """Compute inner coproduct between two cotangent vectors at base point.
 
         This is the inner product associated to the cometric matrix.
@@ -249,7 +246,6 @@ class RiemannianMetric(Connection, ABC):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -273,7 +269,6 @@ class RiemannianMetric(Connection, ABC):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -283,7 +278,7 @@ class RiemannianMetric(Connection, ABC):
         sq_norm = self.squared_norm(vector, base_point)
         return gs.sqrt(sq_norm)
 
-    def normalize(self, vector, base_point):
+    def normalize(self, vector, base_point=None):
         """Normalize tangent vector at a given point.
 
         Parameters
@@ -303,7 +298,7 @@ class RiemannianMetric(Connection, ABC):
         indices = "ijk"[: self._space.point_ndim]
         return gs.einsum(f"...{indices},...->...{indices}", vector, 1 / norm)
 
-    def random_unit_tangent_vec(self, base_point, n_vectors=1):
+    def random_unit_tangent_vec(self, base_point=None, n_vectors=1):
         """Generate a random unit tangent vector at a given point.
 
         Parameters
@@ -527,7 +522,8 @@ class RiemannianMetric(Connection, ABC):
         ----------
         basis : array-like, shape=[dim, dim]
             Matrix of a metric.
-        base_point
+        base_point : array-like, shape=[dim]
+            Base point.
 
         Returns
         -------
@@ -538,7 +534,7 @@ class RiemannianMetric(Connection, ABC):
 
         return gs.einsum("i, ikl->ikl", 1.0 / gs.sqrt(norms), basis)
 
-    def covariant_riemann_tensor(self, base_point):
+    def covariant_riemann_tensor(self, base_point=None):
         r"""Compute purely covariant version of Riemannian tensor at base_point.
 
         In the literature the covariant riemannian tensor is noted :math:`R_{ijkl}`.
@@ -606,7 +602,7 @@ class RiemannianMetric(Connection, ABC):
         normalization_factor = norm_a * norm_b - inner_ab**2
         return gs.divide(sectional, normalization_factor, ignore_div_zero=True)
 
-    def scalar_curvature(self, base_point):
+    def scalar_curvature(self, base_point=None):
         r"""Compute scalar curvature at base_point.
 
         In the literature scalar_curvature is noted S and writes:

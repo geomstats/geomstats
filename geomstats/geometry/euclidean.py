@@ -147,7 +147,7 @@ class EuclideanMetric(RiemannianMetric):
             self._space.point_ndim, gs.zeros(shape), base_point, out_shape=shape
         )
 
-    def christoffels(self, base_point):
+    def christoffels(self, base_point=None):
         """Christoffel symbols associated with the connection.
 
         The contravariant index is on the first dimension.
@@ -170,46 +170,6 @@ class EuclideanMetric(RiemannianMetric):
         shape = (dim, dim, dim)
         gamma = gs.zeros(shape)
         return repeat_out(self._space.point_ndim, gamma, base_point, out_shape=shape)
-
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Inner product between two tangent vectors at a base point.
-
-        Parameters
-        ----------
-        tangent_vec_a: array-like, shape=[..., dim]
-            Tangent vector at base point.
-        tangent_vec_b: array-like, shape=[..., dim]
-            Tangent vector at base point.
-        base_point: array-like, shape=[..., dim]
-            Base point.
-
-        Returns
-        -------
-        inner_product : array-like, shape=[...,]
-            Inner-product.
-        """
-        return super().inner_product(tangent_vec_a, tangent_vec_b, base_point)
-
-    def inner_coproduct(self, cotangent_vec_a, cotangent_vec_b, base_point=None):
-        """Compute inner coproduct between two cotangent vectors at base point.
-
-        This is the inner product associated to the cometric matrix.
-
-        Parameters
-        ----------
-        cotangent_vec_a : array-like, shape=[..., dim]
-            Cotangent vector at `base_point`.
-        cotangent_vet_b : array-like, shape=[..., dim]
-            Cotangent vector at `base_point`.
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-
-        Returns
-        -------
-        inner_coproduct : float
-            Inner coproduct between the two cotangent vectors.
-        """
-        return super().inner_coproduct(cotangent_vec_a, cotangent_vec_b, base_point)
 
     def exp(self, tangent_vec, base_point):
         """Compute exp map of a base point in tangent vector direction.
@@ -355,7 +315,7 @@ class EuclideanMetric(RiemannianMetric):
 
         return path
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a

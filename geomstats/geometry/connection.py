@@ -43,7 +43,7 @@ class Connection(ABC):
     def __init__(self, space):
         self._space = space
 
-    def christoffels(self, base_point):
+    def christoffels(self, base_point=None):
         """Christoffel symbols associated with the connection.
 
         The contravariant index is on the first dimension.
@@ -360,7 +360,7 @@ class Connection(ABC):
             "trajectory": trajectory,
         }
 
-    def riemann_tensor(self, base_point):
+    def riemann_tensor(self, base_point=None):
         r"""Compute Riemannian tensor at base_point.
 
         In the literature the Riemannian curvature tensor is noted :math:`R_{ijk}^l`.
@@ -408,7 +408,7 @@ class Connection(ABC):
 
         return riemann_curvature
 
-    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
+    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point=None):
         r"""Compute the Riemann curvature map R.
 
         For three tangent vectors at base point :math:`P`:
@@ -451,7 +451,7 @@ class Connection(ABC):
         )
         return curvature
 
-    def ricci_tensor(self, base_point):
+    def ricci_tensor(self, base_point=None):
         r"""Compute Ricci curvature tensor at base_point.
 
         The Ricci curvature tensor :math:`\mathrm{Ric}_{ij}` is defined as:
@@ -473,7 +473,7 @@ class Connection(ABC):
         ricci_tensor = gs.einsum("...ijkj -> ...ik", riemann_tensor)
         return ricci_tensor
 
-    def directional_curvature(self, tangent_vec_a, tangent_vec_b, base_point):
+    def directional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the directional curvature (tidal force operator).
 
         For two tangent vectors at base_point :math:`P`:
@@ -764,7 +764,7 @@ class Connection(ABC):
             "use the ladder_parallel_transport instead."
         )
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a

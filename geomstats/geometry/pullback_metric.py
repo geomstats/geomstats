@@ -197,7 +197,6 @@ class PullbackDiffeoMetric(RiemannianMetric):
         ----------
         base_point : array-like, shape=[..., *shape]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -209,7 +208,7 @@ class PullbackDiffeoMetric(RiemannianMetric):
             " is not implemented yet in general shape setting."
         )
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
 
         Parameters
@@ -220,7 +219,6 @@ class PullbackDiffeoMetric(RiemannianMetric):
             Tangent vector at base point.
         base_point: array-like, shape=[..., *shape]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -242,7 +240,7 @@ class PullbackDiffeoMetric(RiemannianMetric):
             image_point,
         )
 
-    def squared_norm(self, vector, base_point):
+    def squared_norm(self, vector, base_point=None):
         """Compute the square of the norm of a vector.
 
         Squared norm of a vector associated to the inner product
@@ -254,7 +252,6 @@ class PullbackDiffeoMetric(RiemannianMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -271,7 +268,7 @@ class PullbackDiffeoMetric(RiemannianMetric):
             image_point,
         )
 
-    def norm(self, vector, base_point):
+    def norm(self, vector, base_point=None):
         """Compute norm of a vector.
 
         Norm of a vector associated to the inner product
@@ -286,7 +283,6 @@ class PullbackDiffeoMetric(RiemannianMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -427,7 +423,7 @@ class PullbackDiffeoMetric(RiemannianMetric):
 
         return path
 
-    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
+    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point=None):
         """Compute the curvature via diffeomorphic pullback.
 
         Parameters

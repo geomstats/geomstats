@@ -856,7 +856,7 @@ class DiagonalNormalMetric(RiemannianMetric):
         log = self._univariate_normal.metric.log(point, base_point)
         return self._1d_pairs_to_stacked_mean_diagonal(log)
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         Parameters

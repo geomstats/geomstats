@@ -131,7 +131,7 @@ class Manifold(abc.ABC):
         """
 
     @abc.abstractmethod
-    def is_tangent(self, vector, base_point, atol=gs.atol):
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Parameters
@@ -151,7 +151,7 @@ class Manifold(abc.ABC):
         """
 
     @abc.abstractmethod
-    def to_tangent(self, vector, base_point):
+    def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
 
         Parameters
@@ -203,7 +203,7 @@ class Manifold(abc.ABC):
         """
         return gs.copy(point)
 
-    def random_tangent_vec(self, base_point, n_samples=1):
+    def random_tangent_vec(self, base_point=None, n_samples=1):
         """Generate random tangent vec.
 
         Parameters
@@ -221,6 +221,7 @@ class Manifold(abc.ABC):
         """
         if (
             n_samples > 1
+            and base_point is not None
             and base_point.ndim > len(self.shape)
             and n_samples != len(base_point)
         ):

@@ -141,7 +141,7 @@ class VectorSpace(Manifold, abc.ABC):
             size = (n_samples,) + size
         return bound * (gs.random.rand(*size) - 0.5) * 2
 
-    def random_tangent_vec(self, base_point, n_samples=1):
+    def random_tangent_vec(self, base_point=None, n_samples=1):
         """Generate random tangent vec.
 
         Parameters
@@ -159,6 +159,7 @@ class VectorSpace(Manifold, abc.ABC):
         """
         if (
             n_samples > 1
+            and base_point is not None
             and base_point.ndim > len(self.shape)
             and n_samples != len(base_point)
         ):
@@ -569,7 +570,7 @@ class OpenSet(Manifold, abc.ABC):
             shape = embedding_space.shape
         super().__init__(shape=shape, **kwargs)
 
-    def is_tangent(self, vector, base_point, atol=gs.atol):
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Parameters
@@ -589,7 +590,7 @@ class OpenSet(Manifold, abc.ABC):
         """
         return self.embedding_space.is_tangent(vector, base_point, atol)
 
-    def to_tangent(self, vector, base_point):
+    def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
 
         Parameters
@@ -1002,7 +1003,7 @@ class DiffeomorphicManifold(Manifold):
         self.image_space = image_space
         super().__init__(**kwargs)
 
-    def to_tangent(self, vector, base_point):
+    def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
 
         Parameters
@@ -1065,7 +1066,7 @@ class DiffeomorphicManifold(Manifold):
         regularized_image_point = self.image_space.regularize(image_point)
         return self.diffeo.inverse_diffeomorphism(regularized_image_point)
 
-    def random_tangent_vec(self, base_point, n_samples=1):
+    def random_tangent_vec(self, base_point=None, n_samples=1):
         """Generate random tangent vec.
 
         Parameters

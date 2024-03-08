@@ -257,7 +257,7 @@ class QuotientMetric(RiemannianMetric):
         tangent_vec_b,
         tangent_vec_c,
         tangent_vec_d,
-        base_point=None,
+        base_point,
     ):
         r"""Compute the covariant derivative of the curvature.
 
@@ -373,7 +373,7 @@ class QuotientMetric(RiemannianMetric):
         )
 
     def directional_curvature_derivative(
-        self, tangent_vec_a, tangent_vec_b, base_point=None
+        self, tangent_vec_a, tangent_vec_b, base_point
     ):
         r"""Compute the covariant derivative of the directional curvature.
 

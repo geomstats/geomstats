@@ -1101,7 +1101,7 @@ class HypersphereMetric(RiemannianMetric):
             out_shape=self._space.shape,
         )
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
