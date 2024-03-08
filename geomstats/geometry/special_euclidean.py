@@ -523,7 +523,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         return gs.concatenate([rot_vec, log_translation], axis=-1)
 
-    def random_point(self, n_samples=1, bound=1.0, **kwargs):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample in SE(n) from the product distribution.
 
         This method uses the distributions defined on the Euclidean and Special
@@ -1085,7 +1085,7 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
         return self._geodesic_from_exp(initial_point, initial_tangent_vec)
 
     def parallel_transport(
-        self, tangent_vec, base_point, direction=None, end_point=None, **kwargs
+        self, tangent_vec, base_point, direction=None, end_point=None
     ):
         r"""Compute the parallel transport of a tangent vector.
 
@@ -1136,7 +1136,7 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
 
         return homogeneous_representation(transported_rot, translation, 0.0)
 
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Squared geodesic distance between two points.
 
         Parameters

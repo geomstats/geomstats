@@ -693,7 +693,7 @@ class SPDAffineMetric(RiemannianMetric):
         congruence_mat = Matrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
         return Matrices.congruent(tangent_vec, congruence_mat)
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Radius of the largest ball where the exponential is injective.
 
         Because of the negative curvature of this space, the injectivity radius

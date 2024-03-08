@@ -205,7 +205,7 @@ class CholeskyMetric(RiemannianMetric):
         )
         return diag_inner_product + strictly_lower_inner_product
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Cholesky exponential map.
 
         Compute the Riemannian exponential at point base_point
@@ -234,7 +234,7 @@ class CholeskyMetric(RiemannianMetric):
         diag_exp = gs.vec_to_diag(diag_base_point * diag_product_expm)
         return sl_exp + diag_exp
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Cholesky logarithm map.
 
         Compute the Riemannian logarithm at point base_point,
@@ -263,7 +263,7 @@ class CholeskyMetric(RiemannianMetric):
         diag_log = gs.vec_to_diag(diag_base_point * diag_product_logm)
         return sl_log + diag_log
 
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Compute the Cholesky Metric squared distance.
 
         Compute the Riemannian squared distance between point_a and point_b.

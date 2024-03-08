@@ -402,7 +402,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
 
         return _squared_dist(point_a, point_b)
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a

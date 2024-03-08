@@ -160,7 +160,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         log_ball = self._poincare_ball.metric.log(point_ball, base_point_ball)
         return self._poincare_ball.ball_to_half_space_tangent(log_ball, base_point_ball)
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a

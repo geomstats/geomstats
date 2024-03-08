@@ -244,7 +244,7 @@ class PreShapeSpace(LevelSet):
 class PreShapeSpaceBundle(FiberBundle):
     r"""Class for the Kendall pre-shape space bundle."""
 
-    def align(self, point, base_point, **kwargs):
+    def align(self, point, base_point):
         """Align point to base_point.
 
         Find the optimal rotation R in SO(m) such that the base point and
@@ -719,7 +719,7 @@ class PreShapeMetric(RiemannianMetric):
             tangent_vec_a, tangent_vec_b, base_point
         )
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -740,7 +740,7 @@ class PreShapeMetric(RiemannianMetric):
         flat_exp = self._space._sphere.metric.exp(flat_tan, flat_bp)
         return gs.reshape(flat_exp, tangent_vec.shape)
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Riemannian logarithm of a point.
 
         Parameters
@@ -906,7 +906,7 @@ class PreShapeMetric(RiemannianMetric):
         )
         return gs.reshape(flat_transport, batch_shape + self._space.shape)
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a

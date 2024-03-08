@@ -303,7 +303,7 @@ class BuresWassersteinBundle(FiberBundle):
         vertical = -gs.matmul(base_point, skew)
         return (vertical, skew) if return_skew else vertical
 
-    def align(self, point, base_point, **kwargs):
+    def align(self, point, base_point):
         """Align point to base_point.
 
         Find the optimal rotation R in SO(m) such that the base point and
