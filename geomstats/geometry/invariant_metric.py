@@ -747,11 +747,11 @@ class _InvariantMetricMatrix(RiemannianMetric):
         left_angular_vel_a = self._space.to_tangent(translation_map(tangent_vec))
         left_angular_vel_b = self._space.to_tangent(translation_map(tangent_vec_b_))
 
-        def acceleration(state, time):
+        def acceleration(state):
             """Compute the right-hand-side of the parallel transport eq."""
             omega = state[..., 1, :, :]
             zeta = state[..., 2, :, :]
-            new_state = self.geodesic_equation(state[..., :2, :, :], time)
+            new_state = self.geodesic_equation(state[..., :2, :, :])
             gam_dot = new_state[..., 0, :, :]
             omega_dot = new_state[..., 1, :, :]
             zeta_dot = -self.connection_at_identity(omega, zeta)
@@ -764,7 +764,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
             [base_point, left_angular_vel_b, left_angular_vel_a], axis=-3
         )
 
-        flow = integrate(acceleration, initial_state, n_steps=n_steps, step=step)
+        force = lambda state, _: acceleration(state)
+        flow = integrate(force, initial_state, n_steps=n_steps, step=step)
         gamma = flow[-1][..., 0, :, :]
         zeta_t = flow[-1][..., 2, :, :]
         transported = self._space.tangent_translation_map(
@@ -773,7 +774,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         return (transported, gamma) if return_endpoint else transported
 
-    def geodesic_equation(self, state, _time):
+    def geodesic_equation(self, state):
         r"""Compute the geodesic ODE associated with the invariant metric.
 
         This is a reduced geodesic equation written entirely in the Lie
@@ -787,9 +788,6 @@ class _InvariantMetricMatrix(RiemannianMetric):
         ----------
         state : array-like, shape=[..., dim]
             Tangent vector at the position.
-        _time : array-like, shape=[..., dim]
-            Point on the manifold, the position at which to compute the
-            geodesic ODE.
 
         Returns
         -------

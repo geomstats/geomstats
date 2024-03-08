@@ -61,16 +61,13 @@ class Connection(ABC):
         """
         raise NotImplementedError("The Christoffel symbols are not implemented.")
 
-    def geodesic_equation(self, state, _time):
+    def geodesic_equation(self, state):
         """Compute the geodesic ODE associated with the connection.
 
         Parameters
         ----------
         state : array-like, shape=[..., 2, dim]
             Tangent vector at the position.
-        _time : array-like, shape=[..., 2, dim]
-            Point on the manifold, the position at which to compute the
-            geodesic ODE.
 
         Returns
         -------
