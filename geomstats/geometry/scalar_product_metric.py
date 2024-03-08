@@ -226,6 +226,10 @@ class ScalarProductMetric:
         """
         if not isinstance(scalar, float):
             return NotImplemented
+        if self != self._space.metric:
+            raise ValueError(
+                "A space must be equipped with this metric before it is scaled."
+            )
         return ScalarProductMetric(self._space, scalar)
 
     def __rmul__(self, scalar):
