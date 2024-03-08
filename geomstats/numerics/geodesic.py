@@ -101,7 +101,7 @@ class ExpODESolver(ExpSolver):
         state_axis = -(self._space.point_ndim + 1)
         initial_state = gs.stack([base_point, tangent_vec], axis=state_axis)
 
-        force = self._space.metric.geodesic_equation
+        force = lambda state, _: self._space.metric.geodesic_equation(state)
         if t_eval is None:
             return self.integrator.integrate(force, initial_state)
 
@@ -523,13 +523,11 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         pos_1 = state_1[: point_1.shape[0]]
         return gs.hstack((pos_0 - point_0, pos_1 - point_1))
 
-    def _bvp(self, _, raveled_state):
+    def _bvp(self, raveled_state):
         """Boundary value problem.
 
         Parameters
         ----------
-        _ : float
-            Unused.
         raveled_state : array-like, shape=[2*dim, n_nodes]
             Vector of state variables (position and speed).
 
@@ -540,7 +538,7 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         state = gs.moveaxis(
             gs.reshape(raveled_state, (2,) + self._space.shape + (-1,)), -1, 0
         )
-        new_state = self._space.metric.geodesic_equation(state, _)
+        new_state = self._space.metric.geodesic_equation(state)
         return gs.moveaxis(gs.reshape(new_state, (-1, raveled_state.shape[0])), -2, -1)
 
     def _jacobian(self, _, raveled_state):
@@ -585,7 +583,7 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         return jac
 
     def _solve(self, point, base_point):
-        bvp = lambda t, state: self._bvp(t, state)
+        bvp = lambda t, state: self._bvp(state)
         bc = lambda state_0, state_1: self._boundary_condition(
             state_0, state_1, gs.flatten(base_point), gs.flatten(point)
         )

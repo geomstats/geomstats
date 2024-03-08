@@ -24,7 +24,7 @@ class ConnectionTestCase(GeodesicBVPTestCaseMixins, TestCase):
         self.assertAllClose(res, expected, atol=atol)
 
     def test_geodesic_equation(self, state, expected, atol):
-        res = self.space.metric.geodesic_equation(state, None)
+        res = self.space.metric.geodesic_equation(state)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
@@ -33,7 +33,7 @@ class ConnectionTestCase(GeodesicBVPTestCaseMixins, TestCase):
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         state = gs.stack([base_point, tangent_vec])
-        expected = self.space.metric.geodesic_equation(state, None)
+        expected = self.space.metric.geodesic_equation(state)
 
         vec_data = generate_vectorization_data(
             data=[
