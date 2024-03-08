@@ -142,6 +142,8 @@ class ScalarProductMetric:
     'scaling_factor'. That would require multiplication by the square of the
     scalar.
 
+    The `space` is not automatically equipped with the `ScalarProductMetric`.
+
     An object of this type can also be instantiated by the expression
     scaling_factor * space.metric.
 
@@ -158,7 +160,7 @@ class ScalarProductMetric:
 
     Parameters
     ----------
-    space : Manifold
+    space : Manifold or ComplexManifold
         A manifold equipped with a metric which is being scaled.
     scale : float
         The value by which to scale the metric. Note that this rescales the

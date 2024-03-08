@@ -76,9 +76,9 @@ class ProductPositiveRealsAndComplexPoincareDisks(ProductManifold):
         ]
 
         scales = [float(n_manifolds - i_manifold) for i_manifold in range(n_manifolds)]
-        factors[0].equip_with_metric(scales[0] * factors[0].metric)
+        factors[0].equip_with_metric(ScalarProductMetric(factors[0], scales[0]))
         for factor, scale in zip(factors[1:], scales[1:]):
-            factor.equip_with_metric(scale * factor.metric)
+            factor.equip_with_metric(ScalarProductMetric(factor, scale))
 
         super().__init__(factors=factors, point_ndim=3, equip=equip)
 
