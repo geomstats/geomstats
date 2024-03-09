@@ -172,7 +172,7 @@ class ScalarProductMetric:
         """Load all attributes from the underlying metric."""
         geomstats.errors.check_positive(scale, "scale")
         if not hasattr(space, "metric"):
-            raise ValueError("The variable 'space' must be equipped with a metric.")
+            raise TypeError("The variable 'space' must be equipped with a metric.")
 
         self._space = space
 
