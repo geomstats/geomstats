@@ -104,6 +104,8 @@ class _ScaledMethodsRegistry:
                 raise ValueError(msg)
         if func_name in cls._RESERVED_NAMES:
             raise ValueError(f"'{func_name}' is reserved for internal use.")
+        if func_name.startswith("_"):
+            raise ValueError("Private methods cannot be rescaled")
 
         try:
             scaling_dict[scaling_type].append(func_name)
