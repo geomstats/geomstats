@@ -42,8 +42,7 @@ class TestVisualization(TestCase):
 
         plt.figure()
 
-    @staticmethod
-    def test_tutorial_matplotlib():
+    def test_tutorial_matplotlib(self):
         visualization.tutorial_matplotlib()
 
     def test_plot_points_so3(self):
@@ -172,8 +171,7 @@ class TestVisualization(TestCase):
         points = self.H2.random_point(self.n_samples)
         visualization.plot(points, space="H2_klein_disk")
 
-    @staticmethod
-    def test_plot_points_se2():
+    def test_plot_points_se2(self):
         points = SpecialEuclidean(n=2, point_type="vector").random_point(4)
         visu = visualization.SpecialEuclidean2(points, point_type="vector")
         ax = visu.set_ax()
