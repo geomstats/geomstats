@@ -10,8 +10,9 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.numerics.geodesic import PathStraightening
+from geomstats.numerics.geodesic import ExpSolver, PathStraightening
 from geomstats.numerics.optimizers import ScipyMinimize
+from geomstats.numerics.path import UniformlySampledDiscretePath
 from geomstats.vectorization import get_batch_shape
 
 
@@ -513,7 +514,7 @@ class ElasticMetric(RiemannianMetric):
         self.d1 = d1
         self.a2 = a2
 
-        self.exp_solver = _ExpSolver(space, n_steps=10)
+        self.exp_solver = DiscreteSurfacesExpSolver(space, n_steps=10)
 
         optimizer = ScipyMinimize(
             method="L-BFGS-B",
@@ -920,10 +921,14 @@ class ElasticMetric(RiemannianMetric):
         )
 
 
-class _ExpSolver:
-    """Class to solve the initial value problem (IVP) for exp."""
+class DiscreteSurfacesExpSolver(ExpSolver):
+    """Class to solve the initial value problem (IVP) for exp.
+
+    Implements methods from discrete geodesic calculus method.
+    """
 
     def __init__(self, space, n_steps=10, optimizer=None):
+        super().__init__(solves_ivp=True)
         self._space = space
         if optimizer is None:
             optimizer = ScipyMinimize(
@@ -935,82 +940,8 @@ class _ExpSolver:
         self.n_steps = n_steps
         self.optimizer = optimizer
 
-    def exp(self, tangent_vec, base_point):
-        """Compute exponential map associated to the Riemmannian metric.
-
-        Exponential map at base_point of tangent_vec computed
-        by discrete geodesic calculus methods.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n_vertices, 3]
-            Tangent vector at the base point.
-        base_point : array-like, shape=[..., n_vertices, 3]
-            Point on the manifold, i.e.
-        n_steps : int
-            Number of time steps on the geodesic.
-
-        Returns
-        -------
-        exp : array-like, shape=[n_vertices, 3]
-            Point on the manifold.
-        """
-        if gs.__name__.endswith("autograd"):
-            return (
-                "This ExpSolver works for the pytorch backend."
-                "Change backend via the command "
-                "export GEOMSTATS_BACKEND=pytorch in a terminal"
-            )
-
-        exps = []
-        need_squeeze = False
-        if tangent_vec.ndim == 2:
-            tangent_vec = gs.expand_dims(tangent_vec, axis=0)
-            need_squeeze = True
-        if base_point.ndim == 2:
-            base_point = gs.expand_dims(base_point, axis=0)
-            need_squeeze = True
-        n_exps = gs.maximum(tangent_vec.shape[0], base_point.shape[0])
-        tangent_vec = gs.broadcast_to(tangent_vec, (n_exps,) + tangent_vec.shape[1:])
-        base_point = gs.broadcast_to(base_point, (n_exps,) + base_point.shape[1:])
-        for one_tangent_vec, one_base_point in zip(tangent_vec, base_point):
-            geod = self._ivp(one_base_point, one_tangent_vec)
-            exps.append(geod[-1])
-
-        exps = gs.array(exps)
-        if need_squeeze:
-            exps = gs.squeeze(exps, axis=0)
-        return exps
-
-    def _ivp(self, initial_point, initial_tangent_vec):
-        """Solve initial value problem (IVP).
-
-        Given an initial point and an initial vector, solve the geodesic equation.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[n_vertices, 3]
-            Initial point, i.e. initial discrete surface.
-        initial_tangent_vec : array-like, shape=[n_vertices, 3]
-            Initial tangent vector.
-
-        Returns
-        -------
-        geod : array-like, shape=[n_times, n_vertices, 3]
-            Geodesic discretized along the times given as inputs.
-        """
-        initial_tangent_vec = initial_tangent_vec / (self.n_steps - 1)
-
-        next_point = initial_point + initial_tangent_vec
-        geod = [initial_point, next_point]
-        for _ in range(2, self.n_steps):
-            next_next_point = self._stepforward(initial_point, next_point)
-            geod += [next_next_point]
-            initial_point, next_point = next_point, next_next_point
-        return gs.stack(geod, axis=0)
-
-    def _stepforward(self, current_point, next_point):
-        """Compute the next point on the geodesic.
+    def _objective(self, current_point, next_point):
+        """Return objective function to compute the next point on the geodesic.
 
         Parameters
         ----------
@@ -1021,17 +952,12 @@ class _ExpSolver:
 
         Returns
         -------
-        next_next_point : array-like, shape=[n_vertices, 3]
-            Next next point on the geodesic.
+        energy_objective : callable
+            Computes energy wrt next next point.
         """
-        current_point = gs.array(current_point)
-        next_point = gs.array(next_point)
-        n_vertices = current_point.shape[-2]
+        zeros = gs.zeros_like(current_point)
 
-        zeros = gs.zeros_like(current_point, dtype=float)
-        next_point_clone = gs.copy(next_point)
-
-        def energy_objective(next_next_point):
+        def energy_objective(flat_next_next_point):
             """Compute the energy objective to minimize.
 
             Parameters
@@ -1044,7 +970,7 @@ class _ExpSolver:
             energy_tot : array-like, shape=[,]
                 Energy objective to minimize.
             """
-            next_next_point = gs.reshape(gs.array(next_next_point), (n_vertices, 3))
+            next_next_point = gs.reshape(flat_next_next_point, self._space.shape)
             current_to_next = next_point - current_point
             next_to_next_next = next_next_point - next_point
 
@@ -1087,20 +1013,134 @@ class _ExpSolver:
                 _inner_product_with_next_to_next_next,
                 point_ndims=2,
             )(zeros)
-            _, energy_3 = gs.autodiff.value_and_grad(_norm, point_ndims=2)(
-                next_point_clone
-            )
+            _, energy_3 = gs.autodiff.value_and_grad(_norm, point_ndims=2)(next_point)
 
             energy_tot = 2 * energy_1 - 2 * energy_2 + energy_3
             return gs.sum(energy_tot**2)
 
-        initial_next_next_point = gs.flatten(
+        return energy_objective
+
+    def _stepforward(self, current_point, next_point):
+        """Compute the next point on the geodesic.
+
+        Parameters
+        ----------
+        current_point : array-like, shape=[n_vertices, 3]
+            Current point on the geodesic.
+        next_point : array-like, shape=[n_vertices, 3]
+            Next point on the geodesic.
+
+        Returns
+        -------
+        next_next_point : array-like, shape=[n_vertices, 3]
+            Next next point on the geodesic.
+        """
+        flat_initial_next_next_point = gs.flatten(
             (2 * (next_point - current_point) + current_point)
         )
 
+        energy_objective = self._objective(current_point, next_point)
+
         sol = self.optimizer.minimize(
             energy_objective,
-            initial_next_next_point,
+            flat_initial_next_next_point,
         )
 
-        return gs.reshape(gs.array(sol.x), (n_vertices, 3))
+        return gs.reshape(sol.x, self._space.shape)
+
+    def _discrete_geodesic_ivp_single(self, tangent_vec, base_point):
+        """Solve initial value problem (IVP).
+
+        Given an initial tangent vector and an initial point,
+        solve the geodesic equation.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_vertices, 3]
+            Initial tangent vector.
+        base_point : array-like, shape=[n_vertices, 3]
+            Initial point, i.e. initial discrete surface.
+
+        Returns
+        -------
+        geod : array-like, shape=[n_steps, n_vertices, 3]
+            Discretized geodesic uniformly sampled.
+        """
+        print(tangent_vec.shape, base_point.shape)
+        next_point = base_point + tangent_vec / (self.n_steps - 1)
+        geod = [base_point, next_point]
+        for _ in range(2, self.n_steps):
+            next_next_point = self._stepforward(geod[-2], geod[-1])
+            geod.append(next_next_point)
+
+        return gs.stack(geod, axis=0)
+
+    def discrete_geodesic_ivp(self, tangent_vec, base_point):
+        """Solve initial value problem (IVP).
+
+        Given an initial tangent vector and an initial point,
+        solve the geodesic equation.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_vertices, 3]
+            Initial tangent vector.
+        base_point : array-like, shape=[n_vertices, 3]
+            Initial point, i.e. initial discrete surface.
+
+        Returns
+        -------
+        geod : array-like, shape=[n_steps, n_vertices, 3]
+            Discretized geodesic uniformly sampled.
+        """
+        if tangent_vec.ndim != base_point.ndim:
+            tangent_vec, base_point = gs.broadcast_arrays(tangent_vec, base_point)
+
+        is_batch = base_point.ndim > self._space.point_ndim
+        if not is_batch:
+            return self._discrete_geodesic_ivp_single(tangent_vec, base_point)
+
+        return gs.stack(
+            [
+                self._discrete_geodesic_ivp_single(tangent_vec_, base_point_)
+                for tangent_vec_, base_point_ in zip(tangent_vec, base_point)
+            ]
+        )
+
+    def exp(self, tangent_vec, base_point):
+        """Compute exponential map associated to the Riemmannian metric.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n_vertices, 3]
+            Tangent vector at the base point.
+        base_point : array-like, shape=[..., n_vertices, 3]
+            Point on the manifold, i.e.
+
+        Returns
+        -------
+        point : array-like, shape=[..., n_vertices, 3]
+            Point on the manifold.
+        """
+        discr_geod_path = self.discrete_geodesic_ivp(tangent_vec, base_point)
+        return discr_geod_path[..., -1, :, :]
+
+    def geodesic_ivp(self, tangent_vec, base_point):
+        """Geodesic curve for initial value problem.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n_vertices, 3]
+            Initial tangent vector.
+        base_point : array-like, shape=[..., n_vertices, 3]
+            Initial point, i.e. initial discrete surface.
+
+        Returns
+        -------
+        path : callable
+            Time parametrized geodesic curve. `f(t)`.
+        """
+        discr_geod_path = self.discrete_geodesic_ivp(tangent_vec, base_point)
+        return UniformlySampledDiscretePath(
+            discr_geod_path, point_ndim=self._space.point_ndim
+        )
