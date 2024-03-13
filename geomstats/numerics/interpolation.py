@@ -80,5 +80,5 @@ class UniformUnitIntervalLinearInterpolator:
         diff = end_point - initial_point
         ratio = gs.mod(t, self._delta) / self._delta
 
-        ijk = "ijk"[self.point_ndim]
+        ijk = "ijk"[: self.point_ndim]
         return initial_point + gs.einsum(f"t,...t{ijk}->...t{ijk}", ratio, diff)
