@@ -29,6 +29,10 @@ class SurfacesLocalRandomDataGenerator(RandomDataGenerator):
     def random_point(self, n_points=1):
         return self.point + self._get_deformation(n_points)
 
+    def random_tangent_vec(self, point):
+        n_points = 1 if point.ndim == 2 else point.shape[0]
+        return self._get_deformation(n_points)
+
 
 class DiscreteSurfacesTestCase(ManifoldTestCase):
     def test_vertex_areas(self, point, expected, atol):

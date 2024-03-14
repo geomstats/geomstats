@@ -831,7 +831,7 @@ class PathStraightening(LogSolver):
         """
         discr_geod_path = self.discrete_geodesic_bvp(point, base_point)
         point_ndim_slc = (slice(None),) * self._space.point_ndim
-        return self.n_nodes * (
+        return (self.n_nodes - 1) * (
             discr_geod_path[..., 1, *point_ndim_slc]
             - discr_geod_path[..., 0, *point_ndim_slc]
         )
