@@ -5,7 +5,7 @@ from geomstats.geometry.connection import Connection
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class DivergenceConjugateConnection(Connection):
+class DivergenceConnection(Connection):
     r"""Class to derive the pair of conjugate connections from a divergence.
 
     Given an :math:`n` manifold :math:`M` with coordinates :math:`x`
@@ -42,9 +42,9 @@ class DivergenceConjugateConnection(Connection):
 
     def __init__(self, space, divergence):
         super().__init__(space=space)
-        assert space.intrinsic, (
-            "The manifold must be parametrized by an intrinsic coordinate system."
-        )
+        assert (
+            space.intrinsic
+        ), "The manifold must be parametrized by an intrinsic coordinate system."
         self.dim = space.dim
         self.divergence = self._unpack_inputs(divergence)
 
@@ -69,8 +69,10 @@ class DivergenceConjugateConnection(Connection):
         callable
             Composition of wrapper function after divergence.
         """
+
         def wrapper(tensor):
             return func(tensor[..., : self.dim], tensor[..., self.dim :])
+
         return wrapper
 
     def divergence_christoffels(self, base_point):
@@ -107,7 +109,7 @@ class DivergenceConjugateConnection(Connection):
 
         .. math::
             \Gamma^{D^*}_{i j k} =
-            -1 \cdot \frac{\partial^2}{\partial x^i}
+            -1 \cdot \frac{\partial}{\partial x^i}
                 \frac{\partial^2}{\partial y^j \partial y^k} D(x, y) \bigg|_{x=y}
 
         Parameters
@@ -154,10 +156,10 @@ class StatisticalMetric(RiemannianMetric):
 
     def __init__(self, space, divergence):
         super().__init__(space=space, signature=(space.dim, 0))
-        assert space.intrinsic, (
-            "The manifold must be parametrized by an intrinsic coordinate system."
-        )
-        self.divergence_conjugate_connection = DivergenceConjugateConnection(
+        assert (
+            space.intrinsic
+        ), "The manifold must be parametrized by an intrinsic coordinate system."
+        self.divergence_conjugate_connection = DivergenceConnection(
             space=space, divergence=divergence
         )
 
@@ -205,8 +207,10 @@ class StatisticalMetric(RiemannianMetric):
         callable
             Composition of wrapper function after divergence.
         """
+
         def wrapper(tensor):
             return func(tensor[..., : self.dim], tensor[..., self.dim :])
+
         return wrapper
 
     def metric_matrix(self, base_point):
