@@ -104,6 +104,8 @@ class _ScaledMethodsRegistry:
                 raise ValueError(msg)
         if func_name in cls._RESERVED_NAMES:
             raise ValueError(f"'{func_name}' is reserved for internal use.")
+        if func_name.startswith("_"):
+            raise ValueError("Private methods cannot be rescaled")
 
         try:
             scaling_dict[scaling_type].append(func_name)
@@ -137,13 +139,15 @@ class _ScaledMethodsRegistry:
 class ScalarProductMetric:
     """Class for scalar products of Riemannian and pseudo-Riemannian metrics.
 
-    This class multiplies the (0,2) metric tensor 'underlying_metric' by a
+    This class multiplies the (0,2) metric tensor 'space.metric' by a
     scalar 'scaling_factor'. Note that this does not scale distances by
     'scaling_factor'. That would require multiplication by the square of the
     scalar.
 
+    The `space` is not automatically equipped with the `ScalarProductMetric`.
+
     An object of this type can also be instantiated by the expression
-    scaling_factor * underlying_metric.
+    scaling_factor * space.metric.
 
     This class acts as a wrapper for the underlying Riemannian metric. All
     public attributes apart from 'underlying_metric' and 'scaling_factor' are
@@ -158,23 +162,27 @@ class ScalarProductMetric:
 
     Parameters
     ----------
-    underlying_metric : RiemannianMetric
-        The original metric of the manifold which is being scaled.
+    space : Manifold or ComplexManifold
+        A manifold equipped with a metric which is being scaled.
     scale : float
         The value by which to scale the metric. Note that this rescales the
         (0,2) metric tensor, so distances are rescaled by the square root of
         this.
     """
 
-    def __init__(self, underlying_metric, scale):
+    def __init__(self, space, scale):
         """Load all attributes from the underlying metric."""
         geomstats.errors.check_positive(scale, "scale")
+        if not hasattr(space, "metric"):
+            raise TypeError("The variable 'space' must be equipped with a metric.")
 
-        if hasattr(underlying_metric, "underlying_metric"):
-            self.underlying_metric = underlying_metric.underlying_metric
-            self.scale = scale * underlying_metric.scale
+        self._space = space
+
+        if isinstance(space.metric, ScalarProductMetric):
+            self.underlying_metric = space.metric.underlying_metric
+            self.scale = scale * space.metric.scale
         else:
-            self.underlying_metric = underlying_metric
+            self.underlying_metric = space.metric
             self.scale = scale
 
         for attr_name in dir(self.underlying_metric):
@@ -220,7 +228,11 @@ class ScalarProductMetric:
         """
         if not isinstance(scalar, float):
             return NotImplemented
-        return ScalarProductMetric(self, scalar)
+        if self != self._space.metric:
+            raise ValueError(
+                "A space must be equipped with this metric before it is scaled."
+            )
+        return ScalarProductMetric(self._space, scalar)
 
     def __rmul__(self, scalar):
         """Multiply the metric by a scalar.

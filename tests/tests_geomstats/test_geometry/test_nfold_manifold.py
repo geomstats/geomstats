@@ -26,6 +26,6 @@ class TestNFoldMetricScales(NFoldMetricScalesTestCase, metaclass=DataBasedParame
     space.equip_with_metric(NFoldMetric, scales=gs.array([scale]))
 
     other_space = Euclidean(dim=3)
-    other_space.metric = ScalarProductMetric(other_space.metric, scale)
+    other_space.equip_with_metric(ScalarProductMetric(other_space, scale))
 
     testing_data = NFoldMetricScalesTestData()

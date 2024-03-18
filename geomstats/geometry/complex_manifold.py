@@ -7,6 +7,7 @@ Lead author: Yann Cabanes.
 """
 
 import abc
+import inspect
 
 import geomstats.backend as gs
 
@@ -48,7 +49,7 @@ class ComplexManifold(abc.ABC):
 
         Parameters
         ----------
-        Metric : Connection object
+        Metric : Connection object or instance or ScalarProductMetric instance
             If None, default metric will be used.
         """
         if Metric is None:
@@ -60,7 +61,17 @@ class ComplexManifold(abc.ABC):
             else:
                 Metric = out
 
-        self.metric = Metric(self, **metric_kwargs)
+        if inspect.isclass(Metric):
+            self.metric = Metric(self, **metric_kwargs)
+        else:
+            if self.metric._space is not self:
+                raise ValueError(
+                    "Cannot equip space with metric instantiated with another space."
+                )
+
+            self.metric = Metric
+
+        return self
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
