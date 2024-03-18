@@ -4,6 +4,35 @@ import geomstats.backend as gs
 from geomstats.geometry.connection import Connection
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
+def unpack_inputs(func, dim):
+    r"""Wrap function to unpack inputs to divergence function.
+
+    Compose a function :math:`g:` with a wrapper :math:`f`
+    to identify
+    .. math::
+        g: \mathbb{R}^{n} \times \mathbb{R}^{n} \to \mathbb{R}
+
+    with the function
+    .. math::
+        \tidle{g} = f\circ g: \mathbb{R}^{2n} \to \mathbb{R}
+
+    Autodifferentiation is then computed on :math:`\tidle{g}`.
+
+    Parameters
+    ----------
+    func : callable
+        Function to unpack inputs.
+    dim : int
+        Dimension of the manifold.
+
+    Returns
+    -------
+    callable
+        Composition of wrapper function with original function.
+    """
+    def wrapper(tensor):
+        return func(tensor[..., : dim], tensor[..., dim :])
+    return wrapper
 
 class DivergenceConnection(Connection):
     r"""Class to derive the pair of conjugate connections from a divergence.
@@ -46,34 +75,7 @@ class DivergenceConnection(Connection):
             space.intrinsic
         ), "The manifold must be parametrized by an intrinsic coordinate system."
         self.dim = space.dim
-        self.divergence = self._unpack_inputs(divergence)
-
-    def _unpack_inputs(self, func):
-        r"""Wrap function to unpack inputs to divergence function.
-
-        Compose the divergence function :math:`D` with a wrapper :math:`f`
-        to identify
-        .. math::
-            \tidle{D} = f\circ D: \mathbb{R}^{2n} \to \mathbb{R}
-            D: \mathbb{R}^{n} \times \mathbb{R}^{n} \to \mathbb{R}
-
-        Autodifferentiation is then computed on :math:`\tidle{D}`.
-
-        Parameters
-        ----------
-        func : callable
-            Function to unpack inputs.
-
-        Returns
-        -------
-        callable
-            Composition of wrapper function after divergence.
-        """
-
-        def wrapper(tensor):
-            return func(tensor[..., : self.dim], tensor[..., self.dim :])
-
-        return wrapper
+        self.divergence = unpack_inputs(divergence)
 
     def divergence_christoffels(self, base_point):
         r"""Compute the Christoffel symbols of the divergence connection.
@@ -152,6 +154,8 @@ class StatisticalMetric(RiemannianMetric):
     .. [N2020] F. Nielsen,
         "An Elementary Introduction to Information Geometry",
         arXiv:808.08271v2 (2020): 10-16
+    .. [A1985] S. Amari, (1985)
+            Differential Geometric Methods in Statistics, Springer.
     """
 
     def __init__(self, space, divergence):
@@ -164,14 +168,14 @@ class StatisticalMetric(RiemannianMetric):
         )
 
         self.dim = space.dim
-        self.divergence = self._unpack_inputs(divergence)
+        self.divergence = self.unpack_inputs(divergence)
 
     def __getattr__(self, attr):
         r"""Built in method to delegate attribute access.
 
         Delegate attribute access to the divergence conjugate connection.
 
-        Instanciated to avoid dimond inheritance problem with RiemannianMetric
+        Instantiated to avoid dimond inheritance problem with RiemannianMetric
         and DivergenceConjugateConnection classes.
 
         Parameters
@@ -185,33 +189,6 @@ class StatisticalMetric(RiemannianMetric):
             Attribute of divergence conjugate connection.
         """
         return getattr(self.divergence_conjugate_connection, attr)
-
-    def _unpack_inputs(self, func):
-        r"""Wrap function to unpack inputs to divergence function.
-
-        Compose the divergence function :math:`D` with a wrapper :math:`f`
-        to identify
-        .. math::
-            \tidle{D} = f\circ D: \mathbb{R}^{2n} \to \mathbb{R}
-            D: \mathbb{R}^{n} \times \mathbb{R}^{n} \to \mathbb{R}
-
-        Autodifferentiation is then computed on :math:`\tidle{D}`.
-
-        Parameters
-        ----------
-        func : callable
-            Function to unpack inputs.
-
-        Returns
-        -------
-        callable
-            Composition of wrapper function after divergence.
-        """
-
-        def wrapper(tensor):
-            return func(tensor[..., : self.dim], tensor[..., self.dim :])
-
-        return wrapper
 
     def metric_matrix(self, base_point):
         r"""Compute the divergence induced metric matrix.
