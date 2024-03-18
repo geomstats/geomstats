@@ -1,15 +1,15 @@
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.scalar_product_metric import (
+    CustomizationTestCase,
     InstantiationTestCase,
     WrapperTestCase,
-    CustomizationTestCase,
 )
 
 from .data.scalar_product_metric import (
+    CustomizationTestData,
     InstantiationTestData,
     WrapperTestData,
-    CustomizationTestData,
 )
 
 

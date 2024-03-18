@@ -55,10 +55,8 @@ class ProductHPDMatricesAndSiegelDisks(ProductManifold):
         factors = [HPDMatrices(n=n)] + [Siegel(n=n) for _ in range((n_manifolds - 1))]
 
         scales = [float(n_manifolds - i_manifold) for i_manifold in range(n_manifolds)]
-        [
+        for factor, scale in zip(factors[1:], scales[1:]):
             factor.equip_with_metric(ScalarProductMetric(factor, scale))
-            for factor, scale in zip(factors[1:], scales[1:])
-        ]
 
         super().__init__(
             factors=factors,

@@ -64,8 +64,12 @@ class ComplexManifold(abc.ABC):
         if inspect.isclass(Metric):
             self.metric = Metric(self, **metric_kwargs)
         else:
+            if self.metric._space is not self:
+                raise ValueError(
+                    "Cannot equip space with metric instantiated with another space."
+                )
+
             self.metric = Metric
-            self.metric._space = self
 
         return self
 

@@ -28,6 +28,7 @@ class WrapperTestCase(TestCase):
 
 
 class InstantiationTestCase(TestCase):
+    @pytest.mark.random
     def test_scalar_metric_multiplication(self, scale):
         scaled_metric_1 = scale * self.space.metric
         scaled_metric_2 = self.space.metric * scale
@@ -41,20 +42,23 @@ class InstantiationTestCase(TestCase):
         self.assertAllClose(scale * dist, dist_2)
 
         with pytest.raises(ValueError):
-            scaled_metric_3 = scale * scaled_metric_1
+            scale * scaled_metric_1
 
     def test_scalar_metric_multiplication_error(self, scale):
         with pytest.raises(TypeError):
-            scaled_metric = scale * self.space.metric
+            scale * self.space.metric
+
         with pytest.raises(TypeError):
-            scaled_metric = self.space.metric * scale
+            self.space.metric * scale
+
         with pytest.raises(TypeError):
-            scaled_metric = self.space.metric * self.space.metric
+            self.space.metric * self.space.metric
 
     def test_scalar_metric_signature(self, scale):
         with pytest.raises(TypeError):
-            scaled_metric = ScalarProductMetric(self.space.metric, scale)
+            ScalarProductMetric(self.space.metric, scale)
 
+    @pytest.mark.random
     def test_scaling_scalar_metric(self, scale):
         point_a, point_b = self.space.random_point(2)
 
