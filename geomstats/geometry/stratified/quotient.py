@@ -1,39 +1,9 @@
 """Quotient structure for a geodesic metric space."""
 
-from abc import ABC, abstractmethod
+from abc import ABC
 
 import geomstats.backend as gs
 from geomstats.geometry.stratified.point_set import PointSetMetric
-
-
-class AlignerAlgorithm(ABC):
-    """Base class for point to point aligner.
-
-    Parameters
-    ----------
-    total_space : PointSet
-        Set with quotient structure.
-    """
-
-    def __init__(self, total_space):
-        self._total_space = total_space
-
-    @abstractmethod
-    def align(self, point, base_point):
-        """Align point to base point.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., *point_shape]
-            Point to align.
-        base_point : array-like, shape=[..., *point_shape]
-            Base point.
-
-        Returns
-        -------
-        aligned_point : array-like, shape=[..., *point_shape]
-            Aligned point.
-        """
 
 
 class Aligner(ABC):
