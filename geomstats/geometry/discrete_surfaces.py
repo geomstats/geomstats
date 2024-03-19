@@ -1066,7 +1066,6 @@ class DiscreteSurfacesExpSolver(ExpSolver):
         geod : array-like, shape=[n_steps, n_vertices, 3]
             Discretized geodesic uniformly sampled.
         """
-        print(tangent_vec.shape, base_point.shape)
         next_point = base_point + tangent_vec / (self.n_steps - 1)
         geod = [base_point, next_point]
         for _ in range(2, self.n_steps):
