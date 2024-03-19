@@ -3,13 +3,131 @@
 Lead author: Nicolas Guigui.
 """
 
+import math
 import sys
-from abc import ABC
-
-from scipy.optimize import minimize
+from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
+from geomstats.numerics.optimizers import ScipyMinimize
 from geomstats.vectorization import get_batch_shape
+
+
+class AlignerAlgorithm(ABC):
+    """Base class for point to point aligner.
+
+    Parameters
+    ----------
+    total_space : Manifold
+        Space equipped with a group action and a group-invariant metric.
+    """
+
+    def __init__(self, total_space):
+        self._total_space = total_space
+
+    @abstractmethod
+    def align(self, point, base_point):
+        """Align point to base point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *total_space.shape]
+            Point to align.
+        base_point : array-like, shape=[..., *total_space.shape]
+            Base point.
+
+        Returns
+        -------
+        aligned_point : array-like, shape=[..., *total_space.shape]
+            Aligned point.
+        """
+
+
+class DistanceMinimizationBasedAligner(AlignerAlgorithm):
+    """Aligment based on minimization of squared distance.
+
+    Parameters
+    ----------
+    total_space : Manifold
+        Space equipped with a group action and a group-invariant metric.
+    optimizer : ScipyMinimize
+        Optimizer to solve minimization problem.
+    group_elem_shape : tuple
+        Shape of the group element representation.
+    """
+
+    def __init__(self, total_space, optimizer=None, group_elem_shape=None):
+        super().__init__(total_space)
+        if optimizer is None:
+            optimizer = ScipyMinimize(
+                method="L-BFGS-B",
+                jac="autodiff",
+            )
+        self.optimizer = optimizer
+
+        if group_elem_shape is None:
+            group_elem_shape = self._total_space.group_action.group_elem_shape
+        self.group_elem_shape = group_elem_shape
+
+    def _objective(self, point, base_point, batch_shape):
+        """Objective function.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *total_space.shape]
+            Point to align to base point.
+        base_point : array-like, shape=[..., *total_space.shape]
+            Point wrt alignment is performed.
+        batch_shape : tuple
+            Batch shape.
+        """
+
+        def sum_squared_dist(param):
+            """Objective function.
+
+            Parameters
+            ----------
+            param : array-like
+                Flat representation of group element.
+            """
+            group_elem = gs.reshape(param, batch_shape + self.group_elem_shape)
+            aligned_point = self._total_space.group_action(group_elem, point)
+            return gs.sum(
+                self._total_space.metric.squared_dist(aligned_point, base_point)
+            )
+
+        return sum_squared_dist
+
+    def align(self, point, base_point):
+        """Align point to base point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *total_space.shape]
+            Point to align.
+        base_point : array-like, shape=[..., *total_space.shape]
+            Base point.
+
+        Returns
+        -------
+        aligned_point : array-like, shape=[..., *total_space.shape]
+            Aligned point.
+        """
+        batch_shape = get_batch_shape(self._total_space.point_ndim, point, base_point)
+        objective = self._objective(point, base_point, batch_shape)
+
+        initial_param = gs.flatten(
+            gs.random.rand(math.prod(batch_shape + self.group_elem_shape))
+        )
+
+        sol = self.optimizer.minimize(
+            objective,
+            initial_param,
+        )
+
+        group_elem = gs.reshape(sol.x, batch_shape + self.group_elem_shape)
+        aligned_point = self._total_space.group_action(group_elem, point)
+
+        return aligned_point
 
 
 class FiberBundle(ABC):
@@ -20,31 +138,23 @@ class FiberBundle(ABC):
 
     Parameters
     ----------
-    group : LieGroup
-        Group that acts on the total space by the right.
-        Optional. Default : None.
-        Either the group or the group action must be given.
-    group_action : callable
-        Right group action. It must take as input a point of the total space
-        and an element of the group, and return a point of the total space.
+    total_space : Manifold
+        Space equipped with a group action and a group-invariant metric.
+    aligner : AlignerAlgorithm
+        If True and autodiff works, instantiates default
+        DistanceMinimizationBasedAligner.
     """
 
-    def __init__(
-        self,
-        total_space,
-        group=None,
-        group_action=None,
-        group_dim=None,
-    ):
+    def __init__(self, total_space, aligner=None):
         self._total_space = total_space
-        self.group = group
+        if aligner is True:
+            aligner = (
+                DistanceMinimizationBasedAligner(total_space)
+                if not gs.__name__.endswith("numpy")
+                else None
+            )
 
-        if group_action is None and group is not None:
-            group_action = group.compose
-        if group_dim is None and group is not None:
-            group_dim = group.dim
-        self.group_dim = group_dim
-        self.group_action = group_action
+        self.aligner = aligner
 
     @staticmethod
     def riemannian_submersion(point):
@@ -114,80 +224,24 @@ class FiberBundle(ABC):
         """
         return self.horizontal_projection(tangent_vec, base_point)
 
-    def align(self, point, base_point, max_iter=25, verbose=False, tol=gs.atol):
-        """Align point to base_point.
-
-        Find the optimal group element g such that the base point and
-        point.g are well positioned, meaning that the total space distance is
-        minimized. This also means that the geodesic joining the base point
-        and the aligned point is horizontal. By default, this is solved by a
-        gradient descent in the Lie algebra.
+    def align(self, point, base_point):
+        """Align point to base point.
 
         Parameters
         ----------
-        point : array-like, shape=[..., {total_space.dim, [n, m]}]
-            Point on the manifold.
-        base_point : array-like, shape=[..., {total_space.dim, [n, m]}]
-            Point on the manifold.
-        max_iter : int
-            Maximum number of gradient steps.
-            Optional, default : 25.
-        verbose : bool
-            Verbosity level.
-            Optional, default : False.
-        tol : float
-            Tolerance for the stopping criterion.
-            Optional, default : backend atol
+        point : array-like, shape=[..., *total_space.shape]
+            Point to align.
+        base_point : array-like, shape=[..., *total_space.shape]
+            Base point.
 
         Returns
         -------
-        aligned : array-like, shape=[..., {total_space.dim, [n, m]}]
-            Action of the optimal g on point.
+        aligned_point : array-like, shape=[..., *total_space.shape]
+            Aligned point.
         """
-        group = self.group
-        group_action = self.group_action
-
-        batch_shape = get_batch_shape(self._total_space.point_ndim, point, base_point)
-        max_shape = batch_shape + (self.group_dim,)
-
-        if group is not None:
-
-            def wrap(param):
-                """Wrap a parameter vector to a group element."""
-                algebra_elt = gs.reshape(
-                    gs.cast(gs.array(param), dtype=base_point.dtype), max_shape
-                )
-                algebra_elt = group.lie_algebra.matrix_representation(algebra_elt)
-                group_elt = group.exp(algebra_elt)
-                return self.group_action(point, group_elt)
-
-        elif group_action is not None:
-
-            def wrap(param):
-                vector = gs.reshape(gs.array(param), max_shape)
-                vector = gs.cast(vector, dtype=base_point.dtype)
-                return group_action(vector, point)
-
-        else:
-            raise ValueError("Either the group of its action must be known")
-
-        objective_with_grad = gs.autodiff.value_and_grad(
-            lambda param: gs.sum(
-                self._total_space.metric.squared_dist(wrap(param), base_point)
-            ),
-        )
-
-        tangent_vec = gs.flatten(gs.random.rand(*max_shape))
-        res = minimize(
-            lambda x: objective_with_grad(gs.from_numpy(x)),
-            tangent_vec,
-            method="L-BFGS-B",
-            jac=True,
-            options={"disp": verbose, "maxiter": max_iter},
-            tol=tol,
-        )
-
-        return wrap(res.x)
+        if self.aligner is None:
+            raise NotImplementedError("Alignment is not implemented.")
+        return self.aligner.align(point, base_point)
 
     def horizontal_projection(self, tangent_vec, base_point):
         r"""Project to horizontal subspace.

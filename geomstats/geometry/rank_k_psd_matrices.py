@@ -7,6 +7,7 @@ import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.group_action import LieAlgebraBasedGroupAction
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
@@ -228,10 +229,14 @@ class BuresWassersteinBundle(FiberBundle):
     """Class for the quotient structure on PSD matrices."""
 
     def __init__(self, total_space):
-        super().__init__(
-            total_space=total_space,
-            group=SpecialOrthogonal(total_space.k, equip=False),
-        )
+        if not hasattr(total_space, "group_action"):
+            total_space.equip_with_group_action(
+                LieAlgebraBasedGroupAction(
+                    SpecialOrthogonal(total_space.k, equip=False)
+                )
+            )
+
+        super().__init__(total_space=total_space, aligner=True)
 
     @staticmethod
     def riemannian_submersion(point):
