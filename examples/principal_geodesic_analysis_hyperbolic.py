@@ -8,12 +8,14 @@ def plot_principal_geodesics(points, coords_type):
     space = Hyperbolic(2, coords_type)
     pca = ExactPGA(space)
     pca.fit(points)
-    axis1, axis2 = pca.components_
+    vec_1, vec_2 = pca.components_
     mean = pca.mean_
     points_proj = pca.fit_transform(points)
 
-    plot_axis1 = gs.stack((mean, mean + axis1))
-    plot_axis2 = gs.stack((mean, mean + axis2))
+    axis_1 = gs.stack((mean, mean + vec_1))
+    axis_2 = gs.stack((mean, mean + vec_2))
+    angles = gs.linspace(0., 2 * gs.pi, 100)
+    circle = gs.stack((gs.cos(angles), gs.sin(angles)))
 
     if coords_type in ["half-space", "ball"]:
         xlim = [-2., 2.] if coords_type == "half-space" else [-1., 1.]
@@ -23,8 +25,10 @@ def plot_principal_geodesics(points, coords_type):
         plt.plot(mean[0], mean[1], 'or')
         plt.plot(points_proj[0, :, 0], points_proj[0, :, 1], 'og')
         plt.plot(points_proj[1, :, 0], points_proj[1, :, 1], 'ob')
-        plt.plot(plot_axis1[:, 0], plot_axis1[:, 1], 'g')
-        plt.plot(plot_axis2[:, 0], plot_axis2[:, 1], 'b')
+        plt.plot(axis_1[:, 0], axis_1[:, 1], 'g')
+        plt.plot(axis_2[:, 0], axis_2[:, 1], 'b')
+        if coords_type == "ball":
+            plt.plot(circle[0], circle[1])
         plt.xlim(xlim)
         plt.ylim(ylim)
         plt.show()
@@ -34,8 +38,8 @@ def plot_principal_geodesics(points, coords_type):
         ax.plot(mean[0], mean[1], mean[2], 'or')
         ax.plot(points_proj[0, :, 0], points_proj[0, :, 1], points_proj[0, :, 2], 'og')
         ax.plot(points_proj[1, :, 0], points_proj[1, :, 1], points_proj[1, :, 2], 'ob')
-        ax.plot(plot_axis1[:, 0], plot_axis1[:, 1], plot_axis1[:, 2], 'g')
-        ax.plot(plot_axis2[:, 0], plot_axis2[:, 1], plot_axis2[:, 2], 'b')
+        ax.plot(axis_1[:, 0], axis_1[:, 1], axis_1[:, 2], 'g')
+        ax.plot(axis_2[:, 0], axis_2[:, 1], axis_2[:, 2], 'b')
         plt.show()
 
 
