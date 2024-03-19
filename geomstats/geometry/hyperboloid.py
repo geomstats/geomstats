@@ -178,6 +178,42 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         """
         return self.change_coordinates_system(point_extrinsic, "extrinsic", "intrinsic")
 
+    def project_on_geodesic(self, point, mean, vector):
+        """Project on geodesic in extrinsic coordinates.
+
+        Project point onto geodesic going through mean in direction of vector.
+        See reference below.
+
+        Parameters
+        ----------
+        point: array-like, shape=[..., dim + 1]
+            Point in hyperbolic space.
+        mean: array-like, shape=[..., dim + 1]
+            Point through which the geodesic passes.
+        vector : array-like, shape=[..., dim + 1]
+            Vector in Minkowski space, direction of the geodesic.
+
+        Returns
+        -------
+        proj : array-like, shape=[..., dim + 1]
+            Projected point on the geodesic.
+
+        References
+        ----------
+        .. [CSV2016] R. Chakraborty, D. Seo, and B. C. Vemuri,
+            "An efficient exact-pga algorithm for constant curvature manifolds."
+            Proceedings of the IEEE conference on computer vision and pattern
+            recognition. 2016.
+        """
+        inner_prod_1 = self.metric.inner_product(point, vector)
+        inner_prod_2 = self.metric.inner_product(point, mean)
+        norm_v = self.metric.norm(vector, mean)
+        dist_to_proj = gs.arctanh(-inner_prod_1 / inner_prod_2 / norm_v)
+        proj = gs.einsum("...,i->...i", gs.cosh(dist_to_proj), mean) + gs.einsum(
+            "...,i->...i", gs.sinh(dist_to_proj), vector / norm_v
+        )
+        return proj
+
 
 class HyperboloidMetric(HyperbolicMetric):
     """Class that defines operations using a hyperbolic metric."""
