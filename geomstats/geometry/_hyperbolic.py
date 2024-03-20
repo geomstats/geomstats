@@ -294,15 +294,14 @@ class _Hyperbolic:
             Tangent vector in the Poincare ball.
         """
         den = 1 + base_point[..., 0]
-        component_1 = (
-            -base_point[..., 1] * tangent_vec[..., 0] / den**2
-            + tangent_vec[..., 1] / den
-        )
-        component_2 = (
-            -base_point[..., 2] * tangent_vec[..., 0] / den**2
-            + tangent_vec[..., 2] / den
-        )
-        return gs.concatenate([component_1[..., None], component_2[..., None]], -1)
+        dim = base_point.shape[-1] - 1
+        tangent_vec_ball = []
+        for i in range(dim):
+            tangent_vec_ball.append(
+                -base_point[..., i + 1] * tangent_vec[..., 0] / den**2
+                + tangent_vec[..., i + 1] / den
+            )
+        return gs.stack(tangent_vec_ball)
 
     @staticmethod
     def ball_to_extrinsic_tangent(tangent_vec, base_point):
@@ -324,30 +323,16 @@ class _Hyperbolic:
         tangent_vec_half_spacel : array-like, shape=[..., dim]
             Tangent vector in extrinsic coordinates.
         """
+        dim = base_point.shape[-1]
         sq_norm = gs.sum(base_point**2, axis=-1)
+        scalar_prod = gs.sum(tangent_vec * base_point, axis=-1)
         den = (1 - sq_norm) ** 2
-        num_1 = 1 - sq_norm + 2 * base_point[..., 0] ** 2
-        num_2 = 1 - sq_norm + 2 * base_point[..., 1] ** 2
-        component_1 = 4 * gs.sum(tangent_vec * base_point, axis=-1) / den
-        component_2 = (
-            1
-            / den
-            * (
-                2 * num_1 * tangent_vec[..., 0]
-                + 4 * base_point[..., 0] * base_point[..., 1] * tangent_vec[..., 1]
+        tangent_vec_ext = [4 * scalar_prod]
+        for i in range(dim):
+            tangent_vec_ext.append(
+                2 * (1 - sq_norm) * tangent_vec[..., i] + 4 * base_point[..., i] * scalar_prod
             )
-        )
-        component_3 = (
-            1
-            / den
-            * (
-                2 * num_2 * tangent_vec[..., 1]
-                + 4 * base_point[..., 0] * base_point[..., 1] * tangent_vec[..., 0]
-            )
-        )
-        return gs.concatenate(
-            [component_1[..., None], component_2[..., None], component_3[..., None]], -1
-        )
+        return 1 / den * gs.stack(tangent_vec_ext)
 
     @classmethod
     def half_space_to_extrinsic_tangent(cls, tangent_vec, base_point):
