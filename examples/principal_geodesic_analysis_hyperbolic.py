@@ -5,6 +5,7 @@ from geomstats.learning.pca import ExactPGA
 
 
 def plot_principal_geodesics(points, coords_type):
+    """Compute and plot principal geodesics."""
     space = Hyperbolic(2, coords_type)
     pca = ExactPGA(space)
     pca.fit(points)
@@ -43,12 +44,26 @@ def plot_principal_geodesics(points, coords_type):
         plt.show()
 
 
-space = Hyperbolic(2, coords_type="half-space")
-n_points = 100
-points = space.random_point(n_points)
-points_ext = space.to_coordinates(points, "extrinsic")
-points_ball = space.to_coordinates(points, "ball")
+def main():
+    """Exact Principal Geodesic Analysis in hyperbolic plane.
 
-plot_principal_geodesics(points, "half-space")
-plot_principal_geodesics(points_ball, "ball")
-plot_principal_geodesics(points_ext, "extrinsic")
+    Perform exact Principal Geodesic Analysis on random data points
+    on three different models of two-dimensional hyperbolic geometry:
+    - the Poincare half-space
+    - the Poincare ball
+    - the hyperboloid
+    and visualize the principal axes and geodesics.
+    """
+    space = Hyperbolic(2, coords_type="half-space")
+    n_points = 100
+    points = space.random_point(n_points)
+    points_ext = space.to_coordinates(points, "extrinsic")
+    points_ball = space.to_coordinates(points, "ball")
+
+    plot_principal_geodesics(points, "half-space")
+    plot_principal_geodesics(points_ball, "ball")
+    plot_principal_geodesics(points_ext, "extrinsic")
+
+
+if __name__ == "__main__":
+    main()
