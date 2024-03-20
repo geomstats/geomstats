@@ -301,7 +301,7 @@ class _Hyperbolic:
                 -base_point[..., i + 1] * tangent_vec[..., 0] / den**2
                 + tangent_vec[..., i + 1] / den
             )
-        return gs.stack(tangent_vec_ball)
+        return gs.stack(tangent_vec_ball).T
 
     @staticmethod
     def ball_to_extrinsic_tangent(tangent_vec, base_point):
@@ -332,7 +332,7 @@ class _Hyperbolic:
             tangent_vec_ext.append(
                 2 * (1 - sq_norm) * tangent_vec[..., i] + 4 * base_point[..., i] * scalar_prod
             )
-        return 1 / den * gs.stack(tangent_vec_ext)
+        return 1 / den * gs.stack(tangent_vec_ext).T
 
     @classmethod
     def half_space_to_extrinsic_tangent(cls, tangent_vec, base_point):
