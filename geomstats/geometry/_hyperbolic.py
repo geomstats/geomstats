@@ -7,6 +7,17 @@ import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
+def _scalarvecmul(scalar, vec):
+    """Vectorized scalar vector multiplication.
+
+    Parameters
+    ----------
+    scalar : array-like, shape=[...]
+    vec : array-like, shape=[..., dim]
+    """
+    return gs.einsum("...,...i->...i", scalar, vec)
+
+
 class _Hyperbolic:
     """Class for the n-dimensional hyperbolic space.
 
@@ -100,7 +111,7 @@ class _Hyperbolic:
         squared_norm = gs.sum(point**2, -1)
         denominator = 1 - squared_norm
         t = (1 + squared_norm) / denominator
-        intrinsic = gs.einsum("...i, ...->...i", 2 * point, 1.0 / denominator)
+        intrinsic = _scalarvecmul(1.0 / denominator, 2 * point)
         return gs.concatenate([t[..., None], intrinsic], -1)
 
     @classmethod
@@ -165,7 +176,7 @@ class _Hyperbolic:
         """
         sq_norm = gs.sum(point**2, axis=-1)
         den = 1 + sq_norm + 2 * point[..., -1]
-        component_1 = gs.einsum("...i,...->...i", point[..., :-1], 2.0 / den)
+        component_1 = _scalarvecmul(2.0 / den, point[..., :-1])
         component_2 = (sq_norm - 1) / den
         return gs.concatenate([component_1, component_2[..., None]], axis=-1)
 
@@ -189,7 +200,7 @@ class _Hyperbolic:
         """
         sq_norm = gs.sum(point**2, axis=-1)
         den = 1 + sq_norm - 2 * point[..., -1]
-        component_1 = gs.einsum("...i,...->...i", point[..., :-1], 2.0 / den)
+        component_1 = _scalarvecmul(2.0 / den, point[..., :-1])
         component_2 = (1 - sq_norm) / den
         return gs.concatenate([component_1, component_2[..., None]], axis=-1)
 
@@ -216,12 +227,11 @@ class _Hyperbolic:
         sq_norm = gs.sum(base_point**2, axis=-1)
         den = 1.0 + sq_norm + 2.0 * base_point[..., -1]
         scalar_prod = gs.sum(base_point * tangent_vec, axis=-1)
-        component_1 = gs.einsum(
-            "...i,...->...i", tangent_vec[..., :-1], 2.0 / den
-        ) - 4.0 * gs.einsum(
-            "...i,...->...i",
-            base_point[..., :-1],
+        component_1 = _scalarvecmul(
+            2.0 / den, tangent_vec[..., :-1]
+        ) - 4.0 * _scalarvecmul(
             (scalar_prod + tangent_vec[..., -1]) / den**2,
+            base_point[..., :-1],
         )
         component_2 = (
             2 * scalar_prod / den
@@ -256,12 +266,11 @@ class _Hyperbolic:
         sq_norm = gs.sum(base_point**2, axis=-1)
         den = 1 + sq_norm - 2 * base_point[..., -1]
         scalar_prod = gs.sum(base_point * tangent_vec, -1)
-        component_1 = gs.einsum(
-            "...i,...->...i", tangent_vec[..., :-1], 2.0 / den
-        ) - 4.0 * gs.einsum(
-            "...i,...->...i",
-            base_point[..., :-1],
+        component_1 = _scalarvecmul(
+            2.0 / den, tangent_vec[..., :-1]
+        ) - 4.0 * _scalarvecmul(
             (scalar_prod - tangent_vec[..., -1]) / den**2,
+            base_point[..., :-1],
         )
         component_2 = (
             -2.0 * scalar_prod / den
@@ -283,25 +292,21 @@ class _Hyperbolic:
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., dim + 1]
             Tangent vector at the base point in extrinsic coordinates.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim + 1]
             Point in extrinsic coordinates.
 
         Returns
         -------
-        tangent_vec_half_spacel : array-like, shape=[..., dim]
+        tangent_vec_ball : array-like, shape=[..., dim]
             Tangent vector in the Poincare ball.
         """
         den = 1 + base_point[..., 0]
-        dim = base_point.shape[-1] - 1
-        tangent_vec_ball = []
-        for i in range(dim):
-            tangent_vec_ball.append(
-                -base_point[..., i + 1] * tangent_vec[..., 0] / den**2
-                + tangent_vec[..., i + 1] / den
-            )
-        return gs.stack(tangent_vec_ball).T
+        return -_scalarvecmul(
+            tangent_vec[..., 0] / den**2,
+            base_point[..., 1:],
+        ) + _scalarvecmul(1 / den, tangent_vec[..., 1:])
 
     @staticmethod
     def ball_to_extrinsic_tangent(tangent_vec, base_point):
@@ -320,28 +325,56 @@ class _Hyperbolic:
 
         Returns
         -------
-        tangent_vec_half_spacel : array-like, shape=[..., dim]
+        tangent_vec_extrinsic : array-like, shape=[..., dim + 1]
             Tangent vector in extrinsic coordinates.
         """
-        dim = base_point.shape[-1]
         sq_norm = gs.sum(base_point**2, axis=-1)
         scalar_prod = gs.sum(tangent_vec * base_point, axis=-1)
         den = (1 - sq_norm) ** 2
-        tangent_vec_ext = [4 * scalar_prod]
-        for i in range(dim):
-            tangent_vec_ext.append(
-                2 * (1 - sq_norm) * tangent_vec[..., i] + 4 * base_point[..., i] * scalar_prod
-            )
-        return 1 / den * gs.stack(tangent_vec_ext).T
+
+        term_1 = 2 * _scalarvecmul(1 - sq_norm, tangent_vec)
+        term_2 = 4 * _scalarvecmul(scalar_prod, base_point)
+        return _scalarvecmul(
+            1 / den,
+            gs.concatenate([4 * scalar_prod[..., None], term_1 + term_2], axis=-1),
+        )
 
     @classmethod
     def half_space_to_extrinsic_tangent(cls, tangent_vec, base_point):
+        """Convert half-space to extrinsinc tangent coordinates.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at the base point in the Poincare half-space.
+        base_point : array-like, shape=[..., dim]
+            Point in the Poincare half-space.
+
+        Returns
+        -------
+        tangent_vec_extrinsic : array-like, shape=[..., dim + 1]
+            Tangent vector in extrinsic coordinates.
+        """
         tangent_vec_ball = cls.half_space_to_ball_tangent(tangent_vec, base_point)
         base_point_ball = cls.half_space_to_ball_coordinates(base_point)
         return cls.ball_to_extrinsic_tangent(tangent_vec_ball, base_point_ball)
 
     @classmethod
     def extrinsic_to_half_space_tangent(cls, tangent_vec, base_point):
+        """Convert half-space to extrinsinc tangent coordinates.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim + 1]
+            Tangent vector in extrinsic coordinates.
+        base_point : array-like, shape=[..., dim + 1]
+            Point in extrinsic coordinates.
+
+        Returns
+        -------
+        tangent_vec_half_space : array-like, shape=[..., dim ]
+            Tangent vector at the base point in the Poincare half-space.
+        """
         tangent_vec_ball = cls.extrinsic_to_ball_tangent(tangent_vec, base_point)
         base_point_ball = cls._extrinsic_to_ball_coordinates(base_point)
         return cls.ball_to_half_space_tangent(tangent_vec_ball, base_point_ball)
