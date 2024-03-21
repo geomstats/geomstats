@@ -441,7 +441,8 @@ class HyperbolicPlaneExactPGA(_BasePCA):
         )
 
         costs = [
-            self._variance_of_projections(X_ext, mean_ext, vec_ext) for vec_ext in vectors_ext
+            self._variance_of_projections(X_ext, mean_ext, vec_ext)
+            for vec_ext in vectors_ext
         ]
         axis_1 = vectors_half_space[gs.argmax(costs)]
         axis_2 = gs.array([-axis_1[1], axis_1[0]])
@@ -490,7 +491,7 @@ class HyperbolicPlaneExactPGA(_BasePCA):
         )
 
 
-class ExactPGA():
+class ExactPGA:
     r"""Exact Principal Geodesic Analysis.
 
     Parameters
