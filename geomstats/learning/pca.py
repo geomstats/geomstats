@@ -399,12 +399,12 @@ class HyperbolicPlaneExactPGA(_BasePCA):
             )
         self.n_grid = n_grid
         self.mean_estimator = FrechetMean(space=self.space)
-        self.__half_space = Hyperbolic(2, coords_type="half-space")
-        self.__space_ext = Hyperbolic(2, coords_type="extrinsic")
+        self._half_space = Hyperbolic(2, coords_type="half-space")
+        self._space_ext = Hyperbolic(2, coords_type="extrinsic")
 
     def _variance_of_projections(self, pt_ext, mn_ext, vec_ext):
-        projections = self.__space_ext.project_on_geodesic(pt_ext, mn_ext, vec_ext)
-        costs = self.__space_ext.metric.dist(mn_ext, projections) ** 2
+        projections = self._space_ext.project_on_geodesic(pt_ext, mn_ext, vec_ext)
+        costs = self._space_ext.metric.dist(mn_ext, projections) ** 2
         return gs.sum(costs)
 
     def fit(self, X, y=None):
@@ -434,7 +434,7 @@ class HyperbolicPlaneExactPGA(_BasePCA):
         vectors_half_space = gs.hstack(
             (gs.cos(angles_half_space), gs.sin(angles_half_space))
         )
-        norms = self.__half_space.metric.norm(vectors_half_space, mean_half_space)
+        norms = self._half_space.metric.norm(vectors_half_space, mean_half_space)
         vectors_half_space = gs.einsum("ij,i->ij", vectors_half_space, 1 / norms)
         vectors_ext = self.space.half_space_to_extrinsic_tangent(
             vectors_half_space, mean_half_space
@@ -478,11 +478,11 @@ class HyperbolicPlaneExactPGA(_BasePCA):
         X_ext = self.space.to_coordinates(X, "extrinsic")
         mean_ext = self.space.to_coordinates(self.mean_, "extrinsic")
 
-        proj1_ext = self.__space_ext.project_on_geodesic(X_ext, mean_ext, axis_1_ext)
-        proj2_ext = self.__space_ext.project_on_geodesic(X_ext, mean_ext, axis_2_ext)
+        proj1_ext = self._space_ext.project_on_geodesic(X_ext, mean_ext, axis_1_ext)
+        proj2_ext = self._space_ext.project_on_geodesic(X_ext, mean_ext, axis_2_ext)
 
-        var_1 = gs.mean(self.__space_ext.metric.dist(mean_ext, proj1_ext) ** 2)
-        var_2 = gs.mean(self.__space_ext.metric.dist(mean_ext, proj2_ext) ** 2)
+        var_1 = gs.mean(self._space_ext.metric.dist(mean_ext, proj1_ext) ** 2)
+        var_2 = gs.mean(self._space_ext.metric.dist(mean_ext, proj2_ext) ** 2)
         self.explained_variance_ = gs.stack((var_1, var_2))
 
         return gs.stack(
