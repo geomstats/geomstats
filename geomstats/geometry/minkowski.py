@@ -9,10 +9,12 @@ from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 
 
 class Minkowski(Euclidean):
-    """Class for Minkowski space.
+    r"""Class for Minkowski space.
 
     This is the Euclidean space endowed with the inner-product of signature (
-    dim-1, 1).
+    dim-1, 1), i.e.
+    .. math::
+        ds^2 = - dx_1^2 + dx_2^2 + ... + dx_n^2
 
     Parameters
     ----------

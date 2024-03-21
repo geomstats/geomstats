@@ -20,7 +20,12 @@ class Hyperboloid(_Hyperbolic, LevelSet):
     """Class for the n-dimensional hyperboloid space.
 
     Class for the n-dimensional hyperboloid space as embedded in (n+1)-dimensional
-    Minkowski space as the set of points with squared norm equal to -1. For other
+    Minkowski space as the set of points with squared norm equal to -1, i.e.
+
+    .. math::
+        - x_0^2 + x_1^2 + ... + x_n^2 = - 1.
+
+    For other
     representations of hyperbolic spaces see the `Hyperbolic` class.
 
     Parameters
@@ -173,6 +178,47 @@ class Hyperboloid(_Hyperbolic, LevelSet):
             Point in intrinsic coordinates.
         """
         return self.change_coordinates_system(point_extrinsic, "extrinsic", "intrinsic")
+
+    def project_on_geodesic(self, point, base_point, tangent_vec):
+        """Project on geodesic in extrinsic coordinates.
+
+        Project point onto geodesic going through base point in direction
+        of tangent vector. See reference below.
+
+        Parameters
+        ----------
+        point: array-like, shape=[..., dim + 1]
+            Point in hyperbolic space.
+        base_point: array-like, shape=[..., dim + 1]
+            Point through which the geodesic passes.
+        tangent_vec : array-like, shape=[..., dim + 1]
+            Tangent vector in Minkowski space, direction of the geodesic.
+
+        Returns
+        -------
+        proj : array-like, shape=[..., dim + 1]
+            Projected point on the geodesic.
+
+        References
+        ----------
+        .. [CSV2016] R. Chakraborty, D. Seo, and B. C. Vemuri,
+            "An efficient exact-pga algorithm for constant curvature manifolds."
+            Proceedings of the IEEE conference on computer vision and pattern
+            recognition. 2016.
+        """
+        inner_prod_1 = self.metric.inner_product(point, tangent_vec)
+        inner_prod_2 = self.metric.inner_product(point, base_point)
+        norm_v = self.metric.norm(tangent_vec, base_point)
+        dist_to_proj = gs.arctanh(-inner_prod_1 / inner_prod_2 / norm_v)
+        gs.einsum("...,...i->...i", gs.cosh(dist_to_proj), base_point)
+        proj = gs.einsum(
+            "...,...i->...i", gs.cosh(dist_to_proj), base_point
+        ) + gs.einsum(
+            "...,...i->...i",
+            gs.sinh(dist_to_proj),
+            gs.einsum("..., ...i ->...i", 1 / norm_v, tangent_vec),
+        )
+        return proj
 
 
 class HyperboloidMetric(HyperbolicMetric):
