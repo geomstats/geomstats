@@ -209,8 +209,11 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         inner_prod_2 = self.metric.inner_product(point, mean)
         norm_v = self.metric.norm(vector, mean)
         dist_to_proj = gs.arctanh(-inner_prod_1 / inner_prod_2 / norm_v)
-        proj = gs.einsum("...,i->...i", gs.cosh(dist_to_proj), mean) + gs.einsum(
-            "...,i->...i", gs.sinh(dist_to_proj), vector / norm_v
+        gs.einsum("...,...i->...i", gs.cosh(dist_to_proj), mean)
+        proj = gs.einsum("...,...i->...i", gs.cosh(dist_to_proj), mean) + gs.einsum(
+            "...,...i->...i",
+            gs.sinh(dist_to_proj),
+            gs.einsum("..., ...i ->...i", 1 / norm_v, vector),
         )
         return proj
 
