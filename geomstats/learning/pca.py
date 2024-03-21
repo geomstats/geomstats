@@ -440,10 +440,12 @@ class HyperbolicPlaneExactPGA(_BasePCA):
             vectors_half_space, mean_half_space
         )
 
-        costs = [
-            self._variance_of_projections(X_ext, mean_ext, vec_ext)
-            for vec_ext in vectors_ext
-        ]
+        costs = gs.array(
+            [
+                self._variance_of_projections(X_ext, mean_ext, vec_ext)
+                for vec_ext in vectors_ext
+            ]
+        )
         axis_1 = vectors_half_space[gs.argmax(costs)]
         axis_2 = gs.array([-axis_1[1], axis_1[0]])
         components_half_space = gs.stack((axis_1, axis_2))
