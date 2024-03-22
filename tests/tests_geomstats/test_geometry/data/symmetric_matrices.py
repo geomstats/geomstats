@@ -89,7 +89,7 @@ class SymmetricMatrices3TestData(TestData):
         return self.generate_tests(data)
 
 
-class SymmetricHollowMatricesTestData(MatrixVectorSpaceTestData, LevelSetTestData):
+class SymmetricHollowMatricesTestData(LevelSetTestData, MatrixVectorSpaceTestData):
     pass
 
 
@@ -98,5 +98,5 @@ class HollowMatricesPermutationInvariantMetricTestData(EuclideanMetricTestData):
     fail_for_autodiff_exceptions = False
 
 
-class NullRowSumSymmetricMatricesTestData(MatrixVectorSpaceTestData, LevelSetTestData):
+class NullRowSumSymmetricMatricesTestData(LevelSetTestData, MatrixVectorSpaceTestData):
     pass
