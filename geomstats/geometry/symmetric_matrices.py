@@ -5,6 +5,7 @@ Lead author: Yann Thanwerdas.
 
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet, MatrixVectorSpace
+from geomstats.geometry.diffeo import VectorSpaceDiffeo
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.vectorization import repeat_out
@@ -383,6 +384,65 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
             Squared norm.
         """
         return self._quadratic_form(vector)
+
+
+class NullRowSumDiffeo(VectorSpaceDiffeo):
+    r"""A diffeomorphism from the null-row-sum matrices to symmetric matrices.
+
+    The space of null-row-sum symmetric n-matrices is diffeomorphic to the
+    space of symmetric (n-1)-matrices.
+
+    Let :math:`f` be the diffeomorphism
+    :math:`f: M \rightarrow N` of the manifold
+    :math:`M` into the manifold :math:`N`.
+    """
+
+    def __init__(self):
+        super().__init__(2, 2)
+
+    def diffeomorphism(self, base_point):
+        """Diffeomorphism at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., n-1, n-1]
+            Image point.
+        """
+        return base_point[..., :-1, :-1]
+
+    def inverse_diffeomorphism(self, image_point):
+        r"""Inverse diffeomorphism at image point.
+
+        :math:`f^{-1}: N \rightarrow M`
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., n-1, n-1]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+        """
+        row_sums = -gs.sum(image_point, axis=-1)
+        last_row = gs.concatenate(
+            [row_sums, gs.expand_dims(-gs.sum(row_sums, axis=-1), axis=-1)], axis=-1
+        )
+        return gs.concatenate(
+            [
+                gs.concatenate(
+                    [image_point, gs.expand_dims(row_sums, axis=-1)], axis=-1
+                ),
+                gs.expand_dims(last_row, axis=-2),
+            ],
+            axis=-2,
+        )
 
 
 class NullRowSumSymmetricMatrices(LevelSet, MatrixVectorSpace):

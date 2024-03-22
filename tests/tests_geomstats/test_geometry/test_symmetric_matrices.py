@@ -4,6 +4,7 @@ import pytest
 
 from geomstats.geometry.symmetric_matrices import (
     HollowMatricesPermutationInvariantMetric,
+    NullRowSumDiffeo,
     NullRowSumSymmetricMatrices,
     SymmetricHollowMatrices,
     SymmetricMatrices,
@@ -13,9 +14,11 @@ from geomstats.test_cases.geometry.base import (
     LevelSetTestCase,
     MatrixVectorSpaceTestCase,
 )
+from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.euclidean import EuclideanMetricTestCase
 from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 
+from .data.diffeo import DiffeoTestData
 from .data.matrices import MatricesMetricTestData
 from .data.symmetric_matrices import (
     HollowMatricesPermutationInvariantMetricTestData,
@@ -113,3 +116,11 @@ class TestNullRowSumSymmetricMatrices(
     space = NullRowSumSymmetricMatrices(n=_n, equip=False)
 
     testing_data = NullRowSumSymmetricMatricesTestData()
+
+
+class TestNullRowSumDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(2, 5)
+    space = NullRowSumSymmetricMatrices(n=_n, equip=False)
+    image_space = SymmetricMatrices(n=_n - 1, equip=False)
+    diffeo = NullRowSumDiffeo()
+    testing_data = DiffeoTestData()
