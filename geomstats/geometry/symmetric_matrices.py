@@ -20,8 +20,8 @@ class SymmetricMatrices(MatrixVectorSpace):
     """
 
     def __init__(self, n, equip=True):
-        super().__init__(dim=int(n * (n + 1) / 2), shape=(n, n), equip=equip)
         self.n = n
+        super().__init__(dim=int(n * (n + 1) / 2), shape=(n, n), equip=equip)
 
     @staticmethod
     def default_metric():
@@ -383,3 +383,174 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
             Squared norm.
         """
         return self._quadratic_form(vector)
+
+
+class NullRowSumSymmetricMatrices(LevelSet, MatrixVectorSpace):
+    r"""Space of null-row-sum symmetric matrices.
+
+    Set of symmetric matrices with null row sum:
+
+    .. math::
+
+        \operatorname{Row_0}(n) = \{S \in \operatorname{Sym}(n)
+        \mid S \mathbb{1}=0 \}
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shapes of the matrices: n x n.
+
+    References
+    ----------
+    .. [T2022] Yann Thanwerdas. Riemannian and stratified
+        geometries on covariance and correlation matrices. Differential
+        Geometry [math.DG]. Université Côte d'Azur, 2022.
+    """
+
+    def __init__(self, n, equip=True):
+        self.n = n
+        # TODO: fix dim
+        super().__init__(dim=int(n * (n + 1) / 2), shape=(n, n), equip=equip)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return MatricesMetric
+
+    def _define_embedding_space(self):
+        return SymmetricMatrices(n=self.n)
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample in the vector space with a uniform distribution in a box.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Ignored.
+
+        Returns
+        -------
+        point : array-like, shape=[..., n, n]
+           Sample.
+        """
+
+        def generate_mat(n):
+            """Generare random null-row-sum matrix.
+
+            Parameters
+            ----------
+            n : int
+                Integer representing the shapes of the matrices: n x n.
+
+            Returns
+            -------
+            matrix : array-like, shape=[n, n]
+                Null-row-sum matrix.
+            """
+            row_0 = gs.random.uniform(size=n)
+            row_0 = row_0 - (gs.sum(row_0) / n)
+            rows = gs.expand_dims(row_0, axis=0)
+            for _ in range(n - 1):
+                rows = recurse(rows)
+            return rows
+
+        def recurse(rows):
+            """Recurse over rows to find new one.
+
+            Randomly fills row in order to make it null sum.
+            """
+            row_number, n = rows.shape
+
+            known_values = rows[:, row_number]
+            row_missing = gs.random.uniform(size=n - (row_number + 1))
+            missing_value = -(gs.sum(known_values) + gs.sum(row_missing))
+
+            new_row = gs.concatenate(
+                [known_values, gs.array([missing_value]), row_missing]
+            )
+            return gs.vstack([rows, new_row])
+
+        if n_samples == 1:
+            return generate_mat(self.n)
+
+        return gs.stack([generate_mat(self.n) for _ in range(n_samples)])
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n]
+        """
+        return gs.sum(point, axis=-1)
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+        point : Ignored.
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n]
+        """
+        out = self.submersion(vector)
+        return repeat_out(self.point_ndim, out, vector, point, out_shape=(self.n,))
+
+    def projection(self, point):
+        """Make a matrix null-row-sum symmetric.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        sym : array-like, shape=[..., n, n]
+            Symmetric matrix.
+        """
+        raise NotImplementedError("Projection is not implemented")
+
+    def _create_basis(self):
+        """Compute the basis of the vector space of symmetric matrices."""
+        raise NotImplementedError("Projection is not implemented")
+
+    def basis_representation(self, matrix_representation):
+        """Convert a symmetric matrix into a vector.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., n(n+1)/2]
+            Vector.
+        """
+        raise NotImplementedError("Projection is not implemented")
+
+    def matrix_representation(self, basis_representation):
+        """Convert a vector into a symmetric matrix.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., n(n+1)/2]
+            Vector.
+
+        Returns
+        -------
+        matrix_representation : array-like, shape=[..., n, n]
+            Symmetric matrix.
+        """
+        raise NotImplementedError("Projection is not implemented")

@@ -96,3 +96,7 @@ class SymmetricHollowMatricesTestData(MatrixVectorSpaceTestData, LevelSetTestDat
 class HollowMatricesPermutationInvariantMetricTestData(EuclideanMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
+
+
+class NullRowSumSymmetricMatricesTestData(MatrixVectorSpaceTestData, LevelSetTestData):
+    fail_for_not_implemented_errors = False
