@@ -1050,3 +1050,62 @@ class DiffeomorphicManifold(Manifold):
         return self.diffeo.inverse_tangent_diffeomorphism(
             image_tangent_vec, image_point=image_point, base_point=base_point
         )
+
+
+class DiffeomorphicVectorSpace(VectorSpace, DiffeomorphicManifold):
+    """A vector space defined by a diffeomorphism."""
+
+    def projection(self, point):
+        r"""Make a matrix null-row-sum symmetric.
+
+        It considers only the first :math:`n-1 \times n-1` components.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        sym : array-like, shape=[..., n, n]
+            Symmetric matrix.
+        """
+        image_point = self.diffeo.diffeomorphism(point)
+        proj_image_point = self.image_space.projection(image_point)
+        return self.diffeo.inverse_diffeomorphism(proj_image_point)
+
+
+class DiffeomorphicMatrixVectorSpace(MatrixVectorSpace, DiffeomorphicVectorSpace):
+    """A matrix vector space defined by a diffeomorphism."""
+
+    def basis_representation(self, matrix_representation):
+        """Convert a symmetric matrix into a vector.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., n(n+1)/2]
+            Vector.
+        """
+        image_matrix_representation = self.diffeo.diffeomorphism(matrix_representation)
+        return self.image_space.basis_representation(image_matrix_representation)
+
+    def matrix_representation(self, basis_representation):
+        """Convert a vector into a symmetric matrix.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., n(n+1)/2]
+            Vector.
+
+        Returns
+        -------
+        matrix_representation : array-like, shape=[..., n, n]
+            Symmetric matrix.
+        """
+        image_point = self.image_space.matrix_representation(basis_representation)
+        return self.diffeo.inverse_diffeomorphism(image_point)

@@ -4,7 +4,11 @@ Lead author: Yann Thanwerdas.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.base import LevelSet, MatrixVectorSpace
+from geomstats.geometry.base import (
+    DiffeomorphicMatrixVectorSpace,
+    LevelSet,
+    MatrixVectorSpace,
+)
 from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices, MatricesMetric
@@ -512,7 +516,7 @@ class ConstantValueRowSumDiffeo(Diffeo):
         )
 
 
-class NullRowSumSymmetricMatrices(LevelSet, MatrixVectorSpace):
+class NullRowSumSymmetricMatrices(LevelSet, DiffeomorphicMatrixVectorSpace):
     r"""Space of null-row-sum symmetric matrices.
 
     Set of symmetric matrices with null row sum:
@@ -536,11 +540,14 @@ class NullRowSumSymmetricMatrices(LevelSet, MatrixVectorSpace):
 
     def __init__(self, n, equip=True):
         self.n = n
-
-        self.diffeo = ConstantValueRowSumDiffeo()
-        self.image_space = SymmetricMatrices(n - 1, equip=False)
-
-        super().__init__(dim=self.image_space.dim, shape=(n, n), equip=equip)
+        image_space = SymmetricMatrices(n - 1, equip=False)
+        super().__init__(
+            dim=image_space.dim,
+            diffeo=ConstantValueRowSumDiffeo(value=0.0),
+            image_space=image_space,
+            shape=(n, n),
+            equip=equip,
+        )
 
     @staticmethod
     def default_metric():
@@ -548,26 +555,14 @@ class NullRowSumSymmetricMatrices(LevelSet, MatrixVectorSpace):
         return MatricesMetric
 
     def _define_embedding_space(self):
-        return SymmetricMatrices(n=self.n)
-
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample in the vector space with a uniform distribution in a box.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Ignored.
+        """Define embedding space of the manifold.
 
         Returns
         -------
-        point : array-like, shape=[..., n, n]
-           Sample.
+        embedding_space : Manifold
+            Instance of Manifold.
         """
-        image_point = self.image_space.random_point(n_samples=n_samples, bound=bound)
-        return self.diffeo.inverse_diffeomorphism(image_point)
+        return SymmetricMatrices(n=self.n)
 
     def submersion(self, point):
         """Submersion that defines the manifold.
@@ -597,25 +592,6 @@ class NullRowSumSymmetricMatrices(LevelSet, MatrixVectorSpace):
         out = self.submersion(vector)
         return repeat_out(self.point_ndim, out, vector, point, out_shape=(self.n,))
 
-    def projection(self, point):
-        r"""Make a matrix null-row-sum symmetric.
-
-        It considers only the first :math:`n-1 \times n-1` components.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Matrix.
-
-        Returns
-        -------
-        sym : array-like, shape=[..., n, n]
-            Symmetric matrix.
-        """
-        image_point = self.diffeo.diffeomorphism(point)
-        proj_image_point = self.image_space.projection(image_point)
-        return self.diffeo.inverse_diffeomorphism(proj_image_point)
-
     def _create_basis(self):
         """Compute the basis of the vector space."""
         indices, values = [], []
@@ -636,35 +612,3 @@ class NullRowSumSymmetricMatrices(LevelSet, MatrixVectorSpace):
                 pre_basis,
             )
         )
-
-    def basis_representation(self, matrix_representation):
-        """Convert a symmetric matrix into a vector.
-
-        Parameters
-        ----------
-        matrix_representation : array-like, shape=[..., n, n]
-            Matrix.
-
-        Returns
-        -------
-        basis_representation : array-like, shape=[..., n(n+1)/2]
-            Vector.
-        """
-        image_matrix_representation = self.diffeo.diffeomorphism(matrix_representation)
-        return self.image_space.basis_representation(image_matrix_representation)
-
-    def matrix_representation(self, basis_representation):
-        """Convert a vector into a symmetric matrix.
-
-        Parameters
-        ----------
-        basis_representation : array-like, shape=[..., n(n+1)/2]
-            Vector.
-
-        Returns
-        -------
-        matrix_representation : array-like, shape=[..., n, n]
-            Symmetric matrix.
-        """
-        image_point = self.image_space.matrix_representation(basis_representation)
-        return self.diffeo.inverse_diffeomorphism(image_point)
