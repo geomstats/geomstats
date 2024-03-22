@@ -4,6 +4,7 @@ import pytest
 
 from geomstats.geometry.symmetric_matrices import (
     HollowMatricesPermutationInvariantMetric,
+    NullRowSumSymmetricMatrices,
     SymmetricHollowMatrices,
     SymmetricMatrices,
 )
@@ -18,6 +19,7 @@ from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 from .data.matrices import MatricesMetricTestData
 from .data.symmetric_matrices import (
     HollowMatricesPermutationInvariantMetricTestData,
+    NullRowSumSymmetricMatricesTestData,
     SymmetricHollowMatricesTestData,
     SymmetricMatrices1TestData,
     SymmetricMatrices2TestData,
@@ -100,3 +102,14 @@ class TestHollowMatricesPermutationInvariantMetric(
     EuclideanMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = HollowMatricesPermutationInvariantMetricTestData()
+
+
+class TestNullRowSumSymmetricMatrices(
+    LevelSetTestCase,
+    MatrixVectorSpaceTestCase,
+    metaclass=DataBasedParametrizer,
+):
+    _n = random.randint(2, 6)
+    space = NullRowSumSymmetricMatrices(n=_n, equip=False)
+
+    testing_data = NullRowSumSymmetricMatricesTestData()
