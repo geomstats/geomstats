@@ -99,4 +99,4 @@ class HollowMatricesPermutationInvariantMetricTestData(EuclideanMetricTestData):
 
 
 class NullRowSumSymmetricMatricesTestData(MatrixVectorSpaceTestData, LevelSetTestData):
-    fail_for_not_implemented_errors = False
+    pass

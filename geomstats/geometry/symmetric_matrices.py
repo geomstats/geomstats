@@ -469,8 +469,11 @@ class NullRowSumSymmetricMatrices(LevelSet, MatrixVectorSpace):
 
     def __init__(self, n, equip=True):
         self.n = n
-        # TODO: fix dim
-        super().__init__(dim=int(n * (n + 1) / 2), shape=(n, n), equip=equip)
+
+        self.diffeo = NullRowSumDiffeo()
+        self.image_space = SymmetricMatrices(n - 1, equip=False)
+
+        super().__init__(dim=self.image_space.dim, shape=(n, n), equip=equip)
 
     @staticmethod
     def default_metric():
@@ -496,47 +499,8 @@ class NullRowSumSymmetricMatrices(LevelSet, MatrixVectorSpace):
         point : array-like, shape=[..., n, n]
            Sample.
         """
-
-        def generate_mat(n):
-            """Generare random null-row-sum matrix.
-
-            Parameters
-            ----------
-            n : int
-                Integer representing the shapes of the matrices: n x n.
-
-            Returns
-            -------
-            matrix : array-like, shape=[n, n]
-                Null-row-sum matrix.
-            """
-            row_0 = gs.random.uniform(size=n)
-            row_0 = row_0 - (gs.sum(row_0) / n)
-            rows = gs.expand_dims(row_0, axis=0)
-            for _ in range(n - 1):
-                rows = recurse(rows)
-            return rows
-
-        def recurse(rows):
-            """Recurse over rows to find new one.
-
-            Randomly fills row in order to make it null sum.
-            """
-            row_number, n = rows.shape
-
-            known_values = rows[:, row_number]
-            row_missing = gs.random.uniform(size=n - (row_number + 1))
-            missing_value = -(gs.sum(known_values) + gs.sum(row_missing))
-
-            new_row = gs.concatenate(
-                [known_values, gs.array([missing_value]), row_missing]
-            )
-            return gs.vstack([rows, new_row])
-
-        if n_samples == 1:
-            return generate_mat(self.n)
-
-        return gs.stack([generate_mat(self.n) for _ in range(n_samples)])
+        image_point = self.image_space.random_point(n_samples=n_samples, bound=bound)
+        return self.diffeo.inverse_diffeomorphism(image_point)
 
     def submersion(self, point):
         """Submersion that defines the manifold.
@@ -567,7 +531,9 @@ class NullRowSumSymmetricMatrices(LevelSet, MatrixVectorSpace):
         return repeat_out(self.point_ndim, out, vector, point, out_shape=(self.n,))
 
     def projection(self, point):
-        """Make a matrix null-row-sum symmetric.
+        r"""Make a matrix null-row-sum symmetric.
+
+        It considers only the first :math:`n-1 \times n-1` components.
 
         Parameters
         ----------
@@ -579,11 +545,30 @@ class NullRowSumSymmetricMatrices(LevelSet, MatrixVectorSpace):
         sym : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        raise NotImplementedError("Projection is not implemented")
+        image_point = self.diffeo.diffeomorphism(point)
+        proj_image_point = self.image_space.projection(image_point)
+        return self.diffeo.inverse_diffeomorphism(proj_image_point)
 
     def _create_basis(self):
-        """Compute the basis of the vector space of symmetric matrices."""
-        raise NotImplementedError("Projection is not implemented")
+        """Compute the basis of the vector space."""
+        indices, values = [], []
+        k = -1
+        for row in range(self.n - 1):
+            for col in range(row, self.n - 1):
+                k += 1
+                if row == col:
+                    indices.append((k, row, row))
+                    values.append(1.0)
+                else:
+                    indices.extend([(k, row, col), (k, col, row)])
+                    values.extend([1.0, 1.0])
+
+        pre_basis = gs.array_from_sparse(indices, values, (k + 1, self.n, self.n))
+        return self.matrix_representation(
+            self.basis_representation(
+                pre_basis,
+            )
+        )
 
     def basis_representation(self, matrix_representation):
         """Convert a symmetric matrix into a vector.
@@ -598,7 +583,8 @@ class NullRowSumSymmetricMatrices(LevelSet, MatrixVectorSpace):
         basis_representation : array-like, shape=[..., n(n+1)/2]
             Vector.
         """
-        raise NotImplementedError("Projection is not implemented")
+        image_matrix_representation = self.diffeo.diffeomorphism(matrix_representation)
+        return self.image_space.basis_representation(image_matrix_representation)
 
     def matrix_representation(self, basis_representation):
         """Convert a vector into a symmetric matrix.
@@ -613,4 +599,5 @@ class NullRowSumSymmetricMatrices(LevelSet, MatrixVectorSpace):
         matrix_representation : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        raise NotImplementedError("Projection is not implemented")
+        image_point = self.image_space.matrix_representation(basis_representation)
+        return self.diffeo.inverse_diffeomorphism(image_point)
