@@ -242,3 +242,21 @@ class Manifold(abc.ABC):
         return self.to_tangent(
             gs.random.normal(size=batch_size + self.shape), base_point
         )
+
+    def projection(self, point):
+        """Project a point to the manifold.
+
+        Parameters
+        ----------
+        point: array-like, shape[..., *point_shape]
+            Point.
+
+        Returns
+        -------
+        point: array-like, shape[..., *point_shape]
+            Point.
+        """
+        if self.intrinsic:
+            return gs.copy(point)
+
+        raise NotImplementedError("`projection` is not implemented yet")
