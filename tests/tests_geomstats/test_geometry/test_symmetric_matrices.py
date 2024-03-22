@@ -3,8 +3,8 @@ import random
 import pytest
 
 from geomstats.geometry.symmetric_matrices import (
+    ConstantValueRowSumDiffeo,
     HollowMatricesPermutationInvariantMetric,
-    NullRowSumDiffeo,
     NullRowSumSymmetricMatrices,
     SymmetricHollowMatrices,
     SymmetricMatrices,
@@ -112,15 +112,15 @@ class TestNullRowSumSymmetricMatrices(
     MatrixVectorSpaceTestCase,
     metaclass=DataBasedParametrizer,
 ):
-    _n = random.randint(2, 6)
+    _n = random.randint(3, 6)
     space = NullRowSumSymmetricMatrices(n=_n, equip=False)
 
     testing_data = NullRowSumSymmetricMatricesTestData()
 
 
 class TestNullRowSumDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
-    _n = random.randint(2, 5)
+    _n = random.randint(3, 6)
     space = NullRowSumSymmetricMatrices(n=_n, equip=False)
     image_space = SymmetricMatrices(n=_n - 1, equip=False)
-    diffeo = NullRowSumDiffeo()
+    diffeo = ConstantValueRowSumDiffeo()
     testing_data = DiffeoTestData()

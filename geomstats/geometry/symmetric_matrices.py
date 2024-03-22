@@ -5,10 +5,10 @@ Lead author: Yann Thanwerdas.
 
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet, MatrixVectorSpace
-from geomstats.geometry.diffeo import VectorSpaceDiffeo
+from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from geomstats.vectorization import repeat_out
+from geomstats.vectorization import repeat_out, repeat_out_multiple_ndim
 
 
 class SymmetricMatrices(MatrixVectorSpace):
@@ -386,19 +386,21 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
         return self._quadratic_form(vector)
 
 
-class NullRowSumDiffeo(VectorSpaceDiffeo):
-    r"""A diffeomorphism from the null-row-sum matrices to symmetric matrices.
+class ConstantValueRowSumDiffeo(Diffeo):
+    r"""A diffeomorphism from the constant-value-row-sum matrices to symmetric matrices.
 
-    The space of null-row-sum symmetric n-matrices is diffeomorphic to the
-    space of symmetric (n-1)-matrices.
+    A particular case is the diffeomorphism between the space of null-row-sum symmetric
+    n-matrices and the space of symmetric (n-1)-matrices.
 
     Let :math:`f` be the diffeomorphism
     :math:`f: M \rightarrow N` of the manifold
     :math:`M` into the manifold :math:`N`.
     """
 
-    def __init__(self):
-        super().__init__(2, 2)
+    def __init__(self, value=0.0):
+        self.value = value
+        self._space_ndim = 2
+        self._image_space_ndim = 2
 
     def diffeomorphism(self, base_point):
         """Diffeomorphism at base point.
@@ -415,6 +417,23 @@ class NullRowSumDiffeo(VectorSpaceDiffeo):
         """
         return base_point[..., :-1, :-1]
 
+    def _concatenate_row_sums(self, image_point, value):
+        """Concatenate missing row and column."""
+        row_sums = value - gs.sum(image_point, axis=-1)
+        last_row = gs.concatenate(
+            [row_sums, gs.expand_dims(value - gs.sum(row_sums, axis=-1), axis=-1)],
+            axis=-1,
+        )
+        return gs.concatenate(
+            [
+                gs.concatenate(
+                    [image_point, gs.expand_dims(row_sums, axis=-1)], axis=-1
+                ),
+                gs.expand_dims(last_row, axis=-2),
+            ],
+            axis=-2,
+        )
+
     def inverse_diffeomorphism(self, image_point):
         r"""Inverse diffeomorphism at image point.
 
@@ -430,18 +449,66 @@ class NullRowSumDiffeo(VectorSpaceDiffeo):
         base_point : array-like, shape=[..., n, n]
             Base point.
         """
-        row_sums = -gs.sum(image_point, axis=-1)
-        last_row = gs.concatenate(
-            [row_sums, gs.expand_dims(-gs.sum(row_sums, axis=-1), axis=-1)], axis=-1
+        return self._concatenate_row_sums(image_point, self.value)
+
+    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+        r"""Tangent diffeomorphism at base point.
+
+        df_p is a linear map from T_pM to T_f(p)N.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space_shape]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., *space_shape]
+            Base point.
+        image_point : array-like, shape=[..., *image_shape]
+            Image point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., *image_shape]
+            Image tangent vector at image of the base point.
+        """
+        out = self.diffeomorphism(tangent_vec)
+        return repeat_out_multiple_ndim(
+            out,
+            self._space_ndim,
+            (tangent_vec, base_point),
+            self._image_space_ndim,
+            (image_point,),
+            out_ndim=self._image_space_ndim,
         )
-        return gs.concatenate(
-            [
-                gs.concatenate(
-                    [image_point, gs.expand_dims(row_sums, axis=-1)], axis=-1
-                ),
-                gs.expand_dims(last_row, axis=-2),
-            ],
-            axis=-2,
+
+    def inverse_tangent_diffeomorphism(
+        self, image_tangent_vec, image_point=None, base_point=None
+    ):
+        r"""Inverse tangent diffeomorphism at image point.
+
+        df^-1_p is a linear map from T_f(p)N to T_pM
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., *image_shape]
+            Image tangent vector at image point.
+        image_point : array-like, shape=[..., *image_shape]
+            Image point.
+        base_point : array-like, shape=[..., *space_shape]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *space_shape]
+            Tangent vector at base point.
+        """
+        out = self._concatenate_row_sums(image_tangent_vec, 0.0)
+        return repeat_out_multiple_ndim(
+            out,
+            self._image_space_ndim,
+            (image_tangent_vec, image_point),
+            self._space_ndim,
+            (base_point,),
+            out_ndim=self._space_ndim,
         )
 
 
@@ -470,7 +537,7 @@ class NullRowSumSymmetricMatrices(LevelSet, MatrixVectorSpace):
     def __init__(self, n, equip=True):
         self.n = n
 
-        self.diffeo = NullRowSumDiffeo()
+        self.diffeo = ConstantValueRowSumDiffeo()
         self.image_space = SymmetricMatrices(n - 1, equip=False)
 
         super().__init__(dim=self.image_space.dim, shape=(n, n), equip=equip)
