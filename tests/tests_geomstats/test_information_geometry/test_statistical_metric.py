@@ -3,6 +3,8 @@
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.information_geometry.statistical_metric import StatisticalMetric
+from geomstats.information_geometry.statistical_metric import DivergenceConnection, DualDivergenceConnection
+from geomstats.information_geometry.statistical_metric import AlphaConnection
 from geomstats.test.test_case import autograd_only
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
@@ -37,10 +39,28 @@ class TestStatisticalMetric(RiemannianMetricTestCase):
 
         self.potential_function = potential_function
         self.breg_divergence = bregman_divergence(self.potential_function)
-        self.euclidean_space = Euclidean(dim=2)
-        self.stat_metric = StatisticalMetric(
+        self.euclidean_space = Euclidean(dim=2, equip=False)
+        self.primal_connection = DivergenceConnection(
             space=self.euclidean_space, divergence=self.breg_divergence
         )
+        self.dual_connection = DualDivergenceConnection(
+            space=self.euclidean_space, divergence=self.breg_divergence
+        )
+        self.alpha_connection = AlphaConnection(
+            space=self.euclidean_space, 
+            alpha=0.0,
+            primal_connection=self.primal_connection,
+            dual_connection=self.dual_connection,
+        )
+        self.stat_metric = StatisticalMetric(
+            space=self.euclidean_space, 
+            divergence=self.breg_divergence,
+            primal_connection=self.primal_connection,
+            dual_connection=self.dual_connection,
+        )
+
+        self.euclidean_space.metric = self.stat_metric
+
         self.base_point = gs.random.uniform(low=-10, high=10, size=(2,))
 
     def test_metric_matrix(
@@ -56,7 +76,7 @@ class TestStatisticalMetric(RiemannianMetricTestCase):
         self,
     ):
         """Test equation (59) on page 15"""
-        divergence_christoffels_base_point = self.stat_metric.divergence_christoffels(
+        divergence_christoffels_base_point = self.primal_connection.christoffels(
             self.base_point
         )
         self.assertAllClose(
@@ -69,6 +89,32 @@ class TestStatisticalMetric(RiemannianMetricTestCase):
     ):
         pass
 
+    def test_alpha_christoffels(
+            self,
+        ):
+        """Test that LC connection is recovered"""
+        alpha_christoffels_base_point = self.alpha_connection.christoffels(
+            self.base_point
+        )
+        metric_base_point = self.euclidean_space.metric.metric_matrix(self.base_point)
+
+        first_kind_alpha_christoffels_base_point = gs.einsum(
+            '...kij,...km->...mij', alpha_christoffels_base_point, metric_base_point
+        )
+        
+        levi_civita_christoffels_base_point = self.euclidean_space.metric.christoffels(
+            self.base_point
+        )
+
+        firsk_kind_levi_civita_christoffels_base_point = gs.einsum(
+            '...kij,...km->...mij', levi_civita_christoffels_base_point, metric_base_point
+        )
+
+        self.assertAllClose(
+            first_kind_alpha_christoffels_base_point,
+            firsk_kind_levi_civita_christoffels_base_point,
+        )
+
     def test_amari_divergence_tensor(
         self,
     ):
@@ -80,6 +126,7 @@ class TestStatisticalMetric(RiemannianMetricTestCase):
         amari_divergence_tensor_base_point = self.stat_metric.amari_divergence_tensor(
             self.base_point
         )
+
         self.assertAllClose(
             amari_divergence_tensor_base_point, potential_func_third_base_point
         )

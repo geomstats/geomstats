@@ -35,7 +35,10 @@ def unpack_inputs(func, dim):
     return wrapper
 
 class DivergenceConnection(Connection):
-    r"""Class to derive the pair of conjugate connections from a divergence.
+    r"""Class to derive a connection from a divergence. 
+
+    When implemented in conjuction with the DualDivergenceConnection object, 
+    a pair of conjugate connections can be defined on a manifold.
 
     Given an :math:`n` manifold :math:`M` with coordinates :math:`x`
     and a divergence :math:`D: \mathbb{R}^n \times \mathbb{R}^n \to \mathbb{R}`,
@@ -75,9 +78,9 @@ class DivergenceConnection(Connection):
             space.intrinsic
         ), "The manifold must be parametrized by an intrinsic coordinate system."
         self.dim = space.dim
-        self.divergence = unpack_inputs(divergence)
+        self.divergence = unpack_inputs(divergence, self.dim)
 
-    def divergence_christoffels(self, base_point):
+    def christoffels(self, base_point):
         r"""Compute the Christoffel symbols of the divergence connection.
 
         Compute the Christoffel symbols of the divergence connection :math:`\nabla^D`
@@ -99,11 +102,65 @@ class DivergenceConnection(Connection):
             Christoffel symbols of the divergence connection.
         """
         hess = gs.autodiff.hessian(self.divergence)
+        base_point_pair = gs.concatenate([base_point, base_point])
+        metric_matrix = -1 * hess(base_point_pair)[: self.dim, self.dim :]
+        cometric_matrix = gs.linalg.inv(metric_matrix)
+
+
+        hess = gs.autodiff.hessian(self.divergence)
         jac_hess = gs.autodiff.jacobian(hess)
         base_point_pair = gs.concatenate([base_point, base_point])
-        return -1 * jac_hess(base_point_pair)[: self.dim, : self.dim, self.dim :]
+        first_kind_christoffels =  -1 * jac_hess(base_point_pair)[: self.dim, : self.dim, self.dim :]
+        second_kind_christoffels = gs.einsum('...lk, ...ijl -> ...kij', cometric_matrix, first_kind_christoffels)
+        return second_kind_christoffels
 
-    def dual_divergence_christoffels(self, base_point):
+class DualDivergenceConnection(Connection):
+    r"""Class to derive a dual connection from a divergence. 
+
+    When implemented in conjuction with the DivergenceConnection object, 
+    a pair of conjugate connections can be defined on a manifold.
+
+    Given an :math:`n` manifold :math:`M` with coordinates :math:`x`
+    and a divergence :math:`D: \mathbb{R}^n \times \mathbb{R}^n \to \mathbb{R}`,
+    the conjugate connections :math:`\nabla^D` and :math:`\nabla^{D^*}` can be defined
+    in terms of their corresponding Christoffel symbols :math:`\Gamma^D`
+    and :math:`\Gamma^{D^*}`.
+
+    These connections are said to be conjugate with respect to the divergence induced
+    metric :math:`g^D` because for any smooth vector fields :math:`X, Y, Z`
+    on :math:`M` we have:
+
+    .. math::
+        X(g^D(Y, Z)) = g^D(\nabla^D_X Y, Z) + g^D(Y, \nabla^{D^*}_X Z)
+
+    The Levi-Civita connection can be recovered from these connections:
+
+    .. math::
+        \nabla^{LC} = \frac{\nabla^D + \nabla^{D^*}}{2}
+
+    Attributes
+    ----------
+    space : Manifold
+        Manifold to equip with the divergence and its conjugate connections.
+    divergence : callable
+        Divergence function, takes two inputs of shape=[..., dim] and returns a scalar.
+
+    References
+    ----------
+    .. [N2020] F. Nielsen,
+        "An Elementary Introduction to Information Geometry",
+        arXiv:808.08271v2 (2020): 10-16
+    """
+
+    def __init__(self, space, divergence):
+        super().__init__(space=space)
+        assert (
+            space.intrinsic
+        ), "The manifold must be parametrized by an intrinsic coordinate system."
+        self.dim = space.dim
+        self.divergence = unpack_inputs(divergence, self.dim)
+
+    def christoffels(self, base_point):
         r"""Compute the Christoffel symbols of the dual divergence connection.
 
         Compute the Christoffel symbols of the dual divergence connection
@@ -125,18 +182,92 @@ class DivergenceConnection(Connection):
             Christoffel symbols of the dual divergence connection.
         """
         hess = gs.autodiff.hessian(self.divergence)
+        base_point_pair = gs.concatenate([base_point, base_point])
+        metric_matrix = -1 * hess(base_point_pair)[: self.dim, self.dim :]
+        cometric_matrix = gs.linalg.inv(metric_matrix)
+
+        hess = gs.autodiff.hessian(self.divergence)
         jac_hess = gs.autodiff.jacobian(hess)
         base_point_pair = gs.concatenate([base_point, base_point])
-        return -1 * jac_hess(base_point_pair)[: self.dim, self.dim :, self.dim :]
+        first_kind_christoffels = -1 * jac_hess(base_point_pair)[: self.dim, self.dim :, self.dim :]
+        second_kind_christoffels = gs.einsum('...lk, ...ijl -> ...kij', cometric_matrix, first_kind_christoffels)
+        return second_kind_christoffels
+
+class AlphaConnection(Connection):
+    r"""Class to define a connection that interpolates between conjugate connections.
+    
+    Given a pair of conjugate connections :math:`\nabla^D` and :math:`\nabla^{D^*}`
+    on a manifold :math:`M`, a connection :math:`\nabla^{\alpha}` can be defined
+    that interpolates between the two connections.
+
+    The connection :math:`\nabla^{\alpha}` is defined in terms of the Christoffel symbols
+    :math:`\Gamma^D` and :math:`\Gamma^{D^*}` of the conjugate connections.
+
+    .. math::
+        \Gamma^{\alpha}_{i j k} = (1 + \alpha)/2 \Gamma^D_{i j k} + (1 - \alpha)/2 \Gamma^{D^*}_{i j k}
+    
+    When :math:`\alpha = 0`, the connection :math:`\nabla^{\alpha}` reduces to the 
+    Levi-Civita connection :math:`\nabla^{LC}`.
+
+    A family of :math:`\alpha` conjugate connections can be defined on a manifold by the 
+    relation :math:`\nabla^{\alpha} = (\nabla^{-\alpha})^*`.
+
+    Attributes
+    ----------
+    space : Manifold
+        Manifold to equip with the divergence and its conjugate connections.
+    alpha : float
+        Interpolation parameter.
+    primal_connection : Connection
+        Primal connection to interpolate between.
+    dual_connection : Connection
+        Dual connection to interpolate between.
+
+    References
+    ----------
+    .. [N2020] F. Nielsen,
+        "An Elementary Introduction to Information Geometry",
+        arXiv:808.08271v2 (2020): 10-16
+    """
+    def __init__(self, space, alpha, primal_connection, dual_connection):
+        super().__init__(space=space)
+        self.alpha = alpha
+        self.primal_connection = primal_connection
+        self.dual_connection = dual_connection
+        
+    def christoffels(self, base_point):
+        r"""Compute the Christoffel symbols of the alpha connection.
+
+        Compute the Christoffel symbols of the alpha connection :math:`\nabla^{\alpha}`
+        at the tangent space of the base point.
+
+        .. math::
+            \Gamma^{\alpha}_{i j k} = (1 + \alpha)/2 \Gamma^D_{i j k} + (1 - \alpha)/2 \Gamma^{D^*}_{i j k}
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        matrix : array-like, shape=[..., dim, dim, dim]
+            Christoffel symbols of the alpha connection.
+        """
+        primal_christoffels = self.primal_connection.christoffels(base_point)
+        dual_christoffels = self.dual_connection.christoffels(base_point)
+        return primal_christoffels * (1 + self.alpha) / 2 + dual_christoffels * (1 - self.alpha) / 2
 
 
 class StatisticalMetric(RiemannianMetric):
-    r"""Class to define a divergence induced statistical metric on a manifold.
+    r"""Class to define a statistical metric on a manifold.
 
     Given an :math:`n` manifold :math:`M` with coordinates :math:`x` and
     a divergence :math:`D: \mathbb{R}^n \times \mathbb{R}^n \to \mathbb{R}`,
     :math:`M` can be equipped with a divergence induced  metric :math:`g^D`
-    and  a (0, 3) tensor :math:`C^D` called the Amari divergence tensor.
+    and  a (0, 3) tensor :math:`C^D` called the Amari divergence tensor by
+    way of a pair of conjugate connections :math:`\nabla^D` and 
+    :math:`\nabla^{D^*}`.
 
     The corresponding statistical manifold is therefore
     .. math::
@@ -148,6 +279,10 @@ class StatisticalMetric(RiemannianMetric):
         Manifold to equip with the divergence induced metric.
     divergence : callable
         Divergence function, takes two inputs of shape=[..., dim] and returns a scalar.
+    primal_connection : Connection
+        Primal connection to define the divergence induced metric.
+    dual_connection : Connection
+        Dual connection to define the divergence induced metric.
 
     References
     ----------
@@ -158,37 +293,16 @@ class StatisticalMetric(RiemannianMetric):
             Differential Geometric Methods in Statistics, Springer.
     """
 
-    def __init__(self, space, divergence):
+    def __init__(self, space, divergence, primal_connection, dual_connection):
         super().__init__(space=space, signature=(space.dim, 0))
         assert (
             space.intrinsic
         ), "The manifold must be parametrized by an intrinsic coordinate system."
-        self.divergence_conjugate_connection = DivergenceConnection(
-            space=space, divergence=divergence
-        )
 
         self.dim = space.dim
-        self.divergence = self.unpack_inputs(divergence)
-
-    def __getattr__(self, attr):
-        r"""Built in method to delegate attribute access.
-
-        Delegate attribute access to the divergence conjugate connection.
-
-        Instantiated to avoid dimond inheritance problem with RiemannianMetric
-        and DivergenceConjugateConnection classes.
-
-        Parameters
-        ----------
-        attr : str
-            Attribute to access.
-
-        Returns
-        -------
-        callable
-            Attribute of divergence conjugate connection.
-        """
-        return getattr(self.divergence_conjugate_connection, attr)
+        self.divergence = unpack_inputs(divergence, self.dim)
+        self.primal_connection = primal_connection
+        self.dual_connection = dual_connection
 
     def metric_matrix(self, base_point):
         r"""Compute the divergence induced metric matrix.
@@ -243,6 +357,66 @@ class StatisticalMetric(RiemannianMetric):
         tensor : array-like, shape=[..., dim, dim, dim]
             Amari divergence tensor.
         """
-        divergence_christoffels = self.divergence_christoffels(base_point)
-        dual_divergence_christoffels = self.dual_divergence_christoffels(base_point)
-        return dual_divergence_christoffels - divergence_christoffels
+        second_kind_primal_christoffels = self.primal_connection.christoffels(base_point)
+        second_kind_dual_christoffels = self.dual_connection.christoffels(base_point)
+        metric_matrix_base_point = self.metric_matrix(base_point)
+        firsk_kind_primal_christoffels = gs.einsum(
+            '...kij,...km->...mij', second_kind_primal_christoffels, metric_matrix_base_point
+        )
+        firsk_kind_dual_christoffels = gs.einsum(
+            '...kij,...km->...mij', second_kind_dual_christoffels, metric_matrix_base_point
+        )
+        return firsk_kind_dual_christoffels - firsk_kind_primal_christoffels
+
+
+##test
+# from geomstats.geometry.euclidean import Euclidean
+
+# space = Euclidean(dim=2)
+# def bregman_divergence(func):
+#     def _bregman_divergence(point, base_point):
+#         grad_func = gs.autodiff.value_and_grad(func)
+#         func_basepoint, grad_func_basepoint = grad_func(base_point)
+#         bregman_div = (
+#             func(point)
+#             - func_basepoint
+#             - gs.dot(point - base_point, grad_func_basepoint)
+#         )
+#         return bregman_div
+
+#     return _bregman_divergence
+
+# def potential_function(point):
+#     return gs.sum(point**4)
+
+# breg_div = bregman_divergence(potential_function)
+
+# primal_connection = DivergenceConnection(
+#     space=space, divergence=breg_div
+# )
+
+# dual_connection = DualDivergenceConnection(
+#     space=space, divergence=breg_div
+# )
+
+# stat_metric = StatisticalMetric(
+#     space=space, 
+#     divergence=breg_div,
+#     primal_connection=primal_connection,
+#     dual_connection=dual_connection,
+# )
+
+# point = gs.array([1., 2.])
+
+# print(dual_connection.christoffels(point))
+
+# potential_func_first = gs.autodiff.jacobian(potential_function)
+# potential_func_second = gs.autodiff.jacobian(potential_func_first)
+# potential_func_third = gs.autodiff.jacobian(potential_func_second)
+# potential_func_third_base_point = potential_func_third(point)
+# amari_divergence_tensor_base_point = stat_metric.amari_divergence_tensor(
+#     point
+# )
+
+# print(potential_func_third_base_point)
+# print(amari_divergence_tensor_base_point)
