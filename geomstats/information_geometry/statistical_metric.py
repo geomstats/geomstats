@@ -4,6 +4,7 @@ import geomstats.backend as gs
 from geomstats.geometry.connection import Connection
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
+
 def unpack_inputs(func, dim):
     r"""Wrap function to unpack inputs to divergence function.
 
@@ -34,10 +35,11 @@ def unpack_inputs(func, dim):
         return func(tensor[..., : dim], tensor[..., dim :])
     return wrapper
 
-class DivergenceConnection(Connection):
-    r"""Class to derive a connection from a divergence. 
 
-    When implemented in conjuction with the DualDivergenceConnection object, 
+class DivergenceConnection(Connection):
+    r"""Class to derive a connection from a divergence.
+
+    When implemented in conjuction with the DualDivergenceConnection object,
     a pair of conjugate connections can be defined on a manifold.
 
     Given an :math:`n` manifold :math:`M` with coordinates :math:`x`
@@ -101,23 +103,25 @@ class DivergenceConnection(Connection):
         matrix : array-like, shape=[..., dim, dim, dim]
             Christoffel symbols of the divergence connection.
         """
-        hess = gs.autodiff.hessian(self.divergence)
+        metric_hess = gs.autodiff.hessian(self.divergence)
         base_point_pair = gs.concatenate([base_point, base_point])
-        metric_matrix = -1 * hess(base_point_pair)[: self.dim, self.dim :]
+        metric_matrix = -1 * metric_hess(base_point_pair)[: self.dim, self.dim :]
         cometric_matrix = gs.linalg.inv(metric_matrix)
-
-
         hess = gs.autodiff.hessian(self.divergence)
         jac_hess = gs.autodiff.jacobian(hess)
         base_point_pair = gs.concatenate([base_point, base_point])
-        first_kind_christoffels =  -1 * jac_hess(base_point_pair)[: self.dim, : self.dim, self.dim :]
-        second_kind_christoffels = gs.einsum('...lk, ...ijl -> ...kij', cometric_matrix, first_kind_christoffels)
+        first_kind_christoffels = jac_hess(base_point_pair)[: self.dim, : self.dim, self.dim :]
+        first_kind_christoffels = -1 * first_kind_christoffels
+        second_kind_christoffels = gs.einsum(
+            '...lk, ...ijl -> ...kij', cometric_matrix, first_kind_christoffels
+        )
         return second_kind_christoffels
 
-class DualDivergenceConnection(Connection):
-    r"""Class to derive a dual connection from a divergence. 
 
-    When implemented in conjuction with the DivergenceConnection object, 
+class DualDivergenceConnection(Connection):
+    r"""Class to derive a dual connection from a divergence.
+
+    When implemented in conjuction with the DivergenceConnection object,
     a pair of conjugate connections can be defined on a manifold.
 
     Given an :math:`n` manifold :math:`M` with coordinates :math:`x`
@@ -189,27 +193,34 @@ class DualDivergenceConnection(Connection):
         hess = gs.autodiff.hessian(self.divergence)
         jac_hess = gs.autodiff.jacobian(hess)
         base_point_pair = gs.concatenate([base_point, base_point])
-        first_kind_christoffels = -1 * jac_hess(base_point_pair)[: self.dim, self.dim :, self.dim :]
-        second_kind_christoffels = gs.einsum('...lk, ...ijl -> ...kij', cometric_matrix, first_kind_christoffels)
+        first_kind_christoffels = jac_hess(base_point_pair)[: self.dim, self.dim :, self.dim :]
+        first_kind_christoffels = -1 * first_kind_christoffels
+        second_kind_christoffels = gs.einsum(
+            '...lk, ...ijl -> ...kij',
+            cometric_matrix,
+            first_kind_christoffels
+        )
         return second_kind_christoffels
+
 
 class AlphaConnection(Connection):
     r"""Class to define a connection that interpolates between conjugate connections.
-    
+
     Given a pair of conjugate connections :math:`\nabla^D` and :math:`\nabla^{D^*}`
     on a manifold :math:`M`, a connection :math:`\nabla^{\alpha}` can be defined
     that interpolates between the two connections.
 
-    The connection :math:`\nabla^{\alpha}` is defined in terms of the Christoffel symbols
-    :math:`\Gamma^D` and :math:`\Gamma^{D^*}` of the conjugate connections.
+    The connection :math:`\nabla^{\alpha}` is defined in terms of the Christoffel
+    symbols :math:`\Gamma^D` and :math:`\Gamma^{D^*}` of the conjugate connections.
 
     .. math::
-        \Gamma^{\alpha}_{i j k} = (1 + \alpha)/2 \Gamma^D_{i j k} + (1 - \alpha)/2 \Gamma^{D^*}_{i j k}
-    
-    When :math:`\alpha = 0`, the connection :math:`\nabla^{\alpha}` reduces to the 
+        \Gamma^{\alpha}_{i j k} = (1 + \alpha)/2 \Gamma^D_{i j k}
+            + (1 - \alpha)/2 \Gamma^{D^*}_{i j k}
+
+    When :math:`\alpha = 0`, the connection :math:`\nabla^{\alpha}` reduces to the
     Levi-Civita connection :math:`\nabla^{LC}`.
 
-    A family of :math:`\alpha` conjugate connections can be defined on a manifold by the 
+    A family of :math:`\alpha` conjugate connections can be defined on a manifold by the
     relation :math:`\nabla^{\alpha} = (\nabla^{-\alpha})^*`.
 
     Attributes
@@ -229,12 +240,13 @@ class AlphaConnection(Connection):
         "An Elementary Introduction to Information Geometry",
         arXiv:808.08271v2 (2020): 10-16
     """
+
     def __init__(self, space, alpha, primal_connection, dual_connection):
         super().__init__(space=space)
         self.alpha = alpha
         self.primal_connection = primal_connection
         self.dual_connection = dual_connection
-        
+
     def christoffels(self, base_point):
         r"""Compute the Christoffel symbols of the alpha connection.
 
@@ -242,7 +254,8 @@ class AlphaConnection(Connection):
         at the tangent space of the base point.
 
         .. math::
-            \Gamma^{\alpha}_{i j k} = (1 + \alpha)/2 \Gamma^D_{i j k} + (1 - \alpha)/2 \Gamma^{D^*}_{i j k}
+            \Gamma^{\alpha}_{i j k} = (1 + \alpha)/2 \Gamma^D_{i j k}
+                + (1 - \alpha)/2 \Gamma^{D^*}_{i j k}
 
         Parameters
         ----------
@@ -256,7 +269,9 @@ class AlphaConnection(Connection):
         """
         primal_christoffels = self.primal_connection.christoffels(base_point)
         dual_christoffels = self.dual_connection.christoffels(base_point)
-        return primal_christoffels * (1 + self.alpha) / 2 + dual_christoffels * (1 - self.alpha) / 2
+        primal_part = primal_christoffels * (1 + self.alpha) / 2
+        dual_part = dual_christoffels * (1 - self.alpha) / 2
+        return primal_part + dual_part
 
 
 class StatisticalMetric(RiemannianMetric):
@@ -266,7 +281,7 @@ class StatisticalMetric(RiemannianMetric):
     a divergence :math:`D: \mathbb{R}^n \times \mathbb{R}^n \to \mathbb{R}`,
     :math:`M` can be equipped with a divergence induced  metric :math:`g^D`
     and  a (0, 3) tensor :math:`C^D` called the Amari divergence tensor by
-    way of a pair of conjugate connections :math:`\nabla^D` and 
+    way of a pair of conjugate connections :math:`\nabla^D` and
     :math:`\nabla^{D^*}`.
 
     The corresponding statistical manifold is therefore
@@ -357,66 +372,15 @@ class StatisticalMetric(RiemannianMetric):
         tensor : array-like, shape=[..., dim, dim, dim]
             Amari divergence tensor.
         """
-        second_kind_primal_christoffels = self.primal_connection.christoffels(base_point)
-        second_kind_dual_christoffels = self.dual_connection.christoffels(base_point)
+        second_primal_christoffels = self.primal_connection.christoffels(base_point)
+        second_dual_christoffels = self.dual_connection.christoffels(base_point)
         metric_matrix_base_point = self.metric_matrix(base_point)
         firsk_kind_primal_christoffels = gs.einsum(
-            '...kij,...km->...mij', second_kind_primal_christoffels, metric_matrix_base_point
+            '...kij,...km->...mij',
+            second_primal_christoffels,
+            metric_matrix_base_point
         )
         firsk_kind_dual_christoffels = gs.einsum(
-            '...kij,...km->...mij', second_kind_dual_christoffels, metric_matrix_base_point
+            '...kij,...km->...mij', second_dual_christoffels, metric_matrix_base_point
         )
         return firsk_kind_dual_christoffels - firsk_kind_primal_christoffels
-
-
-##test
-# from geomstats.geometry.euclidean import Euclidean
-
-# space = Euclidean(dim=2)
-# def bregman_divergence(func):
-#     def _bregman_divergence(point, base_point):
-#         grad_func = gs.autodiff.value_and_grad(func)
-#         func_basepoint, grad_func_basepoint = grad_func(base_point)
-#         bregman_div = (
-#             func(point)
-#             - func_basepoint
-#             - gs.dot(point - base_point, grad_func_basepoint)
-#         )
-#         return bregman_div
-
-#     return _bregman_divergence
-
-# def potential_function(point):
-#     return gs.sum(point**4)
-
-# breg_div = bregman_divergence(potential_function)
-
-# primal_connection = DivergenceConnection(
-#     space=space, divergence=breg_div
-# )
-
-# dual_connection = DualDivergenceConnection(
-#     space=space, divergence=breg_div
-# )
-
-# stat_metric = StatisticalMetric(
-#     space=space, 
-#     divergence=breg_div,
-#     primal_connection=primal_connection,
-#     dual_connection=dual_connection,
-# )
-
-# point = gs.array([1., 2.])
-
-# print(dual_connection.christoffels(point))
-
-# potential_func_first = gs.autodiff.jacobian(potential_function)
-# potential_func_second = gs.autodiff.jacobian(potential_func_first)
-# potential_func_third = gs.autodiff.jacobian(potential_func_second)
-# potential_func_third_base_point = potential_func_third(point)
-# amari_divergence_tensor_base_point = stat_metric.amari_divergence_tensor(
-#     point
-# )
-
-# print(potential_func_third_base_point)
-# print(amari_divergence_tensor_base_point)

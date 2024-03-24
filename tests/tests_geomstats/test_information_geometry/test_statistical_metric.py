@@ -47,13 +47,13 @@ class TestStatisticalMetric(RiemannianMetricTestCase):
             space=self.euclidean_space, divergence=self.breg_divergence
         )
         self.alpha_connection = AlphaConnection(
-            space=self.euclidean_space, 
+            space=self.euclidean_space,
             alpha=0.0,
             primal_connection=self.primal_connection,
             dual_connection=self.dual_connection,
         )
         self.stat_metric = StatisticalMetric(
-            space=self.euclidean_space, 
+            space=self.euclidean_space,
             divergence=self.breg_divergence,
             primal_connection=self.primal_connection,
             dual_connection=self.dual_connection,
@@ -91,7 +91,7 @@ class TestStatisticalMetric(RiemannianMetricTestCase):
 
     def test_alpha_christoffels(
             self,
-        ):
+    ):
         """Test that LC connection is recovered"""
         alpha_christoffels_base_point = self.alpha_connection.christoffels(
             self.base_point
@@ -101,7 +101,7 @@ class TestStatisticalMetric(RiemannianMetricTestCase):
         first_kind_alpha_christoffels_base_point = gs.einsum(
             '...kij,...km->...mij', alpha_christoffels_base_point, metric_base_point
         )
-        
+
         levi_civita_christoffels_base_point = self.euclidean_space.metric.christoffels(
             self.base_point
         )
