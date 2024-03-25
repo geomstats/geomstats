@@ -160,8 +160,8 @@ class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
     References
     ----------
     .. [T2022] Yann Thanwerdas. Riemannian and stratified
-    geometries on covariance and correlation matrices. Differential
-    Geometry [math.DG]. Université Côte d'Azur, 2022.
+        geometries on covariance and correlation matrices. Differential
+        Geometry [math.DG]. Université Côte d'Azur, 2022.
     """
 
     def __init__(self, n, equip=True):
@@ -258,7 +258,7 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
 
     .. math::
 
-        (X)=\alpha \operatorname{tr}\left(X^2\right)
+        q(X)=\alpha \operatorname{tr}\left(X^2\right)
         +\beta \operatorname{Sum}\left(X^2\right)
         +\gamma \operatorname{Sum}(X)^2
 
@@ -277,8 +277,8 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
     References
     ----------
     .. [T2022] Yann Thanwerdas. Riemannian and stratified
-    geometries on covariance and correlation matrices. Differential
-    Geometry [math.DG]. Université Côte d'Azur, 2022.
+        geometries on covariance and correlation matrices. Differential
+        Geometry [math.DG]. Université Côte d'Azur, 2022.
     """
 
     def __init__(self, space, alpha=1.0, beta=1.0, gamma=1.0):
@@ -329,7 +329,7 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[..., dim]
+        tangent_vec: array-like, shape=[..., n, n]
             Tangent vector at base point.
         """
         comp = gs.matmul(tangent_vec, tangent_vec)
@@ -346,11 +346,11 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
 
         Parameters
         ----------
-        tangent_vec_a: array-like, shape=[..., dim]
+        tangent_vec_a: array-like, shape=[..., n, n]
             Tangent vector at base point.
-        tangent_vec_b: array-like, shape=[..., dim]
+        tangent_vec_b: array-like, shape=[..., n, n]
             Tangent vector at base point.
-        base_point: array-like, shape=[..., dim]
+        base_point: array-like, shape=[..., n, n]
             Base point.
             Optional, default: None.
 
@@ -376,9 +376,9 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., n, n]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., n, n]
             Base point.
             Optional, default: None.
 
@@ -612,3 +612,150 @@ class NullRowSumSymmetricMatrices(LevelSet, DiffeomorphicMatrixVectorSpace):
                 pre_basis,
             )
         )
+
+
+class NullRowSumPermutationInvariantMetric(EuclideanMetric):
+    r"""A permutation-invariant metric on the space of null-row-sum symmetric matrices.
+
+    It is flat Riemannian metric invariant by the congruence action
+    of permutation matrices defined over a matrix vector space.
+
+    Its associated quadratic form is:
+
+    .. math::
+
+        q(Y)=\alpha \operatorname{tr}\left(Y^2\right)
+        +\delta \operatorname{tr}\left(\operatorname{Diag}(Y)^2\right)
+        +\zeta \operatorname{tr}(Y)^2
+
+    Parameters
+    ----------
+    space : Manifold
+    alpha : float
+        Scalar multiplying first term of quadratic form.
+    delta : float
+        Scalar multiplying second term of quadratic form.
+    zeta : float
+        Scalar multiplying third term of quadratic form.
+
+    Check out chapter 8 of [T2022]_ for more details.
+
+    References
+    ----------
+    .. [T2022] Yann Thanwerdas. Riemannian and stratified
+        geometries on covariance and correlation matrices. Differential
+        Geometry [math.DG]. Université Côte d'Azur, 2022.
+    """
+
+    def __init__(self, space, alpha=1.0, delta=1.0, zeta=1.0):
+        self._check_params(space, alpha, delta, zeta)
+        super().__init__(space=space)
+        self.alpha = alpha
+        self.delta = delta
+        self.zeta = zeta
+
+    @staticmethod
+    def _check_params(space, alpha, delta, zeta):
+        r"""Check parameters of quadratic form.
+
+        The following conditions must verify:
+        - n > 3: :math:`\alpha>0, n\alpha+(n-2)\delta>0, n\alpha+(n-1)(\delta+n\zeta)>0`
+        - n = 3: :math:`\alpha=0, \delta > 0, \delta + 3 \zeta > 0`
+        - n = 2: :math:`\alpha=\delta=0, \zeta > 0`
+        """
+        n = space.n
+        if n == 2:
+            if alpha > gs.atol or delta > gs.atol or zeta < gs.atol:
+                raise ValueError(
+                    f"When n==2: alpha ({alpha}) and delta({delta}) must be 0,"
+                    f"and zeta ({zeta}) > 0. "
+                )
+            return
+
+        elif n == 3:
+            cond = delta + 3 * zeta
+            if alpha > gs.atol or delta < gs.atol or cond < gs.atol:
+                raise ValueError(
+                    f"When n==3: alpha ({alpha}) must be 0, delta ({delta}) > 0"
+                    f"and an inequality greater than 0: {cond}."
+                    "Check thanwerdas2022 theorem 8.7"
+                )
+            return
+
+        cond_1 = n * alpha + (n - 2) * delta
+        cond_2 = n * alpha + (n - 1) * (delta + n * zeta)
+        if cond_1 < gs.atol or cond_2 < gs.atol:
+            raise ValueError(
+                f"Inequalities should be greater than 0, but: {cond_1} and {cond_2}."
+                "Check thanwerdas2022 theorem 8.7"
+            )
+
+    def _quadratic_form(self, tangent_vec):
+        """Quadratic form associated to inner product.
+
+        Parameters
+        ----------
+        tangent_vec: array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
+        if self.alpha > gs.atol:
+            comp = gs.matmul(tangent_vec, tangent_vec)
+            out_alpha = self.alpha * gs.trace(comp)
+        else:
+            out_alpha = 0.0
+        out_delta = (
+            self.delta * gs.sum(Matrices.diagonal(tangent_vec) ** 2, axis=-1)
+            if self.delta > gs.atol
+            else 0.0
+        )
+        out_zeta = self.zeta * gs.trace(tangent_vec) ** 2
+
+        return out_alpha + out_delta + out_zeta
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Inner product between two tangent vectors at a base point.
+
+        Parameters
+        ----------
+        tangent_vec_a: array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        tangent_vec_b: array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point: array-like, shape=[..., n, n]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        inner_product : array-like, shape=[...,]
+            Inner-product.
+        """
+        inner_prod = (1 / 2) * (
+            self._quadratic_form(tangent_vec_a + tangent_vec_b)
+            - self._quadratic_form(tangent_vec_a)
+            - self._quadratic_form(tangent_vec_b)
+        )
+        return repeat_out(
+            self._space.point_ndim, inner_prod, tangent_vec_a, tangent_vec_b, base_point
+        )
+
+    def squared_norm(self, vector, base_point=None):
+        """Compute the square of the norm of a vector.
+
+        Squared norm of a vector associated to the inner product
+        at the tangent space at a base point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+            Vector.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        sq_norm : array-like, shape=[...,]
+            Squared norm.
+        """
+        return self._quadratic_form(vector)
