@@ -41,8 +41,8 @@ from geomstats.geometry.spd_matrices import (
 )
 from geomstats.geometry.symmetric_matrices import (
     HollowMatricesPermutationInvariantMetric,
-    NullRowSumPermutationInvariantMetric,
-    NullRowSumSymmetricMatrices,
+    NullRowSumsPermutationInvariantMetric,
+    NullRowSumsSymmetricMatrices,
     SymmetricHollowMatrices,
 )
 
@@ -1114,10 +1114,10 @@ class LogScaledMetric(PullbackDiffeoMetric):
     def __init__(self, space, alpha=1.0, delta=1.0, zeta=1.0):
         diffeo = LogScalingDiffeo()
 
-        image_space = NullRowSumSymmetricMatrices(
+        image_space = NullRowSumsSymmetricMatrices(
             n=space.n, equip=False
         ).equip_with_metric(
-            NullRowSumPermutationInvariantMetric,
+            NullRowSumsPermutationInvariantMetric,
             alpha=alpha,
             delta=delta,
             zeta=zeta,

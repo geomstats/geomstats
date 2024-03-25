@@ -3,10 +3,10 @@ import random
 import pytest
 
 from geomstats.geometry.symmetric_matrices import (
-    ConstantValueRowSumDiffeo,
+    ConstantValueRowSumsDiffeo,
     HollowMatricesPermutationInvariantMetric,
-    NullRowSumPermutationInvariantMetric,
-    NullRowSumSymmetricMatrices,
+    NullRowSumsPermutationInvariantMetric,
+    NullRowSumsSymmetricMatrices,
     SymmetricHollowMatrices,
     SymmetricMatrices,
 )
@@ -23,8 +23,8 @@ from .data.diffeo import DiffeoTestData
 from .data.matrices import MatricesMetricTestData
 from .data.symmetric_matrices import (
     HollowMatricesPermutationInvariantMetricTestData,
-    NullRowSumPermutationInvariantMetricTestData,
-    NullRowSumSymmetricMatricesTestData,
+    NullRowSumsPermutationInvariantMetricTestData,
+    NullRowSumsSymmetricMatricesTestData,
     SymmetricHollowMatricesTestData,
     SymmetricMatrices1TestData,
     SymmetricMatrices2TestData,
@@ -115,16 +115,16 @@ class TestNullRowSumSymmetricMatrices(
     metaclass=DataBasedParametrizer,
 ):
     _n = random.randint(3, 6)
-    space = NullRowSumSymmetricMatrices(n=_n, equip=False)
+    space = NullRowSumsSymmetricMatrices(n=_n, equip=False)
 
-    testing_data = NullRowSumSymmetricMatricesTestData()
+    testing_data = NullRowSumsSymmetricMatricesTestData()
 
 
-class TestNullRowSumDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+class TestNullRowSumsDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
     _n = random.randint(3, 6)
-    space = NullRowSumSymmetricMatrices(n=_n, equip=False)
+    space = NullRowSumsSymmetricMatrices(n=_n, equip=False)
     image_space = SymmetricMatrices(n=_n - 1, equip=False)
-    diffeo = ConstantValueRowSumDiffeo()
+    diffeo = ConstantValueRowSumsDiffeo()
     testing_data = DiffeoTestData()
 
 
@@ -138,13 +138,13 @@ class TestNullRowSumDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
 )
 def equipped_null_row_sums_matrices(request):
     n, (alpha, delta, zeta) = request.param
-    request.cls.space = NullRowSumSymmetricMatrices(n, equip=False).equip_with_metric(
-        NullRowSumPermutationInvariantMetric, alpha=alpha, delta=delta, zeta=zeta
+    request.cls.space = NullRowSumsSymmetricMatrices(n, equip=False).equip_with_metric(
+        NullRowSumsPermutationInvariantMetric, alpha=alpha, delta=delta, zeta=zeta
     )
 
 
 @pytest.mark.usefixtures("equipped_null_row_sums_matrices")
-class TestNullRowSumPermutationInvariantMetric(
+class TestNullRowSumsPermutationInvariantMetric(
     EuclideanMetricTestCase, metaclass=DataBasedParametrizer
 ):
-    testing_data = NullRowSumPermutationInvariantMetricTestData()
+    testing_data = NullRowSumsPermutationInvariantMetricTestData()

@@ -390,7 +390,7 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
         return self._quadratic_form(vector)
 
 
-class ConstantValueRowSumDiffeo(Diffeo):
+class ConstantValueRowSumsDiffeo(Diffeo):
     r"""A diffeomorphism from the constant-value-row-sum matrices to symmetric matrices.
 
     A particular case is the diffeomorphism between the space of null-row-sum symmetric
@@ -516,15 +516,17 @@ class ConstantValueRowSumDiffeo(Diffeo):
         )
 
 
-class NullRowSumSymmetricMatrices(LevelSet, DiffeomorphicMatrixVectorSpace):
-    r"""Space of null-row-sum symmetric matrices.
+class NullRowSumsSymmetricMatrices(LevelSet, DiffeomorphicMatrixVectorSpace):
+    r"""Space of null-row-sums symmetric matrices.
 
-    Set of symmetric matrices with null row sum:
+    Set of symmetric matrices with null row sums:
 
     .. math::
 
         \operatorname{Row_0}(n) = \{S \in \operatorname{Sym}(n)
         \mid S \mathbb{1}=0 \}
+
+    Check out chapter 8 of [T2022]_ and [T2023]_ for more details.
 
     Parameters
     ----------
@@ -536,6 +538,9 @@ class NullRowSumSymmetricMatrices(LevelSet, DiffeomorphicMatrixVectorSpace):
     .. [T2022] Yann Thanwerdas. Riemannian and stratified
         geometries on covariance and correlation matrices. Differential
         Geometry [math.DG]. Université Côte d'Azur, 2022.
+    .. [T2023] Thanwerdas, Yann. “Permutation-Invariant Log-Euclidean Geometries
+        on Full-Rank Correlation Matrices,”
+        November 2023. https://hal.science/hal-03878729.
     """
 
     def __init__(self, n, equip=True):
@@ -543,7 +548,7 @@ class NullRowSumSymmetricMatrices(LevelSet, DiffeomorphicMatrixVectorSpace):
         image_space = SymmetricMatrices(n - 1, equip=False)
         super().__init__(
             dim=image_space.dim,
-            diffeo=ConstantValueRowSumDiffeo(value=0.0),
+            diffeo=ConstantValueRowSumsDiffeo(value=0.0),
             image_space=image_space,
             shape=(n, n),
             equip=equip,
@@ -614,8 +619,8 @@ class NullRowSumSymmetricMatrices(LevelSet, DiffeomorphicMatrixVectorSpace):
         )
 
 
-class NullRowSumPermutationInvariantMetric(EuclideanMetric):
-    r"""A permutation-invariant metric on the space of null-row-sum symmetric matrices.
+class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
+    r"""A permutation-invariant metric on the space of null-row-sums symmetric matrices.
 
     It is flat Riemannian metric invariant by the congruence action
     of permutation matrices defined over a matrix vector space.
@@ -628,6 +633,8 @@ class NullRowSumPermutationInvariantMetric(EuclideanMetric):
         +\delta \operatorname{tr}\left(\operatorname{Diag}(Y)^2\right)
         +\zeta \operatorname{tr}(Y)^2
 
+    Check out chapter 8 of [T2022]_ and [T2023]_ for more details.
+
     Parameters
     ----------
     space : Manifold
@@ -638,13 +645,14 @@ class NullRowSumPermutationInvariantMetric(EuclideanMetric):
     zeta : float
         Scalar multiplying third term of quadratic form.
 
-    Check out chapter 8 of [T2022]_ for more details.
-
     References
     ----------
     .. [T2022] Yann Thanwerdas. Riemannian and stratified
         geometries on covariance and correlation matrices. Differential
         Geometry [math.DG]. Université Côte d'Azur, 2022.
+    .. [T2023] Thanwerdas, Yann. “Permutation-Invariant Log-Euclidean Geometries
+        on Full-Rank Correlation Matrices,”
+        November 2023. https://hal.science/hal-03878729.
     """
 
     def __init__(self, space, alpha=1.0, delta=1.0, zeta=1.0):
