@@ -11,8 +11,10 @@ from geomstats.geometry.full_rank_correlation_matrices import (
     OffLogMetric,
     PolyHyperbolicCholeskyMetric,
     UniqueDiagonalMatrixAlgorithm,
+    UniquePositiveDiagonalMatrixAlgorithm,
 )
 from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.group_action import CongruenceAction
 from geomstats.geometry.hermitian_matrices import expmh
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.matrices import Matrices
@@ -48,6 +50,7 @@ from .data.full_rank_correlation_matrices import (
     OffLogMetricTestData,
     PolyHyperbolicCholeskyMetricTestData,
     UniqueDiagonalMatrixAlgorithmTestData,
+    UniquePositiveDiagonalMatrixAlgorithmTestData,
 )
 
 
@@ -221,3 +224,28 @@ def equipped_cor_with_off_log_metric(request):
 @pytest.mark.usefixtures("equipped_cor_with_off_log_metric")
 class TestOffLogMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = OffLogMetricTestData()
+
+
+class TestUniquePositiveDiagonalMatrixAlgorithm(
+    TestCase, metaclass=DataBasedParametrizer
+):
+    _n = random.randint(2, 5)
+    algo = UniquePositiveDiagonalMatrixAlgorithm()
+    data_generator = RandomDataGenerator(SPDMatrices(n=_n, equip=False))
+
+    testing_data = UniquePositiveDiagonalMatrixAlgorithmTestData()
+
+    @pytest.mark.random
+    def test_rows_sum_to_one(self, n_points, atol):
+        spd_mat = self.data_generator.random_point(n_points)
+        diag_mat = self.algo.apply(spd_mat)
+
+        congruence_action = CongruenceAction()
+
+        unit_row_sum_spd = congruence_action(diag_mat, spd_mat)
+
+        res = gs.sum(unit_row_sum_spd, axis=-1)
+
+        batch_shape = (n_points,) if n_points > 1 else ()
+        expected = gs.ones(batch_shape + (spd_mat.shape[-1],))
+        self.assertAllClose(res, expected, atol=atol)
