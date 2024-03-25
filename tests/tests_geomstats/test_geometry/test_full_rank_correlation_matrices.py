@@ -29,7 +29,7 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
 )
 from geomstats.geometry.spd_matrices import CholeskyMap, SPDMatrices
 from geomstats.geometry.symmetric_matrices import (
-    NullRowSumSymmetricMatrices,
+    NullRowSumsSymmetricMatrices,
     SymmetricHollowMatrices,
     SymmetricMatrices,
 )
@@ -256,7 +256,7 @@ class TestLogScalingDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
     _n = random.randint(2, 5)
 
     space = FullRankCorrelationMatrices(n=_n, equip=False)
-    image_space = NullRowSumSymmetricMatrices(n=_n, equip=False)
+    image_space = NullRowSumsSymmetricMatrices(n=_n, equip=False)
     diffeo = LogScalingDiffeo()
     testing_data = DiffeoTestData()
 
