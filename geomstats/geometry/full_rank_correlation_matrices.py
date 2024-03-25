@@ -41,6 +41,8 @@ from geomstats.geometry.spd_matrices import (
 )
 from geomstats.geometry.symmetric_matrices import (
     HollowMatricesPermutationInvariantMetric,
+    NullRowSumPermutationInvariantMetric,
+    NullRowSumSymmetricMatrices,
     SymmetricHollowMatrices,
 )
 
@@ -1082,3 +1084,43 @@ class LogScalingDiffeo(Diffeo):
             base_point=base_point_row_1,
         )
         return tangent_corr_map(tangent_vec_row_1, base_point_row_1)
+
+
+class LogScaledMetric(PullbackDiffeoMetric):
+    """Pullback metric via a diffeomorphism.
+
+    Diffeormorphism between full-rank correlation matrices and
+    the space of symmetric matrices with null row sums.
+
+    Check out [T2023]_ for more details.
+
+    Parameters
+    ----------
+    space : FullRankCorrelationMatrices
+    alpha : float
+        Scalar multiplying first term of quadratic form.
+    delta : float
+        Scalar multiplying second term of quadratic form.
+    zeta : float
+        Scalar multiplying third term of quadratic form.
+
+    References
+    ----------
+    .. [T2023] Thanwerdas, Yann. “Permutation-Invariant Log-Euclidean Geometries
+        on Full-Rank Correlation Matrices,”
+        November 2023. https://hal.science/hal-03878729.
+    """
+
+    def __init__(self, space, alpha=1.0, delta=1.0, zeta=1.0):
+        diffeo = LogScalingDiffeo()
+
+        image_space = NullRowSumSymmetricMatrices(
+            n=space.n, equip=False
+        ).equip_with_metric(
+            NullRowSumPermutationInvariantMetric,
+            alpha=alpha,
+            delta=delta,
+            zeta=zeta,
+        )
+
+        super().__init__(space=space, diffeo=diffeo, image_space=image_space)

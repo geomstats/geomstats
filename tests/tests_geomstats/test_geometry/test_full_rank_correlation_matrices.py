@@ -7,6 +7,7 @@ from geomstats.geometry.diffeo import ComposedDiffeo
 from geomstats.geometry.full_rank_correlation_matrices import (
     CorrelationMatricesBundle,
     FullRankCorrelationMatrices,
+    LogScaledMetric,
     LogScalingDiffeo,
     OffLogDiffeo,
     OffLogMetric,
@@ -48,6 +49,7 @@ from .data.full_rank_correlation_matrices import (
     CorrelationMatricesBundleTestData,
     FullRankCorrelationAffineQuotientMetricTestData,
     FullRankCorrelationMatricesTestData,
+    LogScaledMetricTestData,
     OffLogMetricTestData,
     PolyHyperbolicCholeskyMetricTestData,
     UniqueDiagonalMatrixAlgorithmTestData,
@@ -257,3 +259,25 @@ class TestLogScalingDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
     image_space = NullRowSumSymmetricMatrices(n=_n, equip=False)
     diffeo = LogScalingDiffeo()
     testing_data = DiffeoTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (2, (0.0, 0.0, 1.0)),
+        (3, (0.0, 1.0, 1.0)),
+        (random.randint(4, 5), (1.0, 1.0, 1.0)),
+    ],
+)
+def equipped_cor_with_log_scaled_metric(request):
+    n, (alpha, delta, zeta) = request.param
+    request.cls.space = FullRankCorrelationMatrices(n, equip=False).equip_with_metric(
+        LogScaledMetric, alpha=alpha, delta=delta, zeta=zeta
+    )
+
+
+@pytest.mark.usefixtures("equipped_cor_with_log_scaled_metric")
+class TestLogScaledMetric(
+    PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = LogScaledMetricTestData()
