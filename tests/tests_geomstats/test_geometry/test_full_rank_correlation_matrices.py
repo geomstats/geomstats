@@ -7,6 +7,7 @@ from geomstats.geometry.diffeo import ComposedDiffeo
 from geomstats.geometry.full_rank_correlation_matrices import (
     CorrelationMatricesBundle,
     FullRankCorrelationMatrices,
+    LogScalingDiffeo,
     OffLogDiffeo,
     OffLogMetric,
     PolyHyperbolicCholeskyMetric,
@@ -14,7 +15,6 @@ from geomstats.geometry.full_rank_correlation_matrices import (
     UniquePositiveDiagonalMatrixAlgorithm,
 )
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.group_action import CongruenceAction
 from geomstats.geometry.hermitian_matrices import expmh
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.matrices import Matrices
@@ -28,6 +28,7 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
 )
 from geomstats.geometry.spd_matrices import CholeskyMap, SPDMatrices
 from geomstats.geometry.symmetric_matrices import (
+    NullRowSumSymmetricMatrices,
     SymmetricHollowMatrices,
     SymmetricMatrices,
 )
@@ -238,14 +239,21 @@ class TestUniquePositiveDiagonalMatrixAlgorithm(
     @pytest.mark.random
     def test_rows_sum_to_one(self, n_points, atol):
         spd_mat = self.data_generator.random_point(n_points)
-        diag_mat = self.algo.apply(spd_mat)
+        diag_vec = self.algo.apply(spd_mat)
 
-        congruence_action = CongruenceAction()
-
-        unit_row_sum_spd = congruence_action(diag_mat, spd_mat)
+        unit_row_sum_spd = spd_mat * gs.outer(diag_vec, diag_vec)
 
         res = gs.sum(unit_row_sum_spd, axis=-1)
 
         batch_shape = (n_points,) if n_points > 1 else ()
         expected = gs.ones(batch_shape + (spd_mat.shape[-1],))
         self.assertAllClose(res, expected, atol=atol)
+
+
+class TestLogScalingDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(2, 5)
+
+    space = FullRankCorrelationMatrices(n=_n, equip=False)
+    image_space = NullRowSumSymmetricMatrices(n=_n, equip=False)
+    diffeo = LogScalingDiffeo()
+    testing_data = DiffeoTestData()

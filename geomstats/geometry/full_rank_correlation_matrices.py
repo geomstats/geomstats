@@ -45,6 +45,62 @@ from geomstats.geometry.symmetric_matrices import (
 )
 
 
+def corr_map(point):
+    r"""Compute the correlation matrix associated to an SPD matrix.
+
+    .. math::
+
+        \text { Cor }: \Sigma \in \operatorname{Sym}^{+}(n) \longmapsto
+        \operatorname{Diag}(\Sigma)^{-1 / 2} \Sigma
+        \operatorname{Diag}(\Sigma)^{-1 / 2} \in \operatorname{Cor}^{+}(n)
+
+    Parameters
+    ----------
+    point : array-like, shape=[..., n, n]
+        SPD matrix.
+
+    Returns
+    -------
+    cor : array_like, shape=[..., n, n]
+        Full-rank correlation matrix.
+    """
+    diagonal = Matrices.diagonal(point) ** (-0.5)
+    return FullRankCorrelationMatrices.diag_action(diagonal, point)
+
+
+def tangent_corr_map(tangent_vec, base_point):
+    r"""Compute the differential of the differential of the corr map.
+
+    .. math::
+
+        d_{\Sigma} \operatorname{Cor}(X)=\Delta_{\Sigma}\left[X-\frac{1}{2}
+        \left(\Delta_{\Sigma}^2 \operatorname{Diag}(X)
+        \Sigma+\Sigma \operatorname{Diag}(X)
+        \Delta_{\Sigma}^2\right)\right] \Delta_{\Sigma}
+
+    Parameters
+    ----------
+    tangent_vec : array-like, shape=[..., n, n]
+        Tangent vector.
+    base_point : array-like, shape=[..., n, n]
+        Base point.
+
+    Returns
+    -------
+    result : array-like, shape=[..., n, n]
+    """
+    diagonal_bp = Matrices.diagonal(base_point)
+    diagonal_tv = Matrices.diagonal(tangent_vec)
+
+    diagonal = diagonal_tv / diagonal_bp
+    aux = base_point * (diagonal[..., None, :] + diagonal[..., :, None])
+    mat = tangent_vec - 0.5 * aux
+
+    scaled_diag_vec = diagonal_bp ** (-0.5)
+
+    return FullRankCorrelationMatrices.diag_action(scaled_diag_vec, mat)
+
+
 class FullRankCorrelationMatrices(LevelSet):
     """Class for the manifold of full-rank correlation matrices.
 
@@ -238,8 +294,7 @@ class CorrelationMatricesBundle(FiberBundle):
         cor : array_like, shape=[..., n, n]
             Full rank correlation matrix.
         """
-        diagonal = Matrices.diagonal(point) ** (-0.5)
-        return point * gs.outer(diagonal, diagonal)
+        return corr_map(point)
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
         """Compute the differential of the submersion.
@@ -255,13 +310,7 @@ class CorrelationMatricesBundle(FiberBundle):
         -------
         result : array-like, shape=[..., n, n]
         """
-        diagonal_bp = Matrices.diagonal(base_point)
-        diagonal_tv = Matrices.diagonal(tangent_vec)
-
-        diagonal = diagonal_tv / diagonal_bp
-        aux = base_point * (diagonal[..., None, :] + diagonal[..., :, None])
-        mat = tangent_vec - 0.5 * aux
-        return self._total_space.group_action(diagonal_bp ** (-0.5), mat)
+        return tangent_corr_map(tangent_vec, base_point)
 
     def vertical_projection(self, tangent_vec, base_point):
         """Compute the vertical projection wrt the affine-invariant metric.
@@ -345,6 +394,12 @@ class PolyHyperbolicCholeskyMetric(PullbackDiffeoMetric):
     the intermediate space.
 
     For more details, check section 7.4.1 [T2022]_.
+
+    References
+    ----------
+    .. [T2022] Yann Thanwerdas. Riemannian and stratified
+        geometries on covariance and correlation matrices. Differential
+        Geometry [math.DG]. Université Côte d'Azur, 2022.
     """
 
     def __init__(self, space):
@@ -368,7 +423,7 @@ def off_map(matrix):
 
 
 class UniqueDiagonalMatrixAlgorithm:
-    """Find unique diagonal matrix corresponding to a full-rank correlation matrix.
+    r"""Find unique diagonal matrix corresponding to a full-rank correlation matrix.
 
     That is, for all symmetric matrix :math:`S`,
     there exists a unique diagonal matrix :math:`D` such that
@@ -387,6 +442,9 @@ class UniqueDiagonalMatrixAlgorithm:
 
     References
     ----------
+    .. [T2022] Yann Thanwerdas. Riemannian and stratified
+        geometries on covariance and correlation matrices. Differential
+        Geometry [math.DG]. Université Côte d'Azur, 2022.
     .. [AH2020] Ilya Archakov, and Peter Reinhard Hansen.
         “A New Parametrization of Correlation Matrices.” arXiv, December 3, 2020.
         https://doi.org/10.48550/arXiv.2012.02395.
@@ -464,6 +522,12 @@ class OffLogDiffeo(Diffeo):
         \operatorname{Cor}^{+}(n) \longrightarrow \operatorname{Hol}(n)
 
     Check out chapter 8 of [T2022]_ for more details.
+
+    References
+    ----------
+    .. [T2022] Yann Thanwerdas. Riemannian and stratified
+        geometries on covariance and correlation matrices. Differential
+        Geometry [math.DG]. Université Côte d'Azur, 2022.
     """
 
     def __init__(self):
@@ -717,6 +781,12 @@ class OffLogMetric(PullbackDiffeoMetric):
         Scalar multiplying second term of quadratic form.
     gamma : float
         Scalar multiplying third term of quadratic form.
+
+    References
+    ----------
+    .. [T2022] Yann Thanwerdas. Riemannian and stratified
+        geometries on covariance and correlation matrices. Differential
+        Geometry [math.DG]. Université Côte d'Azur, 2022.
     """
 
     def __init__(self, space, alpha=1.0, beta=1.0, gamma=1.0):
@@ -752,11 +822,9 @@ class UniquePositiveDiagonalMatrixAlgorithm:
 
     References
     ----------
-    .. [T2023] Thanwerdas, Yann.
-        “Permutation-Invariant Log-Euclidean Geometries on
-        Full-Rank Correlation Matrices.”
-        HAL Archives Ouvertes, November 2022.
-        https://hal.science/hal-03878729.
+    .. [T2023] Thanwerdas, Yann. “Permutation-Invariant Log-Euclidean Geometries
+        on Full-Rank Correlation Matrices,”
+        November 2023. https://hal.science/hal-03878729.
     .. [MO1968] Marshall, Albert W., and Ingram Olkin.
         “Scaling of Matrices to Achieve Specified Row and Column Sums.”
         Numerische Mathematik 12, no. 1 (August 1, 1968): 83–90.
@@ -819,7 +887,7 @@ class UniquePositiveDiagonalMatrixAlgorithm:
 
         Returns
         -------
-        diag_matrix : array-like, shape=[n, n]
+        diag_vec : array-like, shape=[n]
             Scaling of spd_matrix.
         """
         xk = gs.ones(spd_matrix.shape[-1])
@@ -837,7 +905,7 @@ class UniquePositiveDiagonalMatrixAlgorithm:
                 self.max_iter,
             )
 
-        return Matrices.to_diagonal(xk)
+        return xk
 
     def apply(self, sym_mat):
         r"""Apply Newton method to find scaling.
@@ -849,7 +917,7 @@ class UniquePositiveDiagonalMatrixAlgorithm:
 
         Returns
         -------
-        diag_mat : array-like, shape=[..., n, n]
+        diag_vec : array-like, shape=[..., n]
             Scaling of spd_matrix.
         """
         if sym_mat.ndim == 2:
@@ -862,4 +930,155 @@ class UniquePositiveDiagonalMatrixAlgorithm:
         mat_shape = sym_mat.shape[-2:]
         flat_sym_mat = gs.reshape(sym_mat, (-1,) + mat_shape)
         out = gs.stack([self._apply_single(sym_mat_) for sym_mat_ in flat_sym_mat])
-        return gs.reshape(out, batch_shape + mat_shape)
+        return gs.reshape(out, batch_shape + (mat_shape.shape[-1],))
+
+
+class LogScalingDiffeo(Diffeo):
+    r"""Off-log diffeomorphism from Cor+ to Row_1^+.
+
+    A diffeomorphism between full-rank correlation matrices :math:`Cor+(n)`
+    and the space of symmetric matrices with null row sums :math:`Row_0(n)`.
+
+    .. math::
+
+        \operatorname{Log} ^{\star} =
+        \log \left(\mathcal{D}^{\star}(\Sigma)
+        \star \Sigma\right): \operatorname{Cor}^{+}(n)
+        \longrightarrow \operatorname{Row}_0(n)
+
+    Check out [T2023]_ for more details.
+
+    References
+    ----------
+    .. [T2023] Thanwerdas, Yann. “Permutation-Invariant Log-Euclidean Geometries
+        on Full-Rank Correlation Matrices,”
+        November 2023. https://hal.science/hal-03878729.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.unique_diag_mat_algo = UniquePositiveDiagonalMatrixAlgorithm()
+
+    def diffeomorphism(self, base_point):
+        """Diffeomorphism at base point.
+
+        NB: congruence action is implictly performed.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+        """
+        diag_vec = self.unique_diag_mat_algo.apply(base_point)
+        unit_row_sum_spd = FullRankCorrelationMatrices.diag_action(diag_vec, base_point)
+
+        return logmh(unit_row_sum_spd)
+
+    def inverse_diffeomorphism(self, image_point):
+        r"""Inverse diffeomorphism at image point.
+
+        :math:`f^{-1}: N \rightarrow M`
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+        """
+        return corr_map(expmh(image_point))
+
+    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+        r"""Tangent diffeomorphism at base point.
+
+        df_p is a linear map from T_pM to T_f(p)N.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Image tangent vector at image of the base point.
+        """
+        if image_point is None:
+            diag_vec = self.unique_diag_mat_algo.apply(base_point)
+            base_point_row_1 = FullRankCorrelationMatrices.diag_action(
+                diag_vec, base_point
+            )
+        else:
+            base_point_row_1 = expmh(image_point)
+
+        delta = Matrices.diagonal(base_point_row_1) ** 0.5
+        aux = FullRankCorrelationMatrices.diag_action(delta, tangent_vec)
+        eye = gs.eye(base_point_row_1.shape[-1])
+        tangent_vec_row_1_0 = -2 * gs.vec_to_diag(
+            gs.sum(
+                Matrices.mul(
+                    gs.linalg.inv(eye + base_point_row_1),
+                    aux,
+                ),
+                axis=-1,
+            )
+        )
+
+        tangent_vec_row_1 = aux + 0.5 * (
+            Matrices.mul(tangent_vec_row_1_0, base_point_row_1)
+            + Matrices.mul(base_point_row_1, tangent_vec_row_1_0)
+        )
+
+        return SymMatrixLog.tangent_diffeomorphism(
+            tangent_vec=tangent_vec_row_1,
+            base_point=base_point_row_1,
+            image_point=image_point,
+        )
+
+    def inverse_tangent_diffeomorphism(
+        self, image_tangent_vec, image_point=None, base_point=None
+    ):
+        r"""Inverse tangent diffeomorphism at image point.
+
+        df^-1_p is a linear map from T_f(p)N to T_pM
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Image tangent vector at image point.
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
+        if image_point is not None:
+            base_point_row_1 = expmh(image_point)
+        else:
+            diag_vec = self.unique_diag_mat_algo.apply(base_point)
+            base_point_row_1 = FullRankCorrelationMatrices.diag_action(
+                diag_vec, base_point
+            )
+
+        tangent_vec_row_1 = SymMatrixLog.inverse_tangent_diffeomorphism(
+            image_tangent_vec=image_tangent_vec,
+            image_point=image_point,
+            base_point=base_point_row_1,
+        )
+        return tangent_corr_map(tangent_vec_row_1, base_point_row_1)
