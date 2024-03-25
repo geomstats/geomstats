@@ -730,3 +730,136 @@ class OffLogMetric(PullbackDiffeoMetric):
         )
 
         super().__init__(space=space, diffeo=diffeo, image_space=image_space)
+
+
+class UniquePositiveDiagonalMatrixAlgorithm:
+    r"""Find unique positive diagonal matrix corresponding to an SPD matrix.
+
+    That is, for every symmetric positive-definite matrix :math:`\Sigma`,
+    there exists a unique positive diagonal matrix :math:`\Delta` such that
+    :math:`\Delta \Sigma \Delta` is a symmetric positive-definite matrix
+    with unit row sums.
+
+    This result is known as the existence and uniqueness of the scaling of
+    SPD matrices ([T2023]_, [MO1968]_, [JR2009]_).
+
+    Parameters
+    ----------
+    atol : float
+        Tolerance to check algorithm convergence.
+    max_iter : int
+        Maximum iterations.
+
+    References
+    ----------
+    .. [T2023] Thanwerdas, Yann.
+        “Permutation-Invariant Log-Euclidean Geometries on
+        Full-Rank Correlation Matrices.”
+        HAL Archives Ouvertes, November 2022.
+        https://hal.science/hal-03878729.
+    .. [MO1968] Marshall, Albert W., and Ingram Olkin.
+        “Scaling of Matrices to Achieve Specified Row and Column Sums.”
+        Numerische Mathematik 12, no. 1 (August 1, 1968): 83–90.
+        https://doi.org/10.1007/BF02170999.
+    .. [JR2009] Johnson, Charles R., and Robert Reams.
+        “Scaling of Symmetric Matrices by Positive Diagonal Congruence.”
+        Linear and Multilinear Algebra 57, no. 2 (March 1, 2009): 123–40.
+        https://doi.org/10.1080/03081080600872327.
+    """
+
+    def __init__(self, atol=gs.atol, max_iter=100):
+        self.atol = atol
+        self.max_iter = max_iter
+
+    def _jacobian_f(self, spd_matrix, diag_vec):
+        r"""Jacobian of objective function.
+
+        .. math::
+            J_{\Sigma}(D) = \Sigma D e - D^{-1} e
+
+        Parameters
+        ----------
+        spd_matrix : array-like, shape=[..., n, n]
+            Symmetric positive-definite matrix.
+        diag_vec : array-like, shape=[..., n]
+            Vector corresponding to the diagonal of a matrix.
+
+        Returns
+        -------
+        jacobian : array-like, shape=[..., n]
+        """
+        return gs.matvec(spd_matrix, diag_vec) - 1.0 / diag_vec  #
+
+    def _hessian_f(self, spd_matrix, diag_vec):
+        r"""Hessian of objective function.
+
+        .. math::
+            H_{\Sigma}(D) = \Sigma + D^-2
+
+        Parameters
+        ----------
+        spd_matrix : array-like, shape=[..., n, n]
+            Symmetric positive-definite matrix.
+        diag_vec : array-like, shape=[..., n]
+            Vector corresponding to the diagonal of a matrix.
+
+        Returns
+        -------
+        hessian : array-like, shape=[..., n, n]
+        """
+        return spd_matrix + Matrices.to_diagonal(1.0 / diag_vec**2)
+
+    def _apply_single(self, spd_matrix):
+        """Apply Newton method to find scaling.
+
+        Parameters
+        ----------
+        spd_matrix : array-like, shape=[n, n]
+            Symmetric positive-definite matrix.
+
+        Returns
+        -------
+        diag_matrix : array-like, shape=[n, n]
+            Scaling of spd_matrix.
+        """
+        xk = gs.ones(spd_matrix.shape[-1])
+        for _ in range(self.max_iter):
+            gradient = self._jacobian_f(spd_matrix, xk)
+            if gs.linalg.norm(gradient) <= self.atol:
+                break
+
+            y = gs.linalg.solve(self._hessian_f(spd_matrix, xk), gradient)
+            xk = xk - y
+
+        else:
+            logging.warning(
+                "Maximum number of iterations %d reached. The mean may be inaccurate",
+                self.max_iter,
+            )
+
+        return Matrices.to_diagonal(xk)
+
+    def apply(self, sym_mat):
+        r"""Apply Newton method to find scaling.
+
+        Parameters
+        ----------
+        sym_mat : array-like, shape=[..., n, n]
+            Symmetric positive-definite matrix.
+
+        Returns
+        -------
+        diag_mat : array-like, shape=[..., n, n]
+            Scaling of spd_matrix.
+        """
+        if sym_mat.ndim == 2:
+            return self._apply_single(sym_mat)
+
+        batch_shape = sym_mat.shape[:-2]
+        if len(batch_shape) == 1:
+            return gs.stack([self._apply_single(sym_mat_) for sym_mat_ in sym_mat])
+
+        mat_shape = sym_mat.shape[-2:]
+        flat_sym_mat = gs.reshape(sym_mat, (-1,) + mat_shape)
+        out = gs.stack([self._apply_single(sym_mat_) for sym_mat_ in flat_sym_mat])
+        return gs.reshape(out, batch_shape + mat_shape)

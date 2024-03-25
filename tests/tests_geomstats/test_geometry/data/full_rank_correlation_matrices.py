@@ -59,3 +59,8 @@ class PolyHyperbolicCholeskyMetricTestData(PullbackDiffeoMetricTestData):
 class OffLogMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
+
+
+class UniquePositiveDiagonalMatrixAlgorithmTestData(TestData):
+    def rows_sum_to_one_test_data(self):
+        return self.generate_random_data()
