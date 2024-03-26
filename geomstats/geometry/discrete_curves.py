@@ -13,7 +13,7 @@ import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.diffeo import AutodiffDiffeo, Diffeo
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.fiber_bundle import FiberBundle
+from geomstats.geometry.fiber_bundle import AlignerAlgorithm, FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks import Landmarks
 from geomstats.geometry.matrices import Matrices
@@ -809,7 +809,7 @@ class SRVMetric(PullbackDiffeoMetric):
         return image_space
 
 
-class IterativeHorizontalGeodesicAligner:
+class IterativeHorizontalGeodesicAligner(AlignerAlgorithm):
     r"""Align two curves through iterative horizontal geodesic algorithm.
 
     This algorithm computes the horizontal geodesic between two curves in the shape
@@ -833,6 +833,8 @@ class IterativeHorizontalGeodesicAligner:
 
     Parameters
     ----------
+    total_space : Manifold
+        Total space with reparametrizations fiber bundle structure.
     n_time_grid : int
         Number of times in which compute the geodesic.
     threshold : float
@@ -860,6 +862,7 @@ class IterativeHorizontalGeodesicAligner:
 
     def __init__(
         self,
+        total_space,
         n_time_grid=100,
         threshold=1e-3,
         max_iter=20,
@@ -867,6 +870,7 @@ class IterativeHorizontalGeodesicAligner:
         verbose=0,
         save_history=False,
     ):
+        super().__init__(total_space)
         self.n_time_grid = n_time_grid
         self.threshold = threshold
         self.max_iter = max_iter
@@ -1055,7 +1059,6 @@ class IterativeHorizontalGeodesicAligner:
 
     def _iterate(
         self,
-        total_space,
         times,
         t_space,
         initial_point,
@@ -1064,16 +1067,16 @@ class IterativeHorizontalGeodesicAligner:
         end_spline,
     ):
         """Perform one step of the alignment algorithm."""
-        ndim = total_space.point_ndim
+        ndim = self._total_space.point_ndim
 
-        total_space_geod_fun = total_space.metric.geodesic(
+        total_space_geod_fun = self._total_space.metric.geodesic(
             initial_point=initial_point, end_point=end_point
         )
         geod_points = total_space_geod_fun(times)
         geod_points_with_origin = insert_zeros(geod_points, axis=-ndim)
 
         time_deriv = forward_difference(geod_points, axis=-(ndim + 1))
-        _, vertical_norm = total_space.fiber_bundle.vertical_projection(
+        _, vertical_norm = self._total_space.fiber_bundle.vertical_projection(
             time_deriv, geod_points[:-1], return_norm=True
         )
         vertical_norm = insert_zeros(vertical_norm, axis=-1)
@@ -1082,7 +1085,7 @@ class IterativeHorizontalGeodesicAligner:
             geod_points_with_origin, axis=-ndim, endpoints=True
         )[:-1]
 
-        pointwise_space_deriv_norm = total_space.ambient_manifold.metric.norm(
+        pointwise_space_deriv_norm = self._total_space.ambient_manifold.metric.norm(
             space_deriv, geod_points_with_origin[:-1]
         )
 
@@ -1098,14 +1101,12 @@ class IterativeHorizontalGeodesicAligner:
         return horizontal_path
 
     def _discrete_horizontal_geodesic_single(
-        self, total_space, initial_point, end_point, end_spline
+        self, initial_point, end_point, end_spline
     ):
         """Compute discrete horizontal geodesic, non vectorized.
 
         Parameters
         ----------
-        total_space : Manifold
-            Total space with reparametrizations fiber bundle structure.
         initial_point : array-like, shape=[k_sampling_points, ambient_dim]
             Initial discrete curve.
         end_point : array-like, shape=[k_sampling_points, ambient_dim]
@@ -1120,14 +1121,13 @@ class IterativeHorizontalGeodesicAligner:
         """
         times = gs.linspace(0.0, 1.0, self.n_time_grid)
 
-        k_sampling_points = total_space.k_sampling_points
+        k_sampling_points = self._total_space.k_sampling_points
         t_space = gs.linspace(0.0, 1.0, k_sampling_points)
 
         current_end_point = end_point
         repar_inverse_end = []
         for index in range(self.max_iter):
             horizontal_path_with_origin = self._iterate(
-                total_space,
                 times,
                 t_space,
                 initial_point,
@@ -1136,7 +1136,7 @@ class IterativeHorizontalGeodesicAligner:
                 end_spline,
             )
             new_end_point = horizontal_path_with_origin[-1][1:]
-            l2_metric = total_space.discrete_curves_with_l2.metric
+            l2_metric = self._total_space.discrete_curves_with_l2.metric
             gap = l2_metric.dist(new_end_point, current_end_point)
             current_end_point = new_end_point
 
@@ -1161,15 +1161,11 @@ class IterativeHorizontalGeodesicAligner:
 
         return horizontal_path_with_origin[..., 1:, :]
 
-    def discrete_horizontal_geodesic(
-        self, total_space, initial_point, end_point, end_spline
-    ):
+    def discrete_horizontal_geodesic(self, initial_point, end_point, end_spline):
         """Compute discrete horizontal geodesic.
 
         Parameters
         ----------
-        total_space : Manifold
-            Total space with reparametrizations fiber bundle structure.
         initial_point : array-like, shape=[..., k_sampling_points, ambient_dim]
             Initial discrete curve.
         end_point : array-like, shape=[..., k_sampling_points, ambient_dim]
@@ -1182,13 +1178,13 @@ class IterativeHorizontalGeodesicAligner:
         geod_points : array, shape=[..., n_time_grid, k - 1, ambient_dim]
         """
         is_batch = check_is_batch(
-            total_space.point_ndim,
+            self._total_space.point_ndim,
             initial_point,
             end_point,
         )
         if not is_batch:
             return self._discrete_horizontal_geodesic_single(
-                total_space, initial_point, end_point, end_spline
+                initial_point, end_point, end_spline
             )
 
         if initial_point.ndim != end_point.ndim:
@@ -1197,7 +1193,7 @@ class IterativeHorizontalGeodesicAligner:
         return gs.stack(
             [
                 self._discrete_horizontal_geodesic_single(
-                    total_space, initial_point_, end_point_, end_spline_
+                    initial_point_, end_point_, end_spline_
                 )
                 for initial_point_, end_point_, end_spline_ in zip(
                     initial_point, end_point, end_spline
@@ -1205,13 +1201,11 @@ class IterativeHorizontalGeodesicAligner:
             ]
         )
 
-    def align(self, total_space, point, base_point):
+    def align(self, point, base_point):
         """Align point to base point.
 
         Parameters
         ----------
-        total_space : Manifold
-            Total space with reparametrizations fiber bundle structure.
         point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Discrete curve to align.
         base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
@@ -1222,19 +1216,19 @@ class IterativeHorizontalGeodesicAligner:
         aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
             Curve reparametrized in an optimal way with respect to reference curve.
         """
-        if point.ndim == total_space.point_ndim:
-            spline = total_space.interpolate(point)
-            if base_point.ndim > total_space.point_ndim:
+        if point.ndim == self._total_space.point_ndim:
+            spline = self._total_space.interpolate(point)
+            if base_point.ndim > self._total_space.point_ndim:
                 spline = [spline] * base_point.shape[0]
         else:
-            spline = [total_space.interpolate(point_) for point_ in point]
+            spline = [self._total_space.interpolate(point_) for point_ in point]
 
-        return self.discrete_horizontal_geodesic(
-            total_space, base_point, point, spline
-        )[..., -1, :, :]
+        return self.discrete_horizontal_geodesic(base_point, point, spline)[
+            ..., -1, :, :
+        ]
 
 
-class DynamicProgrammingAligner:
+class DynamicProgrammingAligner(AlignerAlgorithm):
     r"""Align two curves through dynamic programming.
 
     Find the reparametrization gamma of end_curve that minimizes the distance
@@ -1257,6 +1251,8 @@ class DynamicProgrammingAligner:
 
     Parameters
     ----------
+    total_space : Manifold
+        Total space with reparametrizations fiber bundle structure.
     n_space_grid : int
         Number of subintervals in which the reparametrization is linear.
         Optinal, default: 100.
@@ -1271,7 +1267,8 @@ class DynamicProgrammingAligner:
     Vision. 73(3):307-324, 2007.
     """
 
-    def __init__(self, n_space_grid=100, max_slope=6.0):
+    def __init__(self, total_space, n_space_grid=100, max_slope=6.0):
+        super().__init__(total_space)
         self.n_space_grid = n_space_grid
         self.max_slope = max_slope
 
@@ -1428,13 +1425,11 @@ class DynamicProgrammingAligner:
             norm_squared_initial_srv + norm_squared_end_srv - 2 * maximum_scalar_product
         )
 
-    def _align_single(self, total_space, point, base_point, return_sdist=False):
+    def _align_single(self, point, base_point, return_sdist=False):
         r"""Align point to base point, non vectorized.
 
         Parameters
         ----------
-        total_space : Manifold
-            Total space with reparametrizations fiber bundle structure.
         point : array-like, shape=[k_sampling_points - 1, ambient_dim]
             Discrete curve to align.
         base_point : array-like, shape=[k_sampling_points - 1, ambient_dim]
@@ -1453,9 +1448,9 @@ class DynamicProgrammingAligner:
         n_space_grid = self.n_space_grid
         max_slope = self.max_slope
 
-        k_sampling_points = total_space.k_sampling_points
+        k_sampling_points = self._total_space.k_sampling_points
         srv_transform = SRVTransform(
-            total_space.ambient_manifold,
+            self._total_space.ambient_manifold,
             k_sampling_points,
         )
         initial_srv = srv_transform.diffeomorphism(base_point)
@@ -1513,13 +1508,11 @@ class DynamicProgrammingAligner:
             initial_srv_, end_srv_, tableau
         )
 
-    def align(self, total_space, point, base_point, return_sdist=False):
+    def align(self, point, base_point, return_sdist=False):
         """Align point to base point.
 
         Parameters
         ----------
-        total_space : Manifold
-            Total space with reparametrizations fiber bundle structure.
         point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Discrete curve to align.
         base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
@@ -1536,22 +1529,18 @@ class DynamicProgrammingAligner:
             If return_sdist is True.
         """
         is_batch = check_is_batch(
-            total_space.point_ndim,
+            self._total_space.point_ndim,
             point,
             base_point,
         )
         if not is_batch:
-            return self._align_single(
-                total_space, point, base_point, return_sdist=return_sdist
-            )
+            return self._align_single(point, base_point, return_sdist=return_sdist)
 
         if point.ndim != base_point.ndim:
             point, base_point = gs.broadcast_arrays(point, base_point)
 
         out = [
-            self._align_single(
-                total_space, point_, base_point_, return_sdist=return_sdist
-            )
+            self._align_single(point_, base_point_, return_sdist=return_sdist)
             for point_, base_point_ in zip(point, base_point)
         ]
         if not return_sdist:
@@ -1589,8 +1578,10 @@ class SRVReparametrizationBundle(FiberBundle):
     """
 
     def __init__(self, total_space):
-        super().__init__(total_space=total_space)
-        self.aligner = IterativeHorizontalGeodesicAligner()
+        super().__init__(
+            total_space=total_space,
+            aligner=IterativeHorizontalGeodesicAligner(total_space),
+        )
 
     def vertical_projection(self, tangent_vec, base_point, return_norm=False):
         """Compute vertical part of tangent vector at base point.
@@ -1705,28 +1696,6 @@ class SRVReparametrizationBundle(FiberBundle):
         tangent_vec_ver = self.vertical_projection(tangent_vec, base_point)
         return tangent_vec - tangent_vec_ver
 
-    def align(self, point, base_point):
-        """Find optimal reparametrization of curve with respect to base curve.
-
-        The new parametrization of curve is optimal in the sense that it is the
-        member of its fiber closest to the base curve with respect to the SRVMetric.
-        It is found as the end point of the horizontal geodesic starting at the base
-        curve and ending at the fiber of curve.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Point to align.
-        base_point : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Reference point.
-
-        Returns
-        -------
-        aligned : array-like, shape=[..., k_sampling_points -1 , ambient_dim]
-            Optimal reparametrization of the curve represented by point.
-        """
-        return self.aligner.align(self._total_space, point, base_point)
-
 
 class SRVRotationBundle(FiberBundle):
     """Principal bundle of curves modulo rotations with the SRV metric.
@@ -1741,14 +1710,9 @@ class SRVRotationBundle(FiberBundle):
         Space of discrete curves starting at the origin
     """
 
-    def _transpose(self, point):
-        """Transpose discrete curve starting at origin."""
-        dim = self._total_space.ambient_manifold.dim
-        return Matrices(dim, dim).transpose(point)
-
     def _rotate(self, point, rotation):
         """Rotate discrete curve starting at origin."""
-        return self._transpose(gs.matmul(rotation, self._transpose(point)))
+        return Matrices.transpose(gs.matmul(rotation, Matrices.transpose(point)))
 
     def horizontal_projection(self, tangent_vec, base_point):
         """Project to horizontal subspace."""
@@ -1778,7 +1742,7 @@ class SRVRotationBundle(FiberBundle):
         initial_srv = srv_transform.diffeomorphism(base_point)
         end_srv = srv_transform.diffeomorphism(point)
 
-        mat = gs.matmul(self._transpose(initial_srv), end_srv)
+        mat = gs.matmul(Matrices.transpose(initial_srv), end_srv)
         u_svd, _, vt_svd = gs.linalg.svd(mat)
         sign = gs.linalg.det(gs.matmul(u_svd, vt_svd))
         vt_svd[..., -1, :] = gs.einsum("...,...j->...j", sign, vt_svd[..., -1, :])
@@ -1885,9 +1849,9 @@ class SRVRotationReparametrizationBundle(FiberBundle):
             Curve optimally reparametrized with respect to reference curve.
         """
         bundle = self._total_space_with_reparametrizations.fiber_bundle
-        return bundle.aligner.discrete_horizontal_geodesic(
-            self._total_space_with_reparametrizations, base_point, point, spline
-        )[..., -1, :, :]
+        return bundle.aligner.discrete_horizontal_geodesic(base_point, point, spline)[
+            ..., -1, :, :
+        ]
 
     def _align_single(self, point, base_point):
         """Align point to base point, non vectorized."""

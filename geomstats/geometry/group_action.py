@@ -29,6 +29,46 @@ class GroupAction(ABC):
         """
 
 
+class LieAlgebraBasedGroupAction(GroupAction):
+    """Action of a group on itself by composition.
+
+    Group elements are represented by the vector representation
+    of Lie algebra elements. This is amenable to perform gradient-based
+    optimizations on the Lie algebra.
+
+    Parameters
+    ----------
+    group : LieGroup.
+    """
+
+    def __init__(self, group):
+        self._group = group
+
+    @property
+    def group_elem_shape(self):
+        """Shape of the group element representation."""
+        return (self._group.lie_algebra.dim,)
+
+    def __call__(self, group_elem, point):
+        """Compose action of a group element on a point.
+
+        Parameters
+        ----------
+        group_elem : array-like, shape=[..., *group_elem_shape]
+            Group element represented in the Lie algebra as a vector.
+        point : array-like, shape=[..., *group.shape]
+            Point on the group.
+
+        Returns
+        -------
+        orbit_point : array-like, shape=[..., *group.shape]
+            A point in the orbit of point.
+        """
+        algebra_elt = self._group.lie_algebra.matrix_representation(group_elem)
+        group_elt = self._group.exp(algebra_elt)
+        return self._group.compose(point, group_elt)
+
+
 class CongruenceAction(GroupAction):
     """Congruence action."""
 

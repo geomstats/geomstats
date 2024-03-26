@@ -203,8 +203,8 @@ class TestAlignerCmp(TestCase, metaclass=DataBasedParametrizer):
     total_space.fiber_bundle = SRVReparametrizationBundle(total_space)
     total_space.fiber_bundle.aligner = None
 
-    aligner = IterativeHorizontalGeodesicAligner()
-    other_aligner = DynamicProgrammingAligner()
+    aligner = IterativeHorizontalGeodesicAligner(total_space)
+    other_aligner = DynamicProgrammingAligner(total_space)
 
     testing_data = AlignerCmpTestData()
 
@@ -215,8 +215,8 @@ class TestAlignerCmp(TestCase, metaclass=DataBasedParametrizer):
         base_point = self.total_space.projection(curve_a(sampling_points))
         point = self.total_space.projection(curve_b(sampling_points))
 
-        aligned = self.aligner.align(self.total_space, point, base_point)
-        other_aligned = self.other_aligner.align(self.total_space, point, base_point)
+        aligned = self.aligner.align(point, base_point)
+        other_aligned = self.other_aligner.align(point, base_point)
 
         self.assertAllClose(aligned, other_aligned, atol=atol)
 

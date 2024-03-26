@@ -15,13 +15,10 @@ from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
+from geomstats.geometry.fiber_bundle import AlignerAlgorithm
 from geomstats.geometry.group_action import PermutationAction
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from geomstats.geometry.stratified.quotient import (
-    Aligner,
-    AlignerAlgorithm,
-    QuotientMetric,
-)
+from geomstats.geometry.stratified.quotient import Aligner, QuotientMetric
 from geomstats.numerics.optimizers import ScipyMinimize
 from geomstats.vectorization import check_is_batch, get_batch_shape
 
