@@ -401,3 +401,49 @@ class VectorSpaceDiffeo(Diffeo):
             (base_point,),
             out_ndim=self.space_ndim,
         )
+
+
+class InvolutionDiffeomorphism(Diffeo):
+    """A diffeomorphism that is also an involution."""
+
+    def inverse_diffeomorphism(self, image_point):
+        r"""Inverse diffeomorphism at image point.
+
+        :math:`f^{-1}: N \rightarrow M`
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., *image_shape]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., *space_shape]
+            Base point.
+        """
+        return self.diffeomorphism(image_point)
+
+    def inverse_tangent_diffeomorphism(
+        self, image_tangent_vec, image_point=None, base_point=None
+    ):
+        r"""Inverse tangent diffeomorphism at image point.
+
+        df^-1_p is a linear map from T_f(p)N to T_pM
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., *image_shape]
+            Image tangent vector at image point.
+        image_point : array-like, shape=[..., *image_shape]
+            Image point.
+        base_point : array-like, shape=[..., *space_shape]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *space_shape]
+            Tangent vector at base point.
+        """
+        return self.tangent_diffeomorphism(
+            image_tangent_vec, base_point=image_point, image_point=base_point
+        )

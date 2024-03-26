@@ -467,6 +467,7 @@ class UnitNormedRowsPLTMatrices(DiffeomorphicManifold):
             shape=(n, n),
             diffeo=diffeo,
             image_space=image_space,
+            intrinsic=False,
             equip=equip,
         )
         self.n = n
