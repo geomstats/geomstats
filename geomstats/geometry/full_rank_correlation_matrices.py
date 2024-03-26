@@ -858,7 +858,7 @@ class UniquePositiveDiagonalMatrixAlgorithm:
         -------
         jacobian : array-like, shape=[..., n]
         """
-        return gs.matvec(spd_matrix, diag_vec) - 1.0 / diag_vec  #
+        return gs.matvec(spd_matrix, diag_vec) - 1.0 / diag_vec
 
     def _hessian_f(self, spd_matrix, diag_vec):
         r"""Hessian of objective function.
@@ -877,7 +877,7 @@ class UniquePositiveDiagonalMatrixAlgorithm:
         -------
         hessian : array-like, shape=[..., n, n]
         """
-        return spd_matrix + Matrices.to_diagonal(1.0 / diag_vec**2)
+        return spd_matrix + gs.vec_to_diag(1.0 / diag_vec**2)
 
     def _apply_single(self, spd_matrix):
         """Apply Newton method to find scaling.
