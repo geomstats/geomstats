@@ -82,6 +82,21 @@ class InvariantMetricMatrixSOTestData(InvariantMetricMatrixTestData):
     xfails = ("geodesic_bvp_belongs", "geodesic_bvp_reverse")
 
 
+class InvariantMetricMatrixSONonDiagTestData(InvariantMetricMatrixSOTestData):
+    xfails = (
+        "dist_is_symmetric",
+        "dist_triangle_inequality",
+        "dual_adjoint_structure_constant",
+        "exp_after_log",
+        "geodesic_bvp_belongs",
+        "geodesic_bvp_reverse",
+        "parallel_transport_bvp_norm",
+        "parallel_transport_bvp_transported_is_tangent",
+        "parallel_transport_ivp_norm",
+        "squared_dist_is_symmetric",
+    )
+
+
 class InvariantMetricMatrixSO3TestData(TestData):
     def connection_translation_map_test_data(self):
         return self.generate_random_data()
