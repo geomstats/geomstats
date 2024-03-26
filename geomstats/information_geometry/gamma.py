@@ -21,7 +21,7 @@ from scipy.stats import gamma
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import VectorSpaceOpenSet
-from geomstats.geometry.diffeo import Diffeo
+from geomstats.geometry.diffeo import InvolutionDiffeomorphism
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.information_geometry.base import (
@@ -34,7 +34,7 @@ from geomstats.numerics.ivp import ScipySolveIVP
 from geomstats.vectorization import get_batch_shape
 
 
-class NaturalToStandardDiffeo(Diffeo):
+class NaturalToStandardDiffeo(InvolutionDiffeomorphism):
     """Diffeomorphism between natural and standard coordinates."""
 
     def diffeomorphism(self, point):
@@ -53,23 +53,6 @@ class NaturalToStandardDiffeo(Diffeo):
             Point of the Gamma manifold, given in standard coordinates.
         """
         return gs.stack([point[..., 0], point[..., 0] / point[..., 1]], axis=-1)
-
-    def inverse_diffeomorphism(self, image_point):
-        """Convert point from standard coordinates to natural coordinates.
-
-        The change of variable is symmetric.
-
-        Parameters
-        ----------
-        image_point : array-like, shape=[..., 2]
-            Point of the Gamma manifold, given in standard coordinates.
-
-        Returns
-        -------
-        point : array-like, shape=[..., 2]
-            Point of the Gamma manifold, given in natural coordinates.
-        """
-        return self.diffeomorphism(image_point)
 
     def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
         """Convert tangent vector from natural coordinates to standard coordinates.
@@ -105,31 +88,6 @@ class NaturalToStandardDiffeo(Diffeo):
         jac = gs.stack([jac_row_1, jac_row_2], axis=-2)
 
         return gs.einsum("...jk,...k->...j", jac, tangent_vec)
-
-    def inverse_tangent_diffeomorphism(
-        self, image_tangent_vec, image_point=None, base_point=None
-    ):
-        """Convert tangent vector from standard coordinates to natural coordinates.
-
-        The change of variable is symmetric.
-
-        Parameters
-        ----------
-        image_tangent_vec : array-like, shape=[..., 2]
-            Tangent vector at base_point, given in standard coordinates.
-        image_point : array-like, shape=[..., 2]
-            Point of the Gamma manifold, given in standard coordinates.
-        base_point : array-like, shape=[..., 2]
-            Point of the Gamma manifold, given in natural coordinates.
-
-        Returns
-        -------
-        vec : array-like, shape=[..., 2]
-            Tangent vector at base_point, given in natural coordinates.
-        """
-        return self.tangent_diffeomorphism(
-            image_tangent_vec, base_point=image_point, image_point=base_point
-        )
 
 
 class GammaDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
