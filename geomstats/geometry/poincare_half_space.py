@@ -8,11 +8,11 @@ Lead author: Alice Le Brigant.
 import math
 
 import geomstats.backend as gs
-from geomstats.geometry._hyperbolic import _Hyperbolic
+from geomstats.geometry._hyperbolic import HyperbolicDiffeo, _Hyperbolic
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.vectorization import repeat_out
 
 
@@ -83,7 +83,7 @@ class PoincareHalfSpace(_Hyperbolic, VectorSpaceOpenSet):
         return gs.concatenate([point[..., :-1], last[..., None]], axis=-1)
 
 
-class PoincareHalfSpaceMetric(RiemannianMetric):
+class PoincareHalfSpaceMetric(PullbackDiffeoMetric):
     """Class for the metric of the n-dimensional hyperbolic space.
 
     Class for the metric of the n-dimensional hyperbolic space
@@ -91,8 +91,12 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
     """
 
     def __init__(self, space):
-        super().__init__(space=space)
-        self._poincare_ball = PoincareBall(dim=space.dim)
+        image_space = PoincareBall(dim=space.dim)
+        super().__init__(
+            space=space,
+            image_space=image_space,
+            diffeo=HyperbolicDiffeo(space.coords_type, image_space.coords_type),
+        )
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -113,52 +117,6 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         """
         inner_prod = gs.sum(tangent_vec_a * tangent_vec_b, axis=-1)
         return inner_prod / base_point[..., -1] ** 2
-
-    def exp(self, tangent_vec, base_point):
-        """Compute the Riemannian exponential.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[...,n]
-            Tangent vector at the base point in the Poincare half space.
-        base_point : array-like, shape=[...,n]
-            Point in the Poincare half space.
-
-        Returns
-        -------
-        end_point : array-like, shape=[...,n]
-            Point in the Poincare half space, reached by the geodesic
-            starting from `base_point` with initial velocity `tangent_vec`
-        """
-        base_point_ball = self._poincare_ball.half_space_to_ball_coordinates(base_point)
-        tangent_vec_ball = self._poincare_ball.half_space_to_ball_tangent(
-            tangent_vec, base_point
-        )
-        end_point_ball = self._poincare_ball.metric.exp(
-            tangent_vec_ball, base_point_ball
-        )
-        return self._poincare_ball.ball_to_half_space_coordinates(end_point_ball)
-
-    def log(self, point, base_point):
-        """Compute Riemannian logarithm of a point wrt a base point.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point in hyperbolic space.
-        base_point : array-like, shape=[..., dim]
-            Point in hyperbolic space.
-
-        Returns
-        -------
-        log : array-like, shape=[..., dim]
-            Tangent vector at the base point equal to the Riemannian logarithm
-            of point at the base point.
-        """
-        point_ball = self._poincare_ball.half_space_to_ball_coordinates(point)
-        base_point_ball = self._poincare_ball.half_space_to_ball_coordinates(base_point)
-        log_ball = self._poincare_ball.metric.log(point_ball, base_point_ball)
-        return self._poincare_ball.ball_to_half_space_tangent(log_ball, base_point_ball)
 
     def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
