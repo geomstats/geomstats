@@ -1,4 +1,5 @@
 """Module exposing the `Matrices` and `MatricesMetric` class."""
+
 import logging
 import math
 from functools import reduce
@@ -7,8 +8,108 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import flip_determinant, from_vector_to_diagonal_matrix
 from geomstats.geometry.base import MatrixVectorSpace
+from geomstats.geometry.diffeo import VectorSpaceDiffeo
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.vectorization import repeat_out
+
+
+class FlattenDiffeo(VectorSpaceDiffeo):
+    """A diffeo from matrices to Euclidean by flattening.
+
+    Parameters
+    ----------
+    m, n : int
+        Integers representing the shapes of the matrices: m x n.
+    """
+
+    def __init__(self, m, n=None):
+        super().__init__(space_ndim=2, image_space_ndim=1)
+        self.m, self.n = m, n or m
+
+    def diffeomorphism(self, base_point=None):
+        """Diffeomorphism at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., m*n]
+            Image point.
+        """
+        if base_point is None:
+            return None
+        return Matrices.flatten(base_point)
+
+    def inverse_diffeomorphism(self, image_point=None):
+        r"""Inverse diffeomorphism at image point.
+
+        :math:`f^{-1}: N \rightarrow M`
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., m*n]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+        """
+        if image_point is None:
+            return None
+        return gs.reshape(image_point, image_point.shape[:-1] + (self.m, self.n))
+
+
+class BasisRepresentationDiffeo(VectorSpaceDiffeo):
+    """A diffeo from matrices to Euclidean through basis representation.
+
+    Parameters
+    ----------
+    space : MatrixVectorSpace
+    """
+
+    def __init__(self, space):
+        super().__init__(space_ndim=2, image_space_ndim=1)
+        self._space = space
+
+    def diffeomorphism(self, base_point=None):
+        """Diffeomorphism at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., dim]
+            Image point.
+        """
+        if base_point is None:
+            return None
+        return self._space.basis_representation(base_point)
+
+    def inverse_diffeomorphism(self, image_point=None):
+        r"""Inverse diffeomorphism at image point.
+
+        :math:`f^{-1}: N \rightarrow M`
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., dim]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+        """
+        if image_point is None:
+            return None
+        return self._space.matrix_representation(image_point)
 
 
 class Matrices(MatrixVectorSpace):
@@ -707,6 +808,30 @@ class MatricesMetric(EuclideanMetric):
             self._space.point_ndim, inner_prod, tangent_vec_a, tangent_vec_b, base_point
         )
 
+    def squared_norm(self, vector, base_point=None):
+        """Compute the square of the norm of a vector.
+
+        Squared norm of a vector associated to the inner product
+        at the tangent space at a base point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        sq_norm : array-like, shape=[...,]
+            Squared norm.
+        """
+        init_axis = len(vector.shape[:-2])
+        axis = (init_axis, init_axis + 1)
+        sq_norm = gs.linalg.norm(vector, axis=axis) ** 2
+        return repeat_out(self._space.point_ndim, sq_norm, vector, base_point)
+
     def norm(self, vector, base_point=None):
         """Compute norm of a matrix.
 
@@ -727,3 +852,66 @@ class MatricesMetric(EuclideanMetric):
         """
         norm = gs.linalg.norm(vector, axis=(-2, -1))
         return repeat_out(self._space.point_ndim, norm, vector, base_point)
+
+
+class MatricesDiagMetric(EuclideanMetric):
+    """Flat metric on matrices given by a diagonal metric matrix.
+
+    Parameters
+    ----------
+    space : MatrixVectorSpace
+    metric_coeffs: array-like, shape=[m,n]
+    """
+
+    def __init__(self, space, metric_coeffs=None):
+        super().__init__(space)
+        self._check_metric_coeffs(space, metric_coeffs)
+        if metric_coeffs is None:
+            n = space.n
+            m = space.m if hasattr(space, "m") else n
+            metric_coeffs = gs.ones((m, n))
+        self.metric_coeffs = metric_coeffs
+
+    @staticmethod
+    def _check_metric_coeffs(space, metric_coeffs):
+        """Check shape of metric coefficients."""
+        if metric_coeffs is None:
+            return
+
+        n = space.n
+        m = space.m if hasattr(space, "m") else n
+        expected_shape = (m, n)
+        if metric_coeffs.shape != expected_shape:
+            raise ValueError(
+                f"metric_coeffs shape is {metric_coeffs.shape};"
+                f"expected: {expected_shape}"
+            )
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute Frobenius inner-product of two tangent vectors.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., m, n]
+            Tangent vector.
+        tangent_vec_b : array-like, shape=[..., m, n]
+            Tangent vector.
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[...,]
+            Frobenius inner-product of tangent_vec_a and tangent_vec_b.
+
+        Notes
+        -----
+        - Implementation relies on fact that the metric_matrix is diagonal, i.e.
+        we just need to multiply each element of the tangent vector by the corresponding
+        diagonal coefficient. (Avoids unnecessary reshapings.)
+        """
+        inner_prod = Matrices.frobenius_product(
+            tangent_vec_a, self.metric_coeffs * tangent_vec_b
+        )
+        return repeat_out(2, inner_prod, tangent_vec_a, tangent_vec_b, base_point)

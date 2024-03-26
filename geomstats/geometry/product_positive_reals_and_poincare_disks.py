@@ -45,11 +45,9 @@ References
 .. [Yang_2013] Marc Arnaudon, Frédéric Barbaresco and Le Yang. Riemannian Medians
     and Means With Applications to Radar Signal Processing, IEEE, 2013.
 """
-from geomstats.geometry.complex_poincare_disk import (
-    ComplexPoincareDisk,
-    ComplexPoincareDiskMetric,
-)
-from geomstats.geometry.positive_reals import PositiveReals, PositiveRealsMetric
+
+from geomstats.geometry.complex_poincare_disk import ComplexPoincareDisk
+from geomstats.geometry.positive_reals import PositiveReals
 from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 
@@ -70,20 +68,16 @@ class ProductPositiveRealsAndComplexPoincareDisks(ProductManifold):
     def __init__(self, n_manifolds, equip=True):
         self.n_manifolds = n_manifolds
 
-        factors = [PositiveReals(equip=False)] + [
+        factors = [PositiveReals()] + [
             ComplexPoincareDisk() for _ in range(n_manifolds - 1)
         ]
 
         scales = [float(n_manifolds - i_manifold) for i_manifold in range(n_manifolds)]
-        factors[0].metric = ScalarProductMetric(
-            PositiveRealsMetric(factors[0]), scales[0]
-        )
+        factors[0].equip_with_metric(ScalarProductMetric(factors[0], scales[0]))
         for factor, scale in zip(factors[1:], scales[1:]):
-            factor.metric = ScalarProductMetric(
-                ComplexPoincareDiskMetric(factor), scale
-            )
+            factor.equip_with_metric(ScalarProductMetric(factor, scale))
 
-        super().__init__(factors=factors, default_point_type="other", equip=equip)
+        super().__init__(factors=factors, point_ndim=3, equip=equip)
 
     @staticmethod
     def default_metric():

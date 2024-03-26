@@ -28,7 +28,7 @@ class _Hypersphere(LevelSet):
 
     By default, points are parameterized by their extrinsic
     (n+1)-coordinates. For dimensions 1 and 2, this can be changed with the
-    `default_coords_type` parameter. For dimensions 1 (the circle),
+    `intrinsic` parameter. For dimensions 1 (the circle),
     the intrinsic coordinates correspond angles in radians, with 0. mapping
     to point [1., 0.]. For dimension 2, the intrinsic coordinates are the
     spherical coordinates from the north pole, i.e. where angles [0., 0.]
@@ -39,16 +39,16 @@ class _Hypersphere(LevelSet):
     dim : int
         Dimension of the hypersphere.
 
-    default_coords_type : str, {'extrinsic', 'intrinsic'}
+    intrinsic : bool
         Type of representation for dimensions 1 and 2.
     """
 
-    def __init__(self, dim, default_coords_type="extrinsic", equip=True):
+    def __init__(self, dim, intrinsic=False, equip=True):
         self.dim = dim
         super().__init__(
             dim=dim,
-            shape=(dim + 1,) if default_coords_type == "extrinsic" else (dim,),
-            default_coords_type=default_coords_type,
+            shape=(dim + 1,) if not intrinsic else (dim,),
+            intrinsic=intrinsic,
             equip=equip,
         )
 
@@ -458,7 +458,7 @@ class _Hypersphere(LevelSet):
         if n_samples == 1:
             samples = gs.squeeze(samples, axis=0)
 
-        if self.dim in [1, 2] and self.default_coords_type == "intrinsic":
+        if self.dim in [1, 2] and self.intrinsic:
             return self.extrinsic_to_intrinsic_coords(samples)
         return samples
 
@@ -719,7 +719,7 @@ class HypersphereMetric(RiemannianMetric):
         """
         return self._space.embedding_space.metric.squared_norm(vector)
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -746,7 +746,7 @@ class HypersphereMetric(RiemannianMetric):
 
         return exp
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Riemannian logarithm of a point.
 
         Parameters
@@ -802,7 +802,7 @@ class HypersphereMetric(RiemannianMetric):
 
         return gs.arccos(cos_angle)
 
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Squared geodesic distance between two points.
 
         Parameters
@@ -885,7 +885,7 @@ class HypersphereMetric(RiemannianMetric):
                                          covariant index, 2nd covariant index]
             Christoffel symbols at point.
         """
-        if self._space.dim != 2 or self._space.default_coords_type != "intrinsic":
+        if self._space.dim != 2 or not self._space.intrinsic:
             raise NotImplementedError(
                 "The Christoffel symbols are only implemented"
                 " for spherical coordinates in the 2-sphere"
@@ -1101,7 +1101,7 @@ class HypersphereMetric(RiemannianMetric):
             out_shape=self._space.shape,
         )
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
@@ -1132,7 +1132,7 @@ class Hypersphere(_Hypersphere):
 
     By default, points are parameterized by their extrinsic
     (n+1)-coordinates. For dimensions 1 and 2, this can be changed with the
-    `default_coords_type` parameter. For dimensions 1 (the circle),
+    `intrinsic` parameter. For dimensions 1 (the circle),
     the intrinsic coordinates correspond angles in radians, with 0. mapping
     to point [1., 0.]. For dimension 2, the intrinsic coordinates are the
     spherical coordinates from the north pole, i.e. where angles [0.,
@@ -1142,10 +1142,9 @@ class Hypersphere(_Hypersphere):
     ----------
     dim : int
         Dimension of the hypersphere.
-
-    default_coords_type : str, {'extrinsic', 'intrinsic'}
+    intrinsic: bool
         Type of representation for dimensions 1 and 2.
     """
 
-    def __init__(self, dim, default_coords_type="extrinsic", equip=True):
-        super().__init__(dim, default_coords_type, equip=equip)
+    def __init__(self, dim, intrinsic=False, equip=True):
+        super().__init__(dim, intrinsic, equip=equip)

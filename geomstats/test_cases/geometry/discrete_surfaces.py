@@ -1,7 +1,37 @@
 import geomstats.backend as gs
+from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 from geomstats.vectorization import get_n_points
+
+
+class SurfacesLocalRandomDataGenerator(RandomDataGenerator):
+    def __init__(self, space, point, amplitude=2.0):
+        super().__init__(space, amplitude)
+        self.point = point
+
+    def _get_deformation(self, n_points):
+        dim = self.point.shape[-1]
+        dof = self.point.shape[0] - 1
+
+        batch_shape = () if n_points == 1 else (n_points,)
+
+        return (
+            gs.concatenate(
+                [
+                    gs.zeros(batch_shape + (1, dim)),
+                    gs.random.rand(batch_shape + (dof, dim)),
+                ],
+                axis=-2,
+            )
+            / self.amplitude
+        )
+
+    def random_point(self, n_points=1):
+        return self.point + self._get_deformation(n_points)
+
+    def random_tangent_vec(self, point):
+        n_points = 1 if point.ndim == 2 else point.shape[0]
+        return self._get_deformation(n_points)
 
 
 class DiscreteSurfacesTestCase(ManifoldTestCase):
@@ -71,13 +101,3 @@ class DiscreteSurfacesTestCase(ManifoldTestCase):
         """Test faces area."""
         res = self.space.face_areas(point=point)
         self.assertAllClose(res, expected, atol=atol)
-
-
-class ElasticMetricTestCase(RiemannianMetricTestCase):
-    def test_path_energy_is_positive(self, path, atol):
-        energy = self.space.metric.path_energy(path)
-        self.assertTrue(gs.all(energy > -1 * atol))
-
-    def test_path_energy_per_time_is_positive(self, path, atol):
-        energy = self.space.metric.path_energy_per_time(path)
-        self.assertTrue(gs.all(energy > -1 * atol))

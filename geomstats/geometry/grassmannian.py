@@ -39,7 +39,8 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.vectorization import repeat_out
 
@@ -237,17 +238,14 @@ class Grassmannian(LevelSet):
         return Matrices.mul(p_d, Matrices.transpose(eigvecs))
 
 
-class GrassmannianCanonicalMetric(MatricesMetric):
-    """Canonical metric of the Grassmann manifold.
-
-    Coincides with the Frobenius metric.
-    """
+class GrassmannianCanonicalMetric(RiemannianMetric):
+    """Canonical metric of the Grassmann manifold."""
 
     def __init__(self, space):
         super().__init__(space=space, signature=(space.dim, 0, 0))
         self._general_linear = GeneralLinear(space.n, equip=False)
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Exponentiate the invariant vector field v from base point p.
 
         Parameters
@@ -269,7 +267,7 @@ class GrassmannianCanonicalMetric(MatricesMetric):
         rot = Matrices.bracket(base_point, -tangent_vec)
         return mul(expm(rot), base_point, expm(-rot))
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         r"""Compute the Riemannian logarithm of point w.r.t. base_point.
 
         Given :math:`P, P'` in :math:`Gr(n, p)` the logarithm from :math:`P`
@@ -357,7 +355,7 @@ class GrassmannianCanonicalMetric(MatricesMetric):
         rot = -Matrices.bracket(base_point, direction)
         return mul(expm(rot), tangent_vec, expm(-rot))
 
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Squared geodesic distance between two points.
 
         Parameters
@@ -404,7 +402,7 @@ class GrassmannianCanonicalMetric(MatricesMetric):
 
         return _squared_dist(point_a, point_b)
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
@@ -432,3 +430,71 @@ class GrassmannianCanonicalMetric(MatricesMetric):
         """
         radius = gs.array(gs.pi / 2)
         return repeat_out(self._space.point_ndim, radius, base_point)
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute Frobenius inner-product of two tangent vectors.
+
+        Coincides with the Frobenius metric.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., m, n]
+            Tangent vector.
+        tangent_vec_b : array-like, shape=[..., m, n]
+            Tangent vector.
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[...,]
+            Frobenius inner-product of tangent_vec_a and tangent_vec_b.
+        """
+        inner_prod = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        return repeat_out(
+            self._space.point_ndim, inner_prod, tangent_vec_a, tangent_vec_b, base_point
+        )
+
+    def squared_norm(self, vector, base_point=None):
+        """Compute the square of the norm of a vector.
+
+        Squared norm of a vector associated to the inner product
+        at the tangent space at a base point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        sq_norm : array-like, shape=[...,]
+            Squared norm.
+        """
+        sq_norm = gs.linalg.norm(vector, axis=(-2, -1)) ** 2
+        return repeat_out(self._space.point_ndim, sq_norm, vector, base_point)
+
+    def norm(self, vector, base_point=None):
+        """Compute norm of a matrix.
+
+        Norm of a matrix associated to the Frobenius inner product.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        norm : array-like, shape=[...,]
+            Norm.
+        """
+        norm = gs.linalg.norm(vector, axis=(-2, -1))
+        return repeat_out(self._space.point_ndim, norm, vector, base_point)

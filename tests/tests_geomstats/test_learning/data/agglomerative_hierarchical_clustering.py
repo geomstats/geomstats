@@ -14,7 +14,16 @@ class AgglomerativeHierarchicalClusteringTestData(TestData):
 
         data = [
             dict(
-                dataset=gs.array([[1, 2], [1, 4], [1, 0], [4, 2], [4, 4], [4, 0]]),
+                dataset=gs.array(
+                    [
+                        [1.0, 2.0],
+                        [1.0, 4.0],
+                        [1.0, 0.0],
+                        [4.0, 2.0],
+                        [4.0, 4.0],
+                        [4.0, 0.0],
+                    ]
+                ),
                 estimator=AgglomerativeHierarchicalClustering(
                     euclidean,
                     n_clusters=2,

@@ -1,4 +1,5 @@
 """Utility module of reusable algebra routines."""
+
 import math
 
 import geomstats.backend as gs

@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from geomstats.geometry.pre_shape import PreShapeSpace, PreShapeSpaceBundle
+from geomstats.geometry.pre_shape import PreShapeSpace
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.pre_shape import (
@@ -51,10 +51,12 @@ class TestPreShapeSpace(PreShapeSpaceTestCase, metaclass=DataBasedParametrizer):
 def bundles(request):
     k_landmarks, m_ambient = request.param
 
-    space = PreShapeSpace(k_landmarks, m_ambient, equip=True)
-    request.cls.total_space = request.cls.base = space
+    request.cls.total_space = total_space = PreShapeSpace(k_landmarks, m_ambient)
 
-    request.cls.bundle = PreShapeSpaceBundle(space)
+    total_space.equip_with_group_action("rotations")
+    total_space.equip_with_quotient_structure()
+
+    request.cls.base = total_space.quotient
 
 
 @pytest.mark.usefixtures("bundles")
@@ -92,12 +94,13 @@ class TestPreShapeMetric(RiemannianMetricTestCase, metaclass=DataBasedParametriz
 def spaces_with_quotient(request):
     k_landmarks, m_ambient = request.param
 
-    space = PreShapeSpace(k_landmarks, m_ambient)
+    total_space = PreShapeSpace(k_landmarks, m_ambient)
 
-    space.equip_with_group_action("rotations")
-    space.equip_with_quotient_structure()
+    total_space.equip_with_group_action("rotations")
+    total_space.equip_with_quotient_structure()
 
-    request.cls.space = space.quotient
+    request.cls.total_space = total_space
+    request.cls.space = total_space.quotient
 
 
 @pytest.mark.usefixtures("spaces_with_quotient")
@@ -110,16 +113,16 @@ class TestKendallShapeMetric(
 class TestKendallShapeMetricCmp(
     RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
 ):
-    k_landmarks = random.randint(4, 5)
-    m_ambient = 2
-    total_space = PreShapeSpace(k_landmarks, m_ambient)
+    _k_landmarks = random.randint(4, 5)
+    _m_ambient = 2
+    _total_space = PreShapeSpace(_k_landmarks, _m_ambient)
 
-    total_space.equip_with_group_action("rotations")
-    total_space.equip_with_quotient_structure()
+    _total_space.equip_with_group_action("rotations")
+    _total_space.equip_with_quotient_structure()
 
-    space = total_space.quotient
+    space = _total_space.quotient
 
-    other_total_space = PreShapeSpace(k_landmarks, m_ambient)
+    other_total_space = PreShapeSpace(_k_landmarks, _m_ambient)
 
     other_total_space.equip_with_group_action("rotations")
     other_total_space.equip_with_quotient_structure()
@@ -127,7 +130,7 @@ class TestKendallShapeMetricCmp(
     other_space = other_total_space.quotient
     other_space.equip_with_metric(
         QuotientMetric,
-        fiber_bundle=other_space.metric.fiber_bundle,
+        total_space=other_total_space,
     )
 
     testing_data = KendallShapeMetricCmpTestData()

@@ -20,8 +20,6 @@ NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
 PI_2_3 = gs.power(gs.array([2.0 * gs.pi]), gs.array([2 / 3]))
 SQRT_2 = gs.sqrt(2.0)
 
-_COORDS_TYPE = "ball"
-
 
 class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
     """Class for the n-dimensional Poincare ball.
@@ -36,10 +34,11 @@ class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
     """
 
     def __init__(self, dim, equip=True):
+        self.coords_type = "ball"
         super().__init__(
             dim=dim,
             embedding_space=Euclidean(dim),
-            default_coords_type=_COORDS_TYPE,
+            intrinsic=True,
             equip=equip,
         )
 
@@ -100,7 +99,7 @@ class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
 class PoincareBallMetric(RiemannianMetric):
     """Class that defines operations using a Poincare ball."""
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -130,7 +129,7 @@ class PoincareBallMetric(RiemannianMetric):
             base_point, gs.einsum("...,...i->...i", factor, direction)
         )
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
 
         Parameters
@@ -427,7 +426,7 @@ class PoincareBallMetric(RiemannianMetric):
 
         return gs.squeeze(norm_factor), gs.squeeze(norm_factor_gradient)
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a

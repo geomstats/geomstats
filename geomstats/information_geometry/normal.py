@@ -470,7 +470,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
     def __init__(self, sample_dim, equip=True):
         super().__init__(
             factors=(Euclidean(sample_dim), SPDMatrices(sample_dim)),
-            default_point_type="vector",
+            point_ndim=1,
             support_shape=(sample_dim,),
             equip=equip,
         )
@@ -663,7 +663,7 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
     def __init__(self, space):
         diffeo = UnivariateNormalToPoincareHalfSpaceDiffeo()
         image_space = PoincareHalfSpace(dim=2)
-        image_space.metric = ScalarProductMetric(image_space.metric, 2.0)
+        image_space.equip_with_metric(ScalarProductMetric(image_space, 2.0))
         super().__init__(space, diffeo, image_space)
 
     @staticmethod
@@ -731,7 +731,8 @@ class CenteredNormalMetric:
 
     def __new__(cls, space):
         """Instantiate a scaled SPD affine metric."""
-        return ScalarProductMetric(SPDAffineMetric(space), 1 / 2)
+        space.equip_with_metric(SPDAffineMetric)
+        return ScalarProductMetric(space, 1 / 2)
 
 
 class DiagonalNormalMetric(RiemannianMetric):
@@ -856,7 +857,7 @@ class DiagonalNormalMetric(RiemannianMetric):
         log = self._univariate_normal.metric.log(point, base_point)
         return self._1d_pairs_to_stacked_mean_diagonal(log)
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         Parameters

@@ -4,9 +4,10 @@ from .connection import (
     ConnectionComparisonTestData,
     ConnectionTestData,
 )
+from .mixins import DistMixinsTestData
 
 
-class RiemannianMetricTestData(ConnectionTestData):
+class RiemannianMetricTestData(DistMixinsTestData, ConnectionTestData):
     def metric_matrix_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -52,22 +53,7 @@ class RiemannianMetricTestData(ConnectionTestData):
     def squared_dist_is_positive_test_data(self):
         return self.generate_random_data()
 
-    def dist_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def dist_is_symmetric_test_data(self):
-        return self.generate_random_data()
-
-    def dist_is_positive_test_data(self):
-        return self.generate_random_data()
-
     def dist_is_log_norm_test_data(self):
-        return self.generate_random_data()
-
-    def dist_point_to_itself_is_zero_test_data(self):
-        return self.generate_random_data()
-
-    def dist_triangle_inequality_test_data(self):
         return self.generate_random_data()
 
     def covariant_riemann_tensor_vec_test_data(self):

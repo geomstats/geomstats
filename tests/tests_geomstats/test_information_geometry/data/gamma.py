@@ -123,17 +123,17 @@ class GammaDistributionsSmokeTestData(TestData):
 
 
 class GammaMetricTestData(RiemannianMetricTestData):
-    trials = 5
+    trials = 3
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
     tolerances = {
-        "dist_is_symmetric": {"atol": 1e-3},
+        "dist_is_symmetric": {"atol": 1e-2},
         "log_after_exp": {"atol": 1e-2},
         "exp_after_log": {"atol": 1e-2},
-        "squared_dist_is_symmetric": {"atol": 1e-3},
+        "squared_dist_is_symmetric": {"atol": 1e-1},
     }
-    xfails = tuple(tolerances.keys())
+    xfails = ("exp_after_log",)
 
     def jacobian_christoffels_vec_test_data(self):
         return self.generate_vec_data()

@@ -18,9 +18,6 @@ class EuclideanMetricTestData(RiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
-    def cometrix_matrix_is_identity_test_data(self):
-        return self.generate_random_data()
-
     def inner_product_derivative_matrix_is_zeros_test_data(self):
         return self.generate_random_data()
 
@@ -28,7 +25,15 @@ class EuclideanMetricTestData(RiemannianMetricTestData):
         return self.generate_random_data()
 
 
-class EuclideanMetric2TestData(TestData):
+class CanonicalEuclideanMetricTestData(EuclideanMetricTestData):
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
+
+    def cometrix_matrix_is_identity_test_data(self):
+        return self.generate_random_data()
+
+
+class CanonicalEuclideanMetric2TestData(TestData):
     def exp_test_data(self):
         tangent_vec = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
         base_point = gs.array([[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]])

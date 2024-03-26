@@ -91,7 +91,7 @@ on simulated data on the 5-dimensional hypersphere.
 
     data = sphere.random_uniform(n_samples=10)
 
-    clustering = OnlineKMeans(metric=sphere.metric, n_clusters=4)
+    clustering = OnlineKMeans(sphere, n_clusters=4)
     clustering = clustering.fit(data)
 
 The following code snippet shows the use of tangent Principal Component Analysis on simulated data on the
@@ -103,11 +103,10 @@ space of 3D rotations.
     from geomstats.learning.pca import TangentPCA
 
     so3 = SpecialOrthogonal(n=3, point_type="vector")
-    metric = so3.bi_invariant_metric
 
     data = so3.random_uniform(n_samples=10)
 
-    tpca = TangentPCA(metric=metric, n_components=2)
+    tpca = TangentPCA(so3, n_components=2)
     tpca = tpca.fit(data)
     tangent_projected_data = tpca.transform(data)
 

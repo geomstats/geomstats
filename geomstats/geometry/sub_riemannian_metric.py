@@ -52,7 +52,7 @@ class SubRiemannianMetric:
                 "Either 'cometric_matrix' or 'frame' must be passed, and not both."
             )
 
-        if space.default_point_type != "vector":
+        if space.point_ndim != 1:
             raise ValueError("Can only handle 'vector' point types.")
 
         self.cometric_matrix = cometric_matrix
@@ -282,7 +282,7 @@ class SubRiemannianMetric:
         step_size = end_time / n_steps
         return self.iterate(step(hamiltonian, step_size), n_steps)
 
-    def exp(self, cotangent_vec, base_point, n_steps=20, **kwargs):
+    def exp(self, cotangent_vec, base_point, n_steps=20):
         """Exponential map associated to the cometric.
 
         Exponential map at base_point of cotangent_vec computed by integration
@@ -299,9 +299,6 @@ class SubRiemannianMetric:
         n_steps : int
             Number of discrete time steps to take in the integration.
             Optional, default: N_STEPS.
-        point_type : str, {'vector', 'matrix'}
-            Type of representation used for points.
-            Optional, default: None.
 
         Returns
         -------

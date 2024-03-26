@@ -5,6 +5,7 @@ import logging
 import scipy
 
 import geomstats.backend as gs
+from geomstats.exceptions import AutodiffNotImplementedError
 from geomstats.numerics._common import result_to_backend_type
 
 
@@ -27,6 +28,13 @@ class ScipyMinimize:
         options=None,
         save_result=False,
     ):
+        if jac == "autodiff" and gs.__name__.endswith("numpy"):
+            raise AutodiffNotImplementedError(
+                "Minimization with 'autodiff' requires automatic differentiation."
+                "Change backend via the command "
+                "export GEOMSTATS_BACKEND=pytorch in a terminal"
+            )
+
         self.method = method
         self.jac = jac
         self.hess = hess

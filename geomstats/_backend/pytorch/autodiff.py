@@ -100,9 +100,13 @@ def custom_gradient(*grad_funcs):
 
                 if grad_output.ndim > 0:
                     return tuple(
-                        _torch.einsum("n,n...->n...", grad_output, custom_grad(*inputs))
-                        if input_.requires_grad
-                        else None
+                        (
+                            _torch.einsum(
+                                "n,n...->n...", grad_output, custom_grad(*inputs)
+                            )
+                            if input_.requires_grad
+                            else None
+                        )
                         for input_, custom_grad in zip(inputs, grad_funcs)
                     )
 

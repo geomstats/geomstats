@@ -7,6 +7,7 @@ Lead author: Nina Miolane.
 """
 
 import abc
+import inspect
 
 import geomstats.backend as gs
 import geomstats.errors
@@ -22,9 +23,8 @@ class Manifold(abc.ABC):
     shape : tuple of int
         Shape of one element of the manifold.
         Optional, default : None.
-    default_coords_type : str, {'intrinsic', 'extrinsic', etc}
+    intrinsic : bool
         Coordinate type.
-        Optional, default: 'intrinsic'.
     equip : bool
         If True, equip space with default metric.
 
@@ -32,15 +32,13 @@ class Manifold(abc.ABC):
     ----------
     point_ndim : int
         Dimension of point array.
-    default_point_type : str
-        Point type: "vector" or "matrix".
     """
 
     def __init__(
         self,
         dim,
         shape,
-        default_coords_type="intrinsic",
+        intrinsic=True,
         equip=True,
     ):
         geomstats.errors.check_integer(dim, "dim")
@@ -50,15 +48,9 @@ class Manifold(abc.ABC):
 
         self.dim = dim
         self.shape = shape
-        self.default_coords_type = default_coords_type
+        self.intrinsic = intrinsic
 
         self.point_ndim = len(self.shape)
-        if self.point_ndim == 1:
-            self.default_point_type = "vector"
-        elif self.point_ndim == 2:
-            self.default_point_type = "matrix"
-        else:
-            self.default_point_type = "other"
 
         if equip:
             self.equip_with_metric()
@@ -68,7 +60,7 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        Metric : RiemannianMetric object
+        Metric : RiemannianMetric object or instance or ScalarProductMetric instance
             If None, default metric will be used.
         """
         if Metric is None:
@@ -80,7 +72,15 @@ class Manifold(abc.ABC):
             else:
                 Metric = out
 
-        self.metric = Metric(self, **metric_kwargs)
+        if inspect.isclass(Metric):
+            self.metric = Metric(self, **metric_kwargs)
+        else:
+            if self.metric._space is not self:
+                raise ValueError(
+                    "Cannot equip space with metric instantiated with another space."
+                )
+
+            self.metric = Metric
 
         return self
 
@@ -119,7 +119,7 @@ class Manifold(abc.ABC):
         self.fiber_bundle = FiberBundle_(total_space=self)
 
         self.quotient = self.new(equip=False)
-        self.quotient.equip_with_metric(QuotientMetric_, fiber_bundle=self.fiber_bundle)
+        self.quotient.equip_with_metric(QuotientMetric_, total_space=self)
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
@@ -140,7 +140,7 @@ class Manifold(abc.ABC):
         """
 
     @abc.abstractmethod
-    def is_tangent(self, vector, base_point, atol=gs.atol):
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Parameters
@@ -160,7 +160,7 @@ class Manifold(abc.ABC):
         """
 
     @abc.abstractmethod
-    def to_tangent(self, vector, base_point):
+    def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
 
         Parameters
@@ -212,7 +212,7 @@ class Manifold(abc.ABC):
         """
         return gs.copy(point)
 
-    def random_tangent_vec(self, base_point, n_samples=1):
+    def random_tangent_vec(self, base_point=None, n_samples=1):
         """Generate random tangent vec.
 
         Parameters
@@ -230,6 +230,7 @@ class Manifold(abc.ABC):
         """
         if (
             n_samples > 1
+            and base_point is not None
             and base_point.ndim > len(self.shape)
             and n_samples != len(base_point)
         ):

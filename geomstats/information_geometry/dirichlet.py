@@ -2,6 +2,7 @@
 
 Lead author: Alice Le Brigant.
 """
+
 import math
 
 import numpy as np
@@ -164,9 +165,9 @@ class DirichletMetric(RiemannianMetric):
         super().__init__(space=space)
 
         self.log_solver = LogODESolver(
-            n_nodes=1000, integrator=ScipySolveBVP(max_nodes=1000)
+            space, n_nodes=1000, integrator=ScipySolveBVP(max_nodes=1000)
         )
-        self.exp_solver = ExpODESolver(integrator=ScipySolveIVP(method="LSODA"))
+        self.exp_solver = ExpODESolver(space, integrator=ScipySolveIVP(method="LSODA"))
 
     def metric_matrix(self, base_point):
         """Compute the inner-product matrix.
@@ -199,12 +200,6 @@ class DirichletMetric(RiemannianMetric):
 
         Compute the Christoffel symbols of the Fisher information metric.
 
-        References
-        ----------
-        .. [LPP2021] A. Le Brigant, S. C. Preston, S. Puechmorel. Fisher-Rao
-            geometry of Dirichlet Distributions. Differential Geometry
-            and its Applications, 74, 101702, 2021.
-
         Parameters
         ----------
         base_point : array-like, shape=[..., dim]
@@ -216,6 +211,12 @@ class DirichletMetric(RiemannianMetric):
             Christoffel symbols, with the contravariant index on
             the first dimension.
             :math:`christoffels[..., i, j, k] = Gamma^i_{jk}`
+
+        References
+        ----------
+        .. [LPP2021] A. Le Brigant, S. C. Preston, S. Puechmorel. Fisher-Rao
+            geometry of Dirichlet Distributions. Differential Geometry
+            and its Applications, 74, 101702, 2021.
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         n_points = base_point.shape[0]
@@ -303,9 +304,7 @@ class DirichletMetric(RiemannianMetric):
         jac_1 = term_1 * term_8 / term_9
         jac_1_mat = gs.squeeze(gs.tile(jac_1, (dim, dim, dim, 1, 1)))
         jac_2 = (
-            -term_6
-            / term_9**2
-            * gs.einsum("j...,i...->ji...", term_4 - term_3, term_1)
+            -term_6 / term_9**2 * gs.einsum("j...,i...->ji...", term_4 - term_3, term_1)
         )
         jac_2_mat = gs.squeeze(gs.tile(jac_2, (dim, dim, 1, 1, 1)))
         jac_3 = term_3 * term_6 / term_9
@@ -354,7 +353,7 @@ class DirichletMetric(RiemannianMetric):
             else gs.transpose(jac, [4, 3, 1, 0, 2])
         )
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a

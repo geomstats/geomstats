@@ -3,7 +3,12 @@
 from collections.abc import Iterable
 
 import geomstats.backend as gs
+from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
+from geomstats.test_cases.geometry.mixins import (
+    DistTestCaseMixins,
+    GeodesicBVPTestCaseMixins,
+)
 
 
 class PointSetTestCase(TestCase):
@@ -113,3 +118,26 @@ class PointSetMetricTestCase(TestCase):
         results = geodesic([0.0, 1.0])
         for pt, pt_res in zip([start_point, end_point], results):
             self.assertAllClose(pt_res.to_array(), pt.to_array())
+
+
+class PointSetMetricWithArrayTestCase(
+    DistTestCaseMixins, GeodesicBVPTestCaseMixins, TestCase
+):
+    tangent_to_multiple = False
+    is_metric = True
+
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = RandomDataGenerator(self.space)
+
+    def test_geodesic(
+        self,
+        initial_point,
+        end_point,
+        time,
+        expected,
+        atol,
+    ):
+        geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
+        res = geod_func(time)
+        self.assertAllClose(res, expected, atol=atol)

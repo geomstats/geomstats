@@ -7,6 +7,7 @@ Lead author: Yann Cabanes.
 """
 
 import abc
+import inspect
 
 import geomstats.backend as gs
 
@@ -21,9 +22,8 @@ class ComplexManifold(abc.ABC):
     shape : tuple of int
         Shape of one element of the manifold.
         Optional, default : None.
-    default_coords_type : str, {'intrinsic', 'extrinsic', etc}
-        Coordinate type.
-        Optional, default: 'intrinsic'.
+    intrinsic : bool
+        Coordinates type.
     equip : bool
         If True, equip space with default metric.
     """
@@ -32,20 +32,14 @@ class ComplexManifold(abc.ABC):
         self,
         dim,
         shape,
-        default_coords_type="intrinsic",
+        intrinsic=True,
         equip=True,
     ):
         self.dim = dim
         self.shape = shape
-        self.default_coords_type = default_coords_type
+        self.intrinsic = intrinsic
 
         self.point_ndim = len(self.shape)
-        if self.point_ndim == 1:
-            self.default_point_type = "vector"
-        elif self.point_ndim == 2:
-            self.default_point_type = "matrix"
-        else:
-            self.default_point_type = "other"
 
         if equip:
             self.equip_with_metric()
@@ -55,7 +49,7 @@ class ComplexManifold(abc.ABC):
 
         Parameters
         ----------
-        Metric : Connection object
+        Metric : Connection object or instance or ScalarProductMetric instance
             If None, default metric will be used.
         """
         if Metric is None:
@@ -67,7 +61,17 @@ class ComplexManifold(abc.ABC):
             else:
                 Metric = out
 
-        self.metric = Metric(self, **metric_kwargs)
+        if inspect.isclass(Metric):
+            self.metric = Metric(self, **metric_kwargs)
+        else:
+            if self.metric._space is not self:
+                raise ValueError(
+                    "Cannot equip space with metric instantiated with another space."
+                )
+
+            self.metric = Metric
+
+        return self
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):

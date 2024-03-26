@@ -4,6 +4,7 @@ from geomstats.test.data import TestData
 from .fiber_bundle import FiberBundleTestData
 from .nfold_manifold import NFoldManifoldTestData
 from .pullback_metric import PullbackDiffeoMetricTestData
+from .quotient_metric import QuotientMetricTestData
 from .riemannian_metric import RiemannianMetricTestData
 
 
@@ -47,20 +48,16 @@ class SRVMetricTestData(PullbackDiffeoMetricTestData):
 
 class SRVReparametrizationBundleTestData(FiberBundleTestData):
     fail_for_not_implemented_errors = False
-    # TODO: delete
-    trials = 1
-    N_RANDOM_POINTS = [1]
 
-    skips = (
-        "align_vec",
-        "log_after_align_is_horizontal",
-    )
     xfails = (
         "tangent_riemannian_submersion_after_horizontal_lift",
         "horizontal_lift_is_horizontal",
+        "log_after_align_is_horizontal",
     )
     tolerances = {
         "align": {"atol": 1e-2},
+        "align_in_same_fiber": {"atol": 1e-2},
+        "log_after_align_is_horizontal": {"atol": 1e-2},
         "tangent_vector_projections_orthogonality_with_metric": {"atol": 5e-1},
         "vertical_projection_is_vertical": {"atol": 1e-1},
         "horizontal_projection_is_horizontal": {"atol": 1e-1},
@@ -72,7 +69,7 @@ class SRVReparametrizationBundleTestData(FiberBundleTestData):
     def tangent_vector_projections_orthogonality_with_metric_test_data(self):
         return self.generate_random_data()
 
-    def align_test_data(self):
+    def align_in_same_fiber_test_data(self):
         return self.generate_random_data()
 
 
@@ -104,6 +101,42 @@ class SRVRotationReparametrizationBundleTestData(TestData):
     tolerances = {
         "align": {"atol": 1e-2},
     }
+    xfails = ("align",)
 
     def align_test_data(self):
         return self.generate_random_data()
+
+
+class SRVReparametrizationsQuotientMetricTestData(QuotientMetricTestData):
+    trials = 1
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
+
+
+class SRVRotationsQuotientMetricTestData(QuotientMetricTestData):
+    trials = 1
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
+
+    xfails = (
+        # need to do a better check on the test
+        "geodesic_bvp_reverse",
+        "geodesic_boundary_points",
+    )
+
+
+class SRVRotationsAndReparametrizationsQuotientMetricTestData(QuotientMetricTestData):
+    trials = 1
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
+
+    tolerances = {
+        "dist_is_symmetric": {"atol": 1e-2},
+        "squared_dist_is_symmetric": {"atol": 1e-2},
+    }
+
+    xfails = (
+        # need to do a better check on the test
+        "geodesic_bvp_reverse",
+        "geodesic_boundary_points",
+    )

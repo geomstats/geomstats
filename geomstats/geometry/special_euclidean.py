@@ -4,6 +4,7 @@ i.e. the Lie group of rigid transformations in n dimensions.
 
 Lead authors: Nicolas Guigui and Nina Miolane.
 """
+
 import math
 
 import geomstats.algebra_utils as utils
@@ -522,7 +523,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         return gs.concatenate([rot_vec, log_translation], axis=-1)
 
-    def random_point(self, n_samples=1, bound=1.0, **kwargs):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample in SE(n) from the product distribution.
 
         This method uses the distributions defined on the Euclidean and Special
@@ -882,10 +883,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         coef_2 = gs.zeros_like(angle)
 
         coef_2 += mask_close_0_float * (
-            1.0 / 12.0
-            + angle**2 / 720.0
-            + angle**4 / 30240.0
-            + angle**6 / 1209600.0
+            1.0 / 12.0 + angle**2 / 720.0 + angle**4 / 30240.0 + angle**6 / 1209600.0
         )
 
         delta_angle = angle - gs.pi
@@ -941,10 +939,7 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
         pass
 
     def _check_implemented(self, space):
-        check = (
-            isinstance(space, _SpecialEuclideanMatrices)
-            and space.default_point_type == "matrix"
-        )
+        check = isinstance(space, _SpecialEuclideanMatrices) and space.point_ndim == 2
         if not check:
             raise ValueError(
                 "group must be an instance of the "
@@ -1090,7 +1085,7 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
         return self._geodesic_from_exp(initial_point, initial_tangent_vec)
 
     def parallel_transport(
-        self, tangent_vec, base_point, direction=None, end_point=None, **kwargs
+        self, tangent_vec, base_point, direction=None, end_point=None
     ):
         r"""Compute the parallel transport of a tangent vector.
 
@@ -1141,7 +1136,7 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
 
         return homogeneous_representation(transported_rot, translation, 0.0)
 
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Squared geodesic distance between two points.
 
         Parameters

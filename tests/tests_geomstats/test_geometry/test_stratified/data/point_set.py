@@ -1,5 +1,7 @@
 from geomstats.test.data import TestData
 
+from ...data.mixins import DistMixinsTestData, GeodesicBVPMixinsTestData
+
 
 class PointSetTestData(TestData):
     def random_point_belongs_test_data(self):
@@ -89,3 +91,11 @@ class PointMetricTestData(TestData):
         smoke_data = [dict(space=space, start_point=pts[0], end_point=pts[1])]
 
         return self.generate_tests(smoke_data)
+
+
+class PointSetMetricWithArrayTestData(
+    DistMixinsTestData,
+    GeodesicBVPMixinsTestData,
+    TestData,
+):
+    pass

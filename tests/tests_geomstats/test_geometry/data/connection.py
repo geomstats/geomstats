@@ -1,8 +1,13 @@
 from geomstats.test.data import TestData
 
+from .mixins import GeodesicBVPMixinsTestData
 
-class ConnectionTestData(TestData):
+
+class ConnectionTestData(GeodesicBVPMixinsTestData, TestData):
     def christoffels_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def geodesic_equation_vec_test_data(self):
         return self.generate_vec_data()
 
     def exp_vec_test_data(self):
@@ -41,20 +46,8 @@ class ConnectionTestData(TestData):
     def directional_curvature_derivative_vec_test_data(self):
         return self.generate_vec_data()
 
-    def geodesic_bvp_vec_test_data(self):
-        return self.generate_vec_data_with_time()
-
     def geodesic_ivp_vec_test_data(self):
         return self.generate_vec_data_with_time()
-
-    def geodesic_boundary_points_test_data(self):
-        return self.generate_random_data()
-
-    def geodesic_bvp_reverse_test_data(self):
-        return self.generate_random_data_with_time()
-
-    def geodesic_bvp_belongs_test_data(self):
-        return self.generate_random_data_with_time()
 
     def geodesic_ivp_belongs_test_data(self):
         return self.generate_random_data_with_time()

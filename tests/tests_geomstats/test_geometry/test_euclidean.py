@@ -2,53 +2,47 @@ import random
 
 import pytest
 
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.euclidean import (
+    CanonicalEuclideanMetricTestCase,
     EuclideanMetricTestCase,
     EuclideanTestCase,
 )
 
 from .data.euclidean import (
-    EuclideanMetric2TestData,
+    CanonicalEuclideanMetric2TestData,
+    CanonicalEuclideanMetricTestData,
     EuclideanMetricTestData,
     EuclideanTestData,
 )
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def spaces(request):
-    request.cls.space = Euclidean(dim=request.param, equip=False)
-
-
-@pytest.mark.usefixtures("spaces")
 class TestEuclidean(EuclideanTestCase, metaclass=DataBasedParametrizer):
+    space = Euclidean(dim=random.randint(2, 5), equip=False)
     testing_data = EuclideanTestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def equipped_spaces(request):
-    request.cls.space = Euclidean(dim=request.param)
-
-
-@pytest.mark.usefixtures("equipped_spaces")
 class TestEuclideanMetric(EuclideanMetricTestCase, metaclass=DataBasedParametrizer):
+    _dim = random.randint(2, 5)
+    space = Euclidean(_dim, equip=False).equip_with_metric(
+        EuclideanMetric,
+        metric_matrix=SPDMatrices(_dim, equip=False).random_point(),
+    )
     testing_data = EuclideanMetricTestData()
 
 
+class TestCanonicalEuclideanMetric(
+    CanonicalEuclideanMetricTestCase, metaclass=DataBasedParametrizer
+):
+    space = Euclidean(dim=random.randint(2, 5))
+    testing_data = CanonicalEuclideanMetricTestData()
+
+
 @pytest.mark.smoke
-class TestEuclideanMetric2(EuclideanMetricTestCase, metaclass=DataBasedParametrizer):
+class TestCanonicalEuclideanMetric2(
+    CanonicalEuclideanMetricTestCase, metaclass=DataBasedParametrizer
+):
     space = Euclidean(dim=2)
-    testing_data = EuclideanMetric2TestData()
+    testing_data = CanonicalEuclideanMetric2TestData()

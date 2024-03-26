@@ -15,6 +15,7 @@ change of variable, either for a point or a vector.
 
 Lead author: Jules Deschamps.
 """
+
 from scipy.stats import gamma
 
 import geomstats.backend as gs
@@ -97,9 +98,8 @@ class GammaDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         samples : array-like, shape=[..., 2]
             Sample of points representing Gamma distributions.
         """
-        upper_bound, lower_bound = gs.array(upper_bound) * gs.ones(2), gs.array(
-            lower_bound
-        ) * gs.ones(2)
+        upper_bound = upper_bound * gs.ones(2)
+        lower_bound = lower_bound * gs.ones(2)
 
         if gs.any((upper_bound - lower_bound) < 0):
             raise ValueError("upper_bound cannot be greater than lower_bound.")
@@ -329,9 +329,9 @@ class GammaMetric(RiemannianMetric):
         super().__init__(space=space)
 
         self.log_solver = LogODESolver(
-            n_nodes=1000, integrator=ScipySolveBVP(max_nodes=1000)
+            space, n_nodes=1000, integrator=ScipySolveBVP(max_nodes=1000)
         )
-        self.exp_solver = ExpODESolver(integrator=ScipySolveIVP(method="LSODA"))
+        self.exp_solver = ExpODESolver(space, integrator=ScipySolveIVP(method="LSODA"))
 
     def metric_matrix(self, base_point):
         """Compute the inner-product matrix.
@@ -361,16 +361,7 @@ class GammaMetric(RiemannianMetric):
         Compute the Christoffel symbols of the Fisher information metric.
         For computation purposes, we replace the value of
         (gs.polygamma(1, x) - 1/x) by an equivalent (close lower-bound) when it becomes
-        too difficult to compute, as per in the second reference.
-
-        References
-        ----------
-        .. [AD2008] Arwini, K. A., & Dodson, C. T. (2008).
-            Information geometry (pp. 31-54). Springer Berlin Heidelberg.
-
-        .. [GQ2015] Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015).
-            Sharp inequalities for polygamma functions.
-            Mathematica Slovaca, 65(1), 103-120.
+        too difficult to compute, as per in [GQ2015]_.
 
         Parameters
         ----------
@@ -383,6 +374,15 @@ class GammaMetric(RiemannianMetric):
             Christoffel symbols, with the contravariant index on
             the first dimension.
             :math:`christoffels[..., i, j, k] = Gamma^i_{jk}`
+
+        References
+        ----------
+        .. [AD2008] Arwini, K. A., & Dodson, C. T. (2008).
+            Information geometry (pp. 31-54). Springer Berlin Heidelberg.
+
+        .. [GQ2015] Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015).
+            Sharp inequalities for polygamma functions.
+            Mathematica Slovaca, 65(1), 103-120.
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
@@ -438,12 +438,6 @@ class GammaMetric(RiemannianMetric):
         (gs.polygamma(1, x) - 1/x) and (gs.polygamma(2,x) + 1/x**2) by an equivalent
         (close bounds) when they become too difficult to compute.
 
-        References
-        ----------
-        ..[GQ2015] Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015).
-            Sharp inequalities for polygamma functions.
-            Mathematica Slovaca, 65(1), 103-120.
-
         Parameters
         ----------
         base_point : array-like, shape=[..., 2]
@@ -454,6 +448,12 @@ class GammaMetric(RiemannianMetric):
         jac : array-like, shape=[..., 2, 2, 2, 2]
             Jacobian of the Christoffel symbols.
             :math:`jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l`
+
+        References
+        ----------
+        .. [GQ2015] Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015).
+            Sharp inequalities for polygamma functions.
+            Mathematica Slovaca, 65(1), 103-120.
         """
         base_point = gs.to_ndarray(base_point, 2)
 

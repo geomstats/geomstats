@@ -231,9 +231,7 @@ class GaussianMixtureModel:
         variances_units = gs.expand_dims(self.variances, 0)
         variances_units = gs.repeat(variances_units, distance_to_mean.shape[0], axis=0)
 
-        distribution_normal = gs.exp(
-            -(distance_to_mean**2) / (2 * variances_units**2)
-        )
+        distribution_normal = gs.exp(-(distance_to_mean**2) / (2 * variances_units**2))
 
         zeta_sigma = (2 * gs.pi) ** (2 / 3) * self.variances
         zeta_sigma = zeta_sigma * gs.exp(

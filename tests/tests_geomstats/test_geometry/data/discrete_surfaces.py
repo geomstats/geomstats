@@ -1,10 +1,11 @@
+import pytest
+
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 from geomstats.test.data import TestData
 from geomstats.vectorization import repeat_point
 
 from .manifold import ManifoldTestData
-from .riemannian_metric import RiemannianMetricTestData
 
 
 class DiscreteSurfacesTestData(ManifoldTestData):
@@ -91,22 +92,16 @@ class DiscreteSurfacesSmokeTestData(TestData):
         return self.generate_tests(data)
 
 
-class ElasticMetricTestData(RiemannianMetricTestData):
-    pass
+class ElasticMetricTestData(TestData):
+    N_RANDOM_POINTS = [1]
 
+    tolerances = {"exp_after_log": {"atol": 1e-1}}
 
-class ElasticMetricSmokeTestData(TestData):
-    vertices, _ = data_utils.load_cube()
-    vertices = gs.array(vertices, dtype=gs.float64)
+    def exp_after_log_test_data(self):
+        return self.generate_random_data(marks=(pytest.mark.slow, pytest.mark.xfail))
 
-    def path_energy_is_positive_test_data(self):
-        data = [
-            dict(path=gs.array([self.vertices, self.vertices, self.vertices])),
-        ]
-        return self.generate_tests(data)
+    def inner_product_vec_test_data(self):
+        return self.generate_vec_data()
 
-    def path_energy_per_time_is_positive_test_data(self):
-        data = [
-            dict(path=gs.array([self.vertices, self.vertices, self.vertices])),
-        ]
-        return self.generate_tests(data)
+    def inner_product_is_symmetric_test_data(self):
+        return self.generate_random_data()

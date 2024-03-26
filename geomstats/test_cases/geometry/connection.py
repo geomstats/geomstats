@@ -5,12 +5,13 @@ import pytest
 import geomstats.backend as gs
 from geomstats.test.random import RandomDataGenerator, get_random_times
 from geomstats.test.test_case import TestCase
-from geomstats.test.utils import IdentityPointTransformer
+from geomstats.test.utils import IdentityPointTransformer, PointTransformerFromDiffeo
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test_cases.geometry.mixins import GeodesicBVPTestCaseMixins
 from geomstats.vectorization import get_batch_shape
 
 
-class ConnectionTestCase(TestCase):
+class ConnectionTestCase(GeodesicBVPTestCaseMixins, TestCase):
     tangent_to_multiple = False
     is_metric = True
 
@@ -21,6 +22,32 @@ class ConnectionTestCase(TestCase):
     def test_christoffels(self, base_point, expected, atol):
         res = self.space.metric.christoffels(base_point)
         self.assertAllClose(res, expected, atol=atol)
+
+    def test_geodesic_equation(self, state, expected, atol):
+        res = self.space.metric.geodesic_equation(state)
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_geodesic_equation_vec(self, n_reps, atol):
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+
+        state = gs.stack([base_point, tangent_vec])
+        expected = self.space.metric.geodesic_equation(state)
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(
+                    state=state,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["state"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
 
     def test_exp(self, tangent_vec, base_point, expected, atol):
         res = self.space.metric.exp(tangent_vec, base_point)
@@ -173,29 +200,6 @@ class ConnectionTestCase(TestCase):
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
-    def test_geodesic_bvp_vec(self, n_reps, n_times, atol):
-        initial_point, end_point = self.data_generator.random_point(2)
-        time = get_random_times(n_times)
-
-        expected = self.space.metric.geodesic(initial_point, end_point=end_point)(time)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    initial_point=initial_point,
-                    end_point=end_point,
-                    time=time,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["initial_point", "end_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data, test_fnc_name="test_geodesic")
-
-    @pytest.mark.vec
     def test_geodesic_ivp_vec(self, n_reps, n_times, atol):
         initial_point = self.data_generator.random_point()
         initial_tangent_vec = self.data_generator.random_tangent_vec(initial_point)
@@ -221,67 +225,6 @@ class ConnectionTestCase(TestCase):
             vectorization_type="sym" if self.tangent_to_multiple else "repeat-1",
         )
         self._test_vectorization(vec_data, test_fnc_name="test_geodesic")
-
-    @pytest.mark.random
-    def test_geodesic_boundary_points(self, n_points, atol):
-        initial_point = self.data_generator.random_point(n_points)
-        end_point = self.data_generator.random_point(n_points)
-
-        time = gs.array([0.0, 1.0])
-
-        geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
-
-        res = geod_func(time)
-        expected = gs.stack(
-            [initial_point, end_point], axis=-(self.space.point_ndim + 1)
-        )
-        self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.random
-    def test_geodesic_bvp_reverse(self, n_points, n_times, atol):
-        initial_point = self.data_generator.random_point(n_points)
-        end_point = self.data_generator.random_point(n_points)
-
-        time = get_random_times(n_times)
-
-        geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
-        geod_func_reverse = self.space.metric.geodesic(
-            end_point, end_point=initial_point
-        )
-
-        res = geod_func(time)
-        res_ = geod_func_reverse(1.0 - time)
-
-        self.assertAllClose(res, res_, atol=atol)
-
-    @pytest.mark.random
-    def test_geodesic_bvp_belongs(self, n_points, n_times, atol):
-        """Check geodesic belongs to manifold.
-
-        This is for geodesics defined by the boundary value problem (bvp).
-
-        Parameters
-        ----------
-        n_points : int
-            Number of random points to generate.
-        atol : float
-            Absolute tolerance.
-        """
-        initial_point = self.data_generator.random_point(n_points)
-        end_point = self.data_generator.random_point(n_points)
-
-        time = get_random_times(n_times)
-
-        geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
-        points = geod_func(time)
-
-        res = self.space.belongs(gs.reshape(points, (-1, *self.space.shape)), atol=atol)
-
-        expected_shape = (
-            math.prod(get_batch_shape(self.space.point_ndim, initial_point)) * n_times,
-        )
-        expected = gs.ones(expected_shape, dtype=bool)
-        self.assertAllEqual(res, expected)
 
     @pytest.mark.random
     def test_geodesic_ivp_belongs(self, n_points, n_times, atol):
@@ -448,6 +391,9 @@ class ConnectionComparisonTestCase(TestCase):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = RandomDataGenerator(self.space)
+
+        if not hasattr(self, "point_transformer") and hasattr(self, "diffeo"):
+            self.point_transformer = PointTransformerFromDiffeo(self.diffeo)
 
         if not hasattr(self, "point_transformer"):
             self.point_transformer = IdentityPointTransformer()
