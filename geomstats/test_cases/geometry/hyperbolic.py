@@ -1,6 +1,5 @@
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.diffeo import Diffeo
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
 class HyperbolicDiffeo(Diffeo):
@@ -112,7 +111,3 @@ class HyperbolicDiffeo(Diffeo):
             self.to_coordinates_system,
             self.from_coordinates_system,
         )
-
-
-class HyperbolicMetricTestCase(RiemannianMetricTestCase):
-    pass

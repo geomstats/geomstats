@@ -599,11 +599,3 @@ class _Hyperbolic:
         if n_samples == 1:
             return samples[0]
         return samples
-
-
-class HyperbolicMetric(RiemannianMetric):
-    """Class that defines operations using a hyperbolic metric.
-
-    This class does not contain any methods and is only defined to act as a parent
-    class for `HyperboloidMetric`, `PoincareBallMetric` and `PoincareHalfSpaceMetric`.
-    """
