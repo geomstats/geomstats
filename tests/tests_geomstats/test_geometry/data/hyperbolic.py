@@ -1,9 +1,7 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .riemannian_metric import (
-    RiemannianMetricCmpWithTransformTestData,
-)
+from .riemannian_metric import RiemannianMetricCmpWithTransformTestData
 
 
 class HalfSpaceToBall2TestData(TestData):

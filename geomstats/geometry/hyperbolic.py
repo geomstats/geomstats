@@ -4,6 +4,7 @@ Lead author: Thomas Gerald.
 """
 
 import geomstats.errors as errors
+from geomstats.geometry._hyperbolic import HyperbolicDiffeo  # noqa
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
