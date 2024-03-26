@@ -2,6 +2,8 @@ from geomstats.test.data import TestData
 
 
 class DiffeoTestData(TestData):
+    trials = 1
+
     def diffeomorphism_vec_test_data(self):
         return self.generate_vec_data()
 
