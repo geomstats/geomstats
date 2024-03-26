@@ -194,3 +194,21 @@ class ComplexManifold(abc.ABC):
             size=batch_size + self.shape, dtype=gs.get_default_cdtype()
         )
         return self.to_tangent(vector, base_point)
+
+    def projection(self, point):
+        """Project a point to the manifold.
+
+        Parameters
+        ----------
+        point: array-like, shape[..., *point_shape]
+            Point.
+
+        Returns
+        -------
+        point: array-like, shape[..., *point_shape]
+            Point.
+        """
+        if self.intrinsic:
+            return gs.copy(point)
+
+        raise NotImplementedError("`projection` is not implemented yet")
