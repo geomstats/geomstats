@@ -6,7 +6,7 @@ from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.base import LevelSetTestCase
-from geomstats.test_cases.geometry.hyperbolic import HyperbolicMetricTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.hyperboloid import (
     Hyperboloid2TestData,
@@ -56,7 +56,7 @@ def equipped_spaces(request):
 
 
 @pytest.mark.usefixtures("equipped_spaces")
-class TestHyperboloidMetric(HyperbolicMetricTestCase, metaclass=DataBasedParametrizer):
+class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = HyperboloidMetricTestData()
 
     @pytest.mark.random

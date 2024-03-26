@@ -2,10 +2,9 @@ import random
 
 import pytest
 
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperbolic import Hyperbolic, HyperbolicDiffeo
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
-from geomstats.test_cases.geometry.hyperbolic import HyperbolicDiffeo
 from geomstats.test_cases.geometry.riemannian_metric import (
     RiemannianMetricComparisonTestCase,
 )

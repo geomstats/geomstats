@@ -10,9 +10,10 @@ import math
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-from geomstats.geometry._hyperbolic import HyperbolicMetric, _Hyperbolic
+from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.minkowski import Minkowski
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import repeat_out
 
 
@@ -221,7 +222,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         return proj
 
 
-class HyperboloidMetric(HyperbolicMetric):
+class HyperboloidMetric(RiemannianMetric):
     """Class that defines operations using a hyperbolic metric."""
 
     def metric_matrix(self, base_point=None):
