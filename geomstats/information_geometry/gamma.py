@@ -31,7 +31,7 @@ from geomstats.information_geometry.base import (
 from geomstats.numerics.bvp import ScipySolveBVP
 from geomstats.numerics.geodesic import ExpODESolver, LogODESolver
 from geomstats.numerics.ivp import ScipySolveIVP
-from geomstats.vectorization import check_is_batch
+from geomstats.vectorization import get_batch_shape
 
 
 class NaturalToStandardDiffeo(Diffeo):
@@ -93,17 +93,14 @@ class NaturalToStandardDiffeo(Diffeo):
         if base_point is None:
             base_point = self.diffeomorphism(image_point)
 
-        base_point = gs.broadcast_to(base_point, tangent_vec.shape)
-
         kappa, scale = base_point[..., 0], base_point[..., 1]
 
-        jac_row_1 = gs.array([1, 0])
+        jac_row_1 = gs.array([1.0, 0.0])
         jac_row_2 = gs.stack([1 / scale, -kappa / scale**2], axis=-1)
 
-        if check_is_batch(1, base_point):
-            jac_row_1 = gs.repeat(
-                gs.expand_dims(jac_row_1, axis=0), base_point.shape[0], axis=0
-            )
+        point_batch_shape = get_batch_shape(1, base_point)
+        if point_batch_shape:
+            jac_row_1 = gs.broadcast_to(jac_row_1, point_batch_shape + (2,))
 
         jac = gs.stack([jac_row_1, jac_row_2], axis=-2)
 
