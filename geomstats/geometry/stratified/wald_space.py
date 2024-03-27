@@ -724,10 +724,12 @@ class LocalProjectionSolver:
         if res.status != 0:
             raise ValueError("Projection failed!")
 
-        weights = [
-            _x if self.btol < _x < 1 - self.btol else 0 if _x <= self.btol else 1
-            for _x in res.x
-        ]
+        weights = gs.array(
+            [
+                _x if self.btol < _x < 1 - self.btol else 0 if _x <= self.btol else 1
+                for _x in res.x
+            ]
+        )
 
         return Wald(topology=topology, weights=weights)
 

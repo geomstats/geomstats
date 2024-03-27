@@ -3,6 +3,8 @@ from geomstats.geometry.stratified.trees import ForestTopology, Split
 from geomstats.geometry.stratified.wald_space import Wald
 from geomstats.test.data import TestData
 
+from .point_set import PointMetricTestData
+
 
 class Wald2TestData(TestData):
     def corr_test_data(self):
@@ -29,3 +31,21 @@ class Wald3TestData(TestData):
         )
         data = [dict(point=tree, expected=expected_corr)]
         return self.generate_tests(data)
+
+
+class WaldSpaceMetricTestData(PointMetricTestData):
+    tolerances = {
+        "dist_point_to_itself_is_zero": {"atol": 1e-4},
+        "geodesic_bvp_reverse": {"atol": 1e-4},
+    }
+
+
+class WaldGeodesicSolverTestData(TestData):
+    N_RANDOM_POINTS = [1]
+
+    tolerances = {
+        "discrete_geodesic_reverse": {"atol": 1e-4},
+    }
+
+    def discrete_geodesic_reverse_test_data(self):
+        return self.generate_random_data()
