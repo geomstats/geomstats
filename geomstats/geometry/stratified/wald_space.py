@@ -627,6 +627,7 @@ def _squared_dist_and_grad_affine(space, topology, ambient_point):
 
         target = space.ambient_space.metric.squared_dist(corr, ambient_point)
 
+        # TODO: check 0.5
         target_grad = 0.5 * gs.trace(
             Matrices.mul(
                 gs.linalg.logm(
@@ -872,9 +873,74 @@ class NaiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
         time = gs.linspace(0, 1, self.n_grid)[1:-1]
         mid_ambient_point = ambient_geod_func(time)
 
-        mid_point = self._space.metric.projection(mid_ambient_point, topology)
+        mid_points = self._space.metric.projection(mid_ambient_point, topology)
 
-        return WaldBatch([initial_point] + mid_point + [end_point])
+        return WaldBatch([initial_point] + mid_points + [end_point])
+
+
+class SuccessiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
+    """Successive projection geodesic projection solver.
+
+    Implementation of algorithm 2 from [Lueg21]_.
+    """
+
+    def __init__(self, space, n_grid=5):
+        super().__init__(space)
+        self.n_grid = n_grid
+
+    def _discrete_geodesic_single(self, initial_point, end_point):
+        """Compute a discrete geodesic in the WaldSpace.
+
+        Parameters
+        ----------
+        initial_point: Wald
+            Point in the WaldSpace.
+        end_point: Wald
+            Point in the WaldSpace.
+
+        Returns
+        -------
+        geod_points : WaldBatch
+            Time parameterized geodesic curve.
+        """
+        if initial_point.topology != end_point.topology:
+            raise ValueError("Can only handle points in the same grove.")
+
+        topology = initial_point.topology
+
+        left_points = [initial_point]
+        right_points = [end_point]
+        for i in range(2, self.n_grid // 2 + 1):
+            time = 1 / (self.n_grid - i + 1)
+
+            left_corr = self._space.lift(left_points[-1])
+            right_corr = self._space.lift(right_points[-1])
+
+            ambient_geod_func = self._space.ambient_space.metric.geodesic(
+                left_corr, right_corr
+            )
+
+            left_points.append(
+                self._space.metric.projection(ambient_geod_func(time)[0], topology)
+            )
+            right_points.append(
+                self._space.metric.projection(ambient_geod_func(1 - time)[0], topology)
+            )
+
+        right_points.reverse()
+
+        if gs.mod(self.n_grid, 2) == 0:
+            return WaldBatch(left_points + right_points)
+
+        left_corr = self._space.lift(left_points[-1])
+        right_corr = self._space.lift(right_points[0])
+
+        ambient_geod_func = self._space.ambient_space.metric.geodesic(
+            left_corr, end_point=right_corr
+        )
+
+        mid_point = self._space.metric.projection(ambient_geod_func(0.5), topology)
+        return WaldBatch(left_points + mid_point + right_points)
 
 
 class DiscreteWaldPath:
