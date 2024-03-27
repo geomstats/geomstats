@@ -6,9 +6,10 @@ from geomstats.geometry.stratified.wald_space import (
     NaiveProjectionGeodesicSolver,
     SuccessiveProjectionGeodesicSolver,
     WaldSpace,
+    make_topologies,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.test_case import np_only
+from geomstats.test.test_case import TestCase, np_only
 from geomstats.test_cases.geometry.stratified.point_set import (
     PointSetMetricTestCase,
     PointSetTestCase,
@@ -21,11 +22,22 @@ from geomstats.test_cases.geometry.stratified.wald_space import (
 
 from .data.point_set import PointSetTestData, PointTestData
 from .data.wald_space import (
+    MakePartitionsTestData,
     Wald2TestData,
     Wald3TestData,
     WaldGeodesicSolverTestData,
     WaldSpaceMetricTestData,
 )
+
+
+@np_only
+class TestMakePartitions(TestCase, metaclass=DataBasedParametrizer):
+    testing_data = MakePartitionsTestData()
+
+    def test_number_of_topologies(self, n_labels, expected):
+        topologies = list(make_topologies(n_labels))
+
+        self.assertTrue(len(topologies) == expected)
 
 
 @np_only

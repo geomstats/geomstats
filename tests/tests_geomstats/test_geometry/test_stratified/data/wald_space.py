@@ -1,9 +1,21 @@
+import pytest
+
 import geomstats.backend as gs
 from geomstats.geometry.stratified.trees import ForestTopology, Split
 from geomstats.geometry.stratified.wald_space import Wald
 from geomstats.test.data import TestData
 
 from .point_set import PointMetricTestData
+
+
+class MakePartitionsTestData(TestData):
+    def number_of_topologies_test_data(self):
+        data = [
+            dict(n_labels=2, expected=1),
+            dict(n_labels=3, expected=1),
+            dict(n_labels=4, expected=3),
+        ]
+        return self.generate_tests(data, marks=(pytest.mark.smoke,))
 
 
 class Wald2TestData(TestData):
