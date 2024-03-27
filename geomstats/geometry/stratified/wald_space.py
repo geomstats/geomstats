@@ -112,7 +112,6 @@ def make_topologies(n_labels):
                 for t in st.split_sets[0]:
                     _, d = set(t.part1), set(t.part2)
                     if t != s:
-                        # TODO: probably a bug here
                         if a.issubset(d) or b.issubset(d):
                             new_split_set.append(
                                 Split(
@@ -316,7 +315,7 @@ class WaldBatch(PointBatch):
 
         Returns
         -------
-        array-like, shape=[n_points, n_splits]
+        weights : array-like, shape=[n_points, n_splits]
         """
         return gs.stack([point.weights for point in self])
 
@@ -326,7 +325,7 @@ class WaldBatch(PointBatch):
 
         Returns
         -------
-        array-like, shape=[n_points, n_nodes, n_nodes]
+        corr : array-like, shape=[n_points, n_nodes, n_nodes]
         """
         return gs.stack([point.corr for point in self])
 

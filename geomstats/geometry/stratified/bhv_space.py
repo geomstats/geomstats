@@ -9,8 +9,7 @@ References
     Advances in Applied Mathematics,
     volume 27, issue 4, pages 733-767, 2001.
     https://doi.org/10.1006%2Faama.2001.0759
-
-.. [OP11]  Owen, M., J. S. Provan.
+.. [OP11] Owen, M., J. S. Provan.
     "A Fast Algorithm for Computing Geodesic Distances in Tree Space."
     IEEE/ACM Transactions on Computational Biology and Bioinformatics,
     volume 8, issue 1, pages 2-13, 2011.
@@ -20,8 +19,6 @@ References
 import itertools as it
 
 import networkx as nx
-
-# TODO: only needed for np.inf
 import numpy as np
 
 import geomstats.backend as gs
@@ -241,7 +238,7 @@ class TreeBatch(PointBatch):
 
         Returns
         -------
-        array-like, shape=[n_points, n_splits]
+        lengths : array-like, shape=[n_points, n_splits]
         """
         return gs.array([point.lengths for point in self])
 

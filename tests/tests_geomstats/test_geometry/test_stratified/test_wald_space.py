@@ -12,7 +12,7 @@ from geomstats.geometry.stratified.wald_space import (
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test.test_case import TestCase, autodiff_only
+from geomstats.test.test_case import TestCase, torch_only
 from geomstats.test_cases.geometry.stratified.point_set import (
     PointSetMetricTestCase,
     PointSetTestCase,
@@ -43,7 +43,7 @@ class TestMakePartitions(TestCase, metaclass=DataBasedParametrizer):
         self.assertTrue(len(topologies) == expected)
 
 
-@autodiff_only
+@torch_only
 class TestSquaredDistAndGrad(TestCase, metaclass=DataBasedParametrizer):
     _n_labels = random.randint(4, 5)
     space = WaldSpace(n_labels=_n_labels, equip=False)
