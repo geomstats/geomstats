@@ -40,6 +40,19 @@ def broadcast_lists(*lists):
 
 
 def _manipulate_input(arg):
+    """Transform input into list if not one.
+
+    Parameters
+    ----------
+    arg : any
+        Argument to manipulate
+
+    Returns
+    -------
+    arg : any or list[any]
+    transformed : bool
+        If point was transformed.
+    """
     if not isinstance(arg, (list, tuple)):
         return [arg], True
 

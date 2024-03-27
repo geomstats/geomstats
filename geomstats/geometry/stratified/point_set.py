@@ -17,7 +17,7 @@ class Point(ABC):
 
         Parameters
         ----------
-        point : Point or list[Point]
+        point : Point or PointBatch
             Point to compare against point.
         atol : float
 
@@ -137,9 +137,9 @@ class PointSetMetric(ABC):
 
         Parameters
         ----------
-        point_a: Point or list[Point]
+        point_a: Point or PointBatch
             Point in the PointSet.
-        point_b: Point or list[Point]
+        point_b: Point or PointBatch
             Point in the PointSet.
 
         Returns
@@ -154,9 +154,9 @@ class PointSetMetric(ABC):
 
         Parameters
         ----------
-        initial_point: Point or list[Point]
+        initial_point: Point or PointBatch
             Point in the PointSet.
-        end_point: Point or list[Point]
+        end_point: Point or PointBatch
             Point in the PointSet.
 
         Returns

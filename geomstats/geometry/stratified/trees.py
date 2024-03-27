@@ -13,13 +13,20 @@ Lead author: Jonas Lueg
 
 import functools
 import itertools
+import random
 
 import geomstats.backend as gs
+from geomstats.exceptions import NotPartialOrder
 
 
 def _pop_random_elem(ls):
-    """Pops a random element from an array."""
-    random_index = int(gs.random.randint(0, len(ls), (1,)))
+    """Pops a random element from a list.
+
+    Parameters
+    ----------
+    ls : list
+    """
+    random_index = random.randint(0, len(ls) - 1)
     return ls.pop(random_index)
 
 
@@ -439,7 +446,7 @@ class ForestTopology:
         self.partition = tuple([partition[key] for key in sort_key])
         self.split_sets = tuple([tuple(sorted(split_sets[key])) for key in sort_key])
 
-        self.where = {s: i for i, s in enumerate(self.flatten(self.split_sets))}
+        self.where = {s: i for i, s in enumerate(self._flatten(self.split_sets))}
 
         lengths = [len(splits) for splits in self.split_sets]
         self.sep = [0] + [sum(lengths[0:j]) for j in range(1, len(lengths) + 1)]
@@ -454,7 +461,7 @@ class ForestTopology:
 
         _support = [
             gs.zeros((self.n_labels, self.n_labels), dtype=int)
-            for _ in self.flatten(self.split_sets)
+            for _ in self._flatten(self.split_sets)
         ]
         for path_dict in self.paths:
             for (u, v), path in path_dict.items():
@@ -462,7 +469,7 @@ class ForestTopology:
                     _support[self.where[split]][u][v] = True
                     _support[self.where[split]][v][u] = True
         self.support = gs.reshape(
-            gs.array([m for m in self.flatten(_support)]),
+            gs.array([m for m in self._flatten(_support)]),
             (-1, self.n_labels, self.n_labels),
         )
         self._chart_gradient = None
@@ -568,10 +575,6 @@ class ForestTopology:
         is_less_than_or_equal : bool
             Return ``True`` if (i), (ii) and (iii) are satisfied, else ``False``.
         """
-
-        class NotPartialOrder(Exception):
-            """Raise an exception when less equal is not true."""
-
         x_parts = [set(x) for x in self.partition]
         y_parts = [set(y) for y in other.partition]
         # (i)
@@ -647,12 +650,12 @@ class ForestTopology:
         comps = [", ".join(str(sp) for sp in splits) for splits in self.split_sets]
         return "(" + "; ".join(comps) + ")"
 
-    def corr(self, x):
+    def corr(self, weights):
         """Compute the correlation matrix of the topology with edge weights ``weights``.
 
         Parameters
         ----------
-        x : array-like, [n_splits]
+        weights : array-like, [n_splits]
             Edge weights.
 
         Returns
@@ -664,19 +667,19 @@ class ForestTopology:
         for path_dict in self.paths:
             for (u, v), path in path_dict.items():
                 corr[u][v] = gs.prod(
-                    gs.array([1 - x[self.where[split]] for split in path])
+                    gs.array([1 - weights[self.where[split]] for split in path])
                 )
                 corr[v][u] = corr[u][v]
 
         corr = gs.array(corr)
         return corr + gs.eye(corr.shape[0])
 
-    def corr_gradient(self, x):
+    def corr_gradient(self, weights):
         """Compute the gradient of the correlation matrix, differentiated by weights.
 
         Parameters
         ----------
-        x : array-like
+        weights : array-like, [n_splits]
             The vector weights at which the gradient is computed.
 
         Returns
@@ -684,13 +687,16 @@ class ForestTopology:
         gradient : array-like, shape=[n_splits, n, n]
             The gradient of the correlation matrix, differentiated by weights.
         """
-        x_list = [[y if i != k else 0 for i, y in enumerate(x)] for k in range(len(x))]
+        x_list = [
+            [y if i != k else 0 for i, y in enumerate(weights)]
+            for k in range(len(weights))
+        ]
         gradient = gs.array(
             [-supp * self.corr(x) for supp, x in zip(self.support, x_list)]
         )
         return gradient
 
-    def unflatten(self, x):
+    def _unflatten(self, ls):
         """Transform list into list of lists according to separators, ``self.sep``.
 
         The separators are a list of integers, increasing. Then, all elements between to
@@ -699,30 +705,28 @@ class ForestTopology:
 
         Parameters
         ----------
-        x : iterable
+        ls : iterable
             The flat list that will be nested.
 
         Returns
         -------
-        x_nested : list[list]
+        ls_nested : list[list]
             The nested list of lists.
         """
-        # TODO: make private?
-        return [x[i:j] for i, j in zip(self.sep[:-1], self.sep[1:])]
+        return [ls[i:j] for i, j in zip(self.sep[:-1], self.sep[1:])]
 
     @staticmethod
-    def flatten(x):
+    def _flatten(ls):
         """Flatten a list of lists into a single list by concatenation.
 
         Parameters
         ----------
-        x : nested list
+        ls : nested list
             The nested list to flatten.
 
         Returns
         -------
-        x_flat : list, tuple
+        ls_flat : list, tuple
             The flatted list.
         """
-        # TODO: make private?
-        return [y for z in x for y in z]
+        return [y for z in ls for y in z]

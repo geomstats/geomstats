@@ -15,6 +15,7 @@ References
     https://doi.org/10.1007/978-3-030-80209-7_76.
 """
 
+import random
 from abc import ABC
 
 import geomstats.backend as gs
@@ -59,7 +60,17 @@ def _manipulate_output_wald(out, to_list):
 
 
 def make_splits(n_labels):
-    """Generate all possible splits of a collection."""
+    """Generate all possible splits of a collection.
+
+    Parameters
+    ----------
+    n_labels : int
+        Number of labels.
+
+    Returns
+    -------
+    split_iterator : Iterator[Split]
+    """
     if n_labels <= 1:
         raise ValueError("`n_labels` must be greater than 1.")
     if n_labels == 2:
@@ -75,10 +86,19 @@ def make_topologies(n_labels):
     """Generate all possible sets of compatible splits of a collection.
 
     This only works well for `len(n_labels) < 8`.
+
+    Parameters
+    ----------
+    n_labels : int
+        Number of labels.
+
+    Returns
+    -------
+    topology_iterator : Iterator[ForestTopology]
     """
     if n_labels <= 1:
         raise ValueError("The collection must have 2 elements or more.")
-    if n_labels in [2, 3]:
+    if n_labels in (2, 3):
         yield ForestTopology(
             partition=(tuple(range(n_labels)),),
             split_sets=(list(make_splits(n_labels)),),
@@ -141,7 +161,7 @@ def _generate_partition(n_labels, p_new):
     _partition = [[0]]
     for u in range(1, n_labels):
         if gs.random.rand(1) < p_new:
-            index = int(gs.random.randint(0, len(_partition), (1,)))
+            index = random.randint(0, len(_partition) - 1)
             _partition[index].append(u)
         else:
             _partition.append([u])
@@ -182,7 +202,7 @@ def generate_random_wald(n_labels, p_keep, p_new, btol=1e-8, check=True):
     ]
 
     top = ForestTopology(partition=partition, split_sets=split_sets)
-    x = gs.random.uniform(size=(len(top.flatten(split_sets)),), low=0, high=1)
+    x = gs.random.uniform(size=(top.n_splits,), low=0, high=1)
     x = gs.minimum(gs.maximum(btol, x), 1 - btol)
     return Wald(topology=top, weights=x)
 
@@ -418,7 +438,7 @@ class WaldSpace(PointSet):
 
         Returns
         -------
-        samples : Wald or list of Wald, shape=[n_samples]
+        samples : Wald or WaldBatch
             Points sampled in Wald space.
         """
         p_new = p_tree ** (1 / (self.n_labels - 1))
@@ -443,7 +463,7 @@ class WaldSpace(PointSet):
 
         Returns
         -------
-        samples : Wald or list of Wald, shape=[n_samples]
+        samples : Wald or WaldBatch
             Points sampled in Wald space.
         """
         n_splits = topology.n_splits
@@ -456,7 +476,6 @@ class WaldSpace(PointSet):
 
         return WaldBatch(forests)
 
-    @vectorize_point((1, "point"))
     def lift(self, point):
         """Lift a point to the ambient space.
 
@@ -470,7 +489,7 @@ class WaldSpace(PointSet):
         lifted_point : array-like, shape=[..., n_labels, n_labels]
             Point in the ambient space.
         """
-        return gs.stack([point_.corr for point_ in point])
+        return point.corr
 
 
 class WaldSpaceMetric(PointSetMetric):
@@ -503,7 +522,7 @@ class WaldSpaceMetric(PointSetMetric):
 
         Parameters
         ----------
-        point_a: Wald or WaldBatchb
+        point_a: Wald or WaldBatch
             Point in the WaldSpace.
         point_b: Wald or WaldBatch
             Point in the WaldSpace.
@@ -540,7 +559,7 @@ class WaldSpaceMetric(PointSetMetric):
         ----------
         initial_point: Wald or WaldBatch
             Point in the WaldSpace.
-        end_point: Point or list[Point]
+        end_point: Wald or WaldBatch
             Point in the WaldSpace.
 
         Returns
@@ -557,7 +576,7 @@ class WaldSpaceMetric(PointSetMetric):
         ----------
         initial_point: Wald or WaldBatch
             Point in the WaldSpace.
-        end_point: Point or list[Point]
+        end_point: Wald or WaldBatch
             Point in the WaldSpace.
 
         Returns
@@ -760,7 +779,7 @@ class BasicWaldGeodesicSolver(ABC):
         ----------
         initial_point: Wald or WaldBatch
             Point in the WaldSpace.
-        end_point: Point or list[Point]
+        initial_point: Wald or WaldBatch
             Point in the WaldSpace.
 
         Returns
@@ -784,7 +803,7 @@ class BasicWaldGeodesicSolver(ABC):
         ----------
         initial_point: Wald or WaldBatch
             Point in the WaldSpace.
-        end_point: Point or list[Point]
+        initial_point: Wald or WaldBatch
             Point in the WaldSpace.
 
         Returns
@@ -828,14 +847,14 @@ class NaiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
 
         Parameters
         ----------
-        initial_point: Wald or WaldBatch
+        initial_point: Wald
             Point in the WaldSpace.
-        end_point: Point or list[Point]
+        end_point: Wald
             Point in the WaldSpace.
 
         Returns
         -------
-        geod_points : WaldBatch or list[WaldBatch]
+        geod_points : WaldBatch
             Time parameterized geodesic curve.
         """
         if initial_point.topology != end_point.topology:
