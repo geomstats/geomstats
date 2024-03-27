@@ -287,7 +287,7 @@ class BackendImporter:
 
         module.set_default_dtype("float64")
 
-        logging.info(f"Using {BACKEND_NAME} backend")
+        logging.debug(f"geomstats is using {BACKEND_NAME} backend")
         return module
 
 
