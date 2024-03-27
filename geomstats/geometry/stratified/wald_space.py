@@ -671,6 +671,29 @@ def _squared_dist_and_grad_euclidean(space, topology, ambient_point):
     return _value_and_grad
 
 
+def _squared_dist_and_grad_autodiff(space, topology, ambient_point):
+    """Squared distance and gradient wrt weights.
+
+    Parameters
+    ----------
+    space : WaldSpace
+    topology : ForestTopology
+    ambient_point : array-like, shape=[n_nodes, n_nodes]
+        Point wrt measure distance.
+
+    Returns
+    -------
+    value_and_grad : callable
+        A callable that takes weights and outputs value and grad.
+    """
+
+    def _value(weights):
+        corr = topology.corr(weights)
+        return space.ambient_space.metric.squared_dist(corr, ambient_point)
+
+    return gs.autodiff.value_and_grad(_value)
+
+
 _AMBIENT_METRIC_TO_SQUARED_DIST_GRAD = {
     "SPDAffineMetric": _squared_dist_and_grad_affine,
     "SPDEuclideanMetric": _squared_dist_and_grad_euclidean,
@@ -705,9 +728,10 @@ class LocalProjectionSolver:
         if len(topology.partition) == topology.n_labels:
             return Wald(topology=topology, weights=gs.ones(self.n_labels))
 
-        value_and_grad = _AMBIENT_METRIC_TO_SQUARED_DIST_GRAD[
-            self._space.ambient_space.metric.__class__.__name__
-        ](
+        value_and_grad = _AMBIENT_METRIC_TO_SQUARED_DIST_GRAD.get(
+            self._space.ambient_space.metric.__class__.__name__,
+            _squared_dist_and_grad_autodiff,
+        )(
             space=self._space,
             ambient_point=ambient_point,
             topology=topology,

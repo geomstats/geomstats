@@ -1,8 +1,12 @@
 import pytest
 
 import geomstats.backend as gs
+from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDEuclideanMetric
 from geomstats.geometry.stratified.trees import ForestTopology, Split
-from geomstats.geometry.stratified.wald_space import Wald
+from geomstats.geometry.stratified.wald_space import (
+    _AMBIENT_METRIC_TO_SQUARED_DIST_GRAD,
+    Wald,
+)
 from geomstats.test.data import TestData
 
 from .point_set import PointMetricTestData
@@ -16,6 +20,25 @@ class MakePartitionsTestData(TestData):
             dict(n_labels=4, expected=3),
         ]
         return self.generate_tests(data, marks=(pytest.mark.smoke,))
+
+
+class SquaredDistAndGradTestData(TestData):
+    def value_and_grad_against_autodiff_test_data(self):
+        metrics = [SPDAffineMetric, SPDEuclideanMetric]
+
+        data = []
+        for Metric in metrics:
+            _squared_dist_and_grad = _AMBIENT_METRIC_TO_SQUARED_DIST_GRAD[
+                Metric.__name__
+            ]
+            data.append(
+                dict(
+                    squared_dist_and_grad=_squared_dist_and_grad,
+                    AmbientMetric=Metric,
+                ),
+            )
+
+        return self.generate_tests(data)
 
 
 class Wald2TestData(TestData):
