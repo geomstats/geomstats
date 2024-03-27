@@ -107,7 +107,7 @@ class DistTestCaseMixins:
 
         dist_ = self.space.metric.dist(point, point)
 
-        expected_shape = get_batch_shape(self.space.point_ndim, point)
+        expected_shape = (n_points,) if n_points > 1 else ()
         expected = gs.zeros(expected_shape)
         self.assertAllClose(dist_, expected, atol=atol)
 
