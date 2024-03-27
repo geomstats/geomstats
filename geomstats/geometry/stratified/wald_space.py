@@ -43,9 +43,10 @@ from geomstats.numerics.interpolation import LinearInterpolator1D
 from geomstats.numerics.optimizers import ScipyMinimize
 
 
-def _manipulate_input_with_array(arg):
+def _manipulate_input_with_array(arg, name):
     if gs.is_array(arg):
-        if arg.ndim > 2:
+        ndim = 2 if name == "ambient_point" else 1
+        if arg.ndim > ndim:
             return arg, False
         return gs.expand_dims(arg, axis=0), True
 
@@ -511,7 +512,7 @@ class WaldSpaceMetric(PointSetMetric):
             projection_solver = LocalProjectionSolver(space)
 
         if geodesic_solver is None:
-            geodesic_solver = NaiveProjectionGeodesicSolver(space)
+            geodesic_solver = SuccessiveProjectionGeodesicSolver(space)
 
         self.projection_solver = projection_solver
         self.geodesic_solver = geodesic_solver
@@ -585,7 +586,7 @@ class WaldSpaceMetric(PointSetMetric):
         """
         return self.geodesic_solver.discrete_geodesic(initial_point, end_point)
 
-    def projection(self, ambient_point, topology):
+    def projection(self, ambient_point, topology, initial_weights=None):
         """Projects a point into Wald space.
 
         Parameters
@@ -594,8 +595,12 @@ class WaldSpaceMetric(PointSetMetric):
             Ambient point to project.
         topology : ForestTopology or list[ForestTopology]
             Stratum topology.
+        initial_weights : array-like, shape=[..., n_splits]
+            Initial guess for weights.
         """
-        return self.projection_solver.projection(ambient_point, topology)
+        return self.projection_solver.projection(
+            ambient_point, topology, initial_weights=initial_weights
+        )
 
 
 def _squared_dist_and_grad_affine(space, topology, ambient_point):
@@ -714,7 +719,7 @@ class LocalProjectionSolver:
     def _get_bounds(self, n_splits):
         return [(self.btol, 1 - self.btol)] * n_splits
 
-    def _projection_single(self, ambient_point, topology):
+    def _projection_single(self, ambient_point, topology, initial_weights=None):
         """Project ambient point into wald space.
 
         Parameters
@@ -723,6 +728,8 @@ class LocalProjectionSolver:
             Ambient point to project.
         topology : ForestTopology
             Stratum topology.
+        initial_weights : array-like, shape=[n_splits]
+            Initial guess for weights.
         """
         if len(topology.partition) == topology.n_labels:
             return Wald(topology=topology, weights=gs.ones(self.n_labels))
@@ -738,7 +745,9 @@ class LocalProjectionSolver:
 
         n_splits = topology.n_splits
 
-        initial_weights = gs.ones(n_splits) * 0.5
+        initial_weights = (
+            gs.ones(n_splits) * 0.5 if initial_weights is None else initial_weights
+        )
 
         self.optimizer.bounds = self._get_bounds(n_splits)
         res = self.optimizer.minimize(value_and_grad, initial_weights)
@@ -758,10 +767,11 @@ class LocalProjectionSolver:
     @vectorize_point(
         (1, "ambient_point"),
         (2, "topology"),
+        (3, "initial_weights"),
         manipulate_input=_manipulate_input_with_array,
         manipulate_output=_manipulate_output_wald,
     )
-    def projection(self, ambient_point, topology):
+    def projection(self, ambient_point, topology, initial_weights=None):
         """Project ambient point into wald space.
 
         Parameters
@@ -770,11 +780,17 @@ class LocalProjectionSolver:
             Ambient point to project.
         topology : ForestTopology or list[ForestTopology]
             Stratum topology.
+        initial_weights : array-like, shape=[..., n_splits]
+            Initial guess for weights.
         """
-        ambient_point, topology = broadcast_lists(ambient_point, topology)
+        ambient_point, topology, initial_weights = broadcast_lists(
+            ambient_point, topology, initial_weights
+        )
         return [
-            self._projection_single(ambient_point_, topology_)
-            for ambient_point_, topology_ in zip(ambient_point, topology)
+            self._projection_single(ambient_point_, topology_, initial_weights_)
+            for ambient_point_, topology_, initial_weights_ in zip(
+                ambient_point, topology, initial_weights
+            )
         ]
 
 
@@ -792,7 +808,6 @@ class BasicWaldGeodesicSolver(ABC):
     @vectorize_point(
         (1, "initial_point"),
         (2, "end_point"),
-        manipulate_input=_manipulate_input_with_array,
         manipulate_output=lambda out, to_list: _manipulate_output(
             out, to_list, manipulate_output_iterable=lambda x: x
         ),
@@ -863,7 +878,7 @@ class NaiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
     Implementation of algorithm 1 from [Lueg21]_.
     """
 
-    def __init__(self, space, n_grid=5):
+    def __init__(self, space, n_grid=10):
         super().__init__(space)
         self.n_grid = n_grid
 
@@ -908,7 +923,7 @@ class SuccessiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
     Implementation of algorithm 2 from [Lueg21]_.
     """
 
-    def __init__(self, space, n_grid=5):
+    def __init__(self, space, n_grid=10):
         super().__init__(space)
         self.n_grid = n_grid
 
@@ -945,10 +960,18 @@ class SuccessiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
             )
 
             left_points.append(
-                self._space.metric.projection(ambient_geod_func(time)[0], topology)
+                self._space.metric.projection(
+                    ambient_geod_func(time)[0],
+                    topology,
+                    initial_weights=left_points[-1].weights,
+                )
             )
             right_points.append(
-                self._space.metric.projection(ambient_geod_func(1 - time)[0], topology)
+                self._space.metric.projection(
+                    ambient_geod_func(1 - time)[0],
+                    topology,
+                    initial_weights=right_points[-1].weights,
+                )
             )
 
         right_points.reverse()

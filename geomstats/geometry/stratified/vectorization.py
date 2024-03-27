@@ -39,7 +39,7 @@ def broadcast_lists(*lists):
     return out
 
 
-def _manipulate_input(arg):
+def _manipulate_input(arg, *args):
     """Transform input into list if not one.
 
     Parameters
@@ -109,9 +109,9 @@ def vectorize_point(
             args = list(args)
             for pos, name in args_positions:
                 if name in kwargs:
-                    kwargs[name], to_list_ = manipulate_input(kwargs[name])
+                    kwargs[name], to_list_ = manipulate_input(kwargs[name], name)
                 else:
-                    args[pos], to_list_ = manipulate_input(args[pos])
+                    args[pos], to_list_ = manipulate_input(args[pos], name)
 
                 to_list = to_list and to_list_
 
