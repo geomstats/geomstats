@@ -9,7 +9,7 @@ from geomstats.geometry.stratified.wald_space import (
     make_topologies,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.test_case import TestCase, np_only
+from geomstats.test.test_case import TestCase
 from geomstats.test_cases.geometry.stratified.point_set import (
     PointSetMetricTestCase,
     PointSetTestCase,
@@ -30,7 +30,6 @@ from .data.wald_space import (
 )
 
 
-@np_only
 class TestMakePartitions(TestCase, metaclass=DataBasedParametrizer):
     testing_data = MakePartitionsTestData()
 
@@ -40,7 +39,6 @@ class TestMakePartitions(TestCase, metaclass=DataBasedParametrizer):
         self.assertTrue(len(topologies) == expected)
 
 
-@np_only
 class TestWald(WaldTestCase, metaclass=DataBasedParametrizer):
     _n_labels = random.randint(4, 5)
     space = WaldSpace(n_labels=_n_labels, equip=False)
@@ -49,7 +47,6 @@ class TestWald(WaldTestCase, metaclass=DataBasedParametrizer):
 
 
 @pytest.mark.smoke
-@np_only
 class TestWald2(WaldTestCase, metaclass=DataBasedParametrizer):
     space = WaldSpace(n_labels=2, equip=False)
 
@@ -57,14 +54,12 @@ class TestWald2(WaldTestCase, metaclass=DataBasedParametrizer):
 
 
 @pytest.mark.smoke
-@np_only
 class TestWald3(WaldTestCase, metaclass=DataBasedParametrizer):
     space = WaldSpace(n_labels=3, equip=False)
 
     testing_data = Wald3TestData()
 
 
-@np_only
 class TestWaldSpace(PointSetTestCase, metaclass=DataBasedParametrizer):
     _n_labels = random.randint(4, 5)
     space = WaldSpace(n_labels=_n_labels, equip=False)
@@ -72,7 +67,6 @@ class TestWaldSpace(PointSetTestCase, metaclass=DataBasedParametrizer):
     testing_data = PointSetTestData()
 
 
-@np_only
 class TestWaldSpaceMetric(PointSetMetricTestCase, metaclass=DataBasedParametrizer):
     _n_labels = random.randint(4, 5)
     space = WaldSpace(n_labels=_n_labels)
@@ -101,7 +95,6 @@ def geodesic_solvers(request):
     )
 
 
-@np_only
 @pytest.mark.usefixtures("geodesic_solvers")
 class TestWaldGeodesicSolver(
     WaldGeodesicSolverTestCase, metaclass=DataBasedParametrizer

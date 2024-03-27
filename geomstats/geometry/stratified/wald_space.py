@@ -550,7 +550,7 @@ class WaldSpaceMetric(PointSetMetric):
         if is_list:
             return gs.stack(dists)
 
-        return gs.squeeze(dists)
+        return dists[0]
 
     def geodesic(self, initial_point, end_point):
         """Compute the geodesic in the WaldSpace.

@@ -47,7 +47,7 @@ class Wald3TestData(TestData):
 
 class WaldSpaceMetricTestData(PointMetricTestData):
     tolerances = {
-        "dist_point_to_itself_is_zero": {"atol": 1e-4},
+        "dist_point_to_itself_is_zero": {"atol": 1e-3},
         "geodesic_bvp_reverse": {"atol": 1e-4},
     }
 

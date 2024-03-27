@@ -15,7 +15,6 @@ from .data.bhv_space import BHVMetric5TestData
 from .data.point_set import PointMetricTestData, PointSetTestData, PointTestData
 
 
-@np_only
 class TestTree(PointTestCase, metaclass=DataBasedParametrizer):
     _n_labels = random.randint(4, 5)
     space = TreeSpace(n_labels=_n_labels, equip=False)
@@ -23,7 +22,6 @@ class TestTree(PointTestCase, metaclass=DataBasedParametrizer):
     testing_data = PointTestData()
 
 
-@np_only
 class TestTreeSpace(PointSetTestCase, metaclass=DataBasedParametrizer):
     _n_labels = random.randint(4, 5)
     space = TreeSpace(n_labels=_n_labels, equip=False)
