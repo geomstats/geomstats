@@ -4,6 +4,7 @@ from scipy.integrate import quad_vec
 import torch
 from torch.optim import Optimizer
 import math
+import random
 
 class NaturalGradientDescent(Optimizer):
     """Implements Natural Gradient Descent using Amari's anaytic solution
@@ -38,7 +39,6 @@ class NaturalGradientDescent(Optimizer):
         """Performs one step of Natural Gradient Descent"""
         w_list = []  
         w_star_list = [] 
-        w_tilde_list = []
         for group in self.param_groups: # only 1 group for now
             for i, param in enumerate(group['params']):
                 if i % 2 == 0: # only want to capture the weight parameters
@@ -50,19 +50,16 @@ class NaturalGradientDescent(Optimizer):
                     param2 = param_concat_bias.detach().numpy()
                     w_star_list.append(param2)
 
-            for w_layer in w_list:
-                for w in w_layer:
-                    w2 = np.append(w, 0.0)
-                    w_tilde_list.append(w2)
-
-            for n_l, weight_layer in enumerate(w_list):
+            for layer_index, weight_layer in enumerate(w_list):
+                A_00_list = []
+                D_list = []
+                X_list = []
+                Y_list = []
+                Z_list = []
                 for n_u, w in enumerate(weight_layer):
                     n = len(w)
                     x = torch.randn(n) # approximate value of current node since we assume x ~ N(0, I)
-                    w_star = w_star_list[n_l][n_u]
-                    w_tilde = w_tilde_list[n_l][n_u]
-                    e_star_0 = np.zeros(n+1)
-                    e_star_0[-1] = 1
+                    w_star = w_star_list[layer_index][n_u]
                     A_00 = (1/2*gs.sqrt(2)) * math.erf(w_star[-1] / gs.sqrt(gs.dot(w,w))) # see Appendix II, eq. 107
                     A_0n = (1/gs.sqrt(2)) * (math.exp((-1/2) * (w_star[-1] / gs.sqrt(gs.dot(w,w)))**2)) # see Appendix II, eq. 109
                     A_nn = ((1/2*gs.sqrt(2)) * A_00) -  ((w_star[-1] / gs.sqrt(gs.dot(w,w))) * A_0n) # see Appendix II, eq. 110
@@ -70,12 +67,37 @@ class NaturalGradientDescent(Optimizer):
                     X = (1/D) * A_00 - (1 / A_00) # pp. 15, eq. 78
                     Y = (-1) * A_0n / D # pp. 15, eq. 78
                     Z = A_nn / D - (1 / A_00) # pp. 15, eq. 78
-                    if param.grad is None:
-                        continue
-                    if i % 2 == 0: # updating the gradients for the weights only
-                        d_p = (-1) * param.grad.data * group['lr'] * ((1/A_00) * x + \
-                            (X / gs.dot(w,w) * gs.dot(w,x) + (Y / gs.sqrt(gs.dot(w,w))) * w)) # pp. 15, eq. 81
-                    else: # updating the gradients for the bias only
-                        d_p = (-1) * param.grad.data * group['lr'] * \
-                            ((1/A_00) + Z + (Y * gs.dot(w, x) / gs.sqrt(gs.dot(w,w))) * w_star[-1]) # pp. 15, eq. 82
-                    param.data.add_(d_p)
+                    A_00_list.append(A_00)
+                    D_list.append(D)
+                    X_list.append(X)
+                    Y_list.append(Y)
+                    Z_list.append(Z)
+
+                for i, param in enumerate(group['params'][layer_index: layer_index+2]):
+                    for n_u, w in enumerate(weight_layer):
+                        w_star = w_star_list[layer_index][n_u]
+                        A_00 = A_00_list[n_u]
+                        D = D_list[n_u]
+                        X = X_list[n_u]
+                        Y = Y_list[n_u]
+                        Z = Z_list[n_u] 
+                        alpha = group['lr']
+                        if param.grad is None:
+                            continue
+                        if i % 2 == 0: # updating the gradients for the weights only
+                          #  print('param grad', param.grad.data)
+                            d_p = (-1) * param.grad.data * alpha * ((1/A_00) * x + \
+                                (X / gs.dot(w,w) * gs.dot(w,x) + (Y / gs.sqrt(gs.dot(w,w))) * w)) # pp. 15, eq. 81
+                            print(d_p)
+                        else: # updating the gradients for the bias only
+                            d_p = (-1) * param.grad.data * alpha * \
+                                ((1/A_00) + Z + (Y * gs.dot(w, x) / gs.sqrt(gs.dot(w,w))) * 
+                                 w_star[-1]) # pp. 15, eq. 82
+                        with torch.no_grad():
+                            print('x', x)
+                            print('A00', A_00)
+                            print('D', D)
+                            print('X', X)
+                            print('Y', Y)
+                            print('Z', Z)
+                            param.data.add_(d_p)
