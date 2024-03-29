@@ -2,7 +2,7 @@ import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from .base import LevelSetTestData
-from .hyperbolic import HyperbolicMetricTestData
+from .riemannian_metric import RiemannianMetricTestData
 
 
 class HyperboloidTestData(LevelSetTestData):
@@ -31,7 +31,7 @@ class Hyperboloid3TestData(TestData):
         return self.generate_tests(data)
 
 
-class HyperboloidMetricTestData(HyperbolicMetricTestData):
+class HyperboloidMetricTestData(RiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 

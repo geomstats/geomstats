@@ -1,10 +1,7 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .riemannian_metric import (
-    RiemannianMetricCmpWithTransformTestData,
-    RiemannianMetricTestData,
-)
+from .riemannian_metric import RiemannianMetricCmpWithTransformTestData
 
 
 class HalfSpaceToBall2TestData(TestData):
@@ -46,7 +43,3 @@ class ExtrinsicToBall3TestData(TestData):
 class HyperbolicCmpWithTransformTestData(RiemannianMetricCmpWithTransformTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
-
-
-class HyperbolicMetricTestData(RiemannianMetricTestData):
-    pass
