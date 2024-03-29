@@ -1003,6 +1003,53 @@ class DiffeomorphicManifold(Manifold):
         self.image_space = image_space
         super().__init__(**kwargs)
 
+    def belongs(self, point, atol=gs.atol):
+        """Evaluate if a point belongs to the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *point_shape]
+            Point to evaluate.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the manifold.
+        """
+        if not self.intrinsic:
+            raise ValueError("`belongs` is not implemented.")
+        return self.image_space.belongs(self.diffeo.diffeomorphism(point), atol=atol)
+
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., *point_shape]
+            Vector.
+        base_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        if not self.intrinsic:
+            raise ValueError("`is_tangent` is not implemented.")
+
+        image_point = self.diffeo.diffeomorphism(base_point)
+        image_vector = self.diffeo.tangent_diffeomorphism(
+            vector, base_point=base_point, image_point=image_point
+        )
+        return self.image_space.is_tangent(image_vector, image_point, atol=atol)
+
     def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
 
@@ -1027,7 +1074,7 @@ class DiffeomorphicManifold(Manifold):
             image_tangent_vec, image_point=image_point, base_point=base_point
         )
 
-    def random_point(self, n_samples=1, bound=1.0):
+    def random_point(self, n_samples=1, **kwargs):
         """Sample random points on the manifold according to some distribution.
 
         If the manifold is compact, preferably a uniform distribution will be used.
@@ -1037,16 +1084,13 @@ class DiffeomorphicManifold(Manifold):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        bound : float
-            Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
 
         Returns
         -------
         samples : array-like, shape=[..., *point_shape]
             Points sampled on the manifold.
         """
-        image_point = self.image_space.random_point(n_samples=n_samples, bound=bound)
+        image_point = self.image_space.random_point(n_samples=n_samples, **kwargs)
         return self.diffeo.inverse_diffeomorphism(image_point)
 
     def regularize(self, point):
