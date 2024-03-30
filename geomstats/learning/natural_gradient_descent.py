@@ -70,7 +70,6 @@ class NaturalGradientDescent(Optimizer):
                 Z_list = []
                 for n_u, w in enumerate(weight_layer):
                     n = len(w)
-                    x = torch.randn(n) # approximate value of current node since we assume x ~ N(0, I)
                     w_star = w_star_list[layer_index][n_u]
                     A_00 = (1/2*gs.sqrt(2)) * math.erf(w_star[-1] / gs.sqrt(gs.dot(w,w))) # see Appendix II, eq. 107
                     A_0n = (1/gs.sqrt(2)) * (math.exp((-1/2) * (w_star[-1] / gs.sqrt(gs.dot(w,w)))**2)) # see Appendix II, eq. 109
@@ -86,7 +85,8 @@ class NaturalGradientDescent(Optimizer):
                     Z_list.append(Z)
 
                 for i, param in enumerate(group['params'][layer_index: layer_index+2]):
-                    for n_u, w in enumerate(weight_layer):
+                    for n_u, weight in enumerate(weight_layer):
+                        x = torch.randn(n) # approximate value of current node since we assume x ~ N(0, I), see pp. 12
                         w_star = w_star_list[layer_index][n_u]
                         A_00 = A_00_list[n_u]
                         D = D_list[n_u]
@@ -99,17 +99,12 @@ class NaturalGradientDescent(Optimizer):
                         if i % 2 == 0: # updating the gradients for the weights only
                           #  print('param grad', param.grad.data)
                             d_p = (-1) * param.grad.data * alpha * ((1/A_00) * x + \
-                                (X / gs.dot(w,w) * gs.dot(w,x) + (Y / gs.sqrt(gs.dot(w,w))) * w)) # pp. 15, eq. 81
+                                (X / gs.dot(weight,weight) * gs.dot(weight,x) + \
+                                (Y / gs.sqrt(gs.dot(weight,weight))) * weight)) # pp. 15, eq. 81
                             print(d_p)
                         else: # updating the gradients for the bias only
                             d_p = (-1) * param.grad.data * alpha * \
-                                ((1/A_00) + Z + (Y * gs.dot(w, x) / gs.sqrt(gs.dot(w,w))) * 
+                                ((1/A_00) + Z + (Y * gs.dot(weight, x) / gs.sqrt(gs.dot(weight, weight))) * 
                                  w_star[-1]) # pp. 15, eq. 82
                         with torch.no_grad():
-                            print('x', x)
-                            print('A00', A_00)
-                            print('D', D)
-                            print('X', X)
-                            print('Y', Y)
-                            print('Z', Z)
                             param.data.add_(d_p)
