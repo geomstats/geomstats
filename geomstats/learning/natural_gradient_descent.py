@@ -68,12 +68,12 @@ class NaturalGradientDescent(Optimizer):
                 X_list = []
                 Y_list = []
                 Z_list = []
-                for n_u, w in enumerate(weight_layer):
-                    n = len(w)
+                for n_u, weight in enumerate(weight_layer):
+                    n = len(weight)
                     w_star = w_star_list[layer_index][n_u]
-                    A_00 = (1/2*gs.sqrt(2)) * math.erf(w_star[-1] / gs.sqrt(gs.dot(w,w))) # see Appendix II, eq. 107
-                    A_0n = (1/gs.sqrt(2)) * (math.exp((-1/2) * (w_star[-1] / gs.sqrt(gs.dot(w,w)))**2)) # see Appendix II, eq. 109
-                    A_nn = ((1/2*gs.sqrt(2)) * A_00) -  ((w_star[-1] / gs.sqrt(gs.dot(w,w))) * A_0n) # see Appendix II, eq. 110
+                    A_00 = (1/2*gs.sqrt(2)) * math.erf(w_star[-1] / gs.sqrt(gs.dot(weight, weight))) # see Appendix II, eq. 107
+                    A_0n = (1/gs.sqrt(2)) * (math.exp((-1/2) * (w_star[-1] / gs.sqrt(gs.dot(weight, weight)))**2)) # see Appendix II, eq. 109
+                    A_nn = ((1/2*gs.sqrt(2)) * A_00) -  ((w_star[-1] / gs.sqrt(gs.dot(weight, weight))) * A_0n) # see Appendix II, eq. 110
                     D = A_00 * A_nn - A_0n**2 # pp. 15, eq. 79
                     X = (1/D) * A_00 - (1 / A_00) # pp. 15, eq. 78
                     Y = (-1) * A_0n / D # pp. 15, eq. 78
