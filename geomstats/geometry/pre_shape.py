@@ -7,9 +7,9 @@ import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import FlattenDiffeo, Matrices
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.integrator import integrate
 from geomstats.vectorization import get_batch_shape, repeat_out
 
@@ -43,13 +43,12 @@ class PreShapeSpace(LevelSet):
     def __init__(self, k_landmarks, m_ambient, equip=True):
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
+        self._sphere = Hypersphere(dim=m_ambient * k_landmarks - 1)
 
         super().__init__(
             dim=m_ambient * (k_landmarks - 1) - 1,
             equip=equip,
         )
-
-        self._sphere = Hypersphere(dim=m_ambient * k_landmarks - 1)
 
         self._quotient_map = {
             (PreShapeMetric, "rotations"): (PreShapeSpaceBundle, KendallShapeMetric),
@@ -691,123 +690,16 @@ class PreShapeSpaceBundle(FiberBundle):
         return nabla_x_a_y_v, a_x_a_y_a_x_y, nabla_x_v, a_y_a_x_y, vertical_vec_v
 
 
-class PreShapeMetric(RiemannianMetric):
+class PreShapeMetric(PullbackDiffeoMetric):
     """Procrustes metric on the pre-shape space."""
 
-    def _flatten_point(self, point):
-        sphere_embedding_dim = self._space._sphere.embedding_space.dim
-        return gs.reshape(point, point.shape[:-2] + (sphere_embedding_dim,))
-
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner-product of two tangent vectors at a base point.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
-            First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
-            Second tangent vector at base point.
-        base_point : array-like, shape=[..., dk_landmarks, m_ambient]
-            Point on the pre-shape space.
-
-        Returns
-        -------
-        inner_prod : array-like, shape=[...,]
-            Inner-product of the two tangent vectors.
-        """
-        return self._space.embedding_space.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point
+    def __init__(self, space):
+        k_landmarks, m_ambient = space.shape
+        super().__init__(
+            space,
+            diffeo=FlattenDiffeo(k_landmarks, m_ambient),
+            image_space=space._sphere,
         )
-
-    def exp(self, tangent_vec, base_point):
-        """Compute the Riemannian exponential of a tangent vector.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at a base point.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space.
-
-        Returns
-        -------
-        exp : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space equal to the Riemannian exponential
-            of tangent_vec at the base point.
-        """
-        flat_bp = self._flatten_point(base_point)
-        flat_tan = self._flatten_point(tangent_vec)
-        flat_exp = self._space._sphere.metric.exp(flat_tan, flat_bp)
-        return gs.reshape(flat_exp, tangent_vec.shape)
-
-    def log(self, point, base_point):
-        """Compute the Riemannian logarithm of a point.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space.
-
-        Returns
-        -------
-        log : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at the base point equal to the Riemannian logarithm
-            of point at the base point.
-        """
-        batch_shape = get_batch_shape(self._space.point_ndim, point, base_point)
-
-        flat_bp = self._flatten_point(base_point)
-        flat_pt = self._flatten_point(point)
-
-        flat_log = self._space._sphere.metric.log(flat_pt, flat_bp)
-
-        return gs.reshape(flat_log, batch_shape + self._space.shape)
-
-    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
-        r"""Compute the curvature.
-
-        For three tangent vectors at a base point :math:`x,y,z`,
-        the curvature is defined by
-        :math:`R(X, Y)Z = \nabla_{[X,Y]}Z
-        - \nabla_X\nabla_Y Z + - \nabla_Y\nabla_X Z`, where :math:`\nabla`
-        is the Levi-Civita connection. In the case of the hypersphere,
-        we have the closed formula
-        :math:`R(X,Y)Z = \langle X, Z \rangle Y - \langle Y,Z \rangle X`.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`.
-        tangent_vec_c : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`.
-        base_point :  array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the group. Optional, default is the identity.
-
-        Returns
-        -------
-        curvature : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`.
-        """
-        batch_shape = get_batch_shape(
-            self._space.point_ndim,
-            base_point,
-            tangent_vec_a,
-            tangent_vec_b,
-            tangent_vec_c,
-        )
-        flat_a = self._flatten_point(tangent_vec_a)
-        flat_b = self._flatten_point(tangent_vec_b)
-        flat_c = self._flatten_point(tangent_vec_c)
-        flat_bp = self._flatten_point(base_point)
-
-        curvature = self._space._sphere.metric.curvature(
-            flat_a, flat_b, flat_c, flat_bp
-        )
-        return gs.reshape(curvature, batch_shape + self._space.shape)
 
     def curvature_derivative(
         self,
@@ -858,53 +750,6 @@ class PreShapeMetric(RiemannianMetric):
             base_point,
         )
         return gs.zeros(batch_shape + self._space.shape)
-
-    def parallel_transport(
-        self, tangent_vec, base_point, direction=None, end_point=None
-    ):
-        """Compute the Riemannian parallel transport of a tangent vector.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at a base point.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space.
-        direction : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at a base point.
-            Optional, default : None.
-        end_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space, to transport to. Unused if
-            `tangent_vec_b` is given.
-            Optional, default : None.
-
-        Returns
-        -------
-        transported : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space equal to the Riemannian exponential
-            of tangent_vec at the base point.
-        """
-        if direction is None:
-            if end_point is not None:
-                direction = self.log(end_point, base_point)
-            else:
-                raise ValueError(
-                    "Either an end_point or a tangent_vec_b must be given to define the"
-                    " geodesic along which to transport."
-                )
-
-        batch_shape = get_batch_shape(
-            self._space.point_ndim, tangent_vec, base_point, direction, end_point
-        )
-
-        flat_bp = self._flatten_point(base_point)
-        flat_tan_a = self._flatten_point(tangent_vec)
-        flat_tan_b = self._flatten_point(direction)
-
-        flat_transport = self._space._sphere.metric.parallel_transport(
-            flat_tan_a, flat_bp, flat_tan_b
-        )
-        return gs.reshape(flat_transport, batch_shape + self._space.shape)
 
     def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
