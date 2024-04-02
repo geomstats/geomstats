@@ -3,13 +3,15 @@ import importlib
 import inspect
 import json
 import os
-import subprocess
+import shutil
 import tempfile
 import types
 import warnings
 
+import nbformat
 import pytest
 from matplotlib import pyplot as plt
+from nbconvert.preprocessors import ExecutePreprocessor
 
 import geomstats.backend as gs
 from geomstats.exceptions import AutodiffNotImplementedError
@@ -565,19 +567,13 @@ class ExamplesParametrizer(type):
 
 def _exec_notebook(path):
     file_name = tempfile.NamedTemporaryFile(suffix=".ipynb").name
-    args = [
-        "jupyter",
-        "nbconvert",
-        "--to",
-        "notebook",
-        "--execute",
-        "--ExecutePreprocessor.timeout=1000",
-        "--ExecutePreprocessor.kernel_name=python3",
-        "--output",
-        file_name,
-        path,
-    ]
-    subprocess.check_call(args)
+    shutil.copy(path, file_name)
+
+    with open(file_name) as file:
+        notebook = nbformat.read(file, as_version=4)
+
+    eprocessor = ExecutePreprocessor(timeout=1000, kernel_name="python3")
+    eprocessor.preprocess(notebook)
 
 
 class NotebooksParametrizer(type):
