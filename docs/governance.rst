@@ -4,7 +4,7 @@
 Geomstats governance and decision-making
 ========================================
 
-The purpose of this document is to formalize the governance process used by the
+This document formalizes the governance process used by the
 geomstats project, to clarify how decisions are made and how
 elements of our community interact.
 
