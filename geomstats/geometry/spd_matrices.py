@@ -834,15 +834,13 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...]
             Riemannian squared distance.
         """
-        product = gs.matmul(point_a, point_b)
-        sqrt_product = gs.linalg.sqrtm(product)
-        trace_a = gs.trace(point_a)
-        trace_b = gs.trace(point_b)
-        trace_prod = gs.trace(sqrt_product)
-
-        squared_dist = trace_a + trace_b - 2.0 * trace_prod
-
-        return gs.where(squared_dist < 0.0, 0.0, squared_dist)
+        La, Qa = gs.linalg.eigh(point_a)
+        point_a_sqrt = Qx @ gs.diag(gs.sqrt(Lx*(Lx>0))) @ Qx.T
+    
+        Lc,Qc = gs.linalg.eigh(point_a_sqrt@point_b@point_a_sqrt)
+        cross_term = Qc @ gs.diag(gs.sqrt((Lc*(Lc>0)))) @ Qc.T
+    
+        return np.trace(point_a + point_b - 2*cross_term)
 
     def parallel_transport(
         self,
