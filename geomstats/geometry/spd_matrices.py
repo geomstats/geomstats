@@ -835,12 +835,12 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
             Riemannian squared distance.
         """
         La, Qa = gs.linalg.eigh(point_a)
-        point_a_sqrt = Qx @ gs.diag(gs.sqrt(Lx*(Lx>0))) @ Qx.T
+        point_a_sqrt = Qa @ gs.diag(gs.sqrt(La*(La>0))) @ Qa.T
     
         Lc,Qc = gs.linalg.eigh(point_a_sqrt@point_b@point_a_sqrt)
         cross_term = Qc @ gs.diag(gs.sqrt((Lc*(Lc>0)))) @ Qc.T
     
-        return np.trace(point_a + point_b - 2*cross_term)
+        return gs.trace(point_a + point_b - 2*cross_term)
 
     def parallel_transport(
         self,
