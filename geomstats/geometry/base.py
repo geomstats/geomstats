@@ -52,25 +52,6 @@ class VectorSpace(Manifold, abc.ABC):
             return gs.ones(shape, dtype=bool)
         return gs.zeros(shape, dtype=bool)
 
-    @staticmethod
-    def projection(point):
-        """Project a point to the vector space.
-
-        This method is for compatibility and returns `point`. `point` should
-        have the right shape,
-
-        Parameters
-        ----------
-        point: array-like, shape[..., *point_shape]
-            Point.
-
-        Returns
-        -------
-        point: array-like, shape[..., *point_shape]
-            Point.
-        """
-        return gs.copy(point)
-
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
@@ -284,25 +265,6 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         if belongs:
             return gs.ones(shape, dtype=bool)
         return gs.zeros(shape, dtype=bool)
-
-    @staticmethod
-    def projection(point):
-        """Project a point to the vector space.
-
-        This method is for compatibility and returns `point`. `point` should
-        have the right shape,
-
-        Parameters
-        ----------
-        point: array-like, shape[..., *point_shape]
-            Point.
-
-        Returns
-        -------
-        point: array-like, shape[..., *point_shape]
-            Point.
-        """
-        return gs.copy(point)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -537,21 +499,6 @@ class LevelSet(Manifold, abc.ABC):
         """
         raise NotImplementedError("extrinsic_to_intrinsic_coords is not implemented.")
 
-    @abc.abstractmethod
-    def projection(self, point):
-        """Project a point in embedding manifold on embedded manifold.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., *embedding_space.point_shape]
-            Point in embedding manifold.
-
-        Returns
-        -------
-        projected : array-like, shape=[..., *point_shape]
-            Projected point.
-        """
-
 
 class OpenSet(Manifold, abc.ABC):
     """Class for manifolds that are open sets.
@@ -687,21 +634,6 @@ class VectorSpaceOpenSet(OpenSet, abc.ABC):
             return gs.broadcast_to(tangent_vec, base_point.shape)
         return tangent_vec
 
-    @abc.abstractmethod
-    def projection(self, point):
-        """Project a point in embedding manifold on manifold.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., *point_shape]
-            Point in embedding manifold.
-
-        Returns
-        -------
-        projected : array-like, shape=[..., *point_shape]
-            Projected point.
-        """
-
 
 class ComplexVectorSpaceOpenSet(ComplexManifold, abc.ABC):
     """Class for manifolds that are open sets of a complex vector space.
@@ -788,21 +720,6 @@ class ComplexVectorSpaceOpenSet(ComplexManifold, abc.ABC):
         """
         sample = self.embedding_space.random_point(n_samples, bound)
         return self.projection(sample)
-
-    @abc.abstractmethod
-    def projection(self, point):
-        """Project a point in embedding manifold on manifold.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., *point_shape]
-            Point in embedding manifold.
-
-        Returns
-        -------
-        projected : array-like, shape=[..., *point_shape]
-            Projected point.
-        """
 
 
 class ImmersedSet(Manifold, abc.ABC):
@@ -1133,3 +1050,62 @@ class DiffeomorphicManifold(Manifold):
         return self.diffeo.inverse_tangent_diffeomorphism(
             image_tangent_vec, image_point=image_point, base_point=base_point
         )
+
+
+class DiffeomorphicVectorSpace(VectorSpace, DiffeomorphicManifold):
+    """A vector space defined by a diffeomorphism."""
+
+    def projection(self, point):
+        r"""Make a matrix null-row-sum symmetric.
+
+        It considers only the first :math:`n-1 \times n-1` components.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        sym : array-like, shape=[..., n, n]
+            Symmetric matrix.
+        """
+        image_point = self.diffeo.diffeomorphism(point)
+        proj_image_point = self.image_space.projection(image_point)
+        return self.diffeo.inverse_diffeomorphism(proj_image_point)
+
+
+class DiffeomorphicMatrixVectorSpace(MatrixVectorSpace, DiffeomorphicVectorSpace):
+    """A matrix vector space defined by a diffeomorphism."""
+
+    def basis_representation(self, matrix_representation):
+        """Convert a symmetric matrix into a vector.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., n(n+1)/2]
+            Vector.
+        """
+        image_matrix_representation = self.diffeo.diffeomorphism(matrix_representation)
+        return self.image_space.basis_representation(image_matrix_representation)
+
+    def matrix_representation(self, basis_representation):
+        """Convert a vector into a symmetric matrix.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., n(n+1)/2]
+            Vector.
+
+        Returns
+        -------
+        matrix_representation : array-like, shape=[..., n, n]
+            Symmetric matrix.
+        """
+        image_point = self.image_space.matrix_representation(basis_representation)
+        return self.diffeo.inverse_diffeomorphism(image_point)

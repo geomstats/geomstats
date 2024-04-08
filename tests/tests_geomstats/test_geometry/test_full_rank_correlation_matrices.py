@@ -7,10 +7,13 @@ from geomstats.geometry.diffeo import ComposedDiffeo
 from geomstats.geometry.full_rank_correlation_matrices import (
     CorrelationMatricesBundle,
     FullRankCorrelationMatrices,
+    LogScaledMetric,
+    LogScalingDiffeo,
     OffLogDiffeo,
     OffLogMetric,
     PolyHyperbolicCholeskyMetric,
     UniqueDiagonalMatrixAlgorithm,
+    UniquePositiveDiagonalMatrixAlgorithm,
 )
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import expmh
@@ -26,6 +29,7 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
 )
 from geomstats.geometry.spd_matrices import CholeskyMap, SPDMatrices
 from geomstats.geometry.symmetric_matrices import (
+    NullRowSumsSymmetricMatrices,
     SymmetricHollowMatrices,
     SymmetricMatrices,
 )
@@ -45,9 +49,11 @@ from .data.full_rank_correlation_matrices import (
     CorrelationMatricesBundleTestData,
     FullRankCorrelationAffineQuotientMetricTestData,
     FullRankCorrelationMatricesTestData,
+    LogScaledMetricTestData,
     OffLogMetricTestData,
     PolyHyperbolicCholeskyMetricTestData,
     UniqueDiagonalMatrixAlgorithmTestData,
+    UniquePositiveDiagonalMatrixAlgorithmTestData,
 )
 
 
@@ -221,3 +227,57 @@ def equipped_cor_with_off_log_metric(request):
 @pytest.mark.usefixtures("equipped_cor_with_off_log_metric")
 class TestOffLogMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = OffLogMetricTestData()
+
+
+class TestUniquePositiveDiagonalMatrixAlgorithm(
+    TestCase, metaclass=DataBasedParametrizer
+):
+    _n = random.randint(2, 5)
+    algo = UniquePositiveDiagonalMatrixAlgorithm()
+    data_generator = RandomDataGenerator(SPDMatrices(n=_n, equip=False))
+
+    testing_data = UniquePositiveDiagonalMatrixAlgorithmTestData()
+
+    @pytest.mark.random
+    def test_rows_sum_to_one(self, n_points, atol):
+        spd_mat = self.data_generator.random_point(n_points)
+        diag_vec = self.algo.apply(spd_mat)
+
+        unit_row_sum_spd = spd_mat * gs.outer(diag_vec, diag_vec)
+
+        res = gs.sum(unit_row_sum_spd, axis=-1)
+
+        batch_shape = (n_points,) if n_points > 1 else ()
+        expected = gs.ones(batch_shape + (spd_mat.shape[-1],))
+        self.assertAllClose(res, expected, atol=atol)
+
+
+class TestLogScalingDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(2, 5)
+
+    space = FullRankCorrelationMatrices(n=_n, equip=False)
+    image_space = NullRowSumsSymmetricMatrices(n=_n, equip=False)
+    diffeo = LogScalingDiffeo()
+    testing_data = DiffeoTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (2, (0.0, 0.0, 1.0)),
+        (3, (0.0, 1.0, 1.0)),
+        (random.randint(4, 5), (1.0, 1.0, 1.0)),
+    ],
+)
+def equipped_cor_with_log_scaled_metric(request):
+    n, (alpha, delta, zeta) = request.param
+    request.cls.space = FullRankCorrelationMatrices(n, equip=False).equip_with_metric(
+        LogScaledMetric, alpha=alpha, delta=delta, zeta=zeta
+    )
+
+
+@pytest.mark.usefixtures("equipped_cor_with_log_scaled_metric")
+class TestLogScaledMetric(
+    PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = LogScaledMetricTestData()
