@@ -2,6 +2,7 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
+from geomstats.geometry.group_action import LieAlgebraBasedGroupAction
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.test.random import RandomDataGenerator
@@ -508,10 +509,14 @@ class FiberBundleTestCase(TestCase):
 
 class GeneralLinearBuresWassersteinBundle(FiberBundle):
     def __init__(self, total_space):
-        super().__init__(
-            total_space=total_space,
-            group=SpecialOrthogonal(total_space.n),
-        )
+        if not hasattr(total_space, "group_action"):
+            total_space.equip_with_group_action(
+                LieAlgebraBasedGroupAction(
+                    SpecialOrthogonal(total_space.n, equip=False)
+                )
+            )
+
+        super().__init__(total_space=total_space, aligner=True)
 
     @staticmethod
     def riemannian_submersion(point):

@@ -15,7 +15,10 @@ import logging
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.diffeo import ComposedDiffeo, Diffeo
-from geomstats.geometry.fiber_bundle import FiberBundle
+from geomstats.geometry.fiber_bundle import (
+    DistanceMinimizationBasedAligner,
+    FiberBundle,
+)
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import expmh
 from geomstats.geometry.hyperboloid import Hyperboloid
@@ -208,11 +211,18 @@ class CorrelationMatricesBundle(FiberBundle):
     """
 
     def __init__(self, total_space):
-        super().__init__(
-            total_space=total_space,
-            group_dim=total_space.n,
-            group_action=FullRankCorrelationMatrices.diag_action,
+        if not hasattr(total_space, "group_action"):
+            total_space.equip_with_group_action(FullRankCorrelationMatrices.diag_action)
+
+        aligner = (
+            DistanceMinimizationBasedAligner(
+                total_space, group_elem_shape=(total_space.n,)
+            )
+            if not gs.__name__.endswith("numpy")
+            else None
         )
+
+        super().__init__(total_space=total_space, aligner=aligner)
 
     @staticmethod
     def riemannian_submersion(point):
@@ -251,7 +261,7 @@ class CorrelationMatricesBundle(FiberBundle):
         diagonal = diagonal_tv / diagonal_bp
         aux = base_point * (diagonal[..., None, :] + diagonal[..., :, None])
         mat = tangent_vec - 0.5 * aux
-        return self.group_action(diagonal_bp ** (-0.5), mat)
+        return self._total_space.group_action(diagonal_bp ** (-0.5), mat)
 
     def vertical_projection(self, tangent_vec, base_point):
         """Compute the vertical projection wrt the affine-invariant metric.
@@ -296,7 +306,7 @@ class CorrelationMatricesBundle(FiberBundle):
         if base_point is not None:
             return self.horizontal_projection(tangent_vec, base_point)
         diagonal_point = Matrices.diagonal(fiber_point) ** 0.5
-        lift = self.group_action(diagonal_point, tangent_vec)
+        lift = self._total_space.group_action(diagonal_point, tangent_vec)
         return self.horizontal_projection(lift, base_point=fiber_point)
 
 
