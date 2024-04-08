@@ -119,7 +119,7 @@ class SymmetricMatrices(MatrixVectorSpace):
         mat_dim = (gs.sqrt(8.0 * vec_dim + 1) - 1) / 2
         if mat_dim != int(mat_dim):
             raise ValueError(
-                "Invalid input dimension, it must be of the form"
+                "Invalid input dimension, it must be of the form "
                 "(n_samples, n * (n + 1) / 2)"
             )
         mat_dim = int(mat_dim)
@@ -281,7 +281,13 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
         Geometry [math.DG]. Université Côte d'Azur, 2022.
     """
 
-    def __init__(self, space, alpha=1.0, beta=1.0, gamma=1.0):
+    def __init__(self, space, alpha=None, beta=None, gamma=1.0):
+        if alpha is None:
+            alpha = 1.0 if space.n > 3 else 0.0
+
+        if beta is None:
+            beta = 1.0 if space.n > 2 else 0.0
+
         self._check_params(space, alpha, beta, gamma)
         super().__init__(space=space)
         self.alpha = alpha
@@ -301,8 +307,9 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
         if n == 2:
             if alpha > gs.atol or beta > gs.atol or gamma < gs.atol:
                 raise ValueError(
-                    f"When n==2: alpha ({alpha}) and beta({beta}) must be 0,"
+                    f"When n==2: alpha ({alpha}) and beta ({beta}) must be 0, "
                     f"and gamma ({gamma}) > 0. "
+                    "Check thanwerdas2022 theorem 8.7"
                 )
             return
 
@@ -310,8 +317,8 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
             cond = beta + 3 * gamma
             if alpha > gs.atol or beta < gs.atol or cond < gs.atol:
                 raise ValueError(
-                    f"When n==3: alpha ({alpha}) must be 0, beta ({beta}) > 0"
-                    f"and an inequality greater than 0: {cond}."
+                    f"When n==3: alpha ({alpha}) must be 0, beta ({beta}) > 0 "
+                    f"and an inequality greater than 0: {cond}. "
                     "Check thanwerdas2022 theorem 8.7"
                 )
             return
@@ -320,7 +327,7 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
         cond_2 = alpha + (n - 1) * (beta + n * gamma)
         if cond_1 < gs.atol or cond_2 < gs.atol:
             raise ValueError(
-                f"Inequalities should be greater than 0, but: {cond_1} and {cond_2}."
+                f"Inequalities should be greater than 0, but: {cond_1} and {cond_2}. "
                 "Check thanwerdas2022 theorem 8.7"
             )
 
@@ -655,7 +662,13 @@ class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
         November 2023. https://hal.science/hal-03878729.
     """
 
-    def __init__(self, space, alpha=1.0, delta=1.0, zeta=1.0):
+    def __init__(self, space, alpha=None, delta=None, zeta=1.0):
+        if alpha is None:
+            alpha = 1.0 if space.n > 3 else 0.0
+
+        if delta is None:
+            delta = 1.0 if space.n > 2 else 0.0
+
         self._check_params(space, alpha, delta, zeta)
         super().__init__(space=space)
         self.alpha = alpha
@@ -675,8 +688,9 @@ class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
         if n == 2:
             if alpha > gs.atol or delta > gs.atol or zeta < gs.atol:
                 raise ValueError(
-                    f"When n==2: alpha ({alpha}) and delta({delta}) must be 0,"
+                    f"When n==2: alpha ({alpha}) and delta ({delta}) must be 0, "
                     f"and zeta ({zeta}) > 0. "
+                    "Check thanwerdas2022 theorem 8.7"
                 )
             return
 
@@ -684,8 +698,8 @@ class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
             cond = delta + 3 * zeta
             if alpha > gs.atol or delta < gs.atol or cond < gs.atol:
                 raise ValueError(
-                    f"When n==3: alpha ({alpha}) must be 0, delta ({delta}) > 0"
-                    f"and an inequality greater than 0: {cond}."
+                    f"When n==3: alpha ({alpha}) must be 0, delta ({delta}) > 0 "
+                    f"and an inequality greater than 0: {cond}. "
                     "Check thanwerdas2022 theorem 8.7"
                 )
             return
@@ -694,7 +708,7 @@ class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
         cond_2 = n * alpha + (n - 1) * (delta + n * zeta)
         if cond_1 < gs.atol or cond_2 < gs.atol:
             raise ValueError(
-                f"Inequalities should be greater than 0, but: {cond_1} and {cond_2}."
+                f"Inequalities should be greater than 0, but: {cond_1} and {cond_2}. "
                 "Check thanwerdas2022 theorem 8.7"
             )
 

@@ -791,7 +791,7 @@ class OffLogMetric(PullbackDiffeoMetric):
         Geometry [math.DG]. Université Côte d'Azur, 2022.
     """
 
-    def __init__(self, space, alpha=1.0, beta=1.0, gamma=1.0):
+    def __init__(self, space, alpha=None, beta=None, gamma=1.0):
         diffeo = OffLogDiffeo()
 
         image_space = SymmetricHollowMatrices(n=space.n, equip=False).equip_with_metric(
@@ -1111,7 +1111,7 @@ class LogScaledMetric(PullbackDiffeoMetric):
         November 2023. https://hal.science/hal-03878729.
     """
 
-    def __init__(self, space, alpha=1.0, delta=1.0, zeta=1.0):
+    def __init__(self, space, alpha=None, delta=None, zeta=1.0):
         diffeo = LogScalingDiffeo()
 
         image_space = NullRowSumsSymmetricMatrices(
