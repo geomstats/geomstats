@@ -833,16 +833,29 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         -------
         squared_dist : array-like, shape=[...]
             Riemannian squared distance.
+
+        Notes
+        -----
+        Use of `abs` in the output prevents nan when calling
+        `sqrt` in very small negative outputs (e.g. -1e-16).
         """
-        product = gs.matmul(point_a, point_b)
-        sqrt_product = gs.linalg.sqrtm(product)
-        trace_a = gs.trace(point_a)
-        trace_b = gs.trace(point_b)
-        trace_prod = gs.trace(sqrt_product)
+        La, Qa = gs.linalg.eigh(point_a)
+        point_a_sqrt = Matrices.mul(
+            Qa,
+            gs.vec_to_diag(
+                gs.sqrt(La * (La > 0)),
+            ),
+            Matrices.transpose(Qa),
+        )
 
-        squared_dist = trace_a + trace_b - 2.0 * trace_prod
+        Lc, Qc = gs.linalg.eigh(point_a_sqrt @ point_b @ point_a_sqrt)
+        cross_term = Matrices.mul(
+            Qc,
+            gs.vec_to_diag(gs.sqrt(Lc * (Lc > 0))),
+            Matrices.transpose(Qc),
+        )
 
-        return gs.where(squared_dist < 0.0, 0.0, squared_dist)
+        return gs.abs(gs.trace(point_a + point_b - 2 * cross_term))
 
     def parallel_transport(
         self,

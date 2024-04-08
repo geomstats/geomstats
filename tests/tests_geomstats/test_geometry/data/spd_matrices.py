@@ -316,17 +316,6 @@ class SPDBuresWassersteinMetricTestData(RiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
-    tolerances = {
-        "dist_point_to_itself_is_zero": {"atol": 1e-6},
-    }
-
-    skips = (
-        "parallel_transport_bvp_transported_is_tangent",
-        "parallel_transport_ivp_transported_is_tangent",
-        "parallel_transport_bvp_vec",
-        "parallel_transport_ivp_vec",
-    )
-
 
 class SPD2BuresWassersteinMetricTestData(TestData):
     def exp_test_data(self):
