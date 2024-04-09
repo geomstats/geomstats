@@ -156,7 +156,6 @@ class VectorSpace(Manifold, abc.ABC):
             n_samples = len(base_point)
         return self.random_point(n_samples)
 
-
     @property
     def basis(self):
         """Basis of the vector space."""
