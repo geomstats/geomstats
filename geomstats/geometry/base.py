@@ -148,8 +148,14 @@ class VectorSpace(Manifold, abc.ABC):
                 "The number of base points must be the same as the "
                 "number of samples, when the number of base points is different from 1."
             )
-        n_samples = base_point.shape[0] if base_point.ndim > len(self.shape) else 1
+        if (
+            n_samples == 1
+            and base_point is not None
+            and base_point.ndim > len(self.shape)
+        ):
+            n_samples = len(base_point)
         return self.random_point(n_samples)
+
 
     @property
     def basis(self):
