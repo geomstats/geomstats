@@ -1584,10 +1584,13 @@ class SRVReparametrizationBundle(FiberBundle):
         Space of discrete curves starting at the origin
     """
 
-    def __init__(self, total_space):
+    def __init__(self, total_space, aligner=None):
+        if aligner is None:
+            aligner = IterativeHorizontalGeodesicAligner(total_space)
+
         super().__init__(
             total_space=total_space,
-            aligner=IterativeHorizontalGeodesicAligner(total_space),
+            aligner=aligner,
         )
 
     def vertical_projection(self, tangent_vec, base_point, return_norm=False):
