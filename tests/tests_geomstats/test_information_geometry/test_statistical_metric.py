@@ -101,10 +101,10 @@ class TestStatisticalMetric(TestCase):
     def test_KL_metric_matrix(
             self,
         ):
-        KL_induced_metric_matrix =self.normal_stat_metric.metric_matrix(self.base_point)
+        KL_induced_metric =self.normal_stat_metric.metric_matrix(self.base_point)
         fisher_metric = FisherRaoMetric(space=self.normal_manifold, support=[-10, 10])
-        fisher_induced_metric_matrix = fisher_metric.metric_matrix(self.base_point)
-        self.assertAllClose(KL_induced_metric_matrix, fisher_induced_metric_matrix, atol=1e-4)
+        fisher_induced_metric = fisher_metric.metric_matrix(self.base_point)
+        self.assertAllClose(KL_induced_metric, fisher_induced_metric, atol=1e-4)
 
     def test_bregman_metric_matrix(
         self,
