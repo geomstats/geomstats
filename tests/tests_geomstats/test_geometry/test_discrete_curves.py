@@ -41,10 +41,10 @@ from .data.diffeo import (
     DiffeoTestData,
 )
 from .data.discrete_curves import (
-    AlignerCmpTestData,
     DiscreteCurvesStartingAtOriginTestData,
     ElasticMetricTestData,
     L2CurvesMetricTestData,
+    ReparameterizationAlignerTestData,
     SRVMetricTestData,
     SRVReparametrizationBundleTestData,
     SRVReparametrizationsQuotientMetricTestData,
@@ -206,9 +206,39 @@ def srv_reparameterization_bundles(request):
 class TestSRVReparametrizationBundle(
     SRVReparametrizationBundleTestCase, metaclass=DataBasedParametrizer
 ):
+    ambient_dim = random.randint(2, 3)
+    k_sampling_points = random.randint(4, 8)
+
+    total_space = base = DiscreteCurvesStartingAtOrigin(ambient_dim, k_sampling_points)
+    total_space.fiber_bundle = SRVReparametrizationBundle(total_space)
+
+    data_generator = base_data_generator = ShapeBundleRandomDataGenerator(total_space)
     testing_data = SRVReparametrizationBundleTestData()
 
-    @pytest.mark.random
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (DynamicProgrammingAligner, random.randint(4, 8)),
+        (IterativeHorizontalGeodesicAligner, random.choice([4, 6, 8])),
+        (IterativeHorizontalGeodesicAligner, random.choice([5, 7, 9])),
+    ],
+)
+def aligners(request):
+    Aligner, k_sampling_points = request.param
+
+    request.cls.total_space = total_space = DiscreteCurvesStartingAtOrigin(
+        k_sampling_points=k_sampling_points
+    )
+
+    aligner = Aligner(total_space)
+    total_space.fiber_bundle = SRVReparametrizationBundle(total_space, aligner=aligner)
+
+
+@pytest.mark.usefixtures("aligners")
+class TestReparameterizationAligner(TestCase, metaclass=DataBasedParametrizer):
+    testing_data = ReparameterizationAlignerTestData()
+
     def test_align_in_same_fiber(self, n_points, atol):
         base_point = self.total_space.random_point(n_points)
         base_curve = self.total_space.interpolate(base_point)
@@ -221,30 +251,6 @@ class TestSRVReparametrizationBundle(
         aligned_point = self.total_space.fiber_bundle.align(point, base_point)
 
         self.assertAllClose(aligned_point, base_point, atol=atol)
-
-
-@pytest.mark.smoke
-class TestAlignerCmp(TestCase, metaclass=DataBasedParametrizer):
-    total_space = DiscreteCurvesStartingAtOrigin(k_sampling_points=10)
-    total_space.fiber_bundle = SRVReparametrizationBundle(total_space)
-    total_space.fiber_bundle.aligner = None
-
-    aligner = IterativeHorizontalGeodesicAligner(total_space)
-    other_aligner = DynamicProgrammingAligner(total_space)
-
-    testing_data = AlignerCmpTestData()
-
-    def test_align(self, curve_a, curve_b, atol):
-        k_sampling_points = self.total_space.k_sampling_points
-        sampling_points = gs.linspace(0.0, 1.0, k_sampling_points)
-
-        base_point = self.total_space.projection(curve_a(sampling_points))
-        point = self.total_space.projection(curve_b(sampling_points))
-
-        aligned = self.aligner.align(point, base_point)
-        other_aligned = self.other_aligner.align(point, base_point)
-
-        self.assertAllClose(aligned, other_aligned, atol=atol)
 
 
 class TestSRVRotationBundle(TestCase, metaclass=DataBasedParametrizer):

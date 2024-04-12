@@ -3,7 +3,6 @@
 Lead author: Alice Le Brigant.
 """
 
-import copy
 import logging
 import math
 
@@ -24,6 +23,10 @@ from geomstats.numerics.finite_differences import (
     centered_difference,
     forward_difference,
     second_centered_difference,
+)
+from geomstats.numerics.interpolation import (
+    LinearInterpolator1D,
+    UniformUnitIntervalLinearInterpolator,
 )
 from geomstats.vectorization import check_is_batch, get_batch_shape
 
@@ -1282,25 +1285,30 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
     total_space : Manifold
         Total space with reparametrizations fiber bundle structure.
     n_space_grid : int
-        Number of subintervals in which the reparametrization is linear.
-        Optinal, default: 100.
+        Number of sampling points of the unit interval.
     max_slope : int
         Maximum slope allowed for a reparametrization.
-        Optional, default: 6.
 
     References
     ----------
     [WAJ2007] M. Washington, S. Anuj & H. Joshi,
-    "On Shape of Plane Elastic Curves", in International Journal of Computer
-    Vision. 73(3):307-324, 2007.
+        "On Shape of Plane Elastic Curves", in International Journal of Computer
+        Vision. 73(3):307-324, 2007.
     """
 
-    def __init__(self, total_space, n_space_grid=100, max_slope=6.0):
+    def __init__(self, total_space, n_space_grid=100, max_slope=6):
+        k_sampling_points = total_space.k_sampling_points
+
         super().__init__(total_space)
         self.n_space_grid = n_space_grid
         self.max_slope = max_slope
 
-    def _resample_srv_function(self, srv_function, k_sampling_points):
+        self._srv_transform = SRVTransform(
+            self._total_space.ambient_manifold,
+            k_sampling_points,
+        )
+
+    def _resample_srv_function(self, srv_function):
         """Resample SRV function of a discrete curve.
 
         Parameters
@@ -1310,25 +1318,32 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
 
         Returns
         -------
-        srv : array, shape=[..., n_space_grid, ambient_dim]
+        srv : array, shape=[..., n_space_grid - 1, ambient_dim]
             SRV function of the curve at the right size.
+
+        Notes
+        -----
+        If `n_space_grid` < `k_sampling_points`, it subsamples the curve.
         """
         n_space_grid = self.n_space_grid
-        i = gs.array(range(n_space_grid))
+        index = gs.array(range(n_space_grid - 1))
 
-        ratio = (k_sampling_points - 1) / n_space_grid
-        indices = gs.cast(gs.floor(i * ratio), dtype=int)
+        ratio = (self._total_space.k_sampling_points - 1) / (n_space_grid - 1)
+        indices = gs.cast(gs.floor(index * ratio), dtype=int)
 
         return srv_function[..., indices, :]
 
     @staticmethod
-    def _compute_integral_restricted(srv_1, srv_2, x_min, x_max, y_min, y_max):
+    def _compute_restricted_integral(
+        srv_1, srv_2, x_min_index, x_max_index, y_min_index, y_max_index
+    ):
         r"""Compute the value of an integral over a subinterval.
 
         Compute n * the value of the integral of
 
         .. math::
-        srv_1(t)\cdotsrv_2(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}
+
+            q_1(t)\cdot q_2(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}
 
         over :math:`\left[\x_min,x_max\right]` where gamma restricted to
         :math:`\left[\x_min,x_max\right]` is a linear.
@@ -1339,13 +1354,13 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
             SRV function of the initial curve.
         srv_2 : array, shape=[n, ambient_dim]
             SRV function of the end curve.
-        x_min : int
+        x_min_index : int
             Beginning of the subinterval.
-        x_max : int
+        x_max_index : int
             End of the subinterval.
-        y_min : int
+        y_min_index : int
             Value of gamma at x_min.
-        y_max : int
+        y_max_index : int
             Value of gamma at x_max.
 
         Returns
@@ -1353,102 +1368,88 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
         value : float
             Value of the integral described above.
         """
-        gamma_slope = (y_max - y_min) / (x_max - x_min)
+        delta_y_index = y_max_index - y_min_index
+        delta_x_index = x_max_index - x_min_index
 
-        list_l = list(range(x_min, x_max + 1))
-        list_k = [(k - y_min) / gamma_slope + x_min for k in range(y_min, y_max + 1)]
+        gamma_slope = delta_y_index / delta_x_index
 
-        lower_bound = x_min
-        i = 1
-        j = 1
+        x_bound_indices = list(range(x_min_index, x_max_index + 1))
+        y_bounds_indices = [
+            (y_index - y_min_index) / gamma_slope + x_min_index
+            for y_index in range(y_min_index, y_max_index + 1)
+        ]
+
+        lower_bound = x_min_index
+        x_index, y_index = 0, 0
 
         value = 0.0
-        while i < x_max - x_min + 1 and j < y_max - y_min + 1:
-            upper_bound = min(list_l[i], list_k[j])
-            length = upper_bound - lower_bound
-            value += length * gs.dot(srv_1[x_min + i - 1], srv_2[y_min + j - 1])
+        while x_index < delta_x_index and y_index < delta_y_index:
+            upper_bound = min(
+                x_bound_indices[x_index + 1], y_bounds_indices[y_index + 1]
+            )
 
-            if list_l[i] == list_k[j]:
-                i += 1
-                j += 1
-            elif list_l[i] < list_k[j]:
-                i += 1
+            # NB: normalization is done outside
+            length = upper_bound - lower_bound
+            value += length * gs.dot(
+                srv_1[x_min_index + x_index], srv_2[y_min_index + y_index]
+            )
+
+            if (
+                gs.abs(x_bound_indices[x_index + 1] - y_bounds_indices[y_index + 1])
+                < gs.atol
+            ):
+                x_index += 1
+                y_index += 1
+            elif x_bound_indices[x_index + 1] < y_bounds_indices[y_index + 1]:
+                x_index += 1
             else:
-                j += 1
+                y_index += 1
             lower_bound = upper_bound
 
-        return math.pow(gamma_slope, 1 / 2) * value
+        return gamma_slope**0.5 * value
 
-    def _reparametrize(self, curve, gamma):
+    def _reparametrize(self, point_with_origin, gamma):
         """Reparametrize curve by gamma.
 
         Parameters
         ----------
-        curve : array, shape=[k_sampling_points, ambient_dim]
+        point_with_origin : array, shape=[k_sampling_points, ambient_dim]
             Discrete curve.
         gamma : array, shape=[n_subinterval]
             Parametrization of a curve.
 
         Returns
         -------
-        new_curve : array , shape=[k_sampling_points, ambient_dim]
+        new_point : array , shape=[k_sampling_points - 1, ambient_dim]
             Curve reparametrized by gamma.
         """
         n_space_grid = self.n_space_grid
-        k_sampling_points = curve.shape[-2]
+        k_sampling_points = self._total_space.k_sampling_points
 
-        new_curve = gs.zeros(curve.shape, dtype=float)
-        n_subinterval = len(gamma)
-        list_gamma_slope = gs.zeros(n_space_grid + 1, dtype=float)
-        list_gamma_constant = gs.zeros(n_space_grid + 1, dtype=float)
+        x_uniform = gs.linspace(0.0, 1.0, k_sampling_points)
+        point_interpolator = UniformUnitIntervalLinearInterpolator(
+            point_with_origin, point_ndim=1
+        )
 
-        new_curve[0] = curve[0]
-        new_curve[-1] = curve[-1]
+        x_space = gs.array([gamma_elem[1] for gamma_elem in gamma]) / (n_space_grid - 1)
+        y_space = gs.array([gamma_elem[0] for gamma_elem in gamma]) / (n_space_grid - 1)
 
-        for k in range(1, n_subinterval):
-            (i_depart, j_depart) = gamma[k - 1]
-            (i_arrive, j_arrive) = gamma[k]
-            gamma_slope = (j_arrive - j_depart) / (i_arrive - i_depart)
-            gamma_constant = j_depart - i_depart * gamma_slope
+        repar_inverse = LinearInterpolator1D(y_space, x_space, point_ndim=0)
 
-            for i in range(i_depart, i_arrive):
-                list_gamma_slope[i] = gamma_slope
-                list_gamma_constant[i] = gamma_constant
+        return point_interpolator(repar_inverse(x_uniform[1:]))
 
-        ratio_k = (n_space_grid - 1) / k_sampling_points
-        ratio_n = (k_sampling_points - 1) / n_space_grid
-        for k in range(1, k_sampling_points):
-            indice_n = int(gs.floor(k * ratio_k))
-            gamma_indice_n = (k * ratio_k) * list_gamma_slope[
-                indice_n
-            ] + list_gamma_constant[indice_n]
-            gamma_indice_k = gamma_indice_n * ratio_n
-            indice_k = int(gs.floor(gamma_indice_k))
-            alpha = gamma_indice_k - indice_k
-
-            new_curve[k] = curve[indice_k] * (1 - alpha) + curve[indice_k + 1] * alpha
-
-        return new_curve
-
-    def _compute_squared_dist(self, initial_srv, end_srv, tableau):
+    def _compute_squared_dist(self, initial_srv, end_srv, grid_last):
         """Compute squared distance using algorithmic information."""
         n_space_grid = self.n_space_grid
 
-        norm_squared_initial_srv = (
-            self._compute_integral_restricted(
-                initial_srv, initial_srv, 0, n_space_grid, 0, n_space_grid
-            )
-            / n_space_grid
-        )
-        norm_squared_end_srv = (
-            self._compute_integral_restricted(
-                end_srv, end_srv, 0, n_space_grid, 0, n_space_grid
-            )
-            / n_space_grid
-        )
+        norm_squared_initial_srv = self._compute_restricted_integral(
+            initial_srv, initial_srv, 0, n_space_grid - 1, 0, n_space_grid - 1
+        ) / (n_space_grid - 1)
+        norm_squared_end_srv = self._compute_restricted_integral(
+            end_srv, end_srv, 0, n_space_grid - 1, 0, n_space_grid - 1
+        ) / (n_space_grid - 1)
 
-        maximum_scalar_product = tableau[(n_space_grid, n_space_grid)] / n_space_grid
-
+        maximum_scalar_product = grid_last / (n_space_grid - 1)
         return (
             norm_squared_initial_srv + norm_squared_end_srv - 2 * maximum_scalar_product
         )
@@ -1473,67 +1474,73 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
             Quotient distance between point and base point.
             If return_sdist is True.
         """
-        n_space_grid = self.n_space_grid
         max_slope = self.max_slope
+        n_space_grid = self.n_space_grid
 
-        k_sampling_points = self._total_space.k_sampling_points
-        srv_transform = SRVTransform(
-            self._total_space.ambient_manifold,
-            k_sampling_points,
-        )
-        initial_srv = srv_transform.diffeomorphism(base_point)
-        end_srv = srv_transform.diffeomorphism(point)
+        initial_srv = self._srv_transform.diffeomorphism(base_point)
+        end_srv = self._srv_transform.diffeomorphism(point)
 
-        initial_srv = self._resample_srv_function(initial_srv, k_sampling_points)
-        end_srv = self._resample_srv_function(end_srv, k_sampling_points)
+        resampled_initial_srv = self._resample_srv_function(initial_srv)
+        resampled_end_srv = self._resample_srv_function(end_srv)
 
-        initial_srv_ = gs.copy(initial_srv)
-        end_srv_ = gs.copy(end_srv)
-
-        tableau = (-1.0) * gs.ones((n_space_grid + 1, n_space_grid + 1))
-        tableau[0, 0] = 0.0
+        grid = {(0, 0): 0.0}
         gamma = {(0, 0): [(0, 0)]}
-        for j in range(1, n_space_grid + 1):
-            min_i = int(
-                max(
-                    gs.floor(j / max_slope),
-                    n_space_grid - max_slope * (n_space_grid - j),
-                )
-            )
-            max_i = int(
-                min(
-                    j * max_slope,
-                    gs.ceil(n_space_grid - (n_space_grid - j) * (1 / max_slope)),
-                )
-            )
-            for i in range(min_i, max_i + 1):
-                minimum_column_index = int(max(0, i - max_slope))
-                minimum_line_index = int(max(0, j - max_slope))
-                for m in range(minimum_column_index, i):
-                    for k in range(minimum_line_index, j):
-                        if tableau[k, m] != -1:
-                            new_value = tableau[
-                                k, m
-                            ] + self._compute_integral_restricted(
-                                initial_srv, end_srv, m, i, k, j
+
+        for x_max_index in range(1, n_space_grid):
+            max_y_max_index = max(n_space_grid, x_max_index + 1)
+            for y_max_index in range(1, max_y_max_index):
+                # NB: solves minimization part
+                min_x_min_index = max(0, x_max_index - max_slope)
+                min_y_min_index = max(0, y_max_index - max_slope)
+                for x_min_index in range(min_x_min_index, x_max_index):
+                    for y_min_index in range(min_y_min_index, y_max_index):
+                        if (x_min_index, y_min_index) not in grid:
+                            # jump borders
+                            continue
+                        elif (
+                            gs.abs(
+                                (y_max_index - y_min_index)
+                                / (x_max_index - x_min_index)
+                                - 1
                             )
+                            < gs.atol
+                            and x_max_index - x_min_index != 1
+                            and y_max_index - y_max_index != 1
+                        ):
+                            # jump slope == 1 except last
+                            continue
 
-                            if tableau[j, i] < new_value:
-                                tableau[j, i] = new_value
-                                new_gamma = copy.deepcopy(gamma[(m, k)])
-                                new_gamma.append((i, j))
-                                gamma[(i, j)] = new_gamma
+                        new_value = grid[
+                            x_min_index, y_min_index
+                        ] + self._compute_restricted_integral(
+                            resampled_initial_srv,
+                            resampled_end_srv,
+                            x_min_index,
+                            x_max_index,
+                            y_min_index,
+                            y_max_index,
+                        )
+                        if (x_max_index, y_max_index) not in grid or grid[
+                            (x_max_index, y_max_index)
+                        ] < new_value:
+                            grid[x_max_index, y_max_index] = new_value
+                            new_gamma = gamma[(x_min_index, y_min_index)].copy()
+                            new_gamma.append((x_max_index, y_max_index))
+                            gamma[(x_max_index, y_max_index)] = new_gamma
 
+        last_index = n_space_grid - 1
         point_with_origin = insert_zeros(point, axis=-2)
         point_reparametrized = self._reparametrize(
-            point_with_origin, gamma[(n_space_grid, n_space_grid)]
-        )[1:]
+            point_with_origin, gamma[last_index, last_index]
+        )
 
         if not return_sdist:
             return point_reparametrized
 
         return point_reparametrized, self._compute_squared_dist(
-            initial_srv_, end_srv_, tableau
+            resampled_initial_srv,
+            resampled_end_srv,
+            grid[(last_index, last_index)],
         )
 
     def align(self, point, base_point, return_sdist=False):
@@ -1605,10 +1612,13 @@ class SRVReparametrizationBundle(FiberBundle):
         Space of discrete curves starting at the origin
     """
 
-    def __init__(self, total_space):
+    def __init__(self, total_space, aligner=None):
+        if aligner is None:
+            aligner = IterativeHorizontalGeodesicAligner(total_space)
+
         super().__init__(
             total_space=total_space,
-            aligner=IterativeHorizontalGeodesicAligner(total_space),
+            aligner=aligner,
         )
 
     def vertical_projection(self, tangent_vec, base_point, return_norm=False):
