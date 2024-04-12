@@ -39,6 +39,9 @@ class ElasticMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 
+    def dist_against_no_transform_test_data(self):
+        return self.generate_random_data()
+
 
 class SRVMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_not_implemented_errors = False

@@ -718,12 +718,18 @@ class L2CurvesMetric(NFoldMetric):
 
 
 class ElasticMetric(PullbackDiffeoMetric):
-    """Elastic metric on the space of discrete curves.
+    r"""Elastic metric on the space of discrete curves.
 
     Family of elastic metric parametrized by bending and stretching parameters
-    a and b. These can be obtained as pullbacks of the L2 metric by the F-transforms.
+    a and b.
 
-    See [NK2018]_ for details.
+    For curves in :math:`\mathbb{R}^2`, it pullbacks the L2 metric by
+    the F-transform (see [NK2018]_).
+
+    For curves in :math:`\mathbb{R}^d`, it pullbacks a scaled L2 metric by the SRV
+    transform (see [BCKKNP2022_). It only works for ratio :math:`a / 2b = 1`.
+
+    When a=1, and b=1/2, it is equivalent to the SRV metric.
 
     Parameters
     ----------
@@ -737,6 +743,10 @@ class ElasticMetric(PullbackDiffeoMetric):
     .. [KN2018] S. Kurtek and T. Needham,
         "Simplifying transforms for general elastic metrics on the space of
         plane curves", arXiv:1803.10894 [math.DG], 29 Mar 2018.
+    .. [BCKKNP2022] Martin Bauer, Nicolas Charon, Eric Klassen, Sebastian Kurtek,
+        Tom Needham, and Thomas Pierron.
+        “Elastic Metrics on Spaces of Euclidean Curves: Theory and Algorithms.”
+        arXiv, September 20, 2022. https://doi.org/10.48550/arXiv.2209.09862.
     """
 
     def __init__(
@@ -745,8 +755,35 @@ class ElasticMetric(PullbackDiffeoMetric):
         a,
         b=None,
     ):
-        image_space = self._instantiate_image_space(space)
-        diffeo = FTransform(space.ambient_manifold, space.k_sampling_points, a, b)
+        if b is None:
+            b = a / 2
+
+        self.a = a
+        self.b = b
+
+        ambient_manifold = space.ambient_manifold
+        k_sampling_points = space.k_sampling_points
+
+        image_space = Landmarks(
+            ambient_manifold=space.ambient_manifold,
+            k_landmarks=k_sampling_points - 1,
+            equip=False,
+        )
+        image_space.equip_with_metric(L2CurvesMetric)
+
+        if ambient_manifold.dim == 2:
+            diffeo = FTransform(space.ambient_manifold, k_sampling_points, a, b)
+        elif gs.abs(a / (2 * b) - 1.0) < gs.atol:
+            diffeo = SRVTransform(ambient_manifold, k_sampling_points)
+            if gs.abs(b - 0.5) > gs.atol:
+                scale = 4 * b**2
+                image_space.equip_with_metric(scale * image_space.metric)
+        else:
+            raise ValueError(
+                "Cannot instantiate elastic metric for ambient dim="
+                f"{ambient_manifold.dim}, a={a} and b={b}. "
+                "Ratio must be 1 or ambient_dim=2."
+            )
 
         super().__init__(
             space=space,
@@ -754,15 +791,6 @@ class ElasticMetric(PullbackDiffeoMetric):
             image_space=image_space,
             signature=(math.inf, 0, 0),
         )
-
-    def _instantiate_image_space(self, space):
-        image_space = Landmarks(
-            ambient_manifold=space.ambient_manifold,
-            k_landmarks=space.k_sampling_points - 1,
-            equip=False,
-        )
-        image_space.equip_with_metric(L2CurvesMetric)
-        return image_space
 
 
 class SRVMetric(PullbackDiffeoMetric):

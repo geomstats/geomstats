@@ -28,6 +28,7 @@ from geomstats.test_cases.geometry.diffeo import (
 )
 from geomstats.test_cases.geometry.discrete_curves import (
     DiscreteCurvesStartingAtOriginTestCase,
+    ElasticMetricTestCase,
     SRVReparametrizationBundleTestCase,
 )
 from geomstats.test_cases.geometry.nfold_manifold import NFoldMetricTestCase
@@ -134,17 +135,6 @@ class TestL2CurvesMetric(NFoldMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = L2CurvesMetricTestData()
 
 
-class TestElasticMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer):
-    _k_sampling_points = random.randint(5, 10)
-    _a = gs.random.uniform(low=0.5, high=2.5, size=1)
-
-    space = DiscreteCurvesStartingAtOrigin(
-        ambient_dim=2, k_sampling_points=_k_sampling_points, equip=False
-    ).equip_with_metric(ElasticMetric, a=_a)
-
-    testing_data = ElasticMetricTestData()
-
-
 class TestSRVMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer):
     _ambient_dim = random.randint(2, 3)
     _k_sampling_points = random.randint(5, 10)
@@ -156,6 +146,63 @@ class TestSRVMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrize
     testing_data = SRVMetricTestData()
 
 
+@pytest.fixture(
+    scope="class",
+    params=[
+        (
+            2,
+            random.randint(5, 10),
+            float(gs.random.uniform(low=0.5, high=2.5, size=1)[0]),
+        ),
+        (
+            random.randint(3, 5),
+            random.randint(5, 10),
+            0.5,
+        ),
+        (
+            random.randint(3, 5),
+            random.randint(5, 10),
+            float(gs.random.uniform(low=0.5, high=2.5, size=1)[0]),
+        ),
+    ],
+)
+def discrete_curves_with_elastic(request):
+    ambient_dim, k_sampling_points, b = request.param
+
+    lambda_ = 1.0
+    a = lambda_ * 2 * b
+
+    request.cls.space = DiscreteCurvesStartingAtOrigin(
+        ambient_dim=ambient_dim, k_sampling_points=k_sampling_points, equip=False
+    ).equip_with_metric(ElasticMetric, a=a, b=b)
+
+
+@pytest.mark.usefixtures("discrete_curves_with_elastic")
+class TestElasticMetric(ElasticMetricTestCase, metaclass=DataBasedParametrizer):
+    testing_data = ElasticMetricTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (random.randint(2, 3), random.choice([6, 8, 10])),
+        (random.randint(2, 3), random.choice([5, 7, 9])),
+    ],
+)
+def srv_reparameterization_bundles(request):
+    ambient_dim, k_sampling_points = request.param
+
+    total_space = request.cls.total_space = request.cls.base = (
+        DiscreteCurvesStartingAtOrigin(ambient_dim, k_sampling_points)
+    )
+    total_space.fiber_bundle = SRVReparametrizationBundle(total_space)
+
+    request.cls.data_generator = request.cls.base_data_generator = (
+        ShapeBundleRandomDataGenerator(total_space)
+    )
+
+
+@pytest.mark.usefixtures("srv_reparameterization_bundles")
 class TestSRVReparametrizationBundle(
     SRVReparametrizationBundleTestCase, metaclass=DataBasedParametrizer
 ):
