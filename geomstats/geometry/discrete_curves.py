@@ -1716,24 +1716,6 @@ class SRVReparametrizationBundle(FiberBundle):
 
         return tangent_vec_ver
 
-    def horizontal_projection(self, tangent_vec, base_point):
-        """Compute horizontal part of tangent vector at base point.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Tangent vector to decompose into horizontal and vertical parts.
-        base_point : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve, base point of tangent_vec in the manifold of curves.
-
-        Returns
-        -------
-        tangent_vec_hor : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Horizontal part of tangent_vec.
-        """
-        tangent_vec_ver = self.vertical_projection(tangent_vec, base_point)
-        return tangent_vec - tangent_vec_ver
-
 
 class SRVRotationBundle(FiberBundle):
     """Principal bundle of curves modulo rotations with the SRV metric.
@@ -1751,10 +1733,6 @@ class SRVRotationBundle(FiberBundle):
     def _rotate(self, point, rotation):
         """Rotate discrete curve starting at origin."""
         return Matrices.transpose(gs.matmul(rotation, Matrices.transpose(point)))
-
-    def horizontal_projection(self, tangent_vec, base_point):
-        """Project to horizontal subspace."""
-        raise NotImplementedError("Horizontal projection is not implemented.")
 
     def align(self, point, base_point, return_rotation=False):
         """Align point to base point.
@@ -1841,10 +1819,6 @@ class SRVRotationReparametrizationBundle(FiberBundle):
         space.equip_with_group_action("reparametrizations")
         space.fiber_bundle = SRVReparametrizationBundle(space)
         return space
-
-    def horizontal_projection(self, tangent_vec, base_point):
-        """Project to horizontal subspace."""
-        raise NotImplementedError("Horizontal projection is not implemented.")
 
     def align_rotation(self, point, base_point, return_rotation=False):
         """Find optimal rotation of curve with respect to base curve.

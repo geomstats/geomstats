@@ -4,12 +4,17 @@ Lead author: Nicolas Guigui.
 """
 
 import math
-import sys
 from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
 from geomstats.numerics.optimizers import ScipyMinimize
 from geomstats.vectorization import get_batch_shape
+
+
+def _from_base(method):
+    """Decorate method in order to avoid recursive calls."""
+    method._from_base = True
+    return method
 
 
 class AlignerAlgorithm(ABC):
@@ -200,6 +205,7 @@ class FiberBundle(ABC):
         """
         return gs.copy(point)
 
+    @_from_base
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
         """Project a tangent vector to base manifold.
 
@@ -243,12 +249,15 @@ class FiberBundle(ABC):
             raise NotImplementedError("Alignment is not implemented.")
         return self.aligner.align(point, base_point)
 
+    @_from_base
     def horizontal_projection(self, tangent_vec, base_point):
         r"""Project to horizontal subspace.
 
         Compute the horizontal component of a tangent vector at a
-        base point by removing the vertical component,
-        or by computing a horizontal lift of the tangent projection.
+        base point from:
+            1. the vertical projection
+            2. the horizontal lift of the tangent submersion
+            3. the align method
 
         Parameters
         ----------
@@ -262,18 +271,24 @@ class FiberBundle(ABC):
         horizontal : array-like, shape=[..., {total_space.dim, [n, m]}]
             Horizontal component of `tangent_vec`.
         """
-        caller_name = sys._getframe().f_back.f_code.co_name
-        if not caller_name == "vertical_projection":
-            try:
-                return tangent_vec - self.vertical_projection(tangent_vec, base_point)
-            except NotImplementedError:
-                pass
+        if not hasattr(self.vertical_projection, "_from_base"):
+            ver_tangent_vec = self.vertical_projection(tangent_vec, base_point)
+            return tangent_vec - ver_tangent_vec
 
-        return self.horizontal_lift(
-            self.tangent_riemannian_submersion(tangent_vec, base_point),
-            fiber_point=base_point,
-        )
+        if not (
+            hasattr(self.horizontal_lift, "_from_base")
+            or hasattr(self.tangent_riemannian_submersion, "_from_base")
+        ):
+            return self.horizontal_lift(
+                self.tangent_riemannian_submersion(tangent_vec, base_point),
+                fiber_point=base_point,
+            )
 
+        point = self._total_space.metric.exp(tangent_vec, base_point)
+        aligned_point = self.align(point, base_point)
+        return self._total_space.metric.log(aligned_point, base_point)
+
+    @_from_base
     def vertical_projection(self, tangent_vec, base_point):
         r"""Project to vertical subspace.
 
@@ -292,10 +307,6 @@ class FiberBundle(ABC):
         vertical : array-like, shape=[..., {total_space.dim, [n, m]}]
             Vertical component of `tangent_vec`.
         """
-        caller_name = sys._getframe().f_back.f_code.co_name
-        if caller_name == "horizontal_projection":
-            raise NotImplementedError
-
         return tangent_vec - self.horizontal_projection(tangent_vec, base_point)
 
     def is_horizontal(self, tangent_vec, base_point, atol=gs.atol):
@@ -354,6 +365,7 @@ class FiberBundle(ABC):
             axis=(-2, -1),
         )
 
+    @_from_base
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
         """Lift a tangent vector to a horizontal vector in the total space.
 
