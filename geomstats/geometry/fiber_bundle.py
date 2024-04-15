@@ -222,6 +222,12 @@ class FiberBundle(ABC):
         projection: array-like, shape=[..., {base_dim, [n, m]}]
             Tangent vector to the base manifold.
         """
+        caller_name = sys._getframe().f_back.f_code.co_name
+        if caller_name == "horizontal_projection":
+            raise NotImplementedError(
+                "Tangent Riemannian submersion is not implemented."
+            )
+
         return self.horizontal_projection(tangent_vec, base_point)
 
     def align(self, point, base_point):
@@ -269,10 +275,21 @@ class FiberBundle(ABC):
             except NotImplementedError:
                 pass
 
-        return self.horizontal_lift(
-            self.tangent_riemannian_submersion(tangent_vec, base_point),
-            fiber_point=base_point,
-        )
+        if not (
+            caller_name == "horizontal_lift"
+            or caller_name == "tangent_riemannian_submersion"
+        ):
+            try:
+                return self.horizontal_lift(
+                    self.tangent_riemannian_submersion(tangent_vec, base_point),
+                    fiber_point=base_point,
+                )
+            except NotImplementedError:
+                pass
+
+        point = self._total_space.metric.exp(tangent_vec, base_point)
+        aligned_point = self.align(point, base_point)
+        return self._total_space.metric.log(aligned_point, base_point)
 
     def vertical_projection(self, tangent_vec, base_point):
         r"""Project to vertical subspace.
@@ -294,7 +311,7 @@ class FiberBundle(ABC):
         """
         caller_name = sys._getframe().f_back.f_code.co_name
         if caller_name == "horizontal_projection":
-            raise NotImplementedError
+            raise NotImplementedError("Vertical projection is not implemented.")
 
         return tangent_vec - self.horizontal_projection(tangent_vec, base_point)
 
@@ -380,6 +397,10 @@ class FiberBundle(ABC):
         horizontal_lift : array-like, shape=[..., {total_space.dim, [n, m]}]
             Horizontal tangent vector to the total space at point.
         """
+        caller_name = sys._getframe().f_back.f_code.co_name
+        if caller_name == "horizontal_projection":
+            raise NotImplementedError("Horizontal lift is not implemented.")
+
         if base_point is None and fiber_point is None:
             raise ValueError(
                 "Either a point (of the total space) or a "
