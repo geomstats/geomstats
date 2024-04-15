@@ -1244,7 +1244,7 @@ class IterativeHorizontalGeodesicAligner(AlignerAlgorithm):
 
         Returns
         -------
-        aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
+        aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Curve reparametrized in an optimal way with respect to reference curve.
         """
         if point.ndim == self._total_space.point_ndim:
@@ -1557,7 +1557,7 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
 
         Returns
         -------
-        aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
+        aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Curve reparametrized in an optimal way with respect to reference curve.
         squared_dist : array, shape=[...,]
             Quotient distance between point and base point.
@@ -1820,71 +1820,21 @@ class SRVRotationReparametrizationBundle(FiberBundle):
         space.fiber_bundle = SRVReparametrizationBundle(space)
         return space
 
-    def align_rotation(self, point, base_point, return_rotation=False):
-        """Find optimal rotation of curve with respect to base curve.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            Discrete curve to align.
-        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            Reference discrete curve.
-        return_rotation : boolean
-            If true, returns the optimal rotation used for the alignment.
-            Optional, default : False.
-
-        Returns
-        -------
-        aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
-            Curve optimally rotated with respect to reference curve.
-        """
-        return self._total_space_with_rotations.fiber_bundle.align(
-            point, base_point, return_rotation
-        )
-
-    def align_reparametrization(self, point, base_point, spline):
-        """Find optimal parametrization of a curve with respect to a base curve.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            Discrete curve to align.
-        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            Reference discrete curve.
-        spline : function
-            Spline function that interpolates between the points of the curve to
-            align.
-
-        Returns
-        -------
-        aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
-            Curve optimally reparametrized with respect to reference curve.
-        """
-        bundle = self._total_space_with_reparametrizations.fiber_bundle
-        return bundle.aligner.discrete_horizontal_geodesic(base_point, point, spline)[
-            ..., -1, :, :
-        ]
-
     def _align_single(self, point, base_point):
-        """Align point to base point, non vectorized."""
-        aligned_point = gs.copy(point)
-        rotation = gs.eye(self._total_space.ambient_manifold.dim)
+        """Align point to base point."""
+        aligned_point = previous_aligned_point = point
         for index in range(self.max_iter):
-            new_aligned_point, new_rotation = self.align_rotation(
-                aligned_point, base_point, return_rotation=True
-            )
-            rotation = gs.matmul(new_rotation, rotation)
-            rotated_point = self._total_space_with_rotations.fiber_bundle._rotate(
-                point, rotation
-            )
-            rotated_spline = self._total_space.interpolate(rotated_point)
+            for total_space in (
+                self._total_space_with_rotations,
+                self._total_space_with_reparametrizations,
+            ):
+                aligned_point = total_space.fiber_bundle.align(
+                    aligned_point, base_point
+                )
 
-            new_aligned_point = self.align_reparametrization(
-                new_aligned_point, base_point, rotated_spline
-            )
             l2_metric = self._total_space.discrete_curves_with_l2.metric
-            gap = l2_metric.dist(aligned_point, new_aligned_point)
-            aligned_point = gs.copy(new_aligned_point)
+            gap = l2_metric.dist(aligned_point, previous_aligned_point)
+            previous_aligned_point = aligned_point
 
             if gap < self.threshold:
                 if self.verbose > 0:
@@ -1900,9 +1850,9 @@ class SRVRotationReparametrizationBundle(FiberBundle):
                 "alignment with respect to rotations and reparametrizations. "
                 "The result may be inaccurate."
             )
-        return aligned_point, rotation
+        return aligned_point
 
-    def align(self, point, base_point, return_rotation=False):
+    def align(self, point, base_point):
         """Align point to base point.
 
         This is achieved by iteratively rotating and reparametrizing the curve to align
@@ -1914,13 +1864,10 @@ class SRVRotationReparametrizationBundle(FiberBundle):
             Discrete curve to align.
         base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Reference discrete curve.
-        return_rotation : boolean
-            If true, returns the optimal rotation used for the alignment.
-            Optional, default : False.
 
         Returns
         -------
-        aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
+        aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
              Curve rotated and reparametrized in an optimal way with respect to
              the reference curve.
         """
@@ -1930,22 +1877,14 @@ class SRVRotationReparametrizationBundle(FiberBundle):
             base_point,
         )
         if not is_batch:
-            aligned_point, rotation = self._align_single(point, base_point)
-            if return_rotation:
-                return aligned_point, rotation
-
-            return aligned_point
+            return self._align_single(point, base_point)
 
         if point.ndim != base_point.ndim:
             point, base_point = gs.broadcast_arrays(point, base_point)
 
-        out = [
-            self._align_single(point_, base_point_)
-            for point_, base_point_ in zip(point, base_point)
-        ]
-        aligned_points = gs.stack([out_[0] for out_ in out])
-        rotations = gs.stack([out_[1] for out_ in out])
-        if return_rotation:
-            return aligned_points, rotations
-
-        return aligned_points
+        return gs.stack(
+            [
+                self._align_single(point_, base_point_)
+                for point_, base_point_ in zip(point, base_point)
+            ]
+        )
