@@ -1821,7 +1821,24 @@ class SRVRotationReparametrizationBundle(FiberBundle):
         return space
 
     def _align_single(self, point, base_point):
-        """Align point to base point."""
+        """Align point to base point.
+
+        This is achieved by iteratively rotating and reparametrizing the curve to align
+        with respect to the reference curve until convergence.
+
+        Parameters
+        ----------
+        point : array-like, shape=[k_sampling_points - 1, ambient_dim]
+            Discrete curve to align.
+        base_point : array-like, shape=[k_sampling_points - 1, ambient_dim]
+            Reference discrete curve.
+
+        Returns
+        -------
+        aligned : array-like, shape=[k_sampling_points - 1, ambient_dim]
+             Curve rotated and reparametrized in an optimal way with respect to
+             the reference curve.
+        """
         aligned_point = previous_aligned_point = point
         for index in range(self.max_iter):
             for total_space in (
