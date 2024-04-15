@@ -228,11 +228,6 @@ class FiberBundle(ABC):
         projection: array-like, shape=[..., {base_dim, [n, m]}]
             Tangent vector to the base manifold.
         """
-        if hasattr(self.horizontal_projection, "_from_base"):
-            raise NotImplementedError(
-                "Tangent Riemannian submersion is not implemented."
-            )
-
         return self.horizontal_projection(tangent_vec, base_point)
 
     def align(self, point, base_point):
@@ -312,9 +307,6 @@ class FiberBundle(ABC):
         vertical : array-like, shape=[..., {total_space.dim, [n, m]}]
             Vertical component of `tangent_vec`.
         """
-        if hasattr(self.horizontal_projection, "_from_base"):
-            raise NotImplementedError("Vertical projection is not implemented.")
-
         return tangent_vec - self.horizontal_projection(tangent_vec, base_point)
 
     def is_horizontal(self, tangent_vec, base_point, atol=gs.atol):
@@ -400,9 +392,6 @@ class FiberBundle(ABC):
         horizontal_lift : array-like, shape=[..., {total_space.dim, [n, m]}]
             Horizontal tangent vector to the total space at point.
         """
-        if hasattr(self.horizontal_projection, "_from_base"):
-            raise NotImplementedError("Horizontal lift is not implemented.")
-
         if base_point is None and fiber_point is None:
             raise ValueError(
                 "Either a point (of the total space) or a "
