@@ -1,3 +1,5 @@
+import math
+
 import geomstats.backend as gs
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
@@ -15,11 +17,16 @@ class SurfacesLocalRandomDataGenerator(RandomDataGenerator):
 
         batch_shape = () if n_points == 1 else (n_points,)
 
+        rand_shape = batch_shape + (dof, dim)
+
         return (
             gs.concatenate(
                 [
                     gs.zeros(batch_shape + (1, dim)),
-                    gs.random.rand(batch_shape + (dof, dim)),
+                    gs.reshape(
+                        gs.random.rand(math.prod(rand_shape)),
+                        rand_shape,
+                    ),
                 ],
                 axis=-2,
             )
