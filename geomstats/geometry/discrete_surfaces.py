@@ -785,7 +785,7 @@ class ElasticMetric(RiemannianMetric):
                 laplacian_at_base_point(tangent_vec_a),
                 laplacian_at_base_point(tangent_vec_b),
             )
-            * vertex_areas_bp,
+            / vertex_areas_bp,
             axis=-1,
         )
 
