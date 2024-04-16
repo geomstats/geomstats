@@ -1,6 +1,17 @@
 """Discrete Surfaces with Elastic metrics.
 
 Lead authors: Emmanuel Hartman, Adele Myers.
+
+References
+----------
+.. [HSKCB2022] Emmanuel Hartman, Yashil Sukurdeep, Eric Klassen,
+    Nicolas Charon, and Martin Bauer.
+    "Elastic shape analysis of surfaces with second-order Sobolev metrics:
+    a comprehensive numerical framework". arXiv:2204.04238 [cs.CV], 25 Sep 2022
+.. [HPBDC2023] Emmanuel Hartman, Emery Pierson, Martin Bauer,
+    Mohamed Daoudi, and Nicolas Charon.
+    “Basis Restricted Elastic Shape Analysis on the Space of Unregistered Surfaces.”
+    arXiv, November 7, 2023. https://doi.org/10.48550/arXiv.2311.04382.
 """
 
 import math
@@ -368,6 +379,8 @@ class DiscreteSurfaces(Manifold):
         :math:`\Delta_q = - Tr(g_q^{-1} \nabla^2)`
         where :math:`g_q` is the surface metric matrix of :math:`q`.
 
+        The area of the triangles is computed using Heron's formula.
+
         Parameters
         ----------
         point :  array-like, shape=[..., n_vertices, 3]
@@ -413,11 +426,17 @@ class DiscreteSurfaces(Manifold):
         cot_flatten = gs.expand_dims(gs.reshape(cot, point.shape[:-2] + (-1,)), axis=-1)
 
         def _laplacian(tangent_vec):
-            """Evaluate the mesh Laplacian operator.
+            r"""Evaluate the mesh Laplacian operator.
 
             The operator is evaluated at a tangent vector at point to the
             manifold of DiscreteSurfaces. In other words, the operator is
             evaluated at a vector field defined on the surface point.
+
+            .. math::
+
+                \left(\Delta_q h\right)_{v_i}=\frac{1}{2} \sum_{\substack{j \mid(i, j)
+                \in E \\ \text { or }(j, i) \in E}}\left(\cot \left(\alpha_{i j}
+                \right)+\cot \left(\beta_{i j}\right)\right)\left(h_i-h_j\right)
 
             Parameters
             ----------
@@ -470,7 +489,7 @@ class ElasticMetric(RiemannianMetric):
     """Elastic metric defined by a family of second order Sobolev metrics.
 
     Each individual discrete surface is represented by a 2D-array of shape
-    `[n_vertices, 3]`. See [HSKCB2022]_ for details.
+    `[n_vertices, 3]`. See [HSKCB2022]_ and [HPBDC2023]_ (appendix) for details.
 
     The parameters a0, a1, b1, c1, d1, a2 (detailed below) are non-negative weighting
     coefficients for the different terms in the metric.
@@ -500,9 +519,14 @@ class ElasticMetric(RiemannianMetric):
 
     References
     ----------
-    .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
-        Sobolev metrics: a comprehensive numerical framework".
-        arXiv:2204.04238 [cs.CV], 25 Sep 2022
+    .. [HSKCB2022] Emmanuel Hartman, Yashil Sukurdeep, Eric Klassen,
+        Nicolas Charon, and Martin Bauer.
+        "Elastic shape analysis of surfaces with second-order Sobolev metrics:
+        a comprehensive numerical framework". arXiv:2204.04238 [cs.CV], 25 Sep 2022
+    .. [HPBDC2023] Emmanuel Hartman, Emery Pierson, Martin Bauer,
+        Mohamed Daoudi, and Nicolas Charon.
+        “Basis Restricted Elastic Shape Analysis on the Space of Unregistered Surfaces.”
+        arXiv, November 7, 2023. https://doi.org/10.48550/arXiv.2311.04382.
     """
 
     def __init__(self, space, a0=1.0, a1=1.0, b1=1.0, c1=1.0, d1=1.0, a2=1.0):
@@ -530,7 +554,11 @@ class ElasticMetric(RiemannianMetric):
         Denote h and k the tangent vectors a and b respectively.
         Denote q the base point.
 
-        This method computes :math:`G_{a_0} = a_0 <h, k>`.
+        This method computes :math:`G_{a_0} = a_0 <h, k>`, i.e.
+
+        .. math::
+
+            G_{a_0}(h, h) = \sum_{i=1}^N\left\|h_i\right\|^2 \operatorname{vol}_{x_i}
 
         Parameters
         ----------
@@ -557,7 +585,12 @@ class ElasticMetric(RiemannianMetric):
         Denote h and k the tangent vectors a and b respectively.
         Denote q the base point.
 
-        This method computes :math:`G_{a_1} = a_1.g_q^{-1} <dh_m, dk_m>`.
+        This method computes :math:`G_{a_1} = a_1.g_q^{-1} <dh_m, dk_m>`, i.e.
+
+        .. math::
+
+            G_{a_1}(h, h) = \sum_{f \in F} \operatorname{tr}\left(g_f^{-1}
+            \delta g_f g_f^{-1} \delta g_f\right) \operatorname{vol}_f
 
         Parameters
         ----------
@@ -586,7 +619,12 @@ class ElasticMetric(RiemannianMetric):
         Denote h and k the tangent vectors a and b respectively.
         Denote q the base point.
 
-        This method computes :math:`G_{b_1} = b_1.g_q^{-1} <dh_+, dk_+>`.
+        This method computes :math:`G_{b_1} = b_1.g_q^{-1} <dh_+, dk_+>`, i.e.
+
+        .. math::
+
+            G_{b_1}(h, h) = \sum_{f \in F} \operatorname{tr}
+            \left(g_f^{-1} \delta g_f\right)^2 \operatorname{vol}_f
 
         Parameters
         ----------
@@ -615,7 +653,13 @@ class ElasticMetric(RiemannianMetric):
         Denote h and k the tangent vectors a and b respectively.
         Denote q the base point.
 
-        This method computes :math:`G_{c_1} = c_1.g_q^{-1} <dh_\perp, dk_\perp>`.
+        This method computes :math:`G_{c_1} = c_1.g_q^{-1} <dh_\perp, dk_\perp>`,
+        i.e.
+
+        .. math::
+
+            G_{c_1}(h, h) = \sum_{f \in F}\left\langle\delta n_f,
+            \delta n_f\right\rangle \mathrm{vol}_f
 
         Parameters
         ----------
@@ -646,7 +690,14 @@ class ElasticMetric(RiemannianMetric):
         Denote h and k the tangent vectors a and b respectively.
         Denote q the base point.
 
-        This method computes :math:`G_{d_1} = d_1.g_q^{-1} <dh_0, dk_0>`.
+        This method computes :math:`G_{d_1} = d_1.g_q^{-1} <dh_0, dk_0>`, i.e.
+
+        .. math::
+
+            G_{d_1}(h, h) = \sum_{f \in F} \operatorname{tr}\left(g_f^{-1}
+            \xi_f g_f^{-1} \xi_f^T\right) \operatorname{vol}_f
+
+        where :math:`\xi_f=d q_f^T d h_f-d h_f^T d q_f`.
 
         Parameters
         ----------
@@ -704,7 +755,13 @@ class ElasticMetric(RiemannianMetric):
         Denote h and k the tangent vectors a and b respectively.
         Denote q the base point.
 
-        This method computes :math:`G_{a_2} = a_2 <\Delta_q h, \Delta_q k>`.
+        This method computes :math:`G_{a_2} = a_2 <\Delta_q h, \Delta_q k>`, i.e.
+
+        .. math::
+
+            G_{a_2}(h, h) = \sum_{i=1}^N\left\|\left(\Delta_q h\right)_{v_i}
+            \right\|^2 \operatorname{vol}_{x_i}
+
 
         Parameters
         ----------
@@ -742,7 +799,10 @@ class ElasticMetric(RiemannianMetric):
         We denote q the base point, i.e. the surface.
 
         The six terms of the inner-product are given by:
-        :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`
+
+        .. math::
+
+            \int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q
 
         where:
 
@@ -752,8 +812,6 @@ class ElasticMetric(RiemannianMetric):
         - :math:`G_{c_1} = c_1.g_q^{-1} <dh_\perp, dk_\perp>`
         - :math:`G_{d_1} = d_1.g_q^{-1} <dh_0, dk_0>`
         - :math:`G_{a_2} = a_2 <\Delta_q h, \Delta_q k>`
-
-        with notations taken from [HSKCB2022]_.
 
         Parameters
         ----------
@@ -768,12 +826,6 @@ class ElasticMetric(RiemannianMetric):
         -------
         inner_prod : array-like, shape=[...]
             Inner-product.
-
-        References
-        ----------
-        .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
-            Sobolev metrics: a comprehensive numerical framework".
-            arXiv:2204.04238 [cs.CV], 25 Sep 2022.
         """
         inner_prod_a0 = 0.0
         inner_prod_a1 = 0.0
