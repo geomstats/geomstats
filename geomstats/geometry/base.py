@@ -125,8 +125,9 @@ class VectorSpace(Manifold, abc.ABC):
     def random_tangent_vec(self, base_point=None, n_samples=1):
         """Generate random tangent vec.
 
-        This method is not recommended for statistical purposes, as the tangent vectors generated are not
-        drawn from a distribution related to the Riemannian metric.
+        This method is not recommended for statistical purposes, as the
+        tangent vectors generated are not drawn from a distribution related
+        to the Riemannian metric.
 
         Parameters
         ----------
@@ -141,22 +142,20 @@ class VectorSpace(Manifold, abc.ABC):
         tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vec at base point.
         """
+        if base_point is None:
+            return self.random_point(n_samples)
+
         if (
             n_samples > 1
-            and base_point is not None
-            and base_point.ndim > len(self.shape)
-            and n_samples != len(base_point)
+            and base_point.ndim > self.point_ndim
+            and n_samples != base_point.shape[0]
         ):
             raise ValueError(
                 "The number of base points must be the same as the "
                 "number of samples, when the number of base points is different from 1."
             )
-        if (
-            n_samples == 1
-            and base_point is not None
-            and base_point.ndim > len(self.shape)
-        ):
-            n_samples = len(base_point)
+        if n_samples == 1 and base_point.ndim > self.point_ndim:
+            n_samples = base_point.shape[0]
         return self.random_point(n_samples)
 
     @property

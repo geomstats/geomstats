@@ -215,8 +215,9 @@ class Manifold(abc.ABC):
     def random_tangent_vec(self, base_point=None, n_samples=1):
         """Generate random tangent vec.
 
-        This method is not recommended for statistical purposes, as the tangent vectors generated are not
-        drawn from a distribution related to the Riemannian metric.
+        This method is not recommended for statistical purposes,
+        as the tangent vectors generated are not drawn from a
+        distribution related to the Riemannian metric.
 
         Parameters
         ----------
