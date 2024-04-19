@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.vectorization import get_batch_shape
 
 
@@ -67,6 +68,23 @@ class LieAlgebraBasedGroupAction(GroupAction):
         algebra_elt = self._group.lie_algebra.matrix_representation(group_elem)
         group_elt = self._group.exp(algebra_elt)
         return self._group.compose(point, group_elt)
+
+
+class LieAlgebraBasedSpecialOrthogonalAction(LieAlgebraBasedGroupAction):
+    """Action of the special orthogonal group.
+
+    Group elements are represented by the vector representation
+    of Lie algebra elements. This is amenable to perform gradient-based
+    optimizations on the Lie algebra.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shapes of the matrices : n x n.
+    """
+
+    def __init__(self, n):
+        super().__init__(SpecialOrthogonal(n, equip=False))
 
 
 class CongruenceAction(GroupAction):

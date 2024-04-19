@@ -22,6 +22,7 @@ from geomstats.geometry.fiber_bundle import (
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import expmh
 from geomstats.geometry.hyperboloid import Hyperboloid
+from geomstats.geometry.manifold import register_quotient_structure
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.open_hemisphere import (
     OpenHemispheresProduct,
@@ -269,9 +270,6 @@ class CorrelationMatricesBundle(FiberBundle):
     """
 
     def __init__(self, total_space):
-        if not hasattr(total_space, "group_action"):
-            total_space.equip_with_group_action(FullRankCorrelationMatrices.diag_action)
-
         aligner = (
             DistanceMinimizationBasedAligner(
                 total_space, group_elem_shape=(total_space.n,)
@@ -374,8 +372,11 @@ class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
             total_space = SPDMatrices(space.n, equip=False)
             total_space.equip_with_metric(SPDAffineMetric)
 
-        if not hasattr(total_space, "fiber_bundle"):
-            total_space.fiber_bundle = CorrelationMatricesBundle(total_space)
+        if not hasattr(total_space, "group_action"):
+            total_space.equip_with_group_action(FullRankCorrelationMatrices.diag_action)
+
+        if not hasattr(total_space, "quotient"):
+            total_space.equip_with_quotient_structure()
 
         super().__init__(
             space=space,
@@ -1124,3 +1125,11 @@ class LogScaledMetric(PullbackDiffeoMetric):
         )
 
         super().__init__(space=space, diffeo=diffeo, image_space=image_space)
+
+
+register_quotient_structure(
+    SPDMatrices,
+    SPDAffineMetric,
+    FullRankCorrelationMatrices.diag_action,
+    CorrelationMatricesBundle,
+)
