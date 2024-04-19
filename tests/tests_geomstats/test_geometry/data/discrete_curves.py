@@ -88,7 +88,7 @@ class SRVRotationBundleTestData(TestData):
         return self.generate_random_data()
 
 
-class SRVRotationReparametrizationBundleTestData(TestData):
+class SRVRotationReparametrizationsBundleTestData(TestData):
     tolerances = {
         "align": {"atol": 1e-2},
     }

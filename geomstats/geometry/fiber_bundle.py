@@ -3,12 +3,13 @@
 Lead author: Nicolas Guigui.
 """
 
+import logging
 import math
 from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
 from geomstats.numerics.optimizers import ScipyMinimize
-from geomstats.vectorization import get_batch_shape
+from geomstats.vectorization import check_is_batch, get_batch_shape
 
 
 def _from_base(method):
@@ -489,3 +490,120 @@ class FiberBundle(ABC):
             in Kendall shape spaces. Unpublished.
         """
         raise NotImplementedError
+
+
+class ProductFiberBundle(FiberBundle):
+    """A product fiber bundle.
+
+    Assumes total space is equipped with several group actions.
+    Aligns points wrt these group actions by alternate minimization
+    wrt each of them (similar approach used in e.g. [JKKS2012]_).
+
+    Parameters
+    ----------
+    total_space : Manifold
+        Manifold equipped with a quotient structure.
+    threshold : float
+        Distance between consecutive aligned points for which
+        convergence is considered reached.
+    max_iter : int
+        Maximum number of iterations.
+    verbose : boolean
+        If log number of iterations need for convergence.
+
+    References
+    ----------
+    .. [JKKS2012] Ian H. Jermyn, Sebastian Kurtek, Eric Klassen, and Anuj Srivastava.
+        “Elastic Shape Matching of Parameterized Surfaces Using Square Root Normal
+        Fields.” In Computer Vision – ECCV 2012, edited by Andrew Fitzgibbon,
+        Svetlana Lazebnik, Pietro Perona, Yoichi Sato, and Cordelia Schmid,
+        804–17. Lecture Notes in Computer Science. Berlin, Heidelberg: Springer, 2012.
+        https://doi.org/10.1007/978-3-642-33715-4_58.
+    """
+
+    def __init__(self, total_space, threshold=1e-3, max_iter=20, verbose=0):
+        super().__init__(total_space=total_space)
+
+        self.threshold = threshold
+        self.max_iter = max_iter
+        self.verbose = verbose
+
+        self.total_spaces = []
+        for group_action in total_space.group_action:
+            total_space = total_space.new(equip=True)
+            total_space.equip_with_group_action(group_action)
+            total_space.equip_with_quotient_structure()
+            self.total_spaces.append(total_space)
+
+    def _align_single(self, point, base_point):
+        """Align point to base point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[*point_shape]
+            Discrete curve to align.
+        base_point : array-like, shape=[*point_shape]
+            Reference discrete curve.
+
+        Returns
+        -------
+        aligned : array-like, shape=[*point_shape]
+            Aligned point.
+        """
+        aligned_point = previous_aligned_point = point
+        for index in range(self.max_iter):
+            for total_space in self.total_spaces:
+                aligned_point = total_space.fiber_bundle.align(
+                    aligned_point, base_point
+                )
+
+            gap = self._total_space.metric.dist(aligned_point, previous_aligned_point)
+            previous_aligned_point = aligned_point
+
+            if gap < self.threshold:
+                if self.verbose > 0:
+                    logging.info(
+                        f"Convergence of alignment reached after {index + 1} "
+                        "iterations."
+                    )
+
+                break
+        else:
+            logging.warning(
+                f"Maximum number of iterations {self.max_iter} reached during "
+                "alignment. The result may be inaccurate."
+            )
+        return aligned_point
+
+    def align(self, point, base_point):
+        """Align point to base point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *point_shape]
+            Discrete curve to align.
+        base_point : array-like, shape=[..., *point_shape]
+            Reference discrete curve.
+
+        Returns
+        -------
+        aligned : array-like, shape=[..., *point_shape]
+            Aligned point.
+        """
+        is_batch = check_is_batch(
+            self._total_space.point_ndim,
+            point,
+            base_point,
+        )
+        if not is_batch:
+            return self._align_single(point, base_point)
+
+        if point.ndim != base_point.ndim:
+            point, base_point = gs.broadcast_arrays(point, base_point)
+
+        return gs.stack(
+            [
+                self._align_single(point_, base_point_)
+                for point_, base_point_ in zip(point, base_point)
+            ]
+        )

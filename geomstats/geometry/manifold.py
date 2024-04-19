@@ -12,6 +12,8 @@ import types
 
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.fiber_bundle import ProductFiberBundle
+from geomstats.geometry.quotient_metric import QuotientMetric
 
 
 class Manifold(abc.ABC):
@@ -412,7 +414,10 @@ class _QuotientStructureRegistry:
         key = (Space, Metric, GroupAction)
         out = cls.STRUCTURES.get(key, None)
         if out is None:
-            raise ValueError(f"No mapping for key: {key}")
+            if isinstance(GroupAction, tuple):
+                return ProductFiberBundle, QuotientMetric
+            else:
+                raise ValueError(f"No mapping for key: {key}")
 
         return out
 
