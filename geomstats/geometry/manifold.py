@@ -282,8 +282,8 @@ class _QuotientStructureRegistry:
     STRUCTURES = {}
 
     @classmethod
-    def _as_class_or_function_or_str(self, Obj):
-        """Transform an instance of a class into a type.
+    def _as_key(self, Obj):
+        """Transform an instance of a class into a key type.
 
         Parameters
         ----------
@@ -296,7 +296,7 @@ class _QuotientStructureRegistry:
         if not (
             inspect.isclass(Obj)
             or isinstance(Obj, types.FunctionType)
-            or isinstance(Obj, str)
+            or isinstance(Obj, (str, tuple))
         ):
             return type(Obj)
 
@@ -314,7 +314,7 @@ class _QuotientStructureRegistry:
         -------
         has_quotient_struct : bool
         """
-        Space = cls._as_class_or_function_or_str(Space)
+        Space = cls._as_key(Space)
 
         for Space_, _, _ in cls.STRUCTURES.keys():
             if Space_ is Space:
@@ -335,7 +335,7 @@ class _QuotientStructureRegistry:
         -------
         available_structures : list[tuple[type or str]]
         """
-        Space = cls._as_class_or_function_or_str(Space)
+        Space = cls._as_key(Space)
 
         structures = []
         if Metric is None and GroupAction is None:
@@ -346,13 +346,13 @@ class _QuotientStructureRegistry:
             return structures
 
         if Metric is not None and GroupAction is None:
-            Metric = cls._as_class_or_function_or_str(Metric)
+            Metric = cls._as_key(Metric)
             for Space_, Metric_, GroupAction_ in cls.STRUCTURES.keys():
                 if Space_ is Space and Metric_ is Metric:
                     structures.append((GroupAction_,))
 
         if Metric is None and GroupAction is not None:
-            GroupAction = cls._as_class_or_function_or_str(GroupAction)
+            GroupAction = cls._as_key(GroupAction)
             for Space_, Metric_, GroupAction_ in cls.STRUCTURES.keys():
                 if Space_ is Space and GroupAction_ is GroupAction:
                     structures.append((Metric_,))
@@ -403,9 +403,9 @@ class _QuotientStructureRegistry:
                     f"Available structures:\n\t{structs_str}"
                 )
 
-        Space = cls._as_class_or_function_or_str(Space)
-        Metric = cls._as_class_or_function_or_str(Metric)
-        GroupAction = cls._as_class_or_function_or_str(GroupAction)
+        Space = cls._as_key(Space)
+        Metric = cls._as_key(Metric)
+        GroupAction = cls._as_key(GroupAction)
 
         key = (Space, Metric, GroupAction)
         out = cls.STRUCTURES.get(key, None)
