@@ -82,11 +82,11 @@ class DivergenceConnection(Connection):
         self.dim = space.dim
         self.divergence = unpack_inputs(divergence, self.dim)
 
-    def christoffels(self, base_point):
-        r"""Compute the Christoffel symbols of the divergence connection.
+    def first_kind_christoffels(self, base_point):
+        r"""Compute the first kind Christoffel symbols of the divergence connection.
 
-        Compute the Christoffel symbols of the divergence connection :math:`\nabla^D`
-        at the tangent space of the base point.
+        Compute the first kind Christoffel symbols of the divergence connection
+        :math:`\nabla^D` at the tangent space of the base point.
 
         .. math::
             \Gamma^D_{i j k} =
@@ -101,17 +101,41 @@ class DivergenceConnection(Connection):
         Returns
         -------
         matrix : array-like, shape=[..., dim, dim, dim]
-            Christoffel symbols of the divergence connection.
+            First kind Christoffel symbols of the divergence connection.
         """
-        metric_hess = gs.autodiff.hessian(self.divergence)
         base_point_pair = gs.concatenate([base_point, base_point])
-        metric_matrix = -1 * metric_hess(base_point_pair)[: self.dim, self.dim :]
-        cometric_matrix = gs.linalg.inv(metric_matrix)
         hess = gs.autodiff.hessian(self.divergence)
         jac_hess = gs.autodiff.jacobian(hess)
+        first_kind = jac_hess(base_point_pair)[: self.dim, : self.dim, self.dim :]
+        first_kind = -1 * first_kind
+        return first_kind
+
+    def christoffels(self, base_point):
+        r"""Compute the (second kind) Christoffel symbols of the divergence connection.
+
+        Compute the (second kind) Christoffel symbols of the divergence connection
+        :math:`\nabla^D` at the tangent space of the base point.
+
+        .. math::
+            \Gamma^D_{ij}^k = g^{kl} \Gamma^D_{ijl}
+
+        where :math:`g^{kl}` is the cometric matrix of the divergence induced metric.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        matrix : array-like, shape=[..., dim, dim, dim]
+            Second kind Christoffel symbols of the divergence connection.
+        """
         base_point_pair = gs.concatenate([base_point, base_point])
-        first_kind_christoffels = jac_hess(base_point_pair)[: self.dim, : self.dim, self.dim :]
-        first_kind_christoffels = -1 * first_kind_christoffels
+        metric_hess = gs.autodiff.hessian(self.divergence)
+        metric_matrix = -1 * metric_hess(base_point_pair)[: self.dim, self.dim :]
+        cometric_matrix = gs.linalg.inv(metric_matrix)
+        first_kind_christoffels = self.first_kind_christoffels(base_point)
         second_kind_christoffels = gs.einsum(
             '...lk, ...ijl -> ...kij', cometric_matrix, first_kind_christoffels
         )
@@ -164,16 +188,16 @@ class DualDivergenceConnection(Connection):
         self.dim = space.dim
         self.divergence = unpack_inputs(divergence, self.dim)
 
-    def christoffels(self, base_point):
-        r"""Compute the Christoffel symbols of the dual divergence connection.
+    def first_kind_christoffels(self, base_point):
+        r"""Compute the first kind Christoffel symbols of dual divergence connection.
 
-        Compute the Christoffel symbols of the dual divergence connection
+        Compute the first kind Christoffel symbols of the dual divergence connection
         :math:`\nabla^{D^*}` at the tangent space of the base point.
 
         .. math::
             \Gamma^{D^*}_{i j k} =
-            -1 \cdot \frac{\partial}{\partial x^i}
-                \frac{\partial^2}{\partial y^j \partial y^k} D(x, y) \bigg|_{x=y}
+            -1 \cdot \frac{\partial^2}{\partial y^i \partial y^j}
+                \frac{\partial}{\partial x^k} D(x, y) \bigg|_{x=y}
 
         Parameters
         ----------
@@ -183,18 +207,41 @@ class DualDivergenceConnection(Connection):
         Returns
         -------
         matrix : array-like, shape=[..., dim, dim, dim]
-            Christoffel symbols of the dual divergence connection.
+            First kind Christoffel symbols of the dual divergence connection.
         """
-        hess = gs.autodiff.hessian(self.divergence)
         base_point_pair = gs.concatenate([base_point, base_point])
-        metric_matrix = -1 * hess(base_point_pair)[: self.dim, self.dim :]
-        cometric_matrix = gs.linalg.inv(metric_matrix)
-
         hess = gs.autodiff.hessian(self.divergence)
         jac_hess = gs.autodiff.jacobian(hess)
+        first_kind = jac_hess(base_point_pair)[self.dim :, self.dim :, : self.dim]
+        first_kind = -1 * first_kind
+        return first_kind
+
+    def christoffels(self, base_point):
+        r"""Compute the (second kind) Christoffel symbols of dual divergence connection.
+
+        Compute the (second kind) Christoffel symbols of the dual divergence connection
+        :math:`\nabla^{D^*}` at the tangent space of the base point.
+
+        .. math::
+            \Gamma^{D^*}_{ij}^k = g^{kl} \Gamma^{D^*}_{ijl}
+
+        where :math:`g^{kl}` is the cometric matrix of the divergence induced metric.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        matrix : array-like, shape=[..., dim, dim, dim]
+            Second kind Christoffel symbols of the dual divergence connection.
+        """
         base_point_pair = gs.concatenate([base_point, base_point])
-        first_kind_christoffels = jac_hess(base_point_pair)[: self.dim, self.dim :, self.dim :]
-        first_kind_christoffels = -1 * first_kind_christoffels
+        metric_hess = gs.autodiff.hessian(self.divergence)
+        metric_matrix = -1 * metric_hess(base_point_pair)[: self.dim, self.dim :]
+        cometric_matrix = gs.linalg.inv(metric_matrix)
+        first_kind_christoffels = self.first_kind_christoffels(base_point)
         second_kind_christoffels = gs.einsum(
             '...lk, ...ijl -> ...kij',
             cometric_matrix,
@@ -372,15 +419,6 @@ class StatisticalMetric(RiemannianMetric):
         tensor : array-like, shape=[..., dim, dim, dim]
             Amari divergence tensor.
         """
-        second_primal_christoffels = self.primal_connection.christoffels(base_point)
-        second_dual_christoffels = self.dual_connection.christoffels(base_point)
-        metric_matrix_base_point = self.metric_matrix(base_point)
-        firsk_kind_primal_christoffels = gs.einsum(
-            '...kij,...km->...mij',
-            second_primal_christoffels,
-            metric_matrix_base_point
-        )
-        firsk_kind_dual_christoffels = gs.einsum(
-            '...kij,...km->...mij', second_dual_christoffels, metric_matrix_base_point
-        )
-        return firsk_kind_dual_christoffels - firsk_kind_primal_christoffels
+        first_primal = self.primal_connection.first_kind_christoffels(base_point)
+        first_dual = self.dual_connection.first_kind_christoffels(base_point)
+        return first_dual - first_primal

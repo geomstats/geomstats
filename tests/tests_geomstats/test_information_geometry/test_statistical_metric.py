@@ -73,7 +73,7 @@ class TestStatisticalMetric(TestCase):
             dual_connection=self.bregman_dual_connection,
         )
         self.euclidean_space.metric = self.euc_stat_metric
-        self.base_point = gs.random.uniform(low=0, high=5, size=(2,))
+        self.base_point = gs.array([2.1, 2.3])
 
         self.normal_manifold = NormalDistributions(sample_dim=1)
 
