@@ -12,7 +12,7 @@ import types
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.fiber_bundle import ProductFiberBundle
+from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.quotient_metric import QuotientMetric
 
 
@@ -415,7 +415,10 @@ class _QuotientStructureRegistry:
         out = cls.STRUCTURES.get(key, None)
         if out is None:
             if isinstance(GroupAction, tuple):
-                return ProductFiberBundle, QuotientMetric
+                return (
+                    lambda *args, **kwargs: FiberBundle(*args, **kwargs, aligner=True),
+                    QuotientMetric,
+                )
             else:
                 raise ValueError(f"No mapping for key: {key}")
 
