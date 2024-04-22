@@ -283,7 +283,7 @@ class _QuotientStructureRegistry:
 
     @classmethod
     def _as_key(self, Obj):
-        """Transform an instance of a class into a key type.
+        """Transform an instance of a class into a key.
 
         Parameters
         ----------
@@ -292,6 +292,8 @@ class _QuotientStructureRegistry:
         Returns
         -------
         Obj : type or str
+            Hashable object as used to create dict keys
+            within STRUCTURES.
         """
         if not (
             inspect.isclass(Obj)
