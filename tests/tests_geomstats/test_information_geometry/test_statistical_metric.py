@@ -12,6 +12,9 @@ from geomstats.information_geometry.statistical_metric import (
     DivergenceConnection,
     DualDivergenceConnection,
     StatisticalMetric,
+    PotentialFunction, 
+    StatisticalMetricFromPotentialFunction,
+    AlphaConnectionFromPotentialFunction,
 )
 from geomstats.test.test_case import TestCase, autograd_only
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
@@ -77,6 +80,17 @@ class TestStatisticalMetric(TestCase):
 
         self.normal_manifold = NormalDistributions(sample_dim=1)
 
+        self.potential_func_class = PotentialFunction(potential_function)
+
+        self.stat_metric_from_potential = StatisticalMetricFromPotentialFunction(
+            space=self.euclidean_space, potential_function=self.potential_func_class
+        )
+
+        self.alpha_connection_from_potential = AlphaConnectionFromPotentialFunction(
+            statstical_metric_from_func=self.stat_metric_from_potential,
+            alpha=1.0,
+        )
+
         def KL_divergence(theta1, theta2):
             def _func_to_integrate(x):
                 return self.normal_manifold.point_to_pdf(theta1)(x) * gs.log(
@@ -113,7 +127,10 @@ class TestStatisticalMetric(TestCase):
         potential_hessian = gs.autodiff.hessian(self.potential_function)
         potential_hessian_base_point = potential_hessian(self.base_point)
         metric_matrix_base_point = self.euc_stat_metric.metric_matrix(self.base_point)
+
+        
         self.assertAllClose(metric_matrix_base_point, potential_hessian_base_point)
+        self.assertAllClose(self.stat_metric_from_potential.metric_matrix(self.base_point), metric_matrix_base_point)
 
     def test_bregman_divergence_christoffels(
         self,
@@ -128,9 +145,15 @@ class TestStatisticalMetric(TestCase):
         )
 
     def test_bregman_dual_divergence_christoffels(
-        self,
-    ):
-        pass
+            self,
+        ):
+        dual_div_christoffels_base_point = self.bregman_dual_connection.first_kind_christoffels(
+            self.base_point
+        )
+        
+        self.alpha_connection_from_potential.alpha = 1.0
+        dual_potential_func = self.alpha_connection_from_potential.first_kind_christoffels(self.base_point)
+        self.assertAllClose(dual_div_christoffels_base_point, dual_potential_func, atol=1e0)
 
     def test_bregman_alpha_christoffels(
         self,

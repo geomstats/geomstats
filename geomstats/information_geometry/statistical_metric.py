@@ -1,5 +1,6 @@
 """Statistical metric and conjugate connections to equip manifold."""
 
+from typing import Any
 import geomstats.backend as gs
 from geomstats.geometry.connection import Connection
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -422,3 +423,50 @@ class StatisticalMetric(RiemannianMetric):
         first_primal = self.primal_connection.first_kind_christoffels(base_point)
         first_dual = self.dual_connection.first_kind_christoffels(base_point)
         return first_dual - first_primal
+
+class PotentialFunction:
+    def __init__(self, potential_function):
+        self.potential_function = potential_function
+        self.hessian_function = self.hessian()
+        self.third_derivative_function = self.third_derivative()
+
+    def __call__(self, x):
+        return self.potential_function(x)
+
+    def hessian(self):
+        return gs.autodiff.hessian(self.potential_function)
+
+    def third_derivative(self):
+        return gs.autodiff.jacobian(self.hessian())
+
+class StatisticalMetricFromPotentialFunction(RiemannianMetric):
+    def __init__(self, space, potential_function):
+        super().__init__(space=space, signature=(space.dim, 0))
+        self.dim = space.dim
+        self.potential_function = potential_function
+
+    def metric_matrix(self, base_point):
+        return self.potential_function.hessian_function(base_point)
+    
+    def first_kind_christoffels(self, base_point):
+        christoffels = self.christoffels(base_point)
+        cometric = self.cometric_matrix(base_point)
+        return gs.einsum('...lk, ...lij -> ...kij', cometric, christoffels)
+    
+    def amari_chentsov_tensor(self, base_point):
+        return self.potential_function.third_derivative_function(base_point)
+    
+class AlphaConnectionFromPotentialFunction(Connection):
+    def __init__(self, statstical_metric_from_func, alpha=1):
+        self.stat_metric = statstical_metric_from_func
+        self.alpha = alpha
+
+    def first_kind_christoffels(self, base_point):
+        LC_first_kind = self.stat_metric.first_kind_christoffels(base_point)
+        amari_chentsov_tensor = self.stat_metric.amari_chentsov_tensor(base_point)
+        return LC_first_kind + ((1 + self.alpha) / 2) * amari_chentsov_tensor
+    
+    def christoffels(self, base_point):
+        first_kind_christoffels = self.first_kind_christoffels(base_point)
+        cometric = self.stat_metric.cometric_matrix(base_point)
+        return gs.einsum('...lk, ...lij -> ...kij', cometric, first_kind_christoffels)
