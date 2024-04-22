@@ -7,7 +7,7 @@ import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.group_action import LieAlgebraBasedSpecialOrthogonalAction
+from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
 from geomstats.geometry.manifold import Manifold, register_quotient_structure
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
@@ -332,7 +332,7 @@ class PSDBuresWassersteinMetric(QuotientMetric):
 
         if not hasattr(total_space, "group_action"):
             total_space.equip_with_group_action(
-                LieAlgebraBasedSpecialOrthogonalAction(total_space.k)
+                SpecialOrthogonalComposeAction(total_space.k)
             )
 
         if not hasattr(total_space, "quotient"):
@@ -344,6 +344,6 @@ class PSDBuresWassersteinMetric(QuotientMetric):
 register_quotient_structure(
     FullRankMatrices,
     MatricesMetric,
-    LieAlgebraBasedSpecialOrthogonalAction,
+    SpecialOrthogonalComposeAction,
     BuresWassersteinBundle,
 )

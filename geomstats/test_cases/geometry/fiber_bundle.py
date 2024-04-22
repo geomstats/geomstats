@@ -3,7 +3,7 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.group_action import LieAlgebraBasedSpecialOrthogonalAction
+from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
 from geomstats.geometry.manifold import register_quotient_structure
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.test.random import RandomDataGenerator
@@ -545,6 +545,6 @@ class GeneralLinearBuresWassersteinBundle(FiberBundle):
 register_quotient_structure(
     GeneralLinear,
     MatricesMetric,
-    LieAlgebraBasedSpecialOrthogonalAction,
+    SpecialOrthogonalComposeAction,
     GeneralLinearBuresWassersteinBundle,
 )

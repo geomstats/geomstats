@@ -3,7 +3,7 @@ import random
 import pytest
 
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.group_action import LieAlgebraBasedSpecialOrthogonalAction
+from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
 from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDBuresWassersteinMetric, SPDMatrices
@@ -35,9 +35,7 @@ def spd_with_quotient_metric(request):
 
     total_space = GeneralLinear(n=n, equip=False)
     total_space.equip_with_metric(MatricesMetric)
-    total_space.equip_with_group_action(
-        LieAlgebraBasedSpecialOrthogonalAction(total_space.n)
-    )
+    total_space.equip_with_group_action(SpecialOrthogonalComposeAction(total_space.n))
     total_space.equip_with_quotient_structure()
 
     other_space.equip_with_metric(QuotientMetric, total_space=total_space)

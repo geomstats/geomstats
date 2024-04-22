@@ -3,7 +3,7 @@ import random
 import pytest
 
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
-from geomstats.geometry.group_action import LieAlgebraBasedSpecialOrthogonalAction
+from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
 from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.rank_k_psd_matrices import (
     PSDBuresWassersteinMetric,
@@ -88,9 +88,7 @@ def bundle_spaces(request):
 
     request.cls.total_space = total_space = FullRankMatrices(n=n, k=k, equip=False)
     total_space.equip_with_metric(MatricesMetric)
-    total_space.equip_with_group_action(
-        LieAlgebraBasedSpecialOrthogonalAction(total_space.k)
-    )
+    total_space.equip_with_group_action(SpecialOrthogonalComposeAction(total_space.k))
     total_space.equip_with_quotient_structure()
 
 

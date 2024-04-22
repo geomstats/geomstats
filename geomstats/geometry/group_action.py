@@ -30,25 +30,29 @@ class GroupAction(ABC):
         """
 
 
-class LieAlgebraBasedGroupAction(GroupAction):
+class ComposeAction(GroupAction):
     """Action of a group on itself by composition.
-
-    Group elements are represented by the vector representation
-    of Lie algebra elements. This is amenable to perform gradient-based
-    optimizations on the Lie algebra.
 
     Parameters
     ----------
-    group : LieGroup.
+    group : LieGroup
+    lie_algebra_repr : bool
+        If True, group elements are represented by the vector
+        representation of Lie algebra elements.
+        This is amenable to perform gradient-based optimizations
+        on the Lie algebra.
     """
 
-    def __init__(self, group):
+    def __init__(self, group, lie_algebra_repr=True):
         self._group = group
+        self.lie_algebra_repr = lie_algebra_repr
 
     @property
     def group_elem_shape(self):
         """Shape of the group element representation."""
-        return (self._group.lie_algebra.dim,)
+        if self.lie_algebra_repr:
+            return (self._group.lie_algebra.dim,)
+        return self._group.shape
 
     def __call__(self, group_elem, point):
         """Compose action of a group element on a point.
@@ -56,7 +60,7 @@ class LieAlgebraBasedGroupAction(GroupAction):
         Parameters
         ----------
         group_elem : array-like, shape=[..., *group_elem_shape]
-            Group element represented in the Lie algebra as a vector.
+            Group element in chosen representation.
         point : array-like, shape=[..., *group.shape]
             Point on the group.
 
@@ -65,22 +69,24 @@ class LieAlgebraBasedGroupAction(GroupAction):
         orbit_point : array-like, shape=[..., *group.shape]
             A point in the orbit of point.
         """
-        algebra_elt = self._group.lie_algebra.matrix_representation(group_elem)
-        group_elt = self._group.exp(algebra_elt)
-        return self._group.compose(point, group_elt)
+        if self.lie_algebra_repr:
+            algebra_elt = self._group.lie_algebra.matrix_representation(group_elem)
+            group_elem = self._group.exp(algebra_elt)
+        return self._group.compose(point, group_elem)
 
 
-class LieAlgebraBasedSpecialOrthogonalAction(LieAlgebraBasedGroupAction):
+class SpecialOrthogonalComposeAction(ComposeAction):
     """Action of the special orthogonal group.
-
-    Group elements are represented by the vector representation
-    of Lie algebra elements. This is amenable to perform gradient-based
-    optimizations on the Lie algebra.
 
     Parameters
     ----------
     n : int
         Integer representing the shapes of the matrices : n x n.
+    lie_algebra_repr : bool
+        If True, group elements are represented by the vector
+        representation of Lie algebra elements.
+        This is amenable to perform gradient-based optimizations
+        on the Lie algebra.
     """
 
     def __init__(self, n):
