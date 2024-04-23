@@ -425,19 +425,14 @@ class StatisticalMetric(RiemannianMetric):
         return first_dual - first_primal
 
 class PotentialFunction:
-    def __init__(self, potential_function):
-        self.potential_function = potential_function
-        self.hessian_function = self.hessian()
-        self.third_derivative_function = self.third_derivative()
-
     def __call__(self, x):
-        return self.potential_function(x)
+        raise NotImplementedError
 
-    def hessian(self):
-        return gs.autodiff.hessian(self.potential_function)
+    def hessian(self, point):
+        return gs.autodiff.hessian(self.__call__)(point)
 
-    def third_derivative(self):
-        return gs.autodiff.jacobian(self.hessian())
+    def third_derivative(self, point):
+        return gs.autodiff.jacobian(self.hessian)(point)
 
 class StatisticalMetricFromPotentialFunction(RiemannianMetric):
     def __init__(self, space, potential_function):
@@ -446,7 +441,7 @@ class StatisticalMetricFromPotentialFunction(RiemannianMetric):
         self.potential_function = potential_function
 
     def metric_matrix(self, base_point):
-        return self.potential_function.hessian_function(base_point)
+        return self.potential_function.hessian(base_point)
     
     def first_kind_christoffels(self, base_point):
         christoffels = self.christoffels(base_point)
@@ -454,7 +449,7 @@ class StatisticalMetricFromPotentialFunction(RiemannianMetric):
         return gs.einsum('...lk, ...lij -> ...kij', cometric, christoffels)
     
     def amari_chentsov_tensor(self, base_point):
-        return self.potential_function.third_derivative_function(base_point)
+        return self.potential_function.third_derivative(base_point)
     
 class AlphaConnectionFromPotentialFunction(Connection):
     def __init__(self, statstical_metric_from_func, alpha=1):

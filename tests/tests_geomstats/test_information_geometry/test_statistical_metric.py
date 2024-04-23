@@ -80,7 +80,8 @@ class TestStatisticalMetric(TestCase):
 
         self.normal_manifold = NormalDistributions(sample_dim=1)
 
-        self.potential_func_class = PotentialFunction(potential_function)
+        self.potential_func_class = PotentialFunction()
+        self.potential_func_class.__call__ = potential_function
 
         self.stat_metric_from_potential = StatisticalMetricFromPotentialFunction(
             space=self.euclidean_space, potential_function=self.potential_func_class
