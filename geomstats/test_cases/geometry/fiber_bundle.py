@@ -2,9 +2,10 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
-from geomstats.geometry.group_action import LieAlgebraBasedGroupAction
-from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
+from geomstats.geometry.manifold import register_quotient_structure
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
@@ -509,13 +510,6 @@ class FiberBundleTestCase(TestCase):
 
 class GeneralLinearBuresWassersteinBundle(FiberBundle):
     def __init__(self, total_space):
-        if not hasattr(total_space, "group_action"):
-            total_space.equip_with_group_action(
-                LieAlgebraBasedGroupAction(
-                    SpecialOrthogonal(total_space.n, equip=False)
-                )
-            )
-
         super().__init__(total_space=total_space, aligner=True)
 
     @staticmethod
@@ -546,3 +540,11 @@ class GeneralLinearBuresWassersteinBundle(FiberBundle):
     @staticmethod
     def lift(point):
         return gs.linalg.cholesky(point)
+
+
+register_quotient_structure(
+    Space=GeneralLinear,
+    Metric=MatricesMetric,
+    GroupAction=SpecialOrthogonalComposeAction,
+    FiberBundle=GeneralLinearBuresWassersteinBundle,
+)

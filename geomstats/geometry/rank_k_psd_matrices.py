@@ -7,12 +7,11 @@ import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.group_action import LieAlgebraBasedGroupAction
-from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
+from geomstats.geometry.manifold import Manifold, register_quotient_structure
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDEuclideanMetric, SPDMatrices
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
@@ -229,13 +228,6 @@ class BuresWassersteinBundle(FiberBundle):
     """Class for the quotient structure on PSD matrices."""
 
     def __init__(self, total_space):
-        if not hasattr(total_space, "group_action"):
-            total_space.equip_with_group_action(
-                LieAlgebraBasedGroupAction(
-                    SpecialOrthogonal(total_space.k, equip=False)
-                )
-            )
-
         super().__init__(total_space=total_space, aligner=True)
 
     @staticmethod
@@ -338,7 +330,20 @@ class PSDBuresWassersteinMetric(QuotientMetric):
             total_space = FullRankMatrices(space.n, k, equip=False)
             total_space.equip_with_metric(MatricesMetric)
 
-        if not hasattr(total_space, "fiber_bundle"):
-            total_space.fiber_bundle = BuresWassersteinBundle(total_space)
+        if not hasattr(total_space, "group_action"):
+            total_space.equip_with_group_action(
+                SpecialOrthogonalComposeAction(total_space.k)
+            )
+
+        if not hasattr(total_space, "quotient"):
+            total_space.equip_with_quotient_structure()
 
         super().__init__(space=space, total_space=total_space)
+
+
+register_quotient_structure(
+    Space=FullRankMatrices,
+    Metric=MatricesMetric,
+    GroupAction=SpecialOrthogonalComposeAction,
+    FiberBundle=BuresWassersteinBundle,
+)

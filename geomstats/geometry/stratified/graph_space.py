@@ -17,6 +17,7 @@ import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
 from geomstats.geometry.fiber_bundle import AlignerAlgorithm
 from geomstats.geometry.group_action import PermutationAction
+from geomstats.geometry.manifold import register_quotient_structure
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.stratified.quotient import Aligner, QuotientMetric
 from geomstats.numerics.optimizers import ScipyMinimize
@@ -543,13 +544,6 @@ class GraphSpace(Matrices):
         self.n_nodes = n_nodes
         super().__init__(n_nodes, n_nodes, equip=equip)
 
-        self._quotient_map = {
-            (MatricesMetric, PermutationAction): (
-                GraphSpaceAligner,
-                GraphSpaceQuotientMetric,
-            )
-        }
-
     def new(self, equip=True):
         """Create manifold with same parameters."""
         return GraphSpace(n_nodes=self.n_nodes, equip=equip)
@@ -560,31 +554,6 @@ class GraphSpace(Matrices):
             group_action = PermutationAction()
 
         return super().equip_with_group_action(group_action)
-
-    def equip_with_quotient_structure(self):
-        """Equip manifold with quotient structure.
-
-        Creates attributes `quotient` and `aligner`.
-
-        NB: `aligner` instead of `bundle` because total space does not
-        have fiber bundle structure due to the nature of the group actions
-        on this space.
-        """
-        self._check_equip_with_quotient_structure()
-
-        key = type(self.metric), type(self.group_action)
-
-        out = self._quotient_map.get(key, None)
-        if out is None:
-            raise ValueError(f"No mapping for key: {key}")
-        Aligner, QuotientMetric_ = out
-
-        self.aligner = Aligner(self)
-
-        self.quotient = self.new(equip=False)
-        self.quotient.equip_with_metric(QuotientMetric_, total_space=self)
-
-        return self.quotient
 
 
 class GraphSpaceAligner(Aligner):
@@ -718,3 +687,12 @@ class GraphSpaceQuotientMetric(QuotientMetric):
         "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
         https://www.jmlr.org/papers/v10/jain09a.html.
     """
+
+
+register_quotient_structure(
+    Space=GraphSpace,
+    Metric=MatricesMetric,
+    GroupAction=PermutationAction,
+    FiberBundle=GraphSpaceAligner,
+    QuotientMetric=GraphSpaceQuotientMetric,
+)

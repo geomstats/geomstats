@@ -15,6 +15,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.fiber_bundle import AlignerAlgorithm, FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks import Landmarks
+from geomstats.geometry.manifold import register_quotient_structure
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
@@ -91,20 +92,6 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
         ambient_manifold = Euclidean(ambient_dim)
         super().__init__(ambient_manifold, k_sampling_points - 1, equip=equip)
 
-        self._quotient_map = {
-            (SRVMetric, "rotations"): (
-                SRVRotationBundle,
-                QuotientMetric,
-            ),
-            (SRVMetric, "reparametrizations"): (
-                SRVReparametrizationBundle,
-                QuotientMetric,
-            ),
-            (SRVMetric, "rotations and reparametrizations"): (
-                SRVRotationReparametrizationBundle,
-                QuotientMetric,
-            ),
-        }
         self._sphere = Hypersphere(dim=ambient_dim - 1)
         self._discrete_curves_with_l2 = None
 
@@ -1905,3 +1892,26 @@ class SRVRotationReparametrizationBundle(FiberBundle):
                 for point_, base_point_ in zip(point, base_point)
             ]
         )
+
+
+register_quotient_structure(
+    Space=DiscreteCurvesStartingAtOrigin,
+    Metric=SRVMetric,
+    GroupAction="rotations",
+    FiberBundle=SRVRotationBundle,
+    QuotientMetric=QuotientMetric,
+)
+register_quotient_structure(
+    Space=DiscreteCurvesStartingAtOrigin,
+    Metric=SRVMetric,
+    GroupAction="reparametrizations",
+    FiberBundle=SRVReparametrizationBundle,
+    QuotientMetric=QuotientMetric,
+)
+register_quotient_structure(
+    Space=DiscreteCurvesStartingAtOrigin,
+    Metric=SRVMetric,
+    GroupAction="rotations and reparametrizations",
+    FiberBundle=SRVRotationReparametrizationBundle,
+    QuotientMetric=QuotientMetric,
+)

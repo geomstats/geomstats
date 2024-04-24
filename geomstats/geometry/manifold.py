@@ -8,6 +8,7 @@ Lead author: Nina Miolane.
 
 import abc
 import inspect
+import types
 
 import geomstats.backend as gs
 import geomstats.errors
@@ -94,32 +95,41 @@ class Manifold(abc.ABC):
         """
         self.group_action = group_action
 
-    def _check_equip_with_quotient_structure(self):
-        if not hasattr(self, "_quotient_map"):
-            raise ValueError("No quotient structure defined for this manifold.")
-
-        for structure_name in ("metric", "group_action"):
-            if not hasattr(self, structure_name):
-                raise ValueError(f"Need to equip with `{structure_name}` first")
+        return self
 
     def equip_with_quotient_structure(self):
         """Equip manifold with quotient structure.
 
-        Creates attributes `quotient` and `fiber_bundle`.
+        Creates attributes `quotient` and `fiber_bundle` or `aligner` (
+        `aligner` is used in quotient contexts where the notion
+        of fiber bundle is not defined.).
+
+        Returns
+        -------
+        quotient : Manifold or None
+            Quotient space equipped with a quotient metric.
         """
-        self._check_equip_with_quotient_structure()
+        if not _QuotientStructureRegistry.has_quotient_structure(self):
+            raise ValueError("No quotient structure defined for this manifold.")
 
-        key = type(self.metric), self.group_action
+        FiberBundle_, QuotientMetric_ = (
+            _QuotientStructureRegistry.get_fiber_bundle_and_quotient_metric(
+                self,
+            )
+        )
+        fiber_bundle = FiberBundle_(total_space=self)
+        if hasattr(fiber_bundle, "riemannian_submersion"):
+            self.fiber_bundle = fiber_bundle
+        else:
+            self.aligner = fiber_bundle
 
-        out = self._quotient_map.get(key, None)
-        if out is None:
-            raise ValueError(f"No mapping for key: {key}")
-        FiberBundle_, QuotientMetric_ = out
-
-        self.fiber_bundle = FiberBundle_(total_space=self)
+        if QuotientMetric_ is None:
+            return
 
         self.quotient = self.new(equip=False)
         self.quotient.equip_with_metric(QuotientMetric_, total_space=self)
+
+        return self.quotient
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
@@ -264,3 +274,163 @@ class Manifold(abc.ABC):
             return gs.copy(point)
 
         raise NotImplementedError("`projection` is not implemented yet")
+
+
+class _QuotientStructureRegistry:
+    """Registry for quotient structures."""
+
+    STRUCTURES = {}
+
+    @classmethod
+    def _as_key(self, Obj):
+        """Transform an instance of a class into a key.
+
+        Parameters
+        ----------
+        Obj : type or instance or str
+
+        Returns
+        -------
+        Obj : type or str
+            Hashable object as used to create dict keys
+            within STRUCTURES.
+        """
+        if not (
+            inspect.isclass(Obj)
+            or isinstance(Obj, types.FunctionType)
+            or isinstance(Obj, (str, tuple))
+        ):
+            return type(Obj)
+
+        return Obj
+
+    @classmethod
+    def has_quotient_structure(cls, Space):
+        """Check if a given type has an associated quotient structure.
+
+        Parameters
+        ----------
+        Space : type or instance or str
+
+        Returns
+        -------
+        has_quotient_struct : bool
+        """
+        Space = cls._as_key(Space)
+
+        for Space_, _, _ in cls.STRUCTURES.keys():
+            if Space_ is Space:
+                return True
+        return False
+
+    @classmethod
+    def get_available_quotient_structures(cls, Space, Metric=None, GroupAction=None):
+        """Get available quotient structures.
+
+        Parameters
+        ----------
+        Space : type or instance or str
+        Metric : type or instance or str
+        GroupAction : type or instance of str
+
+        Returns
+        -------
+        available_structures : list[tuple[type or str]]
+        """
+        Space = cls._as_key(Space)
+
+        structures = []
+        if Metric is None and GroupAction is None:
+            for Space_, Metric_, GroupAction_ in cls.STRUCTURES.keys():
+                if Space_ is Space:
+                    structures.append((Metric_, GroupAction_))
+
+            return structures
+
+        if Metric is not None and GroupAction is None:
+            Metric = cls._as_key(Metric)
+            for Space_, Metric_, GroupAction_ in cls.STRUCTURES.keys():
+                if Space_ is Space and Metric_ is Metric:
+                    structures.append((GroupAction_,))
+
+        if Metric is None and GroupAction is not None:
+            GroupAction = cls._as_key(GroupAction)
+            for Space_, Metric_, GroupAction_ in cls.STRUCTURES.keys():
+                if Space_ is Space and GroupAction_ is GroupAction:
+                    structures.append((Metric_,))
+
+        return structures
+
+    @classmethod
+    def get_fiber_bundle_and_quotient_metric(cls, Space, Metric=None, GroupAction=None):
+        """Get fiber bundle and quotient metric.
+
+        Checks are done along the way. Meaningful messages with
+        available structures in raised errors.
+
+        Parameters
+        ----------
+        Space : type or instance or str
+        Metric : type or instance or str
+
+        Returns
+        -------
+        FiberBundle : type
+        QuotientMetric : type
+        """
+        if (Metric is None or GroupAction is None) and inspect.isclass(Space):
+            raise ValueError("Pass instantiated space or metric and group action info.")
+
+        if Metric is None:
+            Metric = getattr(Space, "metric", None)
+
+        if GroupAction is None:
+            GroupAction = getattr(Space, "group_action", None)
+
+        for structure, structure_name in zip(
+            [Metric, GroupAction], ["metric", "group_action"]
+        ):
+            if structure is None:
+                available_structures = cls.get_available_quotient_structures(
+                    Space, Metric=Metric, GroupAction=GroupAction
+                )
+                structs_str = "\n\t".join(
+                    [
+                        ", ".join(str(elem) for elem in struct)
+                        for struct in available_structures
+                    ]
+                )
+                raise ValueError(
+                    f"Need to equip with `{structure_name}` first. "
+                    f"Available structures:\n\t{structs_str}"
+                )
+
+        Space = cls._as_key(Space)
+        Metric = cls._as_key(Metric)
+        GroupAction = cls._as_key(GroupAction)
+
+        key = (Space, Metric, GroupAction)
+        out = cls.STRUCTURES.get(key, None)
+        if out is None:
+            raise ValueError(f"No mapping for key: {key}")
+
+        return out
+
+
+def register_quotient_structure(
+    Space, Metric, GroupAction, FiberBundle, QuotientMetric=None
+):
+    """Register quotient structure.
+
+    Parameters
+    ----------
+    Space : type or str
+    Metric : type or str
+    GroupAction : type or str
+    FiberBundle : type or str
+    QuotientMetric : type or str
+    """
+    _QuotientStructureRegistry.STRUCTURES[(Space, Metric, GroupAction)] = (
+        FiberBundle,
+        QuotientMetric,
+    )

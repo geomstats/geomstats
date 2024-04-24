@@ -5,7 +5,6 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.diffeo import ComposedDiffeo
 from geomstats.geometry.full_rank_correlation_matrices import (
-    CorrelationMatricesBundle,
     FullRankCorrelationMatrices,
     LogScaledMetric,
     LogScalingDiffeo,
@@ -85,7 +84,10 @@ class TestFullRankCorrelationMatrices(
 def bundles(request):
     n = request.param
     request.cls.total_space = total_space = SPDMatrices(n=n, equip=True)
-    total_space.fiber_bundle = CorrelationMatricesBundle(total_space)
+
+    total_space.equip_with_group_action(FullRankCorrelationMatrices.diag_action)
+    total_space.equip_with_quotient_structure()
+
     request.cls.base = FullRankCorrelationMatrices(n=n, equip=False)
 
 
@@ -113,22 +115,12 @@ class TestCorrelationMatricesBundle(
         self.assertTrue(is_horizontal)
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        random.randint(3, 5),
-    ],
-)
-def affine_quotient_equipped_spaces(request):
-    n = request.param
-    request.cls.space = FullRankCorrelationMatrices(n=n)
-
-
 @pytest.mark.redundant
-@pytest.mark.usefixtures("affine_quotient_equipped_spaces")
 class TestFullRankCorrelationAffineQuotientMetric(
     QuotientMetricTestCase, metaclass=DataBasedParametrizer
 ):
+    _n = random.randint(3, 5)
+    space = FullRankCorrelationMatrices(n=_n)
     testing_data = FullRankCorrelationAffineQuotientMetricTestData()
 
 
