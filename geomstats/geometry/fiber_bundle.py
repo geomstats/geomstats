@@ -48,7 +48,7 @@ class AlignerAlgorithm(ABC):
         """
 
 
-class DistanceMinimizationBasedAligner(AlignerAlgorithm):
+class DistanceMinimizingAligner(AlignerAlgorithm):
     """Aligment based on minimization of squared distance.
 
     Parameters
@@ -136,7 +136,7 @@ class DistanceMinimizationBasedAligner(AlignerAlgorithm):
         return aligned_point
 
 
-class AlternateAlignmentAlgorithm(AlignerAlgorithm):
+class AlternatingAligner(AlignerAlgorithm):
     """Alternate alignment algorithm.
 
     Assumes total space is equipped with several group actions.
@@ -272,10 +272,10 @@ class FiberBundle:
         self._total_space = total_space
         if aligner is True:
             if isinstance(total_space.group_action, tuple):
-                aligner = AlternateAlignmentAlgorithm(total_space)
+                aligner = AlternatingAligner(total_space)
             else:
                 aligner = (
-                    DistanceMinimizationBasedAligner(total_space)
+                    DistanceMinimizingAligner(total_space)
                     if not gs.__name__.endswith("numpy")
                     else None
                 )

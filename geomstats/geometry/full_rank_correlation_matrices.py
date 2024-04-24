@@ -15,10 +15,7 @@ import logging
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.diffeo import ComposedDiffeo, Diffeo
-from geomstats.geometry.fiber_bundle import (
-    DistanceMinimizationBasedAligner,
-    FiberBundle,
-)
+from geomstats.geometry.fiber_bundle import DistanceMinimizingAligner, FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import expmh
 from geomstats.geometry.hyperboloid import Hyperboloid
@@ -271,9 +268,7 @@ class CorrelationMatricesBundle(FiberBundle):
 
     def __init__(self, total_space):
         aligner = (
-            DistanceMinimizationBasedAligner(
-                total_space, group_elem_shape=(total_space.n,)
-            )
+            DistanceMinimizingAligner(total_space, group_elem_shape=(total_space.n,))
             if not gs.__name__.endswith("numpy")
             else None
         )
