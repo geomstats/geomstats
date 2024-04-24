@@ -920,5 +920,9 @@ class KendallShapeMetric(QuotientMetric):
 
 
 register_quotient_structure(
-    PreShapeSpace, PreShapeMetric, "rotations", PreShapeSpaceBundle, KendallShapeMetric
+    Space=PreShapeSpace,
+    Metric=PreShapeMetric,
+    GroupAction="rotations",
+    FiberBundle=PreShapeSpaceBundle,
+    QuotientMetric=KendallShapeMetric,
 )

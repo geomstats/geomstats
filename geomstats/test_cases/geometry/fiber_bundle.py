@@ -543,8 +543,8 @@ class GeneralLinearBuresWassersteinBundle(FiberBundle):
 
 
 register_quotient_structure(
-    GeneralLinear,
-    MatricesMetric,
-    SpecialOrthogonalComposeAction,
-    GeneralLinearBuresWassersteinBundle,
+    Space=GeneralLinear,
+    Metric=MatricesMetric,
+    GroupAction=SpecialOrthogonalComposeAction,
+    FiberBundle=GeneralLinearBuresWassersteinBundle,
 )

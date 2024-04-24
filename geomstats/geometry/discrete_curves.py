@@ -1895,23 +1895,23 @@ class SRVRotationReparametrizationBundle(FiberBundle):
 
 
 register_quotient_structure(
-    DiscreteCurvesStartingAtOrigin,
-    SRVMetric,
-    "rotations",
-    SRVRotationBundle,
-    QuotientMetric,
+    Space=DiscreteCurvesStartingAtOrigin,
+    Metric=SRVMetric,
+    GroupAction="rotations",
+    FiberBundle=SRVRotationBundle,
+    QuotientMetric=QuotientMetric,
 )
 register_quotient_structure(
-    DiscreteCurvesStartingAtOrigin,
-    SRVMetric,
-    "reparametrizations",
-    SRVReparametrizationBundle,
-    QuotientMetric,
+    Space=DiscreteCurvesStartingAtOrigin,
+    Metric=SRVMetric,
+    GroupAction="reparametrizations",
+    FiberBundle=SRVReparametrizationBundle,
+    QuotientMetric=QuotientMetric,
 )
 register_quotient_structure(
-    DiscreteCurvesStartingAtOrigin,
-    SRVMetric,
-    "rotations and reparametrizations",
-    SRVRotationReparametrizationBundle,
-    QuotientMetric,
+    Space=DiscreteCurvesStartingAtOrigin,
+    Metric=SRVMetric,
+    GroupAction="rotations and reparametrizations",
+    FiberBundle=SRVRotationReparametrizationBundle,
+    QuotientMetric=QuotientMetric,
 )

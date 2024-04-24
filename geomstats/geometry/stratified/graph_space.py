@@ -690,9 +690,9 @@ class GraphSpaceQuotientMetric(QuotientMetric):
 
 
 register_quotient_structure(
-    GraphSpace,
-    MatricesMetric,
-    PermutationAction,
-    GraphSpaceAligner,
-    GraphSpaceQuotientMetric,
+    Space=GraphSpace,
+    Metric=MatricesMetric,
+    GroupAction=PermutationAction,
+    FiberBundle=GraphSpaceAligner,
+    QuotientMetric=GraphSpaceQuotientMetric,
 )

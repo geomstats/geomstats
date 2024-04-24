@@ -342,8 +342,8 @@ class PSDBuresWassersteinMetric(QuotientMetric):
 
 
 register_quotient_structure(
-    FullRankMatrices,
-    MatricesMetric,
-    SpecialOrthogonalComposeAction,
-    BuresWassersteinBundle,
+    Space=FullRankMatrices,
+    Metric=MatricesMetric,
+    GroupAction=SpecialOrthogonalComposeAction,
+    FiberBundle=BuresWassersteinBundle,
 )

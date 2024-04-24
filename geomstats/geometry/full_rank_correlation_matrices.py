@@ -1128,8 +1128,8 @@ class LogScaledMetric(PullbackDiffeoMetric):
 
 
 register_quotient_structure(
-    SPDMatrices,
-    SPDAffineMetric,
-    FullRankCorrelationMatrices.diag_action,
-    CorrelationMatricesBundle,
+    Space=SPDMatrices,
+    Metric=SPDAffineMetric,
+    GroupAction=FullRankCorrelationMatrices.diag_action,
+    FiberBundle=CorrelationMatricesBundle,
 )
