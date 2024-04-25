@@ -12,7 +12,6 @@ from geomstats.geometry.discrete_curves import (
     L2CurvesMetric,
     SRVReparametrizationBundle,
     SRVRotationBundle,
-    SRVRotationReparametrizationBundle,
     SRVTransform,
 )
 from geomstats.geometry.euclidean import Euclidean
@@ -49,7 +48,7 @@ from .data.discrete_curves import (
     SRVReparametrizationBundleTestData,
     SRVReparametrizationsQuotientMetricTestData,
     SRVRotationBundleTestData,
-    SRVRotationReparametrizationBundleTestData,
+    SRVRotationReparametrizationsBundleTestData,
     SRVRotationsAndReparametrizationsQuotientMetricTestData,
     SRVRotationsQuotientMetricTestData,
 )
@@ -284,7 +283,9 @@ class TestSRVRotationBundle(TestCase, metaclass=DataBasedParametrizer):
         self.assertAllClose(aligned_point, base_point, atol=atol)
 
 
-class TestSRVRotationReparametrizationBundle(TestCase, metaclass=DataBasedParametrizer):
+class TestSRVRotationReparametrizationsBundle(
+    TestCase, metaclass=DataBasedParametrizer
+):
     _ambient_dim = random.randint(2, 3)
     _k_sampling_points = random.randint(5, 10)
 
@@ -292,9 +293,10 @@ class TestSRVRotationReparametrizationBundle(TestCase, metaclass=DataBasedParame
         ambient_dim=_ambient_dim,
         k_sampling_points=_k_sampling_points,
     )
-    bundle = SRVRotationReparametrizationBundle(total_space)
+    total_space.equip_with_group_action(("rotations", "reparametrizations"))
+    total_space.equip_with_quotient_structure()
 
-    testing_data = SRVRotationReparametrizationBundleTestData()
+    testing_data = SRVRotationReparametrizationsBundleTestData()
 
     def test_align(self, n_points, atol):
         base_point = self.total_space.random_point(n_points)
@@ -304,23 +306,13 @@ class TestSRVRotationReparametrizationBundle(TestCase, metaclass=DataBasedParame
         sampling_points = gs.linspace(0.0, 1.0, k_sampling_points)
 
         point = base_curve(sampling_points**2)
-
         point = self.total_space.projection(point)
+
+        rotation_bundle = self.total_space.fiber_bundle.total_spaces[0].fiber_bundle
         rotation = SpecialOrthogonal(self._ambient_dim).random_point(n_points)
-        point = self.bundle._total_space_with_rotations.fiber_bundle._rotate(
-            point, rotation
-        )
+        point = rotation_bundle._rotate(point, rotation)
 
-        aligned_point, inv_rotation = self.bundle.align(
-            point, base_point, return_rotation=True
-        )
-        result = gs.matmul(rotation, inv_rotation)
-        if n_points == 1:
-            expected = gs.eye(self._ambient_dim)
-        else:
-            expected = gs.stack([gs.eye(self._ambient_dim) for _ in range(n_points)])
-
-        self.assertAllClose(result, expected, atol=atol)
+        aligned_point = self.total_space.fiber_bundle.align(point, base_point)
         self.assertAllClose(aligned_point, base_point, atol=atol)
 
 
@@ -362,7 +354,7 @@ class TestSRVRotationsReparametrizationsQuotientMetric(
     _ambient_dim = random.randint(2, 3)
     _k_sampling_points = random.randint(5, 10)
     _total_space = DiscreteCurvesStartingAtOrigin(_ambient_dim, _k_sampling_points)
-    _total_space.equip_with_group_action("rotations and reparametrizations")
+    _total_space.equip_with_group_action(("rotations", "reparametrizations"))
     _total_space.equip_with_quotient_structure()
 
     space = _total_space.quotient
