@@ -378,7 +378,6 @@ class FiberBundle:
         base point from:
             1. the vertical projection
             2. the horizontal lift of the tangent submersion
-            3. the align method
 
         Parameters
         ----------
@@ -405,9 +404,7 @@ class FiberBundle:
                 fiber_point=base_point,
             )
 
-        point = self._total_space.metric.exp(tangent_vec, base_point)
-        aligned_point = self.align(point, base_point)
-        return self._total_space.metric.log(aligned_point, base_point)
+        raise NotImplementedError("Horizontal projection is not implemented.")
 
     @_from_base
     def vertical_projection(self, tangent_vec, base_point):
