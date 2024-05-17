@@ -68,8 +68,8 @@ def test_NaturalGradientDescent():
         activations.append(output)
 
     # Registering hook to layer1, layer2
-    hook_handle = model.fc1.register_forward_hook(hook)
-    hook_handle2 = model.conv1.register_forward_hook(hook)
+    unused_hook_handle = model.fc1.register_forward_hook(hook)
+    unused_hook_handle2 = model.conv1.register_forward_hook(hook)
 
     # Define loss function and optimizer
     criterion = nn.CrossEntropyLoss()
@@ -138,7 +138,7 @@ def test_NaturalGradientDescent():
 
     best_vloss = 1_000_000.0
 
-    for epoch in range(EPOCHS):
+    for _ in range(EPOCHS):
         print("EPOCH {}:".format(epoch_number + 1))
 
         # Make sure gradient tracking is on, and do a pass over the data
