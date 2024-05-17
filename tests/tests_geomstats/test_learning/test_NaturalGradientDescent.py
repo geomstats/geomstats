@@ -44,7 +44,6 @@ def test_NaturalGradientDescent():
             self.image_size = image.size()
 
         def forward(self, x):
-         #   x = x.view(-1, self.image_size[0], self.image_size[1], self.image_size[2])
             x = self.fc1(x)
             x = torch.relu(x)
             x = x.view(-1, self.image_size[0], x.shape[0], x.shape[1])
