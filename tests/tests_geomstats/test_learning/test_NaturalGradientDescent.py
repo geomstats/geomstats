@@ -3,9 +3,7 @@ import torch
 import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
-import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
-from torchviz import make_dot
 import os
 
 from ComponentWiseNaturalGradientDescent import ComponentWiseNaturalGradientDescent
