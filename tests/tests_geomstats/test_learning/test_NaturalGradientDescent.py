@@ -63,7 +63,7 @@ def test_NaturalGradientDescent():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = SimpleModel().to(device)
 
-    def hook(module, input, output):
+    def hook(output):
         # Save output of the layer
         activations.append(output)
 
