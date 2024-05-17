@@ -2,6 +2,7 @@ import torch
 
 import geomstats.backend as gs
 
+
 class ComponentWiseNaturalGradientDescent:
     """Implements Natural Gradient Descent using Van Sang et al. algorithm 
     for convolutional neural networks
@@ -27,7 +28,7 @@ class ComponentWiseNaturalGradientDescent:
     .. [2210.05268] Tran Van Sang, Mhd Irvan, Rie Shigetomi Yamaguchi, Toshiyuki Nakata (2022)
         Component-Wise Natural Gradient Descent -- An Efficient Neural Network Optimization
     """
-    def __init__(self, params, activations, layers_dict, lr=0.05, gamma = 0.1, bias=True):
+    def __init__(self, params, activations, layers_dict, lr=0.05, gamma=0.1, bias=True):
         self.defaults = dict(lr=lr, gamma=gamma, bias=bias)
         self.params = params
         self.layers_dict = layers_dict
@@ -71,19 +72,19 @@ class ComponentWiseNaturalGradientDescent:
         W_prev = self.activations[-1]
         A_prev = torch.relu(W_prev)
         d_act_L = gs.where((gs.matmul(layer_weight, A_prev.squeeze().T) + layer_bias.unsqueeze(1)) > 0,
-                              gs.array(1.0), gs.array(0.0))
+                            gs.array(1.0), gs.array(0.0))
         D_a = gs.matmul(layer_grad, gs.matmul(d_act_L, A_prev.squeeze()).T)
         l2 = len(self.dense_params) // 2
         l3 = len(self.conv_params)
-        for l in range(len(list(self.layers_dict.keys())), 1, -1):
-            current_layer = list(self.layers_dict.keys())[l-1]
+        for l1 in range(len(list(self.layers_dict.keys())), 1, -1):
+            current_layer = list(self.layers_dict.keys())[l1-1]
             if current_layer[0:2] == 'fc':
                 layer_grad = self.dense_gradients[2*l2-2]
                 layer_weight = self.dense_params[2*l2-2]
                 layer_bias = self.dense_params[2*l2-1]
                 A_prev = self.dense_activations[l2-1]
                 d_act_l = gs.where((gs.matmul(layer_weight, A_prev.T) + layer_bias.unsqueeze(1)) > 0,
-                                gs.array(1.0), gs.array(0.0))
+                                    gs.array(1.0), gs.array(0.0))
                 D_s = gs.matmul(D_a, d_act_l)
                 D_a_grad = gs.empty_like(D_s)
                 D_a_grad = torch.autograd.grad(outputs=D_s, inputs=D_a, grad_outputs=D_a_grad)
