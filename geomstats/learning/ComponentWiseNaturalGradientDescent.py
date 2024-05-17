@@ -1,6 +1,3 @@
-import math
-import random
-import numpy as np
 import torch
 
 import geomstats.backend as gs
