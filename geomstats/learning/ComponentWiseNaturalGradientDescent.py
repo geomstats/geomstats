@@ -28,7 +28,7 @@ class ComponentWiseNaturalGradientDescent:
     .. [2210.05268] Tran Van Sang, Mhd Irvan, Rie Shigetomi Yamaguchi, Toshiyuki Nakata (2022)
         Component-Wise Natural Gradient Descent -- An Efficient Neural Network Optimization
     """
-    
+
     def __init__(self, params, activations, layers_dict, lr=0.05, gamma=0.1, bias=True):
         self.defaults = dict(lr=lr, gamma=gamma, bias=bias)
         self.params = params
@@ -56,11 +56,11 @@ class ComponentWiseNaturalGradientDescent:
         called before backpropagation to clear the gradients computed in the previous
         iteration or batch. By zeroing out the gradients, we ensure that the gradients
         from different iterations or batches do not accumulate.
-    
+
         Returns:
             None
         """
-        
+
         for param in self.params:
             if param.grad is not None:
                 param.grad.detach_()
@@ -79,7 +79,7 @@ class ComponentWiseNaturalGradientDescent:
         Returns:
             None
         '''
-        
+
         for p in gradients:
             if p.dim() > 2:
                 self.conv_gradients.append(p)
