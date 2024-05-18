@@ -69,7 +69,7 @@ class ComponentWiseNaturalGradientDescent:
     def step(self, gradients):
         """
         Update the parameters of the model using gradient descent.
-        
+
         Parameters
         ----------
         gradients : array-like
@@ -109,7 +109,7 @@ class ComponentWiseNaturalGradientDescent:
                 layer_bias = self.dense_params[2*l2-1]
                 A_prev = self.dense_activations[l2-1]
                 d_act_l = gs.where((gs.matmul(layer_weight, A_prev.T) + layer_bias.unsqueeze(1)) > 0,
-                gs.array(1.0), gs.array(0.0))
+gs.array(1.0), gs.array(0.0))
                 D_s = gs.matmul(D_a, d_act_l)
                 D_a_grad = gs.empty_like(D_s)
                 D_a_grad = torch.autograd.grad(outputs=D_s, inputs=D_a, grad_outputs=D_a_grad)
@@ -117,7 +117,7 @@ class ComponentWiseNaturalGradientDescent:
                 F = gs.matmul(D_w.T, D_w)
                 D_w = D_w.unsqueeze(1)
                 U = gs.matmul(D_w, gs.linalg.inv(F + self.defaults['gamma'])).squeeze().T
-                self.dense_params[2*l2-2].data -= self.defaults['lr'] * U
+self.dense_params[2*l2-2].data -= self.defaults['lr'] * U
                 l2 -= 2
             if current_layer[0:4] == 'conv':
                 D_w = self.conv_gradients[l3-1]
