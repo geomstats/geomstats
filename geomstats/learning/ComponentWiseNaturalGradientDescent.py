@@ -97,7 +97,7 @@ class ComponentWiseNaturalGradientDescent:
         W_prev = self.activations[-1]
         A_prev = torch.relu(W_prev)
         d_act_L = gs.where((gs.matmul(layer_weight, A_prev.squeeze().T) + layer_bias.unsqueeze(1)) > 0,
-        gs.array(1.0), gs.array(0.0))
+gs.array(1.0), gs.array(0.0))
         D_a = gs.matmul(layer_grad, gs.matmul(d_act_L, A_prev.squeeze()).T)
         l2 = len(self.dense_params) // 2
         l3 = len(self.conv_params)
@@ -117,7 +117,7 @@ gs.array(1.0), gs.array(0.0))
                 F = gs.matmul(D_w.T, D_w)
                 D_w = D_w.unsqueeze(1)
                 U = gs.matmul(D_w, gs.linalg.inv(F + self.defaults['gamma'])).squeeze().T
-self.dense_params[2*l2-2].data -= self.defaults['lr'] * U
+                self.dense_params[2*l2-2].data -= self.defaults['lr'] * U
                 l2 -= 2
             if current_layer[0:4] == 'conv':
                 D_w = self.conv_gradients[l3-1]
