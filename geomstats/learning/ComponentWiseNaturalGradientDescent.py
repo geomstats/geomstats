@@ -25,8 +25,9 @@ class ComponentWiseNaturalGradientDescent:
         Whether or not to include bias term in training
     References
     ----------
-    .. [2210.05268] Tran Van Sang, Mhd Irvan, Rie Shigetomi Yamaguchi, Toshiyuki Nakata (2022)
-        Component-Wise Natural Gradient Descent -- An Efficient Neural Network Optimization
+    .. [2210.05268] Tran Van Sang, Mhd Irvan,
+    Rie Shigetomi Yamaguchi, Toshiyuki Nakata (2022)
+    Component-Wise Natural Gradient Descent -- An Efficient Neural Network Optimization
     """
 
     def __init__(self, params, activations, layers_dict, lr=0.05, gamma=0.1, bias=True):
@@ -60,16 +61,15 @@ class ComponentWiseNaturalGradientDescent:
         Returns:
             None
         """
-
         for param in self.params:
             if param.grad is not None:
                 param.grad.detach_()
                 param.grad.zero_()
 
     def step(self, gradients):
-        '''
+        """
         Update the parameters of the model using gradient descent.
-
+        
         Parameters
         ----------
         gradients : array-like
@@ -78,8 +78,7 @@ class ComponentWiseNaturalGradientDescent:
 
         Returns:
             None
-        '''
-
+        """
         for p in gradients:
             if p.dim() > 2:
                 self.conv_gradients.append(p)
@@ -98,7 +97,7 @@ class ComponentWiseNaturalGradientDescent:
         W_prev = self.activations[-1]
         A_prev = torch.relu(W_prev)
         d_act_L = gs.where((gs.matmul(layer_weight, A_prev.squeeze().T) + layer_bias.unsqueeze(1)) > 0,
-                  gs.array(1.0), gs.array(0.0))
+        gs.array(1.0), gs.array(0.0))
         D_a = gs.matmul(layer_grad, gs.matmul(d_act_L, A_prev.squeeze()).T)
         l2 = len(self.dense_params) // 2
         l3 = len(self.conv_params)
@@ -110,7 +109,7 @@ class ComponentWiseNaturalGradientDescent:
                 layer_bias = self.dense_params[2*l2-1]
                 A_prev = self.dense_activations[l2-1]
                 d_act_l = gs.where((gs.matmul(layer_weight, A_prev.T) + layer_bias.unsqueeze(1)) > 0,
-                          gs.array(1.0), gs.array(0.0))
+                gs.array(1.0), gs.array(0.0))
                 D_s = gs.matmul(D_a, d_act_l)
                 D_a_grad = gs.empty_like(D_s)
                 D_a_grad = torch.autograd.grad(outputs=D_s, inputs=D_a, grad_outputs=D_a_grad)
