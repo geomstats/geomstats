@@ -1,12 +1,11 @@
 import geomstats.backend as gs
 
 if gs.__name__.endswith("numpy"):
-    from pykeops.numpy import Genred
+    from pykeops.numpy import Vi, Vj
 else:
-    from pykeops.torch import Genred
+    from pykeops.torch import Vi, Vj
 
 
-# TODO: rethink all of this based on
 # https://www.kernel-operations.io/keops/_auto_tutorials/surface_registration/plot_LDDMM_Surface.html#data-attachment-term
 
 # TODO: delete?
@@ -31,226 +30,154 @@ SIGNAL_KERNEL = {
 }
 
 
-class Reduction:
-    def __init__(self, formula, aliases=None, fixed_params=None, **reduction_kwargs):
-        if aliases is None:
-            aliases = {}
-        if fixed_params is None:
-            fixed_params = {}
+class Surface:
+    def __init__(self, vertices, faces, signal=None):
+        self.vertices = vertices
+        self.faces = faces
+        self.signal = signal
 
-        self.formula = formula
-        self.aliases = aliases
-
-        self.fixed_params = fixed_params
-        self._fixed_params_ls = list(fixed_params.values())
-
-        self.reduction_kwargs = reduction_kwargs
-        self._routine = None
-
-    def _generate_routine(self):
-        aliases = [f"{key} = Pm(1)" for key in self.fixed_params.keys()]
-        aliases += [f"{key} = {value}" for key, value in self.aliases.items()]
-
-        return Genred(self.formula, aliases, **self.reduction_kwargs)
-
-    def __call__(self, *args):
-        if self._routine is None:
-            self._routine = self._generate_routine()
-
-        return self._routine(*self._fixed_params_ls, *args)
-
-
-class ConstantReduction(Reduction):
-    def __init__(self, value):
-        self.value = value
-        super().__init__(formula=f"IntCst({value})")
-
-
-class GaussianKernel(Reduction):
-    def __init__(self, dim=3, sigma_param=0.2, x="x", a="a"):
-        self.dim = dim
-        self.sigma = sigma_param
-        formula = f"Exp(-SqDist({x}0,{x}1)*a)"
-
-        super().__init__(
-            formula,
-            aliases={
-                f"{x}{index}": f"V{index_name}({dim})"
-                for index, index_name in enumerate("ij")
-            },
-            fixed_params={"a": gs.array([1 / sigma_param**2])},
-            reduction_op="Sum",
-            axis=1,
+        (self.face_centroids, self.face_normals, self.face_areas) = (
+            self._compute_mesh_info()
         )
 
-
-class GaussianOrientedKernel(Reduction):
-    def __init__(self, dim=3, b_param=1.0, u="u", b="b"):
-        formula = f"Exp(IntCst(2)*{b}*(({u}0|{u}1)-IntCst(1)))"
-
-        super().__init__(
-            formula,
-            aliases={
-                f"{u}{index}": f"V{index_name}({dim})"
-                for index, index_name in enumerate("ij")
-            },
-            fixed_params={"b": gs.array([b_param])},
-            reduction_op="Sum",
-            axis=1,
+    def _compute_mesh_info(self):
+        slc = tuple([slice(None)] * len(self.vertices.shape[:-2]))
+        face_coordinates = self.vertices[*slc, self.faces]
+        vertex_0, vertex_1, vertex_2 = (
+            face_coordinates[*slc, :, 0],
+            face_coordinates[*slc, :, 1],
+            face_coordinates[*slc, :, 2],
         )
 
+        face_centroids = (vertex_0 + vertex_1 + vertex_2) / 3
+        normals = 0.5 * gs.cross(vertex_1 - vertex_0, vertex_2 - vertex_0)
+        # TODO: may need to expand dims
+        area = gs.linalg.norm(normals, axis=-1)
+        unit_normals = gs.einsum("...ij,...i->...ij", normals, 1 / area)
 
-class FactorizedReduction(Reduction):
-    """A reduction resulting from the multiplications of reductions.
-
-    NB: assumes `reduction_op` and `axis` are the same across reductions.
-    """
-
-    def __init__(self, factors):
-        self.factors = factors
-        formula = "*".join([factor.formula for factor in factors])
-
-        aliases = factors[0].aliases.copy()
-        fixed_params = factors[0].fixed_params.copy()
-        for factor in factors[1:]:
-            aliases.update(factor.aliases)
-            fixed_params.update(factor.fixed_params)
-
-        super().__init__(formula, aliases, fixed_params, **factors[0].reduction_kwargs)
+        return face_centroids, unit_normals, gs.expand_dims(area, axis=-1)
 
 
-class AreaReduction(Reduction):
-    def __init__(self, x="A"):
-        var_names = [f"{x}{index}" for index in range(2)]
-        formula = "*".join(var_names)
-        aliases = {
-            var_name: f"V{index_name}(1)"
-            for var_name, index_name in zip(var_names, "ij")
-        }
-        super().__init__(formula, aliases)
-
-
-class VarifoldReduction(FactorizedReduction):
+class SurfacesKernel:
     def __init__(
         self,
-        dim=3,
-        spatial_kernel=None,
+        position_kernel=None,
         tangent_kernel=None,
+        signal_kernel=None,
     ):
-        if spatial_kernel is None:
-            spatial_kernel = GaussianKernel(dim=dim)
+        reduction = 1.0
 
-        if tangent_kernel is None:
-            tangent_kernel = GaussianOrientedKernel(dim=dim)
+        self._has_position = False
+        if position_kernel is not None:
+            self._has_position = True
+            reduction *= position_kernel
 
-        area_reduction = AreaReduction()
+        self._has_tangent = False
+        if tangent_kernel is not None:
+            self._has_tangent = True
+            reduction *= tangent_kernel
 
-        factors = [spatial_kernel, tangent_kernel, area_reduction]
-        super().__init__(factors)
+        self._has_signal = False
+        if signal_kernel is not None:
+            self._has_signal = True
+            reduction *= signal_kernel
+
+        area_b = Vj(reduction.new_variable_index(), 1)
+        self._kernel = (reduction * area_b).sum_reduction(axis=1)
+
+    def __call__(self, point_a, point_b):
+        reduction_inputs = ()
+        if self._has_position:
+            reduction_inputs += (point_a.face_centroids, point_b.face_centroids)
+
+        if self._has_tangent:
+            reduction_inputs += (point_a.face_normals, point_b.face_normals)
+
+        if self._has_signal:
+            reduction_inputs += (point_a.signal, point_b.signal)
+
+        reduction_inputs += (point_b.face_areas,)
+        return gs.sum(self._kernel(*reduction_inputs) * point_a.face_areas)
+
+
+def GaussianKernel(sigma, init_index=0, dim=3):
+    r"""Implements Gaussian kernel.
+
+    .. math ::
+
+        K(x, y)=e^{-\|x-y\|^2 / \sigma^2}
+
+    Parameters
+    ----------
+    sigma : float
+    """
+    # Exp(-SqDist(x,y)*a)
+    x, y = Vi(init_index, dim), Vj(init_index + 1, dim)
+    gamma = 1 / (sigma * sigma)
+    D2 = x.sqdist(y)
+    return (-D2 * gamma).exp()
+
+
+def LinearKernel(init_index=0, dim=3):
+    # (u|v)
+    u, v = Vi(init_index, dim), Vj(init_index + 1, dim)
+    return (u * v).sum() ** 2
+
+
+def BinetKernel(init_index=0, dim=3):
+    # Square((u|v))
+    u, v = Vi(init_index, dim), Vj(init_index + 1, dim)
+    return (u * v).sum() ** 2
+
+
+def UnorientedGaussian(b=1.0, init_index=0, dim=3):
+    # TODO: review name
+    # Exp(IntCst(2)*b*((u|v)-IntCst(1)))
+    u, v = Vi(init_index, dim), Vj(init_index + 1, dim)
+    return (2 * b * ((u * v).sum() - 1)).exp()
 
 
 class VarifoldMetric:
-    """Varifold metric."""
+    """Varifold metric.
 
-    def __init__(self, space, varifold_reduction=None, other_space=None):
-        if other_space is None:
-            other_space = space
+    Parameters
+    ----------
+    kernel : callable
+    """
 
-        if varifold_reduction is None:
-            self.varifold_reduction = VarifoldReduction()
+    def __init__(self, kernel=None):
+        if kernel is None:
+            position_kernel = GaussianKernel(sigma=1.0, init_index=0)
+            tangent_kernel = BinetKernel(
+                init_index=position_kernel.new_variable_index()
+            )
 
-        self._space = space
-        self._other_space = other_space
+            kernel = SurfacesKernel(position_kernel, tangent_kernel)
 
-        self.varifold_reduction = varifold_reduction
+        self.kernel = kernel
 
-    def _compute_mesh_info(
-        self, point, centroids=None, normals=None, areas=None, use_other=False
-    ):
-        space = self._other_space if use_other else self._space
+    def scalar_product(self, point_a, point_b):
+        return self.kernel(point_a, point_b)
 
-        if centroids is None:
-            centroids = space.face_centroids(point)
-
-        if normals is None:
-            # TODO: need to normalize normals
-            normals = space.normals(point)
-
-        if areas is None:
-            areas = space.face_areas(point)
-
-        return centroids, normals, areas
-
-    def scalar_product_per_face(
-        self,
-        point_a,
-        point_b,
-        centroids_a=None,
-        centroids_b=None,
-        normals_a=None,
-        normals_b=None,
-        areas_a=None,
-        areas_b=None,
-    ):
-        centroids_a, normals_a, areas_a = self._compute_mesh_info(
-            point_a, centroids_a, normals_a, areas_a
-        )
-        centroids_b, normals_b, areas_b = self._compute_mesh_info(
-            point_b, centroids_b, normals_b, areas_b, use_other=True
+    def squared_dist(self, point_a, point_b):
+        return (
+            self.kernel(point_a, point_a)
+            - 2 * self.kernel(point_a, point_b)
+            + self.kernel(point_b, point_b)
         )
 
-        return self.varifold_reduction(
-            centroids_a, centroids_b, normals_a, normals_b, areas_a, areas_b
-        )
+    def loss(self, target_point, target_faces=None):
+        if target_faces is None:
+            target_faces = target_point.faces
 
-    def scalar_product(
-        self,
-        point_a,
-        point_b,
-        centroids_a=None,
-        centroids_b=None,
-        normals_a=None,
-        normals_b=None,
-        areas_a=None,
-        areas_b=None,
-    ):
-        centroids_a, normals_a, areas_a = self._compute_mesh_info(
-            point_a, centroids_a, normals_a, areas_a
-        )
-        centroids_b, normals_b, areas_b = self._compute_mesh_info(
-            point_b, centroids_b, normals_b, areas_b, use_other=True
-        )
+        kernel_target = self.kernel(target_point, target_point)
 
-        return gs.sum(
-            self.scalar_product_per_face(
-                point_a,
-                point_b,
-                centroids_a,
-                centroids_b,
-                normals_a,
-                normals_b,
-                areas_a,
-                areas_b,
-            ),
-            axis=[-2, -1],
-        )
+        def squared_dist(vertices):
+            point = Surface(vertices, target_faces)
+            return (
+                kernel_target
+                - 2 * self.kernel(target_point, point)
+                + self.kernel(point, point)
+            )
 
-    def squared_dist(
-        self,
-        point_a,
-        point_b,
-        centroids_a=None,
-        centroids_b=None,
-        normals_a=None,
-        normals_b=None,
-        areas_a=None,
-        areas_b=None,
-    ):
-        centroids_a, normals_a, areas_a = self._compute_mesh_info(
-            point_a, centroids_a, normals_a, areas_a
-        )
-        centroids_b, normals_b, areas_b = self._compute_mesh_info(
-            point_b, centroids_b, normals_b, areas_b, use_other=True
-        )
-
-        # TODO: complete
+        return squared_dist
