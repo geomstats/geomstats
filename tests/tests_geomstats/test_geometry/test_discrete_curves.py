@@ -10,7 +10,7 @@ from geomstats.geometry.discrete_curves import (
     FTransform,
     IterativeHorizontalGeodesicAligner,
     L2CurvesMetric,
-    SRVReparametrizationBundle,
+    ReparametrizationBundle,
     SRVRotationBundle,
     SRVTransform,
 )
@@ -28,7 +28,7 @@ from geomstats.test_cases.geometry.diffeo import (
 from geomstats.test_cases.geometry.discrete_curves import (
     DiscreteCurvesStartingAtOriginTestCase,
     ElasticMetricTestCase,
-    SRVReparametrizationBundleTestCase,
+    ReparametrizationBundleTestCase,
 )
 from geomstats.test_cases.geometry.nfold_manifold import NFoldMetricTestCase
 from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
@@ -44,8 +44,8 @@ from .data.discrete_curves import (
     ElasticMetricTestData,
     L2CurvesMetricTestData,
     ReparametrizationAlignerTestData,
+    ReparametrizationBundleTestData,
     SRVMetricTestData,
-    SRVReparametrizationBundleTestData,
     SRVReparametrizationsQuotientMetricTestData,
     SRVRotationBundleTestData,
     SRVRotationReparametrizationsBundleTestData,
@@ -194,7 +194,7 @@ def srv_reparametrization_bundles(request):
     total_space = request.cls.total_space = request.cls.base = (
         DiscreteCurvesStartingAtOrigin(ambient_dim, k_sampling_points)
     )
-    total_space.fiber_bundle = SRVReparametrizationBundle(total_space)
+    total_space.fiber_bundle = ReparametrizationBundle(total_space)
 
     request.cls.data_generator = request.cls.base_data_generator = (
         ShapeBundleRandomDataGenerator(total_space)
@@ -202,17 +202,17 @@ def srv_reparametrization_bundles(request):
 
 
 @pytest.mark.usefixtures("srv_reparametrization_bundles")
-class TestSRVReparametrizationBundle(
-    SRVReparametrizationBundleTestCase, metaclass=DataBasedParametrizer
+class TestReparametrizationBundle(
+    ReparametrizationBundleTestCase, metaclass=DataBasedParametrizer
 ):
     ambient_dim = random.randint(2, 3)
     k_sampling_points = random.randint(4, 8)
 
     total_space = base = DiscreteCurvesStartingAtOrigin(ambient_dim, k_sampling_points)
-    total_space.fiber_bundle = SRVReparametrizationBundle(total_space)
+    total_space.fiber_bundle = ReparametrizationBundle(total_space)
 
     data_generator = base_data_generator = ShapeBundleRandomDataGenerator(total_space)
-    testing_data = SRVReparametrizationBundleTestData()
+    testing_data = ReparametrizationBundleTestData()
 
 
 @pytest.fixture(
@@ -231,7 +231,7 @@ def aligners(request):
     )
 
     aligner = Aligner(total_space)
-    total_space.fiber_bundle = SRVReparametrizationBundle(total_space, aligner=aligner)
+    total_space.fiber_bundle = ReparametrizationBundle(total_space, aligner=aligner)
 
 
 @pytest.mark.usefixtures("aligners")

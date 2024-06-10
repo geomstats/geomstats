@@ -48,7 +48,7 @@ class SRVMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_autodiff_exceptions = False
 
 
-class SRVReparametrizationBundleTestData(FiberBundleTestData):
+class ReparametrizationBundleTestData(FiberBundleTestData):
     fail_for_not_implemented_errors = False
     skip_vec = True
 

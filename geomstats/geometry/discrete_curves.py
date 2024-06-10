@@ -802,6 +802,8 @@ class SRVMetric(PullbackDiffeoMetric):
     """
 
     def __init__(self, space):
+        self.a = 1.0
+        self.b = 1 / 2
         self._check_ambient_manifold(space.ambient_manifold)
 
         image_space = self._instantiate_image_space(space)
@@ -1573,8 +1575,8 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
         return aligned, sdists
 
 
-class SRVReparametrizationBundle(FiberBundle):
-    """Principal bundle of curves modulo reparametrizations with the SRV metric.
+class ReparametrizationBundle(FiberBundle):
+    """Principal bundle of curves modulo reparametrizations with an elastic metric.
 
     The space of parameterized curves is the total space of a principal bundle
     where the group action is given by reparametrization and the base space is
@@ -1631,7 +1633,7 @@ class SRVReparametrizationBundle(FiberBundle):
         """
         ambient_manifold = self._total_space.ambient_manifold
 
-        a_param, b_param = 1, 1 / 2
+        a_param, b_param = self._total_space.metric.a, self._total_space.metric.b
         squotient = (a_param / b_param) ** 2
 
         ndim = self._total_space.point_ndim
@@ -1769,6 +1771,6 @@ register_quotient(
     Space=DiscreteCurvesStartingAtOrigin,
     Metric=SRVMetric,
     GroupAction="reparametrizations",
-    FiberBundle=SRVReparametrizationBundle,
+    FiberBundle=ReparametrizationBundle,
     QuotientMetric=QuotientMetric,
 )
