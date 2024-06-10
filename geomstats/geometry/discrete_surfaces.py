@@ -23,18 +23,12 @@ from geomstats.geometry.manifold import Manifold, register_quotient_structure
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.mesh import Surface
 from geomstats.numerics.geodesic import ExpSolver, PathBasedLogSolver, PathStraightening
 from geomstats.numerics.optimizers import ScipyMinimize
 from geomstats.numerics.path import (
     UniformlySampledDiscretePath,
     UniformlySampledPathEnergy,
-)
-from geomstats.varifold import (
-    BinetKernel,
-    GaussianKernel,
-    Surface,
-    SurfacesKernel,
-    VarifoldMetric,
 )
 from geomstats.vectorization import get_batch_shape
 
@@ -1230,6 +1224,13 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
 
     def _default_discrepancy_loss(self):
         """Discrepancy loss by default."""
+        from geomstats.varifold import (
+            BinetKernel,
+            GaussianKernel,
+            SurfacesKernel,
+            VarifoldMetric,
+        )
+
         position_kernel = GaussianKernel(sigma=1.0, init_index=0)
         tangent_kernel = BinetKernel(init_index=position_kernel.new_variable_index())
         kernel = SurfacesKernel(
