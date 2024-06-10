@@ -1181,8 +1181,8 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
         optimizer=None,
         initialization=None,
     ):
-        super().__init__(total_space, n_nodes)
-        super(PathBasedLogSolver, self).__init__(total_space)
+        PathBasedLogSolver.__init__(self, space=total_space, n_nodes=n_nodes)
+        AlignerAlgorithm.__init__(self, total_space=total_space)
 
         if discrepancy_loss is None:
             discrepancy_loss = self._default_discrepancy_loss()
