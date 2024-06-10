@@ -51,11 +51,11 @@ lint = [
 ]
 test = ["pytest", "pytest-cov", "coverage", "jupyter", "ipython < 8.23"]
 graph = ["networkx"]
-varifold = ["pykeops"]
+pykeops = ["pykeops"]
 autograd = ["autograd >= 1.3"]
 pytorch = ["torch >= 1.9.1"]
 backends = ["geomstats[autograd, pytorch]"]
-opt = ["geomstats[graph, varifold]"]
+opt = ["geomstats[graph, pykeops]"]
 dev = ["geomstats[test, lint, doc]"]
 all = ["geomstats[dev, opt, backends]"]
 

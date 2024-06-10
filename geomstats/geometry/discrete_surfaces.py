@@ -74,8 +74,18 @@ class DiscreteSurfaces(Manifold):
         )
 
     def new(self, equip=True):
-        """Create manifold with same parameters."""
-        return DiscreteSurfaces(faces=self.faces, equip=False)
+        """Create manifold with same parameters.
+
+        Parameters
+        ----------
+        equip : bool
+            If True, equip space with default metric.
+
+        Returns
+        -------
+        manifold : DiscreteSurfaces
+        """
+        return DiscreteSurfaces(faces=self.faces, equip=equip)
 
     @staticmethod
     def default_metric():
@@ -1207,7 +1217,15 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
         self.initialization = initialization
 
     def _default_discrepancy_loss(self):
-        """Discrepancy loss by default."""
+        """Discrepancy loss by default.
+
+        Returns
+        -------
+        loss : callable
+            Discrepancy term loss: `f(point) -> g(another_point)`.
+            Returns a callable that computes the discrepancy term between
+            `point` and `another_point`.
+        """
         from geomstats.varifold import (
             BinetKernel,
             GaussianKernel,
@@ -1231,8 +1249,12 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
 
         Parameters
         ----------
-        point : array-like, shape=[..., n_vertices, 3]
-        base_point : array-like, shape=[..., n_vertices, 3]
+        point : array-like, shape=[n_vertices, 3]
+        base_point : array-like, shape=[n_vertices, 3]
+
+        Returns
+        -------
+        midpoints : array-like, shape=[n_nodes - 1, n_vertices, 3]
         """
         return gs.broadcast_to(
             base_point, (self.n_nodes - 1,) + self._total_space.shape
@@ -1246,12 +1268,12 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
 
         Parameters
         ----------
-        point : Surface or list[Surface] or array-like, shape=[..., n_vertices, 3]
-        base_point : array-like, shape=[..., n_vertices, 3]
+        point : Surface or list[Surface] or array-like, shape=[n_vertices, 3]
+        base_point : array-like, shape=[n_vertices, 3]
 
         Returns
         -------
-        discr_geod_path : array-like, shape=[n_times, *point_shape]
+        discr_geod_path : array-like, shape=[n_times, n_nodes, *point_shape]
             Discrete geodesic.
         """
         if callable(self.initialization):
@@ -1268,7 +1290,7 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
 
             Parameters
             ----------
-            midpoint : array-like, shape=[(self.n_steps-2) * math.prod(*point_shape)]
+            midpoint : array-like, shape=[(self.n_nodes-1) * math.prod(n_vertices*3)]
                 Midpoints of the path.
 
             Returns
@@ -1315,7 +1337,7 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
 
         Returns
         -------
-        discr_geod_path : array-like, shape=[n_times, n_vertices, 3]
+        discr_geod_path : array-like, shape=[..., n_times, n_nodes, n_vertices, 3]
             Discrete geodesic.
         """
         if not gs.is_array(base_point):
@@ -1361,7 +1383,7 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
 
         Returns
         -------
-        aligned_point : array-like, shape=[..., *total_space.shape]
+        aligned_point : array-like, shape=[..., n_vertices, 3]
             Aligned point.
         """
         discr_geod_path = self.discrete_geodesic_bvp(point, base_point)
@@ -1370,7 +1392,16 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
 
 
 class ReparametrizationBundle(FiberBundle):
-    """Principal bundle of surfaces module reparameterizations."""
+    """Principal bundle of surfaces module reparameterizations.
+
+    Parameters
+    ----------
+    total_space : DiscreteSurfaces
+        Surfaces equipped with a reparameterization-invariant metric.
+    aligner : AlignerAlgorithm
+        If None, instantiates default
+        RelaxedPathStraightening.
+    """
 
     def __init__(self, total_space, aligner=None):
         if aligner is None:

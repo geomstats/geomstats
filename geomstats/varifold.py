@@ -176,7 +176,9 @@ class VarifoldMetric:
         Parameters
         ----------
         point_a : Surface
+            A point.
         point_b : Surface
+            A point.
 
         Returns
         -------
@@ -190,7 +192,9 @@ class VarifoldMetric:
         Parameters
         ----------
         point_a : Surface
+            A point.
         point_b : Surface
+            A point.
 
         Returns
         -------
@@ -208,7 +212,16 @@ class VarifoldMetric:
         Parameters
         ----------
         point_a : Surface
+            A point.
         target_faces : array-like, shape=[n_faces, 3]
+            Combinatorial structure of target mesh.
+
+        Returns
+        -------
+        squared_dist : callable
+            `f(vertices) -> scalar`. Measures squared varifold distance
+            between a point with `vertices` given wrt `target_faces`
+            against `target_point`.
         """
         if target_faces is None:
             target_faces = target_point.faces

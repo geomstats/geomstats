@@ -695,7 +695,7 @@ class PathBasedLogSolver(LogSolver, ABC):
 
         Returns
         -------
-        discr_geod_path : array-like, shape=[..., n_times, *point_shape]
+        discr_geod_path : array-like, shape=[..., n_nodes, *point_shape]
             Discrete geodesic.
         """
 
@@ -811,7 +811,7 @@ class PathStraightening(PathBasedLogSolver):
 
         Returns
         -------
-        discr_geod_path : array-like, shape=[n_times, *point_shape]
+        discr_geod_path : array-like, shape=[n_nodes, *point_shape]
             Discrete geodesic.
         """
         init_path = self.initialization(point, base_point)
@@ -872,7 +872,7 @@ class PathStraightening(PathBasedLogSolver):
 
         Returns
         -------
-        discr_geod_path : array-like, shape=[..., n_times, *point_shape]
+        discr_geod_path : array-like, shape=[..., n_nodes, *point_shape]
             Discrete geodesic.
         """
         if point.ndim != base_point.ndim:

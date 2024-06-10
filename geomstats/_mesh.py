@@ -12,7 +12,9 @@ class Surface:
     Parameters
     ----------
     vertices : array-like, shape=[n_vertices, 3]
+        Mesh vertices.
     faces : array-like, shape=[n_faces, 3]
+        Mesh faces.
     signal : array-like, shape=[n_faces, d]
         A signal of the surface.
     """
@@ -27,7 +29,17 @@ class Surface:
         )
 
     def _compute_mesh_info(self):
-        """Compute mesh information."""
+        """Compute mesh information.
+
+        Returns
+        -------
+        face_centroids : array-like, shape=[n_faces, 3]
+            Face centroids.
+        unit_normals : array-like, shape=[n_faces, 3]
+            Face unit normals.
+        face_areas : array-like, shape=[n_faces, 1]
+            Face areas.
+        """
         slc = tuple([slice(None)] * len(self.vertices.shape[:-2]))
         face_coordinates = self.vertices[*slc, self.faces]
         vertex_0, vertex_1, vertex_2 = (
