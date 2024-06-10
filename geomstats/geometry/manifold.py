@@ -99,7 +99,7 @@ class Manifold(abc.ABC):
 
         return self
 
-    def equip_with_quotient_structure(self):
+    def equip_with_quotient(self):
         """Equip manifold with quotient structure.
 
         Creates attributes `quotient` and `fiber_bundle` or `aligner` (
@@ -111,7 +111,7 @@ class Manifold(abc.ABC):
         quotient : Manifold or None
             Quotient space equipped with a quotient metric.
         """
-        if not _QuotientStructureRegistry.has_quotient_structure(self):
+        if not _QuotientStructureRegistry.has_quotient(self):
             raise ValueError("No quotient structure defined for this manifold.")
 
         FiberBundle_, QuotientMetric_ = (
@@ -307,7 +307,7 @@ class _QuotientStructureRegistry:
         return Obj
 
     @classmethod
-    def has_quotient_structure(cls, Space):
+    def has_quotient(cls, Space):
         """Check if a given type has an associated quotient structure.
 
         Parameters
@@ -316,7 +316,7 @@ class _QuotientStructureRegistry:
 
         Returns
         -------
-        has_quotient_struct : bool
+        has_quotient : bool
         """
         Space = cls._as_key(Space)
 
@@ -326,7 +326,7 @@ class _QuotientStructureRegistry:
         return False
 
     @classmethod
-    def get_available_quotient_structures(cls, Space, Metric=None, GroupAction=None):
+    def get_available_quotients(cls, Space, Metric=None, GroupAction=None):
         """Get available quotient structures.
 
         Parameters
@@ -393,7 +393,7 @@ class _QuotientStructureRegistry:
             [Metric, GroupAction], ["metric", "group_action"]
         ):
             if structure is None:
-                available_structures = cls.get_available_quotient_structures(
+                available_structures = cls.get_available_quotients(
                     Space, Metric=Metric, GroupAction=GroupAction
                 )
                 structs_str = "\n\t".join(
@@ -425,9 +425,7 @@ class _QuotientStructureRegistry:
         return out
 
 
-def register_quotient_structure(
-    Space, Metric, GroupAction, FiberBundle, QuotientMetric=None
-):
+def register_quotient(Space, Metric, GroupAction, FiberBundle, QuotientMetric=None):
     """Register quotient structure.
 
     Parameters

@@ -28,7 +28,7 @@ from .data.aac import (
 class TestAAC(TestCase, metaclass=Parametrizer):
     total_space = GraphSpace(2, equip=True)
     total_space.equip_with_group_action()
-    total_space.equip_with_quotient_structure()
+    total_space.equip_with_quotient()
 
     testing_data = AACTestData()
 
@@ -43,7 +43,7 @@ class TestAACFrechetMean(
     _n = random.randint(3, 4)
     _space = GraphSpace(_n)
     _space.equip_with_group_action()
-    _space.equip_with_quotient_structure()
+    _space.equip_with_quotient()
     _space.aligner.set_alignment_algorithm("exhaustive")
 
     estimator = _AACFrechetMean(_space, init_point=gs.zeros((_n, _n)))
@@ -60,7 +60,7 @@ class TestAACGGPCA(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
     _n = random.randint(3, 4)
     _total_space = GraphSpace(_n)
     _total_space.equip_with_group_action()
-    _total_space.equip_with_quotient_structure()
+    _total_space.equip_with_quotient()
     _total_space.aligner.set_alignment_algorithm("exhaustive")
 
     _total_space.aligner.set_point_to_geodesic_aligner(
@@ -98,7 +98,7 @@ class TestAACRegression(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
     _n = random.randint(3, 4)
     _space = GraphSpace(_n)
     _space.equip_with_group_action()
-    _space.equip_with_quotient_structure()
+    _space.equip_with_quotient()
     _space.aligner.set_alignment_algorithm("exhaustive")
 
     estimator = _AACRegression(_space, init_point=gs.zeros((_n, _n)))

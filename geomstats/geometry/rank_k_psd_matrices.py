@@ -8,7 +8,7 @@ from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
-from geomstats.geometry.manifold import Manifold, register_quotient_structure
+from geomstats.geometry.manifold import Manifold, register_quotient
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDEuclideanMetric, SPDMatrices
@@ -336,12 +336,12 @@ class PSDBuresWassersteinMetric(QuotientMetric):
             )
 
         if not hasattr(total_space, "quotient"):
-            total_space.equip_with_quotient_structure()
+            total_space.equip_with_quotient()
 
         super().__init__(space=space, total_space=total_space)
 
 
-register_quotient_structure(
+register_quotient(
     Space=FullRankMatrices,
     Metric=MatricesMetric,
     GroupAction=SpecialOrthogonalComposeAction,

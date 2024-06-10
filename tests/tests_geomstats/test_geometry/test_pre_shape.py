@@ -54,7 +54,7 @@ def bundles(request):
     request.cls.total_space = total_space = PreShapeSpace(k_landmarks, ambient_dim)
 
     total_space.equip_with_group_action("rotations")
-    total_space.equip_with_quotient_structure()
+    total_space.equip_with_quotient()
 
     request.cls.base = total_space.quotient
 
@@ -97,7 +97,7 @@ def spaces_with_quotient(request):
     total_space = PreShapeSpace(k_landmarks, ambient_dim)
 
     total_space.equip_with_group_action("rotations")
-    total_space.equip_with_quotient_structure()
+    total_space.equip_with_quotient()
 
     request.cls.total_space = total_space
     request.cls.space = total_space.quotient
@@ -118,14 +118,14 @@ class TestKendallShapeMetricCmp(
     _total_space = PreShapeSpace(_k_landmarks, _ambient_dim)
 
     _total_space.equip_with_group_action("rotations")
-    _total_space.equip_with_quotient_structure()
+    _total_space.equip_with_quotient()
 
     space = _total_space.quotient
 
     other_total_space = PreShapeSpace(_k_landmarks, _ambient_dim)
 
     other_total_space.equip_with_group_action("rotations")
-    other_total_space.equip_with_quotient_structure()
+    other_total_space.equip_with_quotient()
 
     other_space = other_total_space.quotient
     other_space.equip_with_metric(

@@ -294,7 +294,7 @@ class TestSRVRotationReparametrizationsBundle(
         k_sampling_points=_k_sampling_points,
     )
     total_space.equip_with_group_action(("rotations", "reparametrizations"))
-    total_space.equip_with_quotient_structure()
+    total_space.equip_with_quotient()
 
     testing_data = SRVRotationReparametrizationsBundleTestData()
 
@@ -325,7 +325,7 @@ class TestSRVReparametrizationsQuotientMetric(
     _k_sampling_points = random.randint(5, 10)
     _total_space = DiscreteCurvesStartingAtOrigin(_ambient_dim, _k_sampling_points)
     _total_space.equip_with_group_action("reparametrizations")
-    _total_space.equip_with_quotient_structure()
+    _total_space.equip_with_quotient()
 
     space = _total_space.quotient
 
@@ -340,7 +340,7 @@ class TestSRVRotationsQuotientMetric(
     _k_sampling_points = random.randint(5, 10)
     _total_space = DiscreteCurvesStartingAtOrigin(_ambient_dim, _k_sampling_points)
     _total_space.equip_with_group_action("rotations")
-    _total_space.equip_with_quotient_structure()
+    _total_space.equip_with_quotient()
 
     space = _total_space.quotient
 
@@ -355,7 +355,7 @@ class TestSRVRotationsReparametrizationsQuotientMetric(
     _k_sampling_points = random.randint(5, 10)
     _total_space = DiscreteCurvesStartingAtOrigin(_ambient_dim, _k_sampling_points)
     _total_space.equip_with_group_action(("rotations", "reparametrizations"))
-    _total_space.equip_with_quotient_structure()
+    _total_space.equip_with_quotient()
 
     space = _total_space.quotient
 

@@ -86,7 +86,7 @@ def bundles(request):
     request.cls.total_space = total_space = SPDMatrices(n=n, equip=True)
 
     total_space.equip_with_group_action(FullRankCorrelationMatrices.diag_action)
-    total_space.equip_with_quotient_structure()
+    total_space.equip_with_quotient()
 
     request.cls.base = FullRankCorrelationMatrices(n=n, equip=False)
 

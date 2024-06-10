@@ -4,7 +4,7 @@ import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
-from geomstats.geometry.manifold import register_quotient_structure
+from geomstats.geometry.manifold import register_quotient
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
@@ -542,7 +542,7 @@ class GeneralLinearBuresWassersteinBundle(FiberBundle):
         return gs.linalg.cholesky(point)
 
 
-register_quotient_structure(
+register_quotient(
     Space=GeneralLinear,
     Metric=MatricesMetric,
     GroupAction=SpecialOrthogonalComposeAction,

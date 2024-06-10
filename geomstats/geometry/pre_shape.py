@@ -7,7 +7,7 @@ import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.manifold import register_quotient_structure
+from geomstats.geometry.manifold import register_quotient
 from geomstats.geometry.matrices import FlattenDiffeo, Matrices
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
@@ -919,7 +919,7 @@ class KendallShapeMetric(QuotientMetric):
         return flow[-1]
 
 
-register_quotient_structure(
+register_quotient(
     Space=PreShapeSpace,
     Metric=PreShapeMetric,
     GroupAction="rotations",

@@ -176,7 +176,7 @@ class AlternatingAligner(AlignerAlgorithm):
         for group_action in total_space.group_action:
             total_space = total_space.new(equip=True)
             total_space.equip_with_group_action(group_action)
-            total_space.equip_with_quotient_structure()
+            total_space.equip_with_quotient()
             self.total_spaces.append(total_space)
 
     def _align_single(self, point, base_point):

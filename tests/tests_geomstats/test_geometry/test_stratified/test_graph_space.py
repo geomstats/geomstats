@@ -79,7 +79,7 @@ def point_to_geodesic_aligners(request):
     _n = random.randint(2, 4)
     request.cls.total_space = total_space = GraphSpace(_n)
     total_space.equip_with_group_action()
-    total_space.equip_with_quotient_structure()
+    total_space.equip_with_quotient()
 
     request.cls.aligner = Aligner(total_space, **kwargs)
 
@@ -105,7 +105,7 @@ class TestGraphSpaceQuotientMetric(
     _n = random.randint(2, 4)
     total_space = GraphSpace(_n)
     total_space.equip_with_group_action()
-    total_space.equip_with_quotient_structure()
+    total_space.equip_with_quotient()
 
     space = total_space.quotient
 
