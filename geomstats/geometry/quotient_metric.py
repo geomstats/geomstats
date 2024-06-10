@@ -152,6 +152,11 @@ class QuotientMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
+        if hasattr(self._fiber_bundle, "aligner") and hasattr(
+            self._fiber_bundle.aligner, "geodesic_bvp"
+        ):
+            return self._fiber_bundle.aligner.log(point, base_point)
+
         fiber_point = self._fiber_bundle.lift(point)
         fiber_base_point = self._fiber_bundle.lift(base_point)
         aligned = self._fiber_bundle.align(fiber_point, fiber_base_point)
@@ -502,6 +507,11 @@ class QuotientMetric(RiemannianMetric):
                 raise ValueError(
                     "Cannot specify both an end point and an initial tangent vector."
                 )
+            if hasattr(self._fiber_bundle, "aligner") and hasattr(
+                self._fiber_bundle.aligner, "geodesic_bvp"
+            ):
+                return self._fiber_bundle.aligner.geodesic_bvp(end_point, initial_point)
+
             initial_fiber_point = self._fiber_bundle.lift(initial_point)
             end_fiber_point = self._fiber_bundle.lift(end_point)
             aligned_end_fiber_point = self._fiber_bundle.align(
