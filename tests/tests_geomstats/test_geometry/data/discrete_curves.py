@@ -72,7 +72,7 @@ class SRVReparametrizationBundleTestData(FiberBundleTestData):
         return self.generate_random_data()
 
 
-class ReparameterizationAlignerTestData(TestData):
+class ReparametrizationAlignerTestData(TestData):
     N_RANDOM_POINTS = [1]
 
     tolerances = {

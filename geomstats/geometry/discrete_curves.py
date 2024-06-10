@@ -1574,10 +1574,10 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
 
 
 class SRVReparametrizationBundle(FiberBundle):
-    """Principal bundle of curves modulo reparameterizations with the SRV metric.
+    """Principal bundle of curves modulo reparametrizations with the SRV metric.
 
     The space of parameterized curves is the total space of a principal bundle
-    where the group action is given by reparameterization and the base space is
+    where the group action is given by reparametrization and the base space is
     the shape space of curves modulo reparametrization, i.e.unparametrized
     curves. In the discrete case, reparametrization corresponds to resampling.
 
