@@ -32,8 +32,8 @@ from .data.pre_shape import (
     ],
 )
 def spaces(request):
-    k_landmarks, m_ambient = request.param
-    request.cls.space = PreShapeSpace(k_landmarks, m_ambient)
+    k_landmarks, ambient_dim = request.param
+    request.cls.space = PreShapeSpace(k_landmarks, ambient_dim)
 
 
 @pytest.mark.usefixtures("spaces")
@@ -49,9 +49,9 @@ class TestPreShapeSpace(PreShapeSpaceTestCase, metaclass=DataBasedParametrizer):
     ],
 )
 def bundles(request):
-    k_landmarks, m_ambient = request.param
+    k_landmarks, ambient_dim = request.param
 
-    request.cls.total_space = total_space = PreShapeSpace(k_landmarks, m_ambient)
+    request.cls.total_space = total_space = PreShapeSpace(k_landmarks, ambient_dim)
 
     total_space.equip_with_group_action("rotations")
     total_space.equip_with_quotient_structure()
@@ -74,9 +74,9 @@ class TestPreShapeSpaceBundle(
     ],
 )
 def equipped_spaces(request):
-    k_landmarks, m_ambient = request.param
+    k_landmarks, ambient_dim = request.param
 
-    request.cls.space = PreShapeSpace(k_landmarks, m_ambient)
+    request.cls.space = PreShapeSpace(k_landmarks, ambient_dim)
 
 
 @pytest.mark.usefixtures("spaces")
@@ -92,9 +92,9 @@ class TestPreShapeMetric(RiemannianMetricTestCase, metaclass=DataBasedParametriz
     ],
 )
 def spaces_with_quotient(request):
-    k_landmarks, m_ambient = request.param
+    k_landmarks, ambient_dim = request.param
 
-    total_space = PreShapeSpace(k_landmarks, m_ambient)
+    total_space = PreShapeSpace(k_landmarks, ambient_dim)
 
     total_space.equip_with_group_action("rotations")
     total_space.equip_with_quotient_structure()
@@ -114,15 +114,15 @@ class TestKendallShapeMetricCmp(
     RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
 ):
     _k_landmarks = random.randint(4, 5)
-    _m_ambient = 2
-    _total_space = PreShapeSpace(_k_landmarks, _m_ambient)
+    _ambient_dim = 2
+    _total_space = PreShapeSpace(_k_landmarks, _ambient_dim)
 
     _total_space.equip_with_group_action("rotations")
     _total_space.equip_with_quotient_structure()
 
     space = _total_space.quotient
 
-    other_total_space = PreShapeSpace(_k_landmarks, _m_ambient)
+    other_total_space = PreShapeSpace(_k_landmarks, _ambient_dim)
 
     other_total_space.equip_with_group_action("rotations")
     other_total_space.equip_with_quotient_structure()

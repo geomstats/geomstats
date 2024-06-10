@@ -9,12 +9,12 @@ from geomstats.geometry.pre_shape import PreShapeSpace
 
 M32 = Matrices(m=3, n=2)
 
-S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)
+S32 = PreShapeSpace(k_landmarks=3, ambient_dim=2)
 S32.equip_with_group_action("rotations")
 S32.equip_with_quotient_structure()
 
 M33 = Matrices(m=3, n=3)
-S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
+S33 = PreShapeSpace(k_landmarks=3, ambient_dim=3)
 S33.equip_with_group_action("rotations")
 S33.equip_with_quotient_structure()
 

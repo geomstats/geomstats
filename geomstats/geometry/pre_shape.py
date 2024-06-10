@@ -29,7 +29,7 @@ class PreShapeSpace(LevelSet):
     ----------
     k_landmarks : int
         Number of landmarks
-    m_ambient : int
+    ambient_dim : int
         Number of coordinates of each landmark.
 
     References
@@ -41,13 +41,13 @@ class PreShapeSpace(LevelSet):
               https://doi.org/10.1007/s10851-020-00945-w.
     """
 
-    def __init__(self, k_landmarks, m_ambient, equip=True):
+    def __init__(self, k_landmarks, ambient_dim, equip=True):
         self.k_landmarks = k_landmarks
-        self.m_ambient = m_ambient
-        self._sphere = Hypersphere(dim=m_ambient * k_landmarks - 1)
+        self.ambient_dim = ambient_dim
+        self._sphere = Hypersphere(dim=ambient_dim * k_landmarks - 1)
 
         super().__init__(
-            dim=m_ambient * (k_landmarks - 1) - 1,
+            dim=ambient_dim * (k_landmarks - 1) - 1,
             equip=equip,
         )
 
@@ -61,7 +61,7 @@ class PreShapeSpace(LevelSet):
     def new(self, equip=True):
         """Create manifold with same parameters."""
         return PreShapeSpace(
-            k_landmarks=self.k_landmarks, m_ambient=self.m_ambient, equip=equip
+            k_landmarks=self.k_landmarks, ambient_dim=self.ambient_dim, equip=equip
         )
 
     @staticmethod
@@ -70,14 +70,14 @@ class PreShapeSpace(LevelSet):
         return PreShapeMetric
 
     def _define_embedding_space(self):
-        return Matrices(self.k_landmarks, self.m_ambient)
+        return Matrices(self.k_landmarks, self.ambient_dim)
 
     def submersion(self, point):
         """Submersion that defines the manifold.
 
         Parameters
         ----------
-        point : array-like, shape=[..., k_landmarks, m_ambient]
+        point : array-like, shape=[..., k_landmarks, ambient_dim]
 
         Returns
         -------
@@ -104,12 +104,12 @@ class PreShapeSpace(LevelSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., k_landmarks, m_ambient]
+        point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point in Matrices space.
 
         Returns
         -------
-        projected_point : array-like, shape=[..., k_landmarks, m_ambient]
+        projected_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point projected on the pre-shape space.
 
         Notes
@@ -151,7 +151,7 @@ class PreShapeSpace(LevelSet):
 
         Returns
         -------
-        samples : array-like, shape=[..., k_landmarks, m_ambient]
+        samples : array-like, shape=[..., k_landmarks, ambient_dim]
             Points sampled on the pre-shape space.
 
         Notes
@@ -159,7 +159,7 @@ class PreShapeSpace(LevelSet):
         * Requires space to be equipped.
         """
         samples = self._sphere.random_uniform(n_samples)
-        samples = gs.reshape(samples, (-1, self.k_landmarks, self.m_ambient))
+        samples = gs.reshape(samples, (-1, self.k_landmarks, self.ambient_dim))
         if n_samples == 1:
             samples = samples[0]
         return self.projection(samples)
@@ -170,7 +170,7 @@ class PreShapeSpace(LevelSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., k_landmarks, m_ambient]
+        point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point in Matrices space.
         atol :  float
             Tolerance at which to evaluate mean == 0.
@@ -190,12 +190,12 @@ class PreShapeSpace(LevelSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., k_landmarks, m_ambient]
+        point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point in Matrices space.
 
         Returns
         -------
-        centered : array-like, shape=[..., k_landmarks, m_ambient]
+        centered : array-like, shape=[..., k_landmarks, ambient_dim]
             Point with centered landmarks.
         """
         mean = gs.mean(point, axis=-2)
@@ -209,15 +209,15 @@ class PreShapeSpace(LevelSet):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., k_landmarks, m_ambient]
+        vector : array-like, shape=[..., k_landmarks, ambient_dim]
             Vector in Matrix space.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point on the pre-shape space defining the tangent space,
             where the vector will be projected.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector in the tangent space of the pre-shape space
             at the base point.
 
@@ -248,14 +248,14 @@ class PreShapeSpaceBundle(FiberBundle):
 
         Parameters
         ----------
-        point : array-like, shape=[..., k_landmarks, m_ambient]
+        point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point on the manifold.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point on the manifold.
 
         Returns
         -------
-        aligned : array-like, shape=[..., k_landmarks, m_ambient]
+        aligned : array-like, shape=[..., k_landmarks, ambient_dim]
             R.point.
         """
         return Matrices.align_matrices(point, base_point)
@@ -274,9 +274,9 @@ class PreShapeSpaceBundle(FiberBundle):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector to the pre-shape space at `base_point`.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point on the pre-shape space.
         return_skew : bool
             Whether to return the skew-symmetric matrix A.
@@ -284,9 +284,9 @@ class PreShapeSpaceBundle(FiberBundle):
 
         Returns
         -------
-        vertical : array-like, shape=[..., k_landmarks, m_ambient]
+        vertical : array-like, shape=[..., k_landmarks, ambient_dim]
             Vertical component of `tangent_vec`.
-        skew : array-like, shape=[..., m_ambient, m_ambient]
+        skew : array-like, shape=[..., ambient_dim, ambient_dim]
             Vertical component of `tangent_vec`.
         """
         transposed_point = Matrices.transpose(base_point)
@@ -303,9 +303,9 @@ class PreShapeSpaceBundle(FiberBundle):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point on the manifold.
             Optional, default: none.
         atol : float
@@ -339,16 +339,16 @@ class PreShapeSpaceBundle(FiberBundle):
 
         Parameters
         ----------
-        tangent_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_x : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        tangent_vec_e : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_e : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point of the total space.
 
         Returns
         -------
-        vector : array-like, shape=[..., k_landmarks, m_ambient]
+        vector : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of the A tensor applied to
             `tangent_vec_x` and `tangent_vec_e`.
 
@@ -405,25 +405,25 @@ class PreShapeSpaceBundle(FiberBundle):
 
         Parameters
         ----------
-        horizontal_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_x : array-like, shape=[..., k_landmarks, ambient_dim]
             Horizontal tangent vector at `base_point`.
-        horizontal_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Horizontal tangent vector at `base_point`.
-        nabla_x_y : array-like, shape=[..., k_landmarks, m_ambient]
+        nabla_x_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        tangent_vec_e : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_e : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        nabla_x_e : array-like, shape=[..., k_landmarks, m_ambient]
+        nabla_x_e : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point of the total space.
 
         Returns
         -------
-        nabla_x_a_y_e : array-like, shape=[..., k_landmarks, m_ambient]
+        nabla_x_a_y_e : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of :math:`\nabla_X^S
             (A_Y E)`.
-        a_y_e : array-like, shape=[..., k_landmarks, m_ambient]
+        a_y_e : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of :math:`A_Y E`.
 
         References
@@ -512,22 +512,22 @@ class PreShapeSpaceBundle(FiberBundle):
 
         Parameters
         ----------
-        horizontal_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_x : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        horizontal_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        horizontal_vec_z : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_z : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point of the total space.
 
         Returns
         -------
-        nabla_x_a_y_z : array-like, shape=[..., k_landmarks, m_ambient]
+        nabla_x_a_y_z : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of
             :math:`\nabla_X (A_Y Z)` with `X = horizontal_vec_x`,
             `Y = horizontal_vec_y` and `Z = horizontal_vec_z`.
-        a_y_z : array-like, shape=[..., k_landmarks, m_ambient]
+        a_y_z : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of :math:`A_Y Z`
             with `Y = horizontal_vec_y` and `Z = horizontal_vec_z`.
 
@@ -595,31 +595,31 @@ class PreShapeSpaceBundle(FiberBundle):
 
         Parameters
         ----------
-        horizontal_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_x : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        horizontal_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point of the total space.
 
         Returns
         -------
-        nabla_x_a_y_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
+        nabla_x_a_y_a_x_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of
             :math:`\nabla_X^S (A_Y A_X Y)` with
             `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
-        a_x_a_y_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
+        a_x_a_y_a_x_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of
             :math:`A_X A_Y A_X Y` with
             `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
-        nabla_x_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
+        nabla_x_a_x_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of
             :math:`\nabla_X^S (A_X Y)` with
             `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
-        a_y_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
+        a_y_a_x_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of :math:`A_Y A_X Y` with
             `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
-        a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
+        a_x_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of :math:`A_X Y` with
             `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
 
@@ -691,10 +691,10 @@ class PreShapeMetric(PullbackDiffeoMetric):
     """Procrustes metric on the pre-shape space."""
 
     def __init__(self, space):
-        k_landmarks, m_ambient = space.shape
+        k_landmarks, ambient_dim = space.shape
         super().__init__(
             space,
-            diffeo=FlattenDiffeo(k_landmarks, m_ambient),
+            diffeo=FlattenDiffeo(k_landmarks, ambient_dim),
             image_space=space._sphere,
         )
 
@@ -718,24 +718,24 @@ class PreShapeMetric(PullbackDiffeoMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_a : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point` along which the curvature is
             derived.
-        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_b : array-like, shape=[..., k_landmarks, ambient_dim]
             Unused tangent vector at `base_point` (since curvature derivative
             vanishes).
-        tangent_vec_c : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_c : array-like, shape=[..., k_landmarks, ambient_dim]
             Unused tangent vector at `base_point` (since curvature derivative
             vanishes).
-        tangent_vec_d : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_d : array-like, shape=[..., k_landmarks, ambient_dim]
             Unused tangent vector at `base_point` (since curvature derivative
             vanishes).
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Unused point on the group.
 
         Returns
         -------
-        curvature_derivative : array-like, shape=[..., k_landmarks, m_ambient]
+        curvature_derivative : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
         """
         batch_shape = get_batch_shape(
@@ -759,7 +759,7 @@ class PreShapeMetric(PullbackDiffeoMetric):
 
         Parameters
         ----------
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point on the manifold.
 
         Returns
@@ -806,16 +806,16 @@ class KendallShapeMetric(QuotientMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_a : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_b : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point on the group.
 
         Returns
         -------
-        curvature_derivative : array-like, shape=[..., k_landmarks, m_ambient]
+        curvature_derivative : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
         """
         horizontal_x = self._fiber_bundle.horizontal_projection(
@@ -853,15 +853,15 @@ class KendallShapeMetric(QuotientMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point` to transport.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Initial point of the geodesic to transport along.
-        direction : array-like, shape=[..., k_landmarks, m_ambient]
+        direction : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector ar `base_point`, initial velocity of the geodesic to
             transport  along.
             Optional, default: None.
-        end_point : array-like, shape=[..., k_landmarks, m_ambient]
+        end_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point to transport to. Unused if `tangent_vec_b` is given.
             Optional, default: None.
         n_steps : int
@@ -874,7 +874,7 @@ class KendallShapeMetric(QuotientMetric):
 
         Returns
         -------
-        transported :  array-like, shape=[..., k_landmarks, m_ambient]
+        transported :  array-like, shape=[..., k_landmarks, ambient_dim]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
 
         References
