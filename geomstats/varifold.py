@@ -1,3 +1,25 @@
+"""(Oriented) varifolds related machinery.
+
+General framework is introduced in [KCC2017]_.
+See [CCGGR2020]_ for details about kernels.
+Implementation is based in pykeops (https://www.kernel-operations.io/keops/).
+In particular, see
+https://www.kernel-operations.io/keops/_auto_tutorials/surface_registration/plot_LDDMM_Surface.html#data-attachment-term # noqa
+for implementation details.
+
+References
+----------
+.. [KCC2017] Irene Kaltenmark, Benjamin Charlier, and Nicolas Charon.
+    “A General Framework for Curve and Surface Comparison and Registration
+    With Oriented Varifolds,” 3346–55, 2017.
+    https://openaccess.thecvf.com/content_cvpr_2017/html/Kaltenmark_A_General_Framework_CVPR_2017_paper.html.
+.. [CCGGR2020] Nicolas Charon, Benjamin Charlier, Joan Glaunès, Pietro Gori, and Pierre Roussillon.
+    “Fidelity Metrics between Curves and Surfaces: Currents, Varifolds, and Normal
+    Cycles.” In Riemannian Geometric Statistics in Medical Image Analysis,
+    edited by Xavier Pennec, Stefan Sommer, and Tom Fletcher, 441–77.
+    Academic Press, 2020. https://doi.org/10.1016/B978-0-12-814725-2.00021-2
+"""
+
 import geomstats.backend as gs
 
 if gs.__name__.endswith("numpy"):
@@ -6,31 +28,20 @@ else:
     from pykeops.torch import Vi, Vj
 
 
-# https://www.kernel-operations.io/keops/_auto_tutorials/surface_registration/plot_LDDMM_Surface.html#data-attachment-term
-
-# TODO: delete?
-SPATIAL_KERNEL = {
-    "gaussian": "Exp(-SqDist(x,y)*a)",
-    "cauchy": "IntCst(1)/(IntCst(1)+SqDist(x,y)*a)",
-    "energy": "-Clamp(Norm2(x-y),cmin,cmax)",
-}
-
-GRASSMANIAN_KERNEL = {
-    "constant": "IntCst(1)",
-    "linear": "(u|v)",
-    "gaussian_oriented": "Exp(IntCst(2)*b*((u|v)-IntCst(1)))",
-    "binet": "Square((u|v))",
-    "gaussian_unoriented": "Exp(IntCst(2)*b*(Square((u|v))-IntCst(1)))",
-}
-
-SIGNAL_KERNEL = {
-    "constant": "IntCst(1)",
-    "gaussian": " Exp(-SqDist(g,h)*c)",
-    "cauchy": "IntCst(1)/(IntCst(1)+SqDist(g,h)*c)",
-}
-
-
 class Surface:
+    """A surface mesh.
+
+    Mesh info (face centroids, normals and areas) is cached
+    for greater performance.
+
+    Parameters
+    ----------
+    vertices : array-like, shape=[n_vertices, 3]
+    faces : array-like, shape=[n_faces, 3]
+    signal : array-like, shape=[n_faces, d]
+        A signal of the surface.
+    """
+
     def __init__(self, vertices, faces, signal=None):
         self.vertices = vertices
         self.faces = faces
@@ -41,6 +52,7 @@ class Surface:
         )
 
     def _compute_mesh_info(self):
+        """Compute mesh information."""
         slc = tuple([slice(None)] * len(self.vertices.shape[:-2]))
         face_coordinates = self.vertices[*slc, self.faces]
         vertex_0, vertex_1, vertex_2 = (
@@ -51,7 +63,6 @@ class Surface:
 
         face_centroids = (vertex_0 + vertex_1 + vertex_2) / 3
         normals = 0.5 * gs.cross(vertex_1 - vertex_0, vertex_2 - vertex_0)
-        # TODO: may need to expand dims
         area = gs.linalg.norm(normals, axis=-1)
         unit_normals = gs.einsum("...ij,...i->...ij", normals, 1 / area)
 
@@ -59,6 +70,15 @@ class Surface:
 
 
 class SurfacesKernel:
+    """A kernel on surfaces.
+
+    Parameters
+    ----------
+    position_kernel : pykeops.LazyTensor
+    tangent_kernel : pykeops.LazyTensor
+    signal_kernel : pykeops.LazyTensor
+    """
+
     def __init__(
         self,
         position_kernel=None,
@@ -86,6 +106,17 @@ class SurfacesKernel:
         self._kernel = (reduction * area_b).sum_reduction(axis=1)
 
     def __call__(self, point_a, point_b):
+        """Evaluate kernel.
+
+        Parameters
+        ----------
+        point_a : Surface
+        point_b : Surface
+
+        Returns
+        -------
+        scalar : float
+        """
         reduction_inputs = ()
         if self._has_position:
             reduction_inputs += (point_a.face_centroids, point_b.face_centroids)
@@ -101,17 +132,18 @@ class SurfacesKernel:
 
 
 def GaussianKernel(sigma, init_index=0, dim=3):
-    r"""Implements Gaussian kernel.
+    r"""Gaussian kernel.
 
     .. math ::
 
         K(x, y)=e^{-\|x-y\|^2 / \sigma^2}
 
+    Generates the expression: `Exp(-SqDist(x,y)*a)`.
+
     Parameters
     ----------
     sigma : float
     """
-    # Exp(-SqDist(x,y)*a)
     x, y = Vi(init_index, dim), Vj(init_index + 1, dim)
     gamma = 1 / (sigma * sigma)
     D2 = x.sqdist(y)
@@ -119,21 +151,42 @@ def GaussianKernel(sigma, init_index=0, dim=3):
 
 
 def LinearKernel(init_index=0, dim=3):
-    # (u|v)
+    r"""Linear kernel.
+
+    .. math ::
+
+        K(u, v) = \langle u, v \rangle
+
+    Generates the expression: `(u|v)`.
+    """
     u, v = Vi(init_index, dim), Vj(init_index + 1, dim)
-    return (u * v).sum() ** 2
+    return (u * v).sum()
 
 
 def BinetKernel(init_index=0, dim=3):
-    # Square((u|v))
+    r"""Binet kernel.
+
+    .. math ::
+
+        K(u, v) = \langle u, v \rangle^2
+
+    Generates the expression: `Square((u|v))`.
+    """
     u, v = Vi(init_index, dim), Vj(init_index + 1, dim)
     return (u * v).sum() ** 2
 
 
-def UnorientedGaussian(b=1.0, init_index=0, dim=3):
-    # TODO: review name
-    # Exp(IntCst(2)*b*((u|v)-IntCst(1)))
+def UnorientedGaussianKernel(sigma=1.0, init_index=0, dim=3):
+    r"""Unoriented Gaussian kernel.
+
+    .. math ::
+
+        K(u, v)=e^{-2 \langle u, v \rangle ^2 / \sigma^2}
+
+    Generates the expression: `Exp(IntCst(2)*b*((u|v)-IntCst(1)))`
+    """
     u, v = Vi(init_index, dim), Vj(init_index + 1, dim)
+    b = 1 / (sigma * sigma)
     return (2 * b * ((u * v).sum() - 1)).exp()
 
 
@@ -157,9 +210,31 @@ class VarifoldMetric:
         self.kernel = kernel
 
     def scalar_product(self, point_a, point_b):
+        """Scalar product.
+
+        Parameters
+        ----------
+        point_a : Surface
+        point_b : Surface
+
+        Returns
+        -------
+        scalar : float
+        """
         return self.kernel(point_a, point_b)
 
     def squared_dist(self, point_a, point_b):
+        """Squared distance.
+
+        Parameters
+        ----------
+        point_a : Surface
+        point_b : Surface
+
+        Returns
+        -------
+        scalar : float
+        """
         return (
             self.kernel(point_a, point_a)
             - 2 * self.kernel(point_a, point_b)
@@ -167,6 +242,13 @@ class VarifoldMetric:
         )
 
     def loss(self, target_point, target_faces=None):
+        """Loss with respected to target point.
+
+        Parameters
+        ----------
+        point_a : Surface
+        target_faces : array-like, shape=[n_faces, 3]
+        """
         if target_faces is None:
             target_faces = target_point.faces
 
