@@ -321,22 +321,6 @@ class DiscreteSurfaces(Manifold):
         vertex_0, vertex_1, vertex_2 = self._vertices(point)
         return gs.stack([vertex_1 - vertex_0, vertex_2 - vertex_0], axis=-2)
 
-    def face_centroids(self, point):
-        """Compute normals at each face of a triangulated surface.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n_vertices, 3]
-            Surface, as the 3D coordinates of the vertices of its triangulation.
-
-        Returns
-        -------
-        centroid : array-like, shape=[..., n_faces, 3]
-            Centroid of each face of the mesh.
-        """
-        vertex_0, vertex_1, vertex_2 = self._vertices(point)
-        return (vertex_0 + vertex_1 + vertex_2) / 3
-
     def face_areas(self, point):
         """Compute the areas for each face of a triangulated surface.
 
