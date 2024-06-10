@@ -15,7 +15,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.fiber_bundle import AlignerAlgorithm, FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks import Landmarks
-from geomstats.geometry.manifold import register_quotient_structure
+from geomstats.geometry.manifold import register_quotient
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
@@ -1758,14 +1758,14 @@ class SRVRotationBundle(FiberBundle):
         return point_aligned
 
 
-register_quotient_structure(
+register_quotient(
     Space=DiscreteCurvesStartingAtOrigin,
     Metric=SRVMetric,
     GroupAction="rotations",
     FiberBundle=SRVRotationBundle,
     QuotientMetric=QuotientMetric,
 )
-register_quotient_structure(
+register_quotient(
     Space=DiscreteCurvesStartingAtOrigin,
     Metric=SRVMetric,
     GroupAction="reparametrizations",

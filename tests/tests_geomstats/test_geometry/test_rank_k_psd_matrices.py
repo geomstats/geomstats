@@ -89,7 +89,7 @@ def bundle_spaces(request):
     request.cls.total_space = total_space = FullRankMatrices(n=n, k=k, equip=False)
     total_space.equip_with_metric(MatricesMetric)
     total_space.equip_with_group_action(SpecialOrthogonalComposeAction(total_space.k))
-    total_space.equip_with_quotient_structure()
+    total_space.equip_with_quotient()
 
 
 @pytest.mark.usefixtures("bundle_spaces")

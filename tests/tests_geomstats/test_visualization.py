@@ -36,7 +36,7 @@ class TestVisualization(TestCase):
         self.M33 = Matrices(m=3, n=3)
         self.S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
         self.S33.equip_with_group_action("rotations")
-        self.S33.equip_with_quotient_structure()
+        self.S33.equip_with_quotient()
         self.KD = visualization.KendallDisk()
         self.spd = SPDMatrices(n=2)
 

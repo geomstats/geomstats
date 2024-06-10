@@ -36,7 +36,7 @@ def spd_with_quotient_metric(request):
     total_space = GeneralLinear(n=n, equip=False)
     total_space.equip_with_metric(MatricesMetric)
     total_space.equip_with_group_action(SpecialOrthogonalComposeAction(total_space.n))
-    total_space.equip_with_quotient_structure()
+    total_space.equip_with_quotient()
 
     other_space.equip_with_metric(QuotientMetric, total_space=total_space)
 

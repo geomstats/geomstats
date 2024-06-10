@@ -17,7 +17,7 @@ import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
 from geomstats.geometry.fiber_bundle import AlignerAlgorithm
 from geomstats.geometry.group_action import PermutationAction
-from geomstats.geometry.manifold import register_quotient_structure
+from geomstats.geometry.manifold import register_quotient
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.stratified.quotient import Aligner, QuotientMetric
 from geomstats.numerics.optimizers import ScipyMinimize
@@ -689,7 +689,7 @@ class GraphSpaceQuotientMetric(QuotientMetric):
     """
 
 
-register_quotient_structure(
+register_quotient(
     Space=GraphSpace,
     Metric=MatricesMetric,
     GroupAction=PermutationAction,
