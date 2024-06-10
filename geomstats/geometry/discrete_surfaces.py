@@ -17,13 +17,13 @@ References
 import math
 
 import geomstats.backend as gs
+from geomstats._mesh import Surface
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.fiber_bundle import AlignerAlgorithm, FiberBundle
 from geomstats.geometry.manifold import Manifold, register_quotient_structure
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.mesh import Surface
 from geomstats.numerics.geodesic import ExpSolver, PathBasedLogSolver, PathStraightening
 from geomstats.numerics.optimizers import ScipyMinimize
 from geomstats.numerics.path import (

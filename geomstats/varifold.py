@@ -27,6 +27,8 @@ if gs.__name__.endswith("numpy"):
 else:
     from pykeops.torch import Vi, Vj
 
+from geomstats._mesh import Surface
+
 
 class SurfacesKernel:
     """A kernel on surfaces.
