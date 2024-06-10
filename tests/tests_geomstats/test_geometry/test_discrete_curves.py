@@ -43,7 +43,7 @@ from .data.discrete_curves import (
     DiscreteCurvesStartingAtOriginTestData,
     ElasticMetricTestData,
     L2CurvesMetricTestData,
-    ReparameterizationAlignerTestData,
+    ReparametrizationAlignerTestData,
     SRVMetricTestData,
     SRVReparametrizationBundleTestData,
     SRVReparametrizationsQuotientMetricTestData,
@@ -188,7 +188,7 @@ class TestElasticMetric(ElasticMetricTestCase, metaclass=DataBasedParametrizer):
         (random.randint(2, 3), random.choice([5, 7, 9])),
     ],
 )
-def srv_reparameterization_bundles(request):
+def srv_reparametrization_bundles(request):
     ambient_dim, k_sampling_points = request.param
 
     total_space = request.cls.total_space = request.cls.base = (
@@ -201,7 +201,7 @@ def srv_reparameterization_bundles(request):
     )
 
 
-@pytest.mark.usefixtures("srv_reparameterization_bundles")
+@pytest.mark.usefixtures("srv_reparametrization_bundles")
 class TestSRVReparametrizationBundle(
     SRVReparametrizationBundleTestCase, metaclass=DataBasedParametrizer
 ):
@@ -235,8 +235,8 @@ def aligners(request):
 
 
 @pytest.mark.usefixtures("aligners")
-class TestReparameterizationAligner(TestCase, metaclass=DataBasedParametrizer):
-    testing_data = ReparameterizationAlignerTestData()
+class TestReparametrizationAligner(TestCase, metaclass=DataBasedParametrizer):
+    testing_data = ReparametrizationAlignerTestData()
 
     def test_align_in_same_fiber(self, n_points, atol):
         base_point = self.total_space.random_point(n_points)
