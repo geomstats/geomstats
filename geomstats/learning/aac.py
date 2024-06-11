@@ -10,7 +10,7 @@ from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
-from geomstats.learning._sklearn_wrapper import WrappedLinearRegression, WrappedPCA
+from geomstats.learning._sklearn import PCA, LinearRegression
 from geomstats.learning.frechet_mean import FrechetMean
 
 
@@ -205,7 +205,7 @@ class _AACGGPCA(BaseEstimator):
         self.n_components = n_components
         self.save_last_X = save_last_X
 
-        self.total_space_estimator = WrappedPCA(n_components=self.n_components)
+        self.total_space_estimator = PCA(n_components=self.n_components)
         self.n_iter_ = None
         self.aligned_X_ = None
 
@@ -351,7 +351,7 @@ class _AACRegression(BaseEstimator):
         self.save_last_y = save_last_y
 
         self.total_space_estimator_kwargs = total_space_estimator_kwargs or {}
-        self.total_space_estimator = WrappedLinearRegression(
+        self.total_space_estimator = LinearRegression(
             **self.total_space_estimator_kwargs
         )
         self.n_iter_ = None
