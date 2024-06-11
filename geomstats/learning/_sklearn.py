@@ -1,12 +1,34 @@
-from sklearn.decomposition import PCA
-from sklearn.linear_model import LinearRegression
+"""Collections of wrappers around scikit-learn.
+
+Main goal is to make them compatible with geomstats.
+Common issues are point shapes (in geomstats, points may
+be represented as n-dim arrays)
+and backend support.
+
+For maintainability reasons, we wrap a sklearn object only
+when it is strictly necessary.
+"""
+
+from sklearn.base import RegressorMixin as _RegressorMixin
+from sklearn.decomposition import PCA as _PCA
+from sklearn.linear_model import LinearRegression as _LinearRegression
+from sklearn.metrics import r2_score
 
 import geomstats.backend as gs
 
 
-class WrappedPCA(PCA):
-    # TODO: wrap by manipulating __new__?
+class RegressorMixin(_RegressorMixin):
+    """Mixin class for all regression estimators in scikit-learn."""
 
+    def score(self, X, y, sample_weight=None):
+        """Return the coefficient of determination of the prediction."""
+        y_pred = self.predict(X)
+        return r2_score(
+            gs.to_numpy(y), gs.to_numpy(y_pred), sample_weight=sample_weight
+        )
+
+
+class PCA(_PCA):
     def __init__(
         self,
         n_components=None,
@@ -82,9 +104,7 @@ class WrappedPCA(PCA):
         return super().score(self._reshape(X))
 
 
-class WrappedLinearRegression(LinearRegression):
-    # TODO: wrap by manipulating __new__?
-
+class LinearRegression(_LinearRegression):
     def __init__(
         self,
         *,
@@ -131,7 +151,7 @@ class WrappedLinearRegression(LinearRegression):
         return gs.reshape(out, (out.shape[0], *self._init_shape_y[1:]))
 
     def fit(self, X, y):
-        super().fit(self._reshape_X(X), y=self._reshape_y(y))
+        super().fit(gs.to_numpy(self._reshape_X(X)), y=gs.to_numpy(self._reshape_y(y)))
         self._from_numpy()
         return self
 

@@ -95,7 +95,7 @@ import_order_style = "smarkets"
 max-line-length = 88
 extend-ignore = "E203"
 per-file-ignores = [
-    "geomstats/learning/_sklearn_wrapper.py: D101, D102, D105",
+    "geomstats/learning/_sklearn.py: D101, D102, D105",
     "geomstats/*: E731",
     "geomstats/_backend/*:F401, D103",
     "geomstats/numerics/*:D104,E731",
