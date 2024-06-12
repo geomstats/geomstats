@@ -305,8 +305,6 @@ class DiscreteSurfaces(Manifold):
         normals_at_point : array-like, shape=[..., n_faces, 3]
             Normals of each face of the mesh.
         """
-        # TODO: notice these are not unit normals!
-        # TODO: add flat to normalize them
         vertex_0, vertex_1, vertex_2 = self._vertices(point)
         return 0.5 * gs.cross(vertex_1 - vertex_0, vertex_2 - vertex_0)
 
@@ -1342,7 +1340,7 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
         """
         if not gs.is_array(base_point):
             if _is_iterable(base_point):
-                base_point = gs.stack(point_.vertices for point_ in base_point)
+                base_point = gs.stack([point_.vertices for point_ in base_point])
             else:
                 base_point = base_point.vertices
 

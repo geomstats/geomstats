@@ -139,3 +139,14 @@ class ElasticMetricTestData(TestData):
 
     def inner_product_is_symmetric_test_data(self):
         return self.generate_random_data()
+
+
+class QuotientElasticMetricTestData(TestData):
+    N_RANDOM_POINTS = [1]
+    trials = 1
+
+    def log_runs_test_data(self):
+        return self.generate_random_data()
+
+    def geodesic_bvp_runs_test_data(self):
+        return self.generate_random_data()
