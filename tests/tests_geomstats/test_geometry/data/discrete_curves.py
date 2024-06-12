@@ -83,12 +83,12 @@ class ReparametrizationAlignerTestData(TestData):
         return self.generate_random_data()
 
 
-class SRVRotationBundleTestData(TestData):
+class RotationBundleTestData(TestData):
     def align_test_data(self):
         return self.generate_random_data()
 
 
-class SRVRotationReparametrizationsBundleTestData(TestData):
+class RotationReparametrizationBundleTestData(TestData):
     tolerances = {
         "align": {"atol": 1e-2},
     }
@@ -98,13 +98,13 @@ class SRVRotationReparametrizationsBundleTestData(TestData):
         return self.generate_random_data()
 
 
-class SRVReparametrizationsQuotientMetricTestData(QuotientMetricTestData):
+class ReparametrizationQuotientMetricTestData(QuotientMetricTestData):
     trials = 1
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
 
-class SRVRotationsQuotientMetricTestData(QuotientMetricTestData):
+class RotationQuotientMetricTestData(QuotientMetricTestData):
     trials = 1
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
@@ -116,7 +116,7 @@ class SRVRotationsQuotientMetricTestData(QuotientMetricTestData):
     )
 
 
-class SRVRotationsAndReparametrizationsQuotientMetricTestData(QuotientMetricTestData):
+class RotationReparametrizationQuotientMetricTestData(QuotientMetricTestData):
     trials = 1
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False

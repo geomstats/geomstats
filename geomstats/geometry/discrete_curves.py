@@ -1706,11 +1706,11 @@ class ReparametrizationBundle(FiberBundle):
         return tangent_vec_ver
 
 
-class SRVRotationBundle(FiberBundle):
-    """Principal bundle of curves modulo rotations with the SRV metric.
+class RotationBundle(FiberBundle):
+    """Principal bundle of curves modulo rotations with an elastic metric.
 
     This is the fiber bundle where the total space is the space of parameterized
-    curves equipped with the SRV metric, the action is given by rotations, and
+    curves equipped with an elastic metric, the action is given by rotations, and
     the base space is the shape space of curves modulo rotations.
 
     Parameters
@@ -1743,9 +1743,9 @@ class SRVRotationBundle(FiberBundle):
         aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
             Curve optimally rotated with respect to reference curve.
         """
-        srv_transform = self._total_space.metric.diffeo
-        initial_srv = srv_transform.diffeomorphism(base_point)
-        end_srv = srv_transform.diffeomorphism(point)
+        transform = self._total_space.metric.diffeo
+        initial_srv = transform.diffeomorphism(base_point)
+        end_srv = transform.diffeomorphism(point)
 
         mat = gs.matmul(Matrices.transpose(initial_srv), end_srv)
         u_svd, _, vt_svd = gs.linalg.svd(mat)
@@ -1764,7 +1764,7 @@ register_quotient(
     Space=DiscreteCurvesStartingAtOrigin,
     Metric=SRVMetric,
     GroupAction="rotations",
-    FiberBundle=SRVRotationBundle,
+    FiberBundle=RotationBundle,
     QuotientMetric=QuotientMetric,
 )
 register_quotient(

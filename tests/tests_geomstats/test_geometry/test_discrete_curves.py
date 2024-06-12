@@ -11,7 +11,7 @@ from geomstats.geometry.discrete_curves import (
     IterativeHorizontalGeodesicAligner,
     L2CurvesMetric,
     ReparametrizationBundle,
-    SRVRotationBundle,
+    RotationBundle,
     SRVTransform,
 )
 from geomstats.geometry.euclidean import Euclidean
@@ -45,12 +45,12 @@ from .data.discrete_curves import (
     L2CurvesMetricTestData,
     ReparametrizationAlignerTestData,
     ReparametrizationBundleTestData,
+    ReparametrizationQuotientMetricTestData,
+    RotationBundleTestData,
+    RotationQuotientMetricTestData,
+    RotationReparametrizationBundleTestData,
+    RotationReparametrizationQuotientMetricTestData,
     SRVMetricTestData,
-    SRVReparametrizationsQuotientMetricTestData,
-    SRVRotationBundleTestData,
-    SRVRotationReparametrizationsBundleTestData,
-    SRVRotationsAndReparametrizationsQuotientMetricTestData,
-    SRVRotationsQuotientMetricTestData,
 )
 
 
@@ -188,7 +188,7 @@ class TestElasticMetric(ElasticMetricTestCase, metaclass=DataBasedParametrizer):
         (random.randint(2, 3), random.choice([5, 7, 9])),
     ],
 )
-def srv_reparametrization_bundles(request):
+def reparametrization_bundles(request):
     ambient_dim, k_sampling_points = request.param
 
     total_space = request.cls.total_space = request.cls.base = (
@@ -201,7 +201,7 @@ def srv_reparametrization_bundles(request):
     )
 
 
-@pytest.mark.usefixtures("srv_reparametrization_bundles")
+@pytest.mark.usefixtures("reparametrization_bundles")
 class TestReparametrizationBundle(
     ReparametrizationBundleTestCase, metaclass=DataBasedParametrizer
 ):
@@ -252,7 +252,7 @@ class TestReparametrizationAligner(TestCase, metaclass=DataBasedParametrizer):
         self.assertAllClose(aligned_point, base_point, atol=atol)
 
 
-class TestSRVRotationBundle(TestCase, metaclass=DataBasedParametrizer):
+class TestRotationBundle(TestCase, metaclass=DataBasedParametrizer):
     _ambient_dim = random.randint(2, 3)
     _k_sampling_points = random.randint(5, 10)
 
@@ -260,9 +260,9 @@ class TestSRVRotationBundle(TestCase, metaclass=DataBasedParametrizer):
         ambient_dim=_ambient_dim,
         k_sampling_points=_k_sampling_points,
     )
-    bundle = SRVRotationBundle(total_space)
+    bundle = RotationBundle(total_space)
 
-    testing_data = SRVRotationBundleTestData()
+    testing_data = RotationBundleTestData()
 
     def test_align(self, n_points, atol):
         base_point = self.total_space.random_point(n_points)
@@ -283,9 +283,7 @@ class TestSRVRotationBundle(TestCase, metaclass=DataBasedParametrizer):
         self.assertAllClose(aligned_point, base_point, atol=atol)
 
 
-class TestSRVRotationReparametrizationsBundle(
-    TestCase, metaclass=DataBasedParametrizer
-):
+class TestRotationReparametrizationBundle(TestCase, metaclass=DataBasedParametrizer):
     _ambient_dim = random.randint(2, 3)
     _k_sampling_points = random.randint(5, 10)
 
@@ -296,7 +294,7 @@ class TestSRVRotationReparametrizationsBundle(
     total_space.equip_with_group_action(("rotations", "reparametrizations"))
     total_space.equip_with_quotient()
 
-    testing_data = SRVRotationReparametrizationsBundleTestData()
+    testing_data = RotationReparametrizationBundleTestData()
 
     def test_align(self, n_points, atol):
         base_point = self.total_space.random_point(n_points)
@@ -318,7 +316,7 @@ class TestSRVRotationReparametrizationsBundle(
 
 @pytest.mark.redundant
 @pytest.mark.xfail
-class TestSRVReparametrizationsQuotientMetric(
+class TestReparametrizationQuotientMetric(
     QuotientMetricTestCase, metaclass=DataBasedParametrizer
 ):
     _ambient_dim = random.randint(2, 3)
@@ -329,11 +327,11 @@ class TestSRVReparametrizationsQuotientMetric(
 
     space = _total_space.quotient
 
-    testing_data = SRVReparametrizationsQuotientMetricTestData()
+    testing_data = ReparametrizationQuotientMetricTestData()
 
 
 @pytest.mark.redundant
-class TestSRVRotationsQuotientMetric(
+class TestRotationQuotientMetric(
     QuotientMetricTestCase, metaclass=DataBasedParametrizer
 ):
     _ambient_dim = random.randint(2, 3)
@@ -344,11 +342,11 @@ class TestSRVRotationsQuotientMetric(
 
     space = _total_space.quotient
 
-    testing_data = SRVRotationsQuotientMetricTestData()
+    testing_data = RotationQuotientMetricTestData()
 
 
 @pytest.mark.redundant
-class TestSRVRotationsReparametrizationsQuotientMetric(
+class TestRotationReparametrizationQuotientMetric(
     QuotientMetricTestCase, metaclass=DataBasedParametrizer
 ):
     _ambient_dim = random.randint(2, 3)
@@ -359,4 +357,4 @@ class TestSRVRotationsReparametrizationsQuotientMetric(
 
     space = _total_space.quotient
 
-    testing_data = SRVRotationsAndReparametrizationsQuotientMetricTestData()
+    testing_data = RotationReparametrizationQuotientMetricTestData()
