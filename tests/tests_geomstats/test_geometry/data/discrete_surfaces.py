@@ -2,10 +2,44 @@ import pytest
 
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
+from geomstats._mesh import Surface
 from geomstats.test.data import TestData
 from geomstats.vectorization import repeat_point
 
 from .manifold import ManifoldTestData
+
+
+class SurfaceTestData(TestData):
+    def face_areas_test_data(self):
+        vertices = gs.array([(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (1.0, 2.0, 0.0)])
+        faces = gs.array([[0, 1, 2]])
+
+        data = [dict(point=Surface(vertices, faces), expected=gs.array([[1.0]]))]
+
+        return self.generate_tests(data)
+
+    def face_normals_test_data(self):
+        vertices = gs.array([(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (1.0, 2.0, 0.0)])
+        faces = gs.array([[0, 1, 2]])
+
+        data = [
+            dict(point=Surface(vertices, faces), expected=gs.array([[0.0, 0.0, 1.0]]))
+        ]
+
+        return self.generate_tests(data)
+
+    def face_centroids_test_data(self):
+        vertices = gs.array([(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (1.0, 2.0, 0.0)])
+        faces = gs.array([[0, 1, 2]])
+
+        data = [
+            dict(
+                point=Surface(vertices, faces),
+                expected=gs.array([[2.0 / 3.0, 2.0 / 3.0, 0.0]]),
+            )
+        ]
+
+        return self.generate_tests(data)
 
 
 class DiscreteSurfacesTestData(ManifoldTestData):

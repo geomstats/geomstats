@@ -8,6 +8,7 @@ from geomstats.test.test_case import pytorch_backend, torch_only
 from geomstats.test_cases.geometry.discrete_surfaces import (
     DiscreteSurfacesTestCase,
     SurfacesLocalRandomDataGenerator,
+    SurfaceTestCase,
 )
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
@@ -15,7 +16,13 @@ from .data.discrete_surfaces import (
     DiscreteSurfacesSmokeTestData,
     DiscreteSurfacesTestData,
     ElasticMetricTestData,
+    SurfaceTestData,
 )
+
+
+@pytest.mark.smoke
+class TestSurface(SurfaceTestCase, metaclass=DataBasedParametrizer):
+    testing_data = SurfaceTestData()
 
 
 @torch_only
