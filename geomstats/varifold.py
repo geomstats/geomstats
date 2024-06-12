@@ -22,10 +22,11 @@ References
 
 import geomstats.backend as gs
 
-if gs.__name__.endswith("numpy"):
-    from pykeops.numpy import Vi, Vj
-else:
+if gs.__name__.endswith("pytorch"):
     from pykeops.torch import Vi, Vj
+else:
+    from pykeops.numpy import Vi, Vj
+
 
 from geomstats._mesh import Surface
 
@@ -92,10 +93,10 @@ class SurfacesKernel:
         return gs.sum(self._kernel(*reduction_inputs) * point_a.face_areas)
 
 
-def GaussianKernel(sigma, init_index=0, dim=3):
+def GaussianKernel(sigma=1.0, init_index=0, dim=3):
     r"""Gaussian kernel.
 
-    .. math ::
+    .. math::
 
         K(x, y)=e^{-\|x-y\|^2 / \sigma^2}
 
@@ -104,21 +105,57 @@ def GaussianKernel(sigma, init_index=0, dim=3):
     Parameters
     ----------
     sigma : float
+        Kernel parameter.
+    init_index : int
+        Index of first symbolic variable.
+    dim : int
+        Ambient dimension.
     """
     x, y = Vi(init_index, dim), Vj(init_index + 1, dim)
     gamma = 1 / (sigma * sigma)
-    D2 = x.sqdist(y)
-    return (-D2 * gamma).exp()
+    sdist = x.sqdist(y)
+    return (-sdist * gamma).exp()
+
+
+def CauchyKernel(sigma=1.0, init_index=0, dim=3):
+    r"""Cauchy kernel.
+
+    .. math::
+
+        K(x, y)=\frac{1}{1+\|x-y\|^2 / \sigma^2}
+
+    Generates the expression: `IntCst(1)/(IntCst(1)+SqDist(x,y)*a)`.
+
+    Parameters
+    ----------
+    sigma : float
+        Kernel parameter.
+    init_index : int
+        Index of first symbolic variable.
+    dim : int
+        Ambient dimension.
+    """
+    x, y = Vi(init_index, dim), Vj(init_index + 1, dim)
+    gamma = 1 / (sigma * sigma)
+    sdist = x.sqdist(y)
+    return 1 / (1 + sdist * gamma)
 
 
 def LinearKernel(init_index=0, dim=3):
     r"""Linear kernel.
 
-    .. math ::
+    .. math::
 
         K(u, v) = \langle u, v \rangle
 
     Generates the expression: `(u|v)`.
+
+    Parameters
+    ----------
+    init_index : int
+        Index of first symbolic variable.
+    dim : int
+        Ambient dimension.
     """
     u, v = Vi(init_index, dim), Vj(init_index + 1, dim)
     return (u * v).sum()
@@ -127,28 +164,60 @@ def LinearKernel(init_index=0, dim=3):
 def BinetKernel(init_index=0, dim=3):
     r"""Binet kernel.
 
-    .. math ::
+    .. math::
 
         K(u, v) = \langle u, v \rangle^2
 
     Generates the expression: `Square((u|v))`.
+
+    Parameters
+    ----------
+    init_index : int
+        Index of first symbolic variable.
+    dim : int
+        Ambient dimension.
     """
     u, v = Vi(init_index, dim), Vj(init_index + 1, dim)
     return (u * v).sum() ** 2
 
 
-def UnorientedGaussianKernel(sigma=1.0, init_index=0, dim=3):
-    r"""Unoriented Gaussian kernel.
+def RestrictedGaussianKernel(sigma=1.0, oriented=False, init_index=0, dim=3):
+    r"""Gaussian kernel restricted to the hypersphere.
 
-    .. math ::
+    If unoriented:
 
-        K(u, v)=e^{-2 \langle u, v \rangle ^2 / \sigma^2}
+    .. math::
 
-    Generates the expression: `Exp(IntCst(2)*b*((u|v)-IntCst(1)))`
+        K(u, v)=e^{2 (\langle u, v \rangle ^2 - 1) / \sigma^2 }
+
+    If oriented:
+
+    .. math::
+
+        K(u, v)=e^{2 (\langle u, v \rangle / - 1) - 1}
+
+    Generates the expression:
+    * oriented: `Exp(IntCst(2)*a*((u|v)-IntCst(1)))`
+    * unoriented: `Exp(IntCst(2)*a*(Square((u|v))-IntCst(1)))`
+
+    Parameters
+    ----------
+    sigma : float
+        Kernel parameter.
+    oriented : bool
+        If False, uses squared inner product.
+    init_index : int
+        Index of first symbolic variable.
+    dim : int
+        Ambient dimension.
     """
     u, v = Vi(init_index, dim), Vj(init_index + 1, dim)
     b = 1 / (sigma * sigma)
-    return (2 * b * ((u * v).sum() - 1)).exp()
+
+    inner = (u * v).sum()
+    if not oriented:
+        inner = inner**2
+    return (2 * b * (inner - 1)).exp()
 
 
 class VarifoldMetric:
@@ -205,6 +274,23 @@ class VarifoldMetric:
             - 2 * self.kernel(point_a, point_b)
             + self.kernel(point_b, point_b)
         )
+
+    def dist(self, point_a, point_b):
+        """Squared distance.
+
+        Parameters
+        ----------
+        point_a : Surface
+            A point.
+        point_b : Surface
+            A point.
+
+        Returns
+        -------
+        scalar : float
+        """
+        sq_dist = self.squared_dist(point_a, point_b)
+        return gs.sqrt(sq_dist)
 
     def loss(self, target_point, target_faces=None):
         """Loss with respected to target point.
