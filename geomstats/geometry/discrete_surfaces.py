@@ -20,7 +20,7 @@ import geomstats.backend as gs
 from geomstats._mesh import Surface
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.fiber_bundle import AlignerAlgorithm, FiberBundle
-from geomstats.geometry.manifold import Manifold, register_quotient_structure
+from geomstats.geometry.manifold import Manifold, register_quotient
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -1392,12 +1392,12 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
 
 
 class ReparametrizationBundle(FiberBundle):
-    """Principal bundle of surfaces module reparameterizations.
+    """Principal bundle of surfaces module reparametrizations.
 
     Parameters
     ----------
     total_space : DiscreteSurfaces
-        Surfaces equipped with a reparameterization-invariant metric.
+        Surfaces equipped with a reparametrization-invariant metric.
     aligner : AlignerAlgorithm
         If None, instantiates default
         RelaxedPathStraightening.
@@ -1414,7 +1414,7 @@ def _is_iterable(obj):
     return isinstance(obj, (list, tuple))
 
 
-register_quotient_structure(
+register_quotient(
     Space=DiscreteSurfaces,
     Metric=ElasticMetric,
     GroupAction="reparametrizations",
