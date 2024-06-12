@@ -2,6 +2,7 @@ import math
 
 import geomstats.backend as gs
 from geomstats.test.random import RandomDataGenerator
+from geomstats.test.test_case import TestCase
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
 from geomstats.vectorization import get_n_points
 
@@ -39,6 +40,17 @@ class SurfacesLocalRandomDataGenerator(RandomDataGenerator):
     def random_tangent_vec(self, point):
         n_points = 1 if point.ndim == 2 else point.shape[0]
         return self._get_deformation(n_points)
+
+
+class SurfaceTestCase(TestCase):
+    def test_face_areas(self, point, expected, atol):
+        self.assertAllClose(point.face_areas, expected, atol=atol)
+
+    def test_face_normals(self, point, expected, atol):
+        self.assertAllClose(point.face_normals, expected, atol=atol)
+
+    def test_face_centroids(self, point, expected, atol):
+        self.assertAllClose(point.face_centroids, expected, atol=atol)
 
 
 class DiscreteSurfacesTestCase(ManifoldTestCase):

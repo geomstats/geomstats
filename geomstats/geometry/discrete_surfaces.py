@@ -17,13 +17,19 @@ References
 import math
 
 import geomstats.backend as gs
+from geomstats._mesh import Surface
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.fiber_bundle import AlignerAlgorithm, FiberBundle
+from geomstats.geometry.manifold import Manifold, register_quotient
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.numerics.geodesic import ExpSolver, PathStraightening
+from geomstats.numerics.geodesic import ExpSolver, PathBasedLogSolver, PathStraightening
 from geomstats.numerics.optimizers import ScipyMinimize
-from geomstats.numerics.path import UniformlySampledDiscretePath
+from geomstats.numerics.path import (
+    UniformlySampledDiscretePath,
+    UniformlySampledPathEnergy,
+)
 from geomstats.vectorization import get_batch_shape
 
 
@@ -66,6 +72,20 @@ class DiscreteSurfaces(Manifold):
             shape=(self.n_vertices, 3),
             equip=equip,
         )
+
+    def new(self, equip=True):
+        """Create manifold with same parameters.
+
+        Parameters
+        ----------
+        equip : bool
+            If True, equip space with default metric.
+
+        Returns
+        -------
+        manifold : DiscreteSurfaces
+        """
+        return DiscreteSurfaces(faces=self.faces, equip=equip)
 
     @staticmethod
     def default_metric():
@@ -1127,3 +1147,275 @@ class DiscreteSurfacesExpSolver(ExpSolver):
         return UniformlySampledDiscretePath(
             discr_geod_path, point_ndim=self._space.point_ndim
         )
+
+
+class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
+    """Class to solve the geodesic boundary value problem with path-straightening.
+
+    Parameters
+    ----------
+    space : Manifold
+        Equipped manifold.
+    n_nodes : int
+        Number of path discretization points.
+    lambda_ : float
+        Discrepancy loss weight.
+    discrepancy_loss : callable
+        A generic discrepancy term. Receives point and outputs a callable
+        which receives another point and outputs a scalar measuring
+        discrepancy between point and another point.
+        Scalar sums to energy of a path.
+    path_energy : callable
+        Method to compute Riemannian path energy.
+    optimizer : ScipyMinimize
+        An optimizer to solve path energy minimization problem.
+    initialization : callable or array-like, shape=[n_nodes - 2, n_vertices, 3]
+        A method to get initial guess for optimization or an initial path.
+
+    References
+    ----------
+    .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
+        Sobolev metrics: a comprehensive numerical framework".
+        arXiv:2204.04238 [cs.CV], 25 Sep 2022
+    """
+
+    def __init__(
+        self,
+        total_space,
+        n_nodes=3,
+        lambda_=1.0,
+        discrepancy_loss=None,
+        path_energy=None,
+        optimizer=None,
+        initialization=None,
+    ):
+        PathBasedLogSolver.__init__(self, space=total_space, n_nodes=n_nodes)
+        AlignerAlgorithm.__init__(self, total_space=total_space)
+
+        if discrepancy_loss is None:
+            discrepancy_loss = self._default_discrepancy_loss()
+
+        if path_energy is None:
+            path_energy = UniformlySampledPathEnergy(total_space)
+
+        if initialization is None:
+            initialization = self._default_initialization
+
+        if optimizer is None:
+            optimizer = ScipyMinimize(
+                method="L-BFGS-B",
+                jac="autodiff",
+                options={"disp": False},
+            )
+
+        self.lambda_ = lambda_
+        self.discrepancy_loss = discrepancy_loss
+        self.path_energy = path_energy
+        self.optimizer = optimizer
+        self.initialization = initialization
+
+    def _default_discrepancy_loss(self):
+        """Discrepancy loss by default.
+
+        Returns
+        -------
+        loss : callable
+            Discrepancy term loss: `f(point) -> g(another_point)`.
+            Returns a callable that computes the discrepancy term between
+            `point` and `another_point`.
+        """
+        from geomstats.varifold import (
+            BinetKernel,
+            GaussianKernel,
+            SurfacesKernel,
+            VarifoldMetric,
+        )
+
+        position_kernel = GaussianKernel(sigma=1.0, init_index=0)
+        tangent_kernel = BinetKernel(init_index=position_kernel.new_variable_index())
+        kernel = SurfacesKernel(
+            position_kernel,
+            tangent_kernel,
+        )
+        varifold_metric = VarifoldMetric(kernel)
+        return lambda point: varifold_metric.loss(
+            point, target_faces=self._total_space.faces
+        )
+
+    def _default_initialization(self, point, base_point):
+        """Linear initialization.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_vertices, 3]
+        base_point : array-like, shape=[n_vertices, 3]
+
+        Returns
+        -------
+        midpoints : array-like, shape=[n_nodes - 1, n_vertices, 3]
+        """
+        return gs.broadcast_to(
+            base_point, (self.n_nodes - 1,) + self._total_space.shape
+        )
+
+    def _discrete_geodesic_bvp_single(self, point, base_point):
+        """Solve boundary value problem (BVP).
+
+        Given an initial point and an end point, solve the geodesic equation
+        via minimizing the Riemannian path energy.
+
+        Parameters
+        ----------
+        point : Surface or list[Surface] or array-like, shape=[n_vertices, 3]
+        base_point : array-like, shape=[n_vertices, 3]
+
+        Returns
+        -------
+        discr_geod_path : array-like, shape=[n_times, n_nodes, *point_shape]
+            Discrete geodesic.
+        """
+        if callable(self.initialization):
+            init_midpoints = self.initialization(point, base_point)
+        else:
+            init_midpoints = self.initialization
+
+        base_point = gs.expand_dims(base_point, axis=0)
+
+        discrepancy_loss = self.discrepancy_loss(point)
+
+        def objective(midpoints):
+            """Compute path energy of paths going through a midpoint.
+
+            Parameters
+            ----------
+            midpoint : array-like, shape=[(self.n_nodes-1) * math.prod(n_vertices*3)]
+                Midpoints of the path.
+
+            Returns
+            -------
+            _ : array-like, shape=[...,]
+                Energy of the path going through this midpoint.
+            """
+            midpoints = gs.reshape(
+                midpoints, (self.n_nodes - 1,) + self._total_space.shape
+            )
+            path = gs.concatenate(
+                [
+                    base_point,
+                    midpoints,
+                ],
+            )
+            return self.path_energy(path) + self.lambda_ * discrepancy_loss(path[-1])
+
+        init_midpoints = gs.reshape(init_midpoints, (-1,))
+        sol = self.optimizer.minimize(objective, init_midpoints)
+
+        solution_midpoints = gs.reshape(
+            gs.array(sol.x), (self.n_nodes - 1,) + self._total_space.shape
+        )
+
+        return gs.concatenate(
+            [
+                base_point,
+                solution_midpoints,
+            ],
+            axis=0,
+        )
+
+    def discrete_geodesic_bvp(self, point, base_point):
+        """Solve boundary value problem (BVP).
+
+        Given an initial point and an end point, solve the geodesic equation
+        via minimizing the Riemannian path energy and a relaxation term.
+
+        Parameters
+        ----------
+        point : Surface or list[Surface] or array-like, shape=[..., n_vertices, 3]
+        base_point : Surface or list[Surface] or array-like, shape=[..., n_vertices, 3]
+
+        Returns
+        -------
+        discr_geod_path : array-like, shape=[..., n_times, n_nodes, n_vertices, 3]
+            Discrete geodesic.
+        """
+        if not gs.is_array(base_point):
+            if _is_iterable(base_point):
+                base_point = gs.stack([point_.vertices for point_ in base_point])
+            else:
+                base_point = base_point.vertices
+
+        if gs.is_array(point):
+            if point.ndim > 2:
+                point = [
+                    Surface(point_, faces=self._total_space.faces) for point_ in point
+                ]
+            else:
+                point = Surface(point, faces=self._total_space.faces)
+
+        if base_point.ndim == 2 and not _is_iterable(point):
+            return self._discrete_geodesic_bvp_single(point, base_point)
+
+        if base_point.ndim == 2:
+            batch_shape = (len(base_point),)
+            base_point = gs.broadcast_to(
+                base_point, batch_shape + self._total_space.shape
+            )
+
+        elif not _is_iterable(point):
+            point = [point] * base_point.shape[-3]
+
+        return gs.stack(
+            [
+                self._discrete_geodesic_bvp_single(point_, base_point_)
+                for base_point_, point_ in zip(base_point, point)
+            ]
+        )
+
+    def align(self, point, base_point):
+        """Align point to base point.
+
+        Parameters
+        ----------
+        point : Surface or list[Surface] or array-like, shape=[..., n_vertices, 3]
+        base_point : array-like, shape=[..., n_vertices, 3]
+
+        Returns
+        -------
+        aligned_point : array-like, shape=[..., n_vertices, 3]
+            Aligned point.
+        """
+        discr_geod_path = self.discrete_geodesic_bvp(point, base_point)
+        point_ndim_slc = (slice(None),) * self._total_space.point_ndim
+        return discr_geod_path[..., -1, *point_ndim_slc]
+
+
+class ReparametrizationBundle(FiberBundle):
+    """Principal bundle of surfaces module reparametrizations.
+
+    Parameters
+    ----------
+    total_space : DiscreteSurfaces
+        Surfaces equipped with a reparametrization-invariant metric.
+    aligner : AlignerAlgorithm
+        If None, instantiates default
+        RelaxedPathStraightening.
+    """
+
+    def __init__(self, total_space, aligner=None):
+        if aligner is None:
+            aligner = RelaxedPathStraightening(total_space)
+        super().__init__(total_space, aligner=aligner)
+
+
+def _is_iterable(obj):
+    """Check if an object is an iterable."""
+    return isinstance(obj, (list, tuple))
+
+
+register_quotient(
+    Space=DiscreteSurfaces,
+    Metric=ElasticMetric,
+    GroupAction="reparametrizations",
+    FiberBundle=ReparametrizationBundle,
+    QuotientMetric=QuotientMetric,
+)

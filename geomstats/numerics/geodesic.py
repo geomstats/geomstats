@@ -665,7 +665,84 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         )
 
 
-class PathStraightening(LogSolver):
+class PathBasedLogSolver(LogSolver, ABC):
+    """A geodesic BVP solver based on finding a discrete geodesic path.
+
+    Parameters
+    ----------
+    space : Manifold
+        Equipped manifold.
+    n_nodes : int
+        Number of midpoints.
+    """
+
+    def __init__(self, space, n_nodes):
+        self._space = space
+        self.n_nodes = n_nodes
+        super().__init__(solves_bvp=True)
+
+    @abstractmethod
+    def discrete_geodesic_bvp(self, point, base_point):
+        """Solve boundary value problem (BVP).
+
+        Given an initial point and an end point, solve the geodesic equation
+        via minimizing the Riemannian path energy.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *point_shape]
+        base_point : array-like, shape=[..., *point_shape]
+
+        Returns
+        -------
+        discr_geod_path : array-like, shape=[..., n_nodes, *point_shape]
+            Discrete geodesic.
+        """
+
+    def log(self, point, base_point):
+        """Logarithm map.
+
+        Parameters
+        ----------
+        end_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+        base_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *point_shape]
+            Tangent vector at the base point.
+        """
+        discr_geod_path = self.discrete_geodesic_bvp(point, base_point)
+        point_ndim_slc = (slice(None),) * self._space.point_ndim
+        return (self.n_nodes - 1) * (
+            discr_geod_path[..., 1, *point_ndim_slc]
+            - discr_geod_path[..., 0, *point_ndim_slc]
+        )
+
+    def geodesic_bvp(self, point, base_point):
+        """Geodesic curve for boundary value problem.
+
+        Parameters
+        ----------
+        end_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+        base_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        path : callable
+            Time parametrized geodesic curve. `f(t)`.
+        """
+        discr_geod_path = self.discrete_geodesic_bvp(point, base_point)
+        return UniformlySampledDiscretePath(
+            discr_geod_path, point_ndim=self._space.point_ndim
+        )
+
+
+class PathStraightening(PathBasedLogSolver):
     """Class to solve the geodesic boundary value problem with path-straightening.
 
     Parameters
@@ -675,7 +752,7 @@ class PathStraightening(LogSolver):
     path_energy : callable
         Method to compute Riemannian path energy.
     n_nodes : int
-        Number of midpoints.
+        Number of path discretization points.
     optimizer : ScipyMinimize
         An optimizer to solve path energy minimization problem.
     initialization : callable
@@ -691,8 +768,7 @@ class PathStraightening(LogSolver):
     def __init__(
         self, space, path_energy=None, n_nodes=100, optimizer=None, initialization=None
     ):
-        self._space = space
-        super().__init__(solves_bvp=True)
+        super().__init__(space, n_nodes=n_nodes)
         if optimizer is None:
             optimizer = ScipyMinimize(
                 method="L-BFGS-B",
@@ -706,7 +782,6 @@ class PathStraightening(LogSolver):
         if initialization is None:
             initialization = self._default_initialization
 
-        self.n_nodes = n_nodes
         self.optimizer = optimizer
         self.path_energy = path_energy
         self.initialization = initialization
@@ -736,7 +811,7 @@ class PathStraightening(LogSolver):
 
         Returns
         -------
-        discr_geod_path : array-like, shape=[n_times, *point_shape]
+        discr_geod_path : array-like, shape=[n_nodes, *point_shape]
             Discrete geodesic.
         """
         init_path = self.initialization(point, base_point)
@@ -797,7 +872,7 @@ class PathStraightening(LogSolver):
 
         Returns
         -------
-        discr_geod_path : array-like, shape=[..., n_times, *point_shape]
+        discr_geod_path : array-like, shape=[..., n_nodes, *point_shape]
             Discrete geodesic.
         """
         if point.ndim != base_point.ndim:
@@ -812,46 +887,4 @@ class PathStraightening(LogSolver):
                 self._discrete_geodesic_bvp_single(point_, base_point_)
                 for point_, base_point_ in zip(point, base_point)
             ]
-        )
-
-    def log(self, point, base_point):
-        """Logarithm map.
-
-        Parameters
-        ----------
-        end_point : array-like, shape=[..., *point_shape]
-            Point on the manifold.
-        base_point : array-like, shape=[..., *point_shape]
-            Point on the manifold.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., *point_shape]
-            Tangent vector at the base point.
-        """
-        discr_geod_path = self.discrete_geodesic_bvp(point, base_point)
-        point_ndim_slc = (slice(None),) * self._space.point_ndim
-        return (self.n_nodes - 1) * (
-            discr_geod_path[..., 1, *point_ndim_slc]
-            - discr_geod_path[..., 0, *point_ndim_slc]
-        )
-
-    def geodesic_bvp(self, point, base_point):
-        """Geodesic curve for boundary value problem.
-
-        Parameters
-        ----------
-        end_point : array-like, shape=[..., *point_shape]
-            Point on the manifold.
-        base_point : array-like, shape=[..., *point_shape]
-            Point on the manifold.
-
-        Returns
-        -------
-        path : callable
-            Time parametrized geodesic curve. `f(t)`.
-        """
-        discr_geod_path = self.discrete_geodesic_bvp(point, base_point)
-        return UniformlySampledDiscretePath(
-            discr_geod_path, point_ndim=self._space.point_ndim
         )
