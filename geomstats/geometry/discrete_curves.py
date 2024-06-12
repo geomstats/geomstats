@@ -62,6 +62,50 @@ def insert_zeros(array, axis=-1, end=False):
     return gs.concatenate((first, second), axis=-array_ndim)
 
 
+class DiscreteCurves:
+    """Space of discrete curves."""
+
+    def __new__(
+        self, ambient_dim=2, k_sampling_points=10, starting_at_origin=True, equip=True
+    ):
+        """Instantiate discrete curves.
+
+        If `starting_at_origin=True`, instantiates discrete curves modulo translations
+        eventually equipped with an elastic metric.
+
+        If `starting_at_origin=False`, instantiates discrete curves
+        eventually equipped with an L2 metric.
+
+        Parameters
+        ----------
+        ambient_dim : int
+            Dimension of the ambient Euclidean space in which curves take values.
+        k_sampling_points : int
+            Number of sampling points.
+        starting_at_origin : bool
+            If rotations are quotiented out.
+        equip : bool
+            If True, equip space with default metric.
+        """
+        if starting_at_origin:
+            return DiscreteCurvesStartingAtOrigin(
+                ambient_dim=ambient_dim,
+                k_sampling_points=k_sampling_points,
+                equip=equip,
+            )
+
+        ambient_manifold = Euclidean(ambient_dim)
+        space = Landmarks(
+            ambient_manifold=ambient_manifold,
+            k_landmarks=k_sampling_points,
+            equip=False,
+        )
+        if equip:
+            space.equip_with_metric(L2CurvesMetric)
+
+        return space
+
+
 class DiscreteCurvesStartingAtOrigin(NFoldManifold):
     r"""Space of discrete curves modulo translations.
 
