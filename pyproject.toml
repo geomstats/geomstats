@@ -50,13 +50,14 @@ lint = [
     "pre-commit",
 ]
 test = ["pytest", "pytest-cov", "coverage", "jupyter", "ipython < 8.23"]
+test-scripts = ["scikeras", "tensorflow"]
 graph = ["networkx"]
 pykeops = ["pykeops"]
 autograd = ["autograd >= 1.3"]
 pytorch = ["torch >= 1.9.1"]
 backends = ["geomstats[autograd, pytorch]"]
 opt = ["geomstats[graph, pykeops]"]
-dev = ["geomstats[test, lint, doc]"]
+dev = ["geomstats[test, test-scripts, lint, doc]"]
 all = ["geomstats[dev, opt, backends]"]
 
 [project.urls]
