@@ -41,14 +41,7 @@ doc = [
     "sphinx_gallery",
     "pydata-sphinx-theme",
 ]
-lint = [
-    "black",
-    "flake8",
-    "flake8-docstrings",
-    "Flake8-pyproject",
-    "isort",
-    "pre-commit",
-]
+lint = ["ruff", "pre-commit"]
 test = ["pytest", "pytest-cov", "coverage", "jupyter", "ipython < 8.23"]
 test-scripts = ["scikeras", "tensorflow"]
 graph = ["networkx"]
@@ -88,25 +81,22 @@ markers = [
     "redundant: redundant test.",
 ]
 
-[tool.flake8]
-application_import_names = "geomstats"
-docstring-convention = "numpy"
-exclude = "examples/*.ipynb"
-ignore = ["W503", "W504"]
-import_order_style = "smarkets"
-max-line-length = 88
-extend-ignore = "E203"
-per-file-ignores = [
-    "geomstats/learning/_sklearn.py: D101, D102, D105",
-    "geomstats/*: E731",
-    "geomstats/_backend/*:F401, D103",
-    "geomstats/numerics/*:D104,E731",
-    "geomstats/test_cases/backend/__init__.py: D104, F401",
-    "geomstats/visualization/*: D101, D102",
-    "geomstats/visualization/__init__.py: F401",
-    "geomstats/tests.py : D101, D102",
-    "tests/*: D100, D101, D102, D103, D106, D200, D201, D205, D400, D404, I100, I101, I201, I202, E501, E731",
-    "tests/conftest.py: D100, F401",
-    "*/__init__.py: D104",
-    "geomstats/test*/*: D100, D101, D102, D103, D104, E501",
-]
+[tool.ruff]
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint]
+extend-select = ["I", "D"]
+ignore = ["E731"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+"*/__init__.py" = ["F401", "D104"]
+"geomstats/_backend/*" = ["F401"]
+"geomstats/test_cases/*" = ["D"]
+"geomstats/test/*" = ["D"]
+"geomstats/visualization/*" = ["D101", "D102"]
+"tests/conftest.py" = ["F401"]
+"tests/*" = ["D"]
+"examples/*" = ["D102"]

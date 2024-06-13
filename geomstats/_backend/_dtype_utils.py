@@ -383,7 +383,7 @@ def _np_box_unary_scalar(target=None):
     def _decorator(func):
         @functools.wraps(func)
         def _wrapped(x, *args, **kwargs):
-            if type(x) is float:
+            if isinstance(x, float):
                 return func(x, *args, dtype=_config.DEFAULT_DTYPE, **kwargs)
 
             return func(x, *args, **kwargs)
@@ -407,7 +407,7 @@ def _np_box_binary_scalar(target=None):
     def _decorator(func):
         @functools.wraps(func)
         def _wrapped(x1, x2, *args, **kwargs):
-            if type(x1) is float:
+            if isinstance(x1, float):
                 return func(x1, x2, *args, dtype=_config.DEFAULT_DTYPE, **kwargs)
 
             return func(x1, x2, *args, **kwargs)

@@ -122,9 +122,11 @@ from .._shared_numpy import (
     vec_to_diag,
     vectorize,
 )
-from . import autodiff  # NOQA
-from . import linalg  # NOQA
-from . import random  # NOQA
+from . import (
+    autodiff,  # NOQA
+    linalg,  # NOQA
+    random,  # NOQA
+)
 from ._common import (
     _box_binary_scalar,
     _box_unary_scalar,
