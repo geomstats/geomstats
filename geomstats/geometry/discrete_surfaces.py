@@ -210,12 +210,12 @@ class DiscreteSurfaces(Manifold):
             vertex_i : array-like, shape=[..., n_faces, 3]
                 3D coordinates of the ith vertex of that face.
         """
-        slc = tuple([slice(None)] * len(point.shape[:-2]))
-        face_coordinates = point[*slc, self.faces]
+        batch_slc = tuple([slice(None)] * len(point.shape[:-2]))
+        face_coordinates = point[batch_slc + (self.faces,)]
         return (
-            face_coordinates[*slc, :, 0],
-            face_coordinates[*slc, :, 1],
-            face_coordinates[*slc, :, 2],
+            face_coordinates[batch_slc + (slice(None), 0)],
+            face_coordinates[batch_slc + (slice(None), 1)],
+            face_coordinates[batch_slc + (slice(None), 2)],
         )
 
     def _triangle_areas(self, point):
@@ -472,10 +472,11 @@ class DiscreteSurfaces(Manifold):
                 to one its tangent vector tangent_vec.
             """
             batch_shape = get_batch_shape(2, point, tangent_vec)
-            slc = tuple([slice(None)] * len(batch_shape))
+            batch_slc = tuple([slice(None)] * len(batch_shape))
 
             tangent_vec_diff = (
-                tangent_vec[*slc, id_vertices[0]] - tangent_vec[*slc, id_vertices[1]]
+                tangent_vec[batch_slc + (id_vertices[0],)]
+                - tangent_vec[batch_slc + (id_vertices[1],)]
             )
 
             values = gs.einsum(
@@ -494,11 +495,15 @@ class DiscreteSurfaces(Manifold):
             )
 
             for i_dim in range(3):
-                laplacian_at_tangent_vec[*slc, :, i_dim] = gs.scatter_add(
-                    input=laplacian_at_tangent_vec[*slc, :, i_dim],
-                    dim=-1,
-                    index=id_vertices_201,
-                    src=values[*slc, :, i_dim],
+                laplacian_at_tangent_vec[batch_slc + (slice(None), i_dim)] = (
+                    gs.scatter_add(
+                        input=laplacian_at_tangent_vec[
+                            batch_slc + (slice(None), i_dim)
+                        ],
+                        dim=-1,
+                        index=id_vertices_201,
+                        src=values[batch_slc + (slice(None), i_dim)],
+                    )
                 )
             return laplacian_at_tangent_vec
 
@@ -1386,7 +1391,7 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
         """
         discr_geod_path = self.discrete_geodesic_bvp(point, base_point)
         point_ndim_slc = (slice(None),) * self._total_space.point_ndim
-        return discr_geod_path[..., -1, *point_ndim_slc]
+        return discr_geod_path[(..., -1) + point_ndim_slc]
 
 
 class ReparametrizationBundle(FiberBundle):

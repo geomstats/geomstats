@@ -40,12 +40,12 @@ class Surface:
         face_areas : array-like, shape=[n_faces, 1]
             Face areas.
         """
-        slc = tuple([slice(None)] * len(self.vertices.shape[:-2]))
-        face_coordinates = self.vertices[*slc, self.faces]
+        batch_slc = tuple([slice(None)] * len(self.vertices.shape[:-2]))
+        face_coordinates = self.vertices[batch_slc + (self.faces,)]
         vertex_0, vertex_1, vertex_2 = (
-            face_coordinates[*slc, :, 0],
-            face_coordinates[*slc, :, 1],
-            face_coordinates[*slc, :, 2],
+            face_coordinates[batch_slc + (slice(None), 0)],
+            face_coordinates[batch_slc + (slice(None), 1)],
+            face_coordinates[batch_slc + (slice(None), 2)],
         )
 
         face_centroids = (vertex_0 + vertex_1 + vertex_2) / 3

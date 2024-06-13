@@ -20,7 +20,8 @@ class InterpolatorTestCase(TestCase):
         res = self.interpolator(times)
 
         point_ndim_slc = (slice(None),) * self.interpolator.point_ndim
-        expected = self.data[..., :-1, *point_ndim_slc] + 0.5 * (
-            self.data[..., 1:, *point_ndim_slc] - self.data[..., :-1, *point_ndim_slc]
+        expected = self.data[(..., slice(0, -1)) + point_ndim_slc] + 0.5 * (
+            self.data[(..., slice(1, None)) + point_ndim_slc]
+            - self.data[(..., slice(0, -1)) + point_ndim_slc]
         )
         self.assertAllClose(res, expected, atol=atol)

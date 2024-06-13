@@ -50,10 +50,10 @@ class TestForwardDifference(FiniteDifferenceTestCase, metaclass=DataBasedParamet
         delta = 1 / (n_times - 1)
         point_ndim_slc = tuple([slice(None)] * self.space.point_ndim)
         point_ = (
-            path[..., -2, *point_ndim_slc]
-            + delta * finite_diffs[..., -1, *point_ndim_slc]
+            path[(..., -2) + point_ndim_slc]
+            + delta * finite_diffs[(..., -1) + point_ndim_slc]
         )
-        self.assertAllClose(point_, path[..., -1, *point_ndim_slc], atol=atol)
+        self.assertAllClose(point_, path[(..., -1) + point_ndim_slc], atol=atol)
 
 
 @pytest.mark.usefixtures("spaces")
@@ -78,9 +78,9 @@ class TestCenteredDifference(FiniteDifferenceTestCase, metaclass=DataBasedParame
 
         point_ndim_slc = tuple([slice(None)] * self.space.point_ndim)
 
-        previous_point = path[..., index - 1, *point_ndim_slc]
-        next_point = path[..., index + 1, *point_ndim_slc]
-        diff = finite_diffs[..., fd_index, *point_ndim_slc]
+        previous_point = path[(..., index - 1) + point_ndim_slc]
+        next_point = path[(..., index + 1) + point_ndim_slc]
+        diff = finite_diffs[(..., fd_index) + point_ndim_slc]
 
         delta = 1 / (n_times - 1)
         expected_diff = (next_point - previous_point) / (2 * delta)
@@ -112,10 +112,10 @@ class TestSecondCenteredDifference(
 
         point_ndim_slc = tuple([slice(None)] * self.space.point_ndim)
 
-        previous_point = path[..., index - 1, *point_ndim_slc]
-        point = path[..., index, *point_ndim_slc]
-        next_point = path[..., index + 1, *point_ndim_slc]
-        diff = finite_diffs[..., fd_index, *point_ndim_slc]
+        previous_point = path[(..., index - 1) + point_ndim_slc]
+        point = path[(..., index) + point_ndim_slc]
+        next_point = path[(..., index + 1) + point_ndim_slc]
+        diff = finite_diffs[(..., fd_index) + point_ndim_slc]
 
         delta = 1 / (n_times - 1)
         expected_diff = (next_point + previous_point - 2 * point) / (delta**2)
