@@ -126,17 +126,17 @@ From the geomstats folder, create a virtual environment:
 
     .. code-block:: bash
 
-      $ conda create -n geomstats-3.11 python=3.11
+      $ conda create -n geomstats-312 python=3.12
 
 
-This command will create a new environment named `geomstats-3.11`.
+This command will create a new environment named `geomstats-312`.
 
 
 Then, activate the environment and install geomstats in editable mode:
 
   .. code-block:: bash
 
-    $ conda activate geomstats-3.11
+    $ conda activate geomstats-312
     $ pip install -e .
 
 
