@@ -172,14 +172,14 @@ class ExpODESolver(ExpSolver):
 
     def _simplify_exp_result(self, result):
         y = result.get_last_y()
-        slc = tuple([slice(None)] * self._space.point_ndim)
-        return y[..., 0, *slc]
+        point_ndim_slc = tuple([slice(None)] * self._space.point_ndim)
+        return y[(..., 0) + point_ndim_slc]
 
     def _simplify_result_t(self, result):
         # assumes several t
         y = result.y
-        slc = tuple([slice(None)] * self._space.point_ndim)
-        return y[..., :, 0, *slc]
+        point_ndim_slc = tuple([slice(None)] * self._space.point_ndim)
+        return y[(..., slice(None), 0) + point_ndim_slc]
 
 
 class LogSolver(ABC):
@@ -717,8 +717,8 @@ class PathBasedLogSolver(LogSolver, ABC):
         discr_geod_path = self.discrete_geodesic_bvp(point, base_point)
         point_ndim_slc = (slice(None),) * self._space.point_ndim
         return (self.n_nodes - 1) * (
-            discr_geod_path[..., 1, *point_ndim_slc]
-            - discr_geod_path[..., 0, *point_ndim_slc]
+            discr_geod_path[(..., 1) + point_ndim_slc]
+            - discr_geod_path[(..., 0) + point_ndim_slc]
         )
 
     def geodesic_bvp(self, point, base_point):
