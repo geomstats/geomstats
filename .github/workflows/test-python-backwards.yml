@@ -22,11 +22,6 @@ jobs:
         with:
           python-version: ${{matrix.python-version}}
 
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{matrix.geomstats-backend}}-${{matrix.os}}-${{matrix.python-version}}-${{ hashFiles('pyproject.toml') }}
-
       - name: install dependencies [pip]
         run: |
           pip install --upgrade pip setuptools wheel
