@@ -29,7 +29,6 @@ class MyManifold(Manifold):
     List the parameters of MyManifold, i.e. the parameters given as inputs
     of the constructor __init__.
 
-    For example:
     Parameters
     ----------
     dim : int

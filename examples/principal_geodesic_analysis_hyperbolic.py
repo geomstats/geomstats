@@ -1,3 +1,5 @@
+"""Example of principal geodesic analyis in hyperbolic space."""
+
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs

@@ -39,7 +39,7 @@ power = _box_binary_scalar(target=_np.power)
 
 def angle(z, deg=False):
     out = _np.angle(z, deg=deg)
-    if type(z) is float:
+    if isinstance(z, float):
         return cast(out, get_default_dtype())
 
     return out
@@ -63,7 +63,9 @@ def real(x):
 
 def arange(start_or_stop, /, stop=None, step=1, dtype=None, **kwargs):
     if dtype is None and (
-        type(stop) is float or type(step) is float or type(start_or_stop) is float
+        isinstance(stop, float)
+        or isinstance(step, float)
+        or isinstance(start_or_stop, float)
     ):
         dtype = get_default_dtype()
 

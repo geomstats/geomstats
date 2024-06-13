@@ -4,9 +4,9 @@ from collections.abc import Iterable as _Iterable
 
 import numpy as _np
 import torch as _torch
-from torch import arange, argmin
-from torch import broadcast_tensors as broadcast_arrays
 from torch import (
+    arange,
+    argmin,
     clip,
     complex64,
     complex128,
@@ -33,9 +33,6 @@ from torch import (
     ones_like,
     polygamma,
     quantile,
-)
-from torch import repeat_interleave as repeat
-from torch import (
     reshape,
     scatter_add,
     searchsorted,
@@ -47,13 +44,17 @@ from torch import (
     zeros,
     zeros_like,
 )
+from torch import broadcast_tensors as broadcast_arrays
+from torch import repeat_interleave as repeat
 from torch.special import gammaln as _gammaln
 
 from .._backend_config import pytorch_atol as atol
 from .._backend_config import pytorch_rtol as rtol
-from . import autodiff  # NOQA
-from . import linalg  # NOQA
-from . import random  # NOQA
+from . import (
+    autodiff,  # NOQA
+    linalg,  # NOQA
+    random,  # NOQA
+)
 from ._common import array, cast, from_numpy
 from ._dtype import (
     _add_default_dtype_by_casting,
