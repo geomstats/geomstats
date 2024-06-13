@@ -7,7 +7,7 @@ from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.pre_shape import (
     KendallShapeMetricTestCase,
-    PreShapeSpaceBundleTestCase,
+    PreShapeBundleTestCase,
     PreShapeSpaceTestCase,
 )
 from geomstats.test_cases.geometry.riemannian_metric import (
@@ -18,8 +18,8 @@ from geomstats.test_cases.geometry.riemannian_metric import (
 from .data.pre_shape import (
     KendallShapeMetricCmpTestData,
     KendallShapeMetricTestData,
+    PreShapeBundleTestData,
     PreShapeMetricTestData,
-    PreShapeSpaceBundleTestData,
     PreShapeSpaceTestData,
 )
 
@@ -60,10 +60,8 @@ def bundles(request):
 
 
 @pytest.mark.usefixtures("bundles")
-class TestPreShapeSpaceBundle(
-    PreShapeSpaceBundleTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = PreShapeSpaceBundleTestData()
+class TestPreShapeBundle(PreShapeBundleTestCase, metaclass=DataBasedParametrizer):
+    testing_data = PreShapeBundleTestData()
 
 
 @pytest.fixture(

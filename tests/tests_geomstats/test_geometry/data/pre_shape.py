@@ -17,7 +17,7 @@ class PreShapeSpaceTestData(LevelSetTestData):
         return self.generate_random_data()
 
 
-class PreShapeSpaceBundleTestData(FiberBundleTestData):
+class PreShapeBundleTestData(FiberBundleTestData):
     skips = ("tangent_riemannian_submersion_after_horizontal_lift",)
 
     def vertical_projection_correctness_test_data(self):
