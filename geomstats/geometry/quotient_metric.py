@@ -12,8 +12,16 @@ class QuotientMetric(RiemannianMetric):
 
     Given a (principal) fiber bundle, or more generally a manifold with a
     Lie group acting on it by the right, the quotient space is the space of
-    orbits under this action. The quotient metric is defined such that the
-    canonical projection is a Riemannian submersion, i.e. it is isometric to
+    orbits under this action. 
+    
+    In general, the quotient space is not a manifold, as it can exhibit singularities. 
+    Instead, the quotient space is a stratified space, whose principal stratum is a manifold.
+
+    We restrict computations on the quotient space to computations on its principal stratum,
+    that we equip with the quotient metric.
+    
+    The quotient metric is defined such that the
+    canonical projection is a Riemannian submersion, i.e., it is isometric to
     the restriction of the metric of the total space to horizontal subspaces.
 
     Parameters
