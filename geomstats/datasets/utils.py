@@ -56,6 +56,8 @@ CUBE_MESH_DIR = os.path.join(DATA_PATH, "cube_meshes")
 CUBE_VERTICES = os.path.join(CUBE_MESH_DIR, "vertices.npy")
 CUBE_FACES = os.path.join(CUBE_MESH_DIR, "faces.npy")
 
+RAT_SKULLS_PATH = os.path.join(DATA_PATH, "rat_skulls", "rat_skulls.npy")
+
 
 def load_cities():
     """Load data from data/cities/cities.json.
@@ -463,3 +465,29 @@ def load_cube():
     vertices = np.load(CUBE_VERTICES)
     faces = np.load(CUBE_FACES)
     return vertices, faces
+
+
+
+def load_rat_skulls():
+    """
+    Load data from data/rat_skulls.npy.
+
+    We use Vilmann’s rat calvaria (skulls excluding the lower jaw) from X-ray images:
+    - 18 rats
+    - 8 time points: at ages of 7, 14, 21, 30, 40, 60, 90, and 150 days.
+    - 8 landmarks in 2D for each skull shape
+
+    Returns
+    -------
+    data_rat_skulls : numpy.ndarray, shape=[144, 8, 2]
+        Landmarks of 18 rats.
+
+    References
+    ----------
+    - Bookstein, F. L. (1991). Morphometric Tools for Landmark Data: Geometry and Biology. Cambridge Univ, 408-414.
+    - Hinkle, J., Muralidharan, P., Fletcher, P. T., Joshi, S. (2012). Polynomial Regression on Riemannian Manifolds. European Conference on Computer Vision, 1-14.
+
+
+    """
+    data_rat_skulls = np.load(RAT_SKULLS_PATH)
+    return data_rat_skulls
