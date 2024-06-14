@@ -467,7 +467,6 @@ def load_cube():
     return vertices, faces
 
 
-
 def load_rat_skulls():
     """
     Load data from data/rat_skulls.npy.
