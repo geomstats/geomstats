@@ -237,7 +237,7 @@ class PreShapeSpace(LevelSet):
         return vector - gs.einsum("...,...ij->...ij", coef, base_point)
 
 
-class PreShapeSpaceBundle(FiberBundle):
+class PreShapeBundle(FiberBundle):
     r"""Class for the Kendall pre-shape space bundle."""
 
     def align(self, point, base_point):
@@ -923,6 +923,6 @@ register_quotient(
     Space=PreShapeSpace,
     Metric=PreShapeMetric,
     GroupAction="rotations",
-    FiberBundle=PreShapeSpaceBundle,
+    FiberBundle=PreShapeBundle,
     QuotientMetric=KendallShapeMetric,
 )

@@ -74,7 +74,7 @@ def _generate_datum_vectorization_data(
 ):
     if expected_name is not None:
         has_expected = True
-        if type(expected_name) is str:
+        if isinstance(expected_name, str):
             expected_name = [expected_name]
 
         expected_combs = []

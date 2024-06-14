@@ -12,8 +12,16 @@ class QuotientMetric(RiemannianMetric):
 
     Given a (principal) fiber bundle, or more generally a manifold with a
     Lie group acting on it by the right, the quotient space is the space of
-    orbits under this action. The quotient metric is defined such that the
-    canonical projection is a Riemannian submersion, i.e. it is isometric to
+    orbits under this action. 
+    
+    In general, the quotient space is not a manifold, as it can exhibit singularities. 
+    Instead, the quotient space is a stratified space, whose principal stratum is a manifold.
+
+    We restrict computations on the quotient space to computations on its principal stratum,
+    that we equip with the quotient metric.
+    
+    The quotient metric is defined such that the
+    canonical projection is a Riemannian submersion, i.e., it is isometric to
     the restriction of the metric of the total space to horizontal subspaces.
 
     Parameters
@@ -152,6 +160,11 @@ class QuotientMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
+        if hasattr(self._fiber_bundle, "aligner") and hasattr(
+            self._fiber_bundle.aligner, "geodesic_bvp"
+        ):
+            return self._fiber_bundle.aligner.log(point, base_point)
+
         fiber_point = self._fiber_bundle.lift(point)
         fiber_base_point = self._fiber_bundle.lift(base_point)
         aligned = self._fiber_bundle.align(fiber_point, fiber_base_point)
@@ -502,6 +515,11 @@ class QuotientMetric(RiemannianMetric):
                 raise ValueError(
                     "Cannot specify both an end point and an initial tangent vector."
                 )
+            if hasattr(self._fiber_bundle, "aligner") and hasattr(
+                self._fiber_bundle.aligner, "geodesic_bvp"
+            ):
+                return self._fiber_bundle.aligner.geodesic_bvp(end_point, initial_point)
+
             initial_fiber_point = self._fiber_bundle.lift(initial_point)
             end_fiber_point = self._fiber_bundle.lift(end_point)
             aligned_end_fiber_point = self._fiber_bundle.align(

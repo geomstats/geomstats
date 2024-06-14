@@ -131,7 +131,7 @@ class DiscreteCurvesStartingAtOriginTestCase(NFoldManifoldTestCase):
         )
 
 
-class SRVReparametrizationBundleTestCase(FiberBundleTestCase):
+class ReparametrizationBundleTestCase(FiberBundleTestCase):
     @pytest.mark.random
     def test_tangent_vector_projections_orthogonality_with_metric(self, n_points, atol):
         """Test horizontal and vertical projections.

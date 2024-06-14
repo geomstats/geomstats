@@ -117,7 +117,7 @@ class PreShapeSpaceTestCase(LevelSetTestCase):
         self.test_is_centered(res, expected, atol)
 
 
-class PreShapeSpaceBundleTestCase(FiberBundleTestCase):
+class PreShapeBundleTestCase(FiberBundleTestCase):
     def _test_is_tangent(self, vector, base_point, expected, atol):
         res = self.total_space.is_tangent(vector, base_point, atol=atol)
         self.assertAllEqual(res, expected)

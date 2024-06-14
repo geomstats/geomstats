@@ -301,10 +301,10 @@ class HyperbolicEmbedding:
                             gs.squeeze(gs.cast(one_negative_i, dtype=gs.int64)),
                         )
 
-                        l, g_ex = self.loss(
+                        total_loss_, g_ex = self.loss(
                             example_embedding, context_embedding, negative_embedding
                         )
-                        total_loss.append(l)
+                        total_loss.append(total_loss_)
 
                         example_to_update = embeddings[one_path]
 

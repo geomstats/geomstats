@@ -52,7 +52,7 @@ class UniformlySampledPathEnergy:
         tangent_vecs = forward_difference(path, axis=time_axis)
         return self._space.metric.squared_norm(
             tangent_vecs,
-            path[..., :-1, *point_ndim_slc],
+            path[(..., slice(0, -1)) + point_ndim_slc],
         ) / (2 * (n_time - 1))
 
     def energy(self, path):

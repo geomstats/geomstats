@@ -47,7 +47,7 @@ def spd_manifold_params(n_samples):
         params = []
         metric = "SPDAffineMetric"
         power_args = [-0.5, 1, 0.5]
-        metric_args = list(product([item for item, in manifold_args], power_args))
+        metric_args = list(product([item for (item,) in manifold_args], power_args))
         manifold_args_re = [
             item for item in manifold_args for i in range(len(power_args))
         ]
@@ -71,7 +71,7 @@ def spd_manifold_params(n_samples):
         params = []
         metric = "SPDEuclideanMetric"
         power_args = [-0.5, 1, 0.5]
-        metric_args = list(product([item for item, in manifold_args], power_args))
+        metric_args = list(product([item for (item,) in manifold_args], power_args))
         manifold_args_re = [
             item for item in manifold_args for i in range(len(power_args))
         ]

@@ -141,7 +141,10 @@ class AlternatingAligner(AlignerAlgorithm):
 
     Assumes total space is equipped with several group actions.
     Aligns points wrt these group actions by alternate minimization
-    wrt each of them (similar approach used in e.g. [JKKS2012]_).
+    wrt each of them (see e.g. [SK2016]_ for more details).
+
+    This alignment results in an approximate quotient of the product
+    group action.
 
     Parameters
     ----------
@@ -157,12 +160,8 @@ class AlternatingAligner(AlignerAlgorithm):
 
     References
     ----------
-    .. [JKKS2012] Ian H. Jermyn, Sebastian Kurtek, Eric Klassen, and Anuj Srivastava.
-        “Elastic Shape Matching of Parameterized Surfaces Using Square Root Normal
-        Fields.” In Computer Vision – ECCV 2012, edited by Andrew Fitzgibbon,
-        Svetlana Lazebnik, Pietro Perona, Yoichi Sato, and Cordelia Schmid,
-        804–17. Lecture Notes in Computer Science. Berlin, Heidelberg: Springer, 2012.
-        https://doi.org/10.1007/978-3-642-33715-4_58.
+    .. [SK2016] Anuj Srivastava, and Eric P. Klassen.
+        Functional and Shape Data Analysis. Springer, 2016.
     """
 
     def __init__(self, total_space, threshold=1e-3, max_iter=20, verbose=0):

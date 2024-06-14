@@ -62,6 +62,50 @@ def insert_zeros(array, axis=-1, end=False):
     return gs.concatenate((first, second), axis=-array_ndim)
 
 
+class DiscreteCurves:
+    """Space of discrete curves."""
+
+    def __new__(
+        self, ambient_dim=2, k_sampling_points=10, starting_at_origin=True, equip=True
+    ):
+        """Instantiate discrete curves.
+
+        If `starting_at_origin=True`, instantiates discrete curves modulo translations
+        eventually equipped with an elastic metric.
+
+        If `starting_at_origin=False`, instantiates discrete curves
+        eventually equipped with an L2 metric.
+
+        Parameters
+        ----------
+        ambient_dim : int
+            Dimension of the ambient Euclidean space in which curves take values.
+        k_sampling_points : int
+            Number of sampling points.
+        starting_at_origin : bool
+            If rotations are quotiented out.
+        equip : bool
+            If True, equip space with default metric.
+        """
+        if starting_at_origin:
+            return DiscreteCurvesStartingAtOrigin(
+                ambient_dim=ambient_dim,
+                k_sampling_points=k_sampling_points,
+                equip=equip,
+            )
+
+        ambient_manifold = Euclidean(ambient_dim)
+        space = Landmarks(
+            ambient_manifold=ambient_manifold,
+            k_landmarks=k_sampling_points,
+            equip=False,
+        )
+        if equip:
+            space.equip_with_metric(L2CurvesMetric)
+
+        return space
+
+
 class DiscreteCurvesStartingAtOrigin(NFoldManifold):
     r"""Space of discrete curves modulo translations.
 
@@ -802,6 +846,8 @@ class SRVMetric(PullbackDiffeoMetric):
     """
 
     def __init__(self, space):
+        self.a = 1.0
+        self.b = 1 / 2
         self._check_ambient_manifold(space.ambient_manifold)
 
         image_space = self._instantiate_image_space(space)
@@ -1573,8 +1619,8 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
         return aligned, sdists
 
 
-class SRVReparametrizationBundle(FiberBundle):
-    """Principal bundle of curves modulo reparametrizations with the SRV metric.
+class ReparametrizationBundle(FiberBundle):
+    """Principal bundle of curves modulo reparametrizations with an elastic metric.
 
     The space of parameterized curves is the total space of a principal bundle
     where the group action is given by reparametrization and the base space is
@@ -1631,7 +1677,7 @@ class SRVReparametrizationBundle(FiberBundle):
         """
         ambient_manifold = self._total_space.ambient_manifold
 
-        a_param, b_param = 1, 1 / 2
+        a_param, b_param = self._total_space.metric.a, self._total_space.metric.b
         squotient = (a_param / b_param) ** 2
 
         ndim = self._total_space.point_ndim
@@ -1704,11 +1750,11 @@ class SRVReparametrizationBundle(FiberBundle):
         return tangent_vec_ver
 
 
-class SRVRotationBundle(FiberBundle):
-    """Principal bundle of curves modulo rotations with the SRV metric.
+class RotationBundle(FiberBundle):
+    """Principal bundle of curves modulo rotations with an elastic metric.
 
     This is the fiber bundle where the total space is the space of parameterized
-    curves equipped with the SRV metric, the action is given by rotations, and
+    curves equipped with an elastic metric, the action is given by rotations, and
     the base space is the shape space of curves modulo rotations.
 
     Parameters
@@ -1741,9 +1787,9 @@ class SRVRotationBundle(FiberBundle):
         aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
             Curve optimally rotated with respect to reference curve.
         """
-        srv_transform = self._total_space.metric.diffeo
-        initial_srv = srv_transform.diffeomorphism(base_point)
-        end_srv = srv_transform.diffeomorphism(point)
+        transform = self._total_space.metric.diffeo
+        initial_srv = transform.diffeomorphism(base_point)
+        end_srv = transform.diffeomorphism(point)
 
         mat = gs.matmul(Matrices.transpose(initial_srv), end_srv)
         u_svd, _, vt_svd = gs.linalg.svd(mat)
@@ -1762,13 +1808,13 @@ register_quotient(
     Space=DiscreteCurvesStartingAtOrigin,
     Metric=SRVMetric,
     GroupAction="rotations",
-    FiberBundle=SRVRotationBundle,
+    FiberBundle=RotationBundle,
     QuotientMetric=QuotientMetric,
 )
 register_quotient(
     Space=DiscreteCurvesStartingAtOrigin,
     Metric=SRVMetric,
     GroupAction="reparametrizations",
-    FiberBundle=SRVReparametrizationBundle,
+    FiberBundle=ReparametrizationBundle,
     QuotientMetric=QuotientMetric,
 )
