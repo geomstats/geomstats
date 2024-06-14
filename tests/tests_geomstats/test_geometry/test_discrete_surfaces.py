@@ -2,7 +2,7 @@ import pytest
 
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
-from geomstats.geometry.discrete_surfaces import DiscreteSurfaces
+from geomstats.geometry.discrete_surfaces import DiscreteSurfaces, L2SurfacesMetric
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.test_case import pytorch_backend, torch_only
 from geomstats.test_cases.geometry.discrete_surfaces import (
@@ -17,6 +17,7 @@ from .data.discrete_surfaces import (
     DiscreteSurfacesSmokeTestData,
     DiscreteSurfacesTestData,
     ElasticMetricTestData,
+    L2SurfacesMetricTestData,
     QuotientElasticMetricTestData,
     SurfaceTestData,
 )
@@ -29,10 +30,9 @@ class TestSurface(SurfaceTestCase, metaclass=DataBasedParametrizer):
 
 @torch_only
 class TestDiscreteSurfaces(DiscreteSurfacesTestCase, metaclass=DataBasedParametrizer):
-    vertices, faces = data_utils.load_cube()
-    vertices = gs.array(vertices, dtype=gs.float64)
-    faces = gs.array(faces)
-    space = DiscreteSurfaces(faces, equip=False)
+    _, _faces = data_utils.load_cube()
+    _faces = gs.array(_faces)
+    space = DiscreteSurfaces(_faces, equip=False)
 
     testing_data = DiscreteSurfacesTestData()
 
@@ -54,8 +54,7 @@ class TestDiscreteSurfacesSmoke(
     have area 2.
     """
 
-    _vertices, _faces = data_utils.load_cube()
-    _vertices = gs.array(_vertices, dtype=gs.float64)
+    _, _faces = data_utils.load_cube()
     _faces = gs.array(_faces)
     space = DiscreteSurfaces(_faces, equip=False)
 
@@ -78,6 +77,16 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrize
             space, _vertices, amplitude=10.0
         )
     testing_data = ElasticMetricTestData()
+
+
+class TestL2SurfacesMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+    _, _faces = data_utils.load_cube()
+    _faces = gs.array(_faces)
+
+    space = DiscreteSurfaces(_faces, equip=False)
+    space.equip_with_metric(L2SurfacesMetric)
+
+    testing_data = L2SurfacesMetricTestData()
 
 
 @torch_only

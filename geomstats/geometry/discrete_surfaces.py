@@ -22,6 +22,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.fiber_bundle import AlignerAlgorithm, FiberBundle
 from geomstats.geometry.manifold import Manifold, register_quotient
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.nfold_manifold import NFoldMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.numerics.geodesic import ExpSolver, PathBasedLogSolver, PathStraightening
@@ -844,13 +845,13 @@ class ElasticMetric(RiemannianMetric):
             Tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., n_vertices, 3]
             Tangent vector at base point.
-        base_point : array-like, shape=[n_vertices, 3]
+        base_point : array-like, shape=[..., n_vertices, 3]
             Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
         -------
         inner_prod : array-like, shape=[...]
-            Inner-product.
+            Inner product.
         """
         inner_prod_a0 = 0.0
         inner_prod_a1 = 0.0
@@ -1152,6 +1153,43 @@ class DiscreteSurfacesExpSolver(ExpSolver):
         return UniformlySampledDiscretePath(
             discr_geod_path, point_ndim=self._space.point_ndim
         )
+
+
+class L2SurfacesMetric(NFoldMetric):
+    """L2 metric on the space of discrete surfaces."""
+
+    def __init__(self, space):
+        if not hasattr(space, "base_manifold"):
+            space.base_manifold = Euclidean(dim=3)
+            space.n_copies = space.n_vertices
+
+        super().__init__(space=space)
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+        """Compute L2 inner product between two tangent vectors.
+
+        The inner product is the integral of the ambient space inner product,
+        approximated by a left Riemann sum.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n_vertices, 3]
+            Tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., n_vertices, 3]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n_vertices, 3]
+            Surface, as the 3D coordinates of the vertices of its triangulation.
+
+        Return
+        ------
+        inner_prod : array_like, shape=[...]
+            Inner product.
+        """
+        inner_products = self.pointwise_inner_product(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
+        dt = 1 / self._space.n_vertices
+        return dt * gs.sum(inner_products, axis=-1)
 
 
 class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
