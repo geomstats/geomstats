@@ -1156,7 +1156,14 @@ class DiscreteSurfacesExpSolver(ExpSolver):
 
 
 class L2SurfacesMetric(NFoldMetric):
-    """L2 metric on the space of discrete surfaces."""
+    """L2 metric on the space of discrete surfaces.
+
+    Notes
+    -----
+    Adds ``base_manifold`` (manifold that is repeated ``n_copies``
+    times) and ``n_copies`` to ``space`` as attribute if it does
+    not have them as their expected by ``NFoldMetric``.
+    """
 
     def __init__(self, space):
         if not hasattr(space, "base_manifold"):
