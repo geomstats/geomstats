@@ -143,6 +143,9 @@ class AlternatingAligner(AlignerAlgorithm):
     Aligns points wrt these group actions by alternate minimization
     wrt each of them (see e.g. [SK2016]_ for more details).
 
+    This alignment results in an approximate quotient of the product
+    group action.
+
     Parameters
     ----------
     total_space : Manifold
