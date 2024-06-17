@@ -7,6 +7,7 @@ from geomstats.test.data import TestData
 from geomstats.vectorization import repeat_point
 
 from .manifold import ManifoldTestData
+from .riemannian_metric import RiemannianMetricTestData
 
 
 class SurfaceTestData(TestData):
@@ -139,6 +140,18 @@ class ElasticMetricTestData(TestData):
 
     def inner_product_is_symmetric_test_data(self):
         return self.generate_random_data()
+
+
+class L2SurfacesMetricTestData(RiemannianMetricTestData):
+    trials = 1
+    skips = (
+        "inner_product_derivative_matrix_vec",
+        "metric_matrix_is_spd",
+        "christoffels_vec",
+    )
+    N_RANDOM_POINTS = [1]
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
 
 
 class QuotientElasticMetricTestData(TestData):
