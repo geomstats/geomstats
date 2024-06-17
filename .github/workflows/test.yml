@@ -70,6 +70,6 @@ jobs:
           pytest ${{matrix.test-folder}}
 
       - name: uploading code coverage [codecov]
-        if: ${{matrix.test-folder == 'tests/tests_geomstats/'}}
+        if: ${{github.ref == 'refs/heads/main' && matrix.test-folder == 'tests/tests_geomstats/'}}
         run: |
           bash <(curl -s https://codecov.io/bash) -c -F ${{matrix.geomstats-backend}}
