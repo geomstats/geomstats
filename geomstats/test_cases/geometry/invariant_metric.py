@@ -10,37 +10,6 @@ from geomstats.vectorization import repeat_point
 
 
 class _InvariantMetricTestCaseMixins(RiemannianMetricTestCase):
-    def test_inner_product_at_identity(
-        self, tangent_vec_a, tangent_vec_b, expected, atol
-    ):
-        res = self.space.metric.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
-        self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_inner_product_at_identity_vec(self, n_reps, atol):
-        base_point = self.space.identity
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.inner_product_at_identity(
-            tangent_vec_a, tangent_vec_b
-        )
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec_a=tangent_vec_a,
-                    tangent_vec_b=tangent_vec_b,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec_a", "tangent_vec_b"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     @pytest.mark.random
     def test_invariance(self, n_points, atol):
         left = self.space.metric.left
@@ -142,8 +111,10 @@ class InvariantMetricMatrixTestCase(_InvariantMetricTestCaseMixins):
         tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
         tangent_vec_c = self.data_generator.random_tangent_vec(base_point)
 
-        result = self.space.metric.inner_product_at_identity(
-            self.space.metric.dual_adjoint(tangent_vec_a, tangent_vec_b), tangent_vec_c
+        result = self.space.lie_algebra.metric.inner_product(
+            self.space.metric.dual_adjoint(tangent_vec_a, tangent_vec_b),
+            tangent_vec_c,
+            base_point=None,
         )
         expected = self.space.metric.structure_constant(
             tangent_vec_a, tangent_vec_c, tangent_vec_b

@@ -2,19 +2,32 @@ import random
 
 import pytest
 
+from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.matrices import BasisRepresentationDiffeo
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 from geomstats.test_cases.geometry.skew_symmetric_matrices import (
     SkewSymmetricMatricesTestCase,
 )
 
+from .data.diffeo import DiffeoTestData
 from .data.matrices import MatricesMetricTestData
 from .data.skew_symmetric_matrices import (
     SkewSymmetricMatrices2TestData,
     SkewSymmetricMatrices3TestData,
     SkewSymmetricMatricesTestData,
 )
+
+
+class TestBasisRepresentationDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(3, 5)
+
+    space = SkewSymmetricMatrices(n=_n, equip=False)
+    image_space = Euclidean(dim=space.dim, equip=False)
+    diffeo = BasisRepresentationDiffeo(space)
+    testing_data = DiffeoTestData()
 
 
 @pytest.fixture(
