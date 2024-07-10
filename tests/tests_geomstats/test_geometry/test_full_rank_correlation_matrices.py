@@ -187,7 +187,7 @@ class TestUniqueDiagonalMatrixAlgorithm(TestCase, metaclass=DataBasedParametrize
     def test_belongs_to_full_rank_cor(self, n_points, atol):
         sym_mat = self.sym_data_generator.random_point(n_points)
 
-        diag_mat = self.algo.apply(sym_mat)
+        diag_mat = self.algo(sym_mat)
         cor_mat = expmh(diag_mat + sym_mat)
         res = self.full_rank_cor.belongs(cor_mat, atol=atol)
         expected = gs.ones_like(res)

@@ -457,7 +457,7 @@ class UniqueDiagonalMatrixAlgorithm:
         mat_diff = new_matrix - matrix
         return gs.linalg.norm(mat_diff, axis=(-2, -1)) < self.atol
 
-    def _apply_single(self, sym_mat):
+    def _call_single(self, sym_mat):
         r"""Find unique diagonal matrix corresponding to a full-rank correlation matrix.
 
         Parameters
@@ -486,7 +486,7 @@ class UniqueDiagonalMatrixAlgorithm:
 
         return diag_mat
 
-    def apply(self, sym_mat):
+    def __call__(self, sym_mat):
         r"""Find unique diagonal matrix corresponding to a full-rank correlation matrix.
 
         Parameters
@@ -498,15 +498,15 @@ class UniqueDiagonalMatrixAlgorithm:
         diag_mat : array-like, shape=[..., n, n]
         """
         if sym_mat.ndim == 2:
-            return self._apply_single(sym_mat)
+            return self._call_single(sym_mat)
 
         batch_shape = sym_mat.shape[:-2]
         if len(batch_shape) == 1:
-            return gs.stack([self._apply_single(sym_mat_) for sym_mat_ in sym_mat])
+            return gs.stack([self._call_single(sym_mat_) for sym_mat_ in sym_mat])
 
         mat_shape = sym_mat.shape[-2:]
         flat_sym_mat = gs.reshape(sym_mat, (-1,) + mat_shape)
-        out = gs.stack([self._apply_single(sym_mat_) for sym_mat_ in flat_sym_mat])
+        out = gs.stack([self._call_single(sym_mat_) for sym_mat_ in flat_sym_mat])
         return gs.reshape(out, batch_shape + mat_shape)
 
 
@@ -531,7 +531,7 @@ class OffLogDiffeo(Diffeo):
 
     def __init__(self):
         super().__init__()
-        self.unique_diag_mat_algo = UniqueDiagonalMatrixAlgorithm()
+        self.unique_diag_mat = UniqueDiagonalMatrixAlgorithm()
 
     def diffeomorphism(self, base_point):
         """Diffeomorphism at base point.
@@ -563,7 +563,7 @@ class OffLogDiffeo(Diffeo):
         base_point : array-like, shape=[..., n, n]
             Base point.
         """
-        return expmh(self.unique_diag_mat_algo.apply(image_point) + image_point)
+        return expmh(self.unique_diag_mat(image_point) + image_point)
 
     def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
         r"""Tangent diffeomorphism at base point.
@@ -669,7 +669,7 @@ class OffLogDiffeo(Diffeo):
         """
         if base_point is None:
             sym_mat = image_point
-            mat = sym_mat + self.unique_diag_mat_algo.apply(sym_mat)
+            mat = sym_mat + self.unique_diag_mat(sym_mat)
         else:
             mat = logmh(base_point)
 
