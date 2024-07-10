@@ -118,16 +118,16 @@ class ScipyMinimize:
 
 
 class RootFinder(ABC):
-    """Find a root of a vector function."""
+    """Find a root of a vector-valued function."""
 
     @abstractmethod
     def root(self, fun, x0, fun_jac=None):
-        """Find a root of a vector function.
+        """Find a root of a vector-valued function.
 
         Parameters
         ----------
         fun : callable
-            The objective function to be minimized.
+            Vector-valued function.
         x0 : array-like
             Initial guess.
         fun_jac : callable
@@ -140,11 +140,7 @@ class RootFinder(ABC):
 
 
 class ScipyRoot(RootFinder):
-    """Wrapper for scipy.optimize.root.
-
-    Only `jac` differs from scipy: if `autodiff`, then
-    `gs.autodiff.value_and_grad` is used to compute the jacobian.
-    """
+    """Wrapper for scipy.optimize.root."""
 
     def __init__(
         self,
@@ -162,12 +158,12 @@ class ScipyRoot(RootFinder):
         self.result_ = None
 
     def root(self, fun, x0, fun_jac=None):
-        """Find a root of a vector function.
+        """Find a root of a vector-valued function.
 
         Parameters
         ----------
         fun : callable
-            The objective function to be minimized.
+            Vector-valued function.
         x0 : array-like
             Initial guess.
         fun_jac : callable
@@ -199,7 +195,7 @@ class ScipyRoot(RootFinder):
 
 
 class NewtonMethod(RootFinder):
-    """Find a root of a vector function with Newton's method.
+    """Find a root of a vector-valued function with Newton's method.
 
     Check https://en.wikipedia.org/wiki/Newton%27s_method_in_optimization
     for details.
@@ -217,12 +213,12 @@ class NewtonMethod(RootFinder):
         self.max_iter = max_iter
 
     def root(self, fun, x0, fun_jac):
-        """Find a root of a vector function.
+        """Find a root of a vector-valued function.
 
         Parameters
         ----------
         fun : callable
-            The objective function to be minimized.
+            Vector-valued function.
         x0 : array-like
             Initial guess.
         fun_jac : callable
