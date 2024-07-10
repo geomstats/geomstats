@@ -801,7 +801,7 @@ class OffLogMetric(PullbackDiffeoMetric):
         super().__init__(space=space, diffeo=diffeo, image_space=image_space)
 
 
-class UniquePositiveDiagonalMatrixAlgorithm:
+class SPDScalingFinder:
     r"""Find unique positive diagonal matrix corresponding to an SPD matrix.
 
     That is, for every symmetric positive-definite matrix :math:`\Sigma`,
@@ -957,7 +957,7 @@ class LogScalingDiffeo(Diffeo):
 
     def __init__(self):
         super().__init__()
-        self.unique_diag_mat = UniquePositiveDiagonalMatrixAlgorithm()
+        self.unique_diag_mat = SPDScalingFinder()
 
     def diffeomorphism(self, base_point):
         """Diffeomorphism at base point.

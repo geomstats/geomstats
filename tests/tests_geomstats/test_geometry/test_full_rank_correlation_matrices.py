@@ -11,8 +11,8 @@ from geomstats.geometry.full_rank_correlation_matrices import (
     OffLogDiffeo,
     OffLogMetric,
     PolyHyperbolicCholeskyMetric,
+    SPDScalingFinder,
     UniqueDiagonalMatrixAlgorithm,
-    UniquePositiveDiagonalMatrixAlgorithm,
 )
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import expmh
@@ -52,8 +52,8 @@ from .data.full_rank_correlation_matrices import (
     LogScaledMetricTestData,
     OffLogMetricTestData,
     PolyHyperbolicCholeskyMetricTestData,
+    SPDScalingFinderTestData,
     UniqueDiagonalMatrixAlgorithmTestData,
-    UniquePositiveDiagonalMatrixAlgorithmTestData,
 )
 
 
@@ -231,16 +231,14 @@ class TestOffLogMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametr
 )
 def unique_positive_diagonal_matrix_algorithms(request):
     root_finder = request.param
-    request.cls.algo = UniquePositiveDiagonalMatrixAlgorithm(root_finder)
+    request.cls.algo = SPDScalingFinder(root_finder)
 
 
 @pytest.mark.usefixtures("unique_positive_diagonal_matrix_algorithms")
-class TestUniquePositiveDiagonalMatrixAlgorithm(
-    TestCase, metaclass=DataBasedParametrizer
-):
+class TestSPDScalingFinder(TestCase, metaclass=DataBasedParametrizer):
     _n = random.randint(2, 5)
     data_generator = RandomDataGenerator(SPDMatrices(n=_n, equip=False))
-    testing_data = UniquePositiveDiagonalMatrixAlgorithmTestData()
+    testing_data = SPDScalingFinderTestData()
 
     @pytest.mark.random
     def test_rows_sum_to_one(self, n_points, atol):
