@@ -173,11 +173,14 @@ class ScipyRoot(RootFinder):
         -------
         res : OptimizeResult
         """
+        fun_ = lambda x: fun(gs.from_numpy(x))
+        fun_jac_ = fun_jac if fun_jac is None else lambda x: fun_jac(gs.from_numpy(x))
+
         result = scipy.optimize.root(
-            fun,
+            fun_,
             x0,
             method=self.method,
-            jac=fun_jac,
+            jac=fun_jac_,
             tol=self.tol,
             callback=self.callback,
             options=self.options,
@@ -244,7 +247,7 @@ class NewtonMethod(RootFinder):
             status=status,
             method="newton",
             message=message,
-            nfev=it,
+            nfev=it + 1,
             njac=it,
         )
 
