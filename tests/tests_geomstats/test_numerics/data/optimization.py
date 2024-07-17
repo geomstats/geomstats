@@ -68,3 +68,38 @@ class OptimizationHessSmokeTestData(TestData):
         ]
 
         return self.generate_tests(data)
+
+
+class RootFindingSmokeTestData(TestData):
+    trials = 1
+
+    def root_test_data(self):
+        dim = random.randint(1, 10)
+
+        data = [
+            dict(
+                fun=_jacobian_sum_squares,
+                x0=gs.random.uniform(size=dim),
+                expected=gs.zeros(dim),
+            )
+        ]
+
+        return self.generate_tests(data)
+
+
+class RootFindingJacSmokeTestData(TestData):
+    trials = 1
+
+    def root_test_data(self):
+        dim = random.randint(1, 10)
+
+        data = [
+            dict(
+                fun=_jacobian_sum_squares,
+                fun_jac=_hessian_sum_squares,
+                x0=gs.random.uniform(size=dim),
+                expected=gs.zeros(dim),
+            )
+        ]
+
+        return self.generate_tests(data)

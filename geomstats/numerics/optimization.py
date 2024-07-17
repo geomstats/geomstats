@@ -111,7 +111,7 @@ class ScipyMinimize:
 
         result = result_to_backend_type(result)
 
-        if result.status > 0:
+        if not result.success:
             logging.warning(result.message)
 
         if self.save_result:
@@ -143,22 +143,53 @@ class RootFinder(ABC):
 
 
 class ScipyRoot(RootFinder):
-    """Wrapper for scipy.optimize.root."""
+    """Wrapper for scipy.optimize.root.
+
+    Only `autodiff_jac` differs from scipy: if True, then
+    automatic differentiation is used to compute jacobian.
+    """
 
     def __init__(
         self,
         method="hybr",
+        autodiff_jac=False,
         tol=None,
         callback=None,
         options=None,
         save_result=False,
     ):
+        if (autodiff_jac) and not gs.has_autodiff():
+            raise AutodiffNotImplementedError(
+                "Root finding with 'autodiff' requires automatic differentiation."
+                "Change backend via the command "
+                "export GEOMSTATS_BACKEND=pytorch in a terminal"
+            )
+
         self.method = method
+        self.autodiff_jac = autodiff_jac
         self.tol = tol
         self.callback = callback
         self.options = options
         self.save_result = save_result
         self.result_ = None
+
+    def _handle_jac(self, fun, fun_jac):
+        if fun_jac is not None:
+            fun_ = lambda x: fun(gs.from_numpy(x))
+            fun_jac_ = fun_jac
+            if callable(fun_jac):
+                fun_jac_ = lambda x: fun_jac(gs.from_numpy(x))
+
+            return fun_, fun_jac_
+
+        if self.autodiff_jac:
+            jac = True
+            fun_ = lambda x: gs.autodiff.value_and_jacobian(fun)(gs.from_numpy(x))
+        else:
+            jac = fun_jac
+            fun_ = lambda x: fun(gs.from_numpy(x))
+
+        return fun_, jac
 
     def root(self, fun, x0, fun_jac=None):
         """Find a root of a vector-valued function.
@@ -176,8 +207,7 @@ class ScipyRoot(RootFinder):
         -------
         res : OptimizeResult
         """
-        fun_ = lambda x: fun(gs.from_numpy(x))
-        fun_jac_ = fun_jac if fun_jac is None else lambda x: fun_jac(gs.from_numpy(x))
+        fun_, fun_jac_ = self._handle_jac(fun, fun_jac)
 
         result = scipy.optimize.root(
             fun_,
@@ -241,7 +271,7 @@ class NewtonMethod(RootFinder):
             y = gs.linalg.solve(fun_jac(xk), fun_xk)
             xk = xk - y
         else:
-            message = f"Maximum number of iterations {self.max_iter} reached. The mean may be inaccurate"
+            message = f"Maximum number of iterations {self.max_iter} reached. Results may be inaccurate"
             status = 0
 
         result = OptimizeResult(
