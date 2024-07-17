@@ -945,7 +945,7 @@ class DiffeomorphicManifold(Manifold):
         """
         if not self.intrinsic:
             raise ValueError("`belongs` is not implemented.")
-        return self.image_space.belongs(self.diffeo.diffeomorphism(point), atol=atol)
+        return self.image_space.belongs(self.diffeo(point), atol=atol)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -968,8 +968,8 @@ class DiffeomorphicManifold(Manifold):
         if not self.intrinsic:
             raise ValueError("`is_tangent` is not implemented.")
 
-        image_point = self.diffeo.diffeomorphism(base_point)
-        image_vector = self.diffeo.tangent_diffeomorphism(
+        image_point = self.diffeo(base_point)
+        image_vector = self.diffeo.tangent(
             vector, base_point=base_point, image_point=image_point
         )
         return self.image_space.is_tangent(image_vector, image_point, atol=atol)
@@ -989,12 +989,12 @@ class DiffeomorphicManifold(Manifold):
         tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vector at base point.
         """
-        image_point = self.diffeo.diffeomorphism(base_point)
-        image_vector = self.diffeo.tangent_diffeomorphism(
+        image_point = self.diffeo(base_point)
+        image_vector = self.diffeo.tangent(
             vector, base_point=base_point, image_point=image_point
         )
         image_tangent_vec = self.image_space.to_tangent(image_vector, image_point)
-        return self.diffeo.inverse_tangent_diffeomorphism(
+        return self.diffeo.inverse_tangent(
             image_tangent_vec, image_point=image_point, base_point=base_point
         )
 
@@ -1015,7 +1015,7 @@ class DiffeomorphicManifold(Manifold):
             Points sampled on the manifold.
         """
         image_point = self.image_space.random_point(n_samples=n_samples, **kwargs)
-        return self.diffeo.inverse_diffeomorphism(image_point)
+        return self.diffeo.inverse(image_point)
 
     def regularize(self, point):
         """Regularize a point to the canonical representation for the manifold.
@@ -1030,9 +1030,9 @@ class DiffeomorphicManifold(Manifold):
         regularized_point : array-like, shape=[..., *point_shape]
             Regularized point.
         """
-        image_point = self.diffeo.diffeomorphism(point)
+        image_point = self.diffeo(point)
         regularized_image_point = self.image_space.regularize(image_point)
-        return self.diffeo.inverse_diffeomorphism(regularized_image_point)
+        return self.diffeo.inverse(regularized_image_point)
 
     def random_tangent_vec(self, base_point=None, n_samples=1):
         """Generate random tangent vec.
@@ -1050,11 +1050,11 @@ class DiffeomorphicManifold(Manifold):
         tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vec at base point.
         """
-        image_point = self.diffeo.diffeomorphism(base_point)
+        image_point = self.diffeo(base_point)
         image_tangent_vec = self.image_space.random_tangent_vec(
             image_point, n_samples=n_samples
         )
-        return self.diffeo.inverse_tangent_diffeomorphism(
+        return self.diffeo.inverse_tangent(
             image_tangent_vec, image_point=image_point, base_point=base_point
         )
 
@@ -1077,9 +1077,9 @@ class DiffeomorphicVectorSpace(VectorSpace, DiffeomorphicManifold):
         sym : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        image_point = self.diffeo.diffeomorphism(point)
+        image_point = self.diffeo(point)
         proj_image_point = self.image_space.projection(image_point)
-        return self.diffeo.inverse_diffeomorphism(proj_image_point)
+        return self.diffeo.inverse(proj_image_point)
 
 
 class DiffeomorphicMatrixVectorSpace(MatrixVectorSpace, DiffeomorphicVectorSpace):
@@ -1098,7 +1098,7 @@ class DiffeomorphicMatrixVectorSpace(MatrixVectorSpace, DiffeomorphicVectorSpace
         basis_representation : array-like, shape=[..., n(n+1)/2]
             Vector.
         """
-        image_matrix_representation = self.diffeo.diffeomorphism(matrix_representation)
+        image_matrix_representation = self.diffeo(matrix_representation)
         return self.image_space.basis_representation(image_matrix_representation)
 
     def matrix_representation(self, basis_representation):
@@ -1115,4 +1115,4 @@ class DiffeomorphicMatrixVectorSpace(MatrixVectorSpace, DiffeomorphicVectorSpace
             Symmetric matrix.
         """
         image_point = self.image_space.matrix_representation(basis_representation)
-        return self.diffeo.inverse_diffeomorphism(image_point)
+        return self.diffeo.inverse(image_point)

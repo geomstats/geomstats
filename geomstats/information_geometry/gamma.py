@@ -37,7 +37,7 @@ from geomstats.vectorization import get_batch_shape
 class NaturalToStandardDiffeo(InvolutionDiffeomorphism):
     """Diffeomorphism between natural and standard coordinates."""
 
-    def diffeomorphism(self, point):
+    def __call__(self, point):
         """Convert point from natural coordinates to standard coordinates.
 
         The change of variable is symmetric.
@@ -54,7 +54,7 @@ class NaturalToStandardDiffeo(InvolutionDiffeomorphism):
         """
         return gs.stack([point[..., 0], point[..., 0] / point[..., 1]], axis=-1)
 
-    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
         """Convert tangent vector from natural coordinates to standard coordinates.
 
         The change of variable is symmetric.
@@ -74,7 +74,7 @@ class NaturalToStandardDiffeo(InvolutionDiffeomorphism):
             Tangent vector at base_point, given in standard coordinates.
         """
         if base_point is None:
-            base_point = self.diffeomorphism(image_point)
+            base_point = self(image_point)
 
         kappa, scale = base_point[..., 0], base_point[..., 1]
 

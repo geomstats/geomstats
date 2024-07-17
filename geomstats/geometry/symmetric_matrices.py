@@ -413,7 +413,7 @@ class ConstantValueRowSumsDiffeo(Diffeo):
         self._space_ndim = 2
         self._image_space_ndim = 2
 
-    def diffeomorphism(self, base_point):
+    def __call__(self, base_point):
         """Diffeomorphism at base point.
 
         Parameters
@@ -445,7 +445,7 @@ class ConstantValueRowSumsDiffeo(Diffeo):
             axis=-2,
         )
 
-    def inverse_diffeomorphism(self, image_point):
+    def inverse(self, image_point):
         r"""Inverse diffeomorphism at image point.
 
         :math:`f^{-1}: N \rightarrow M`
@@ -462,7 +462,7 @@ class ConstantValueRowSumsDiffeo(Diffeo):
         """
         return self._concatenate_row_sums(image_point, self.value)
 
-    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
         r"""Tangent diffeomorphism at base point.
 
         df_p is a linear map from T_pM to T_f(p)N.
@@ -481,7 +481,7 @@ class ConstantValueRowSumsDiffeo(Diffeo):
         image_tangent_vec : array-like, shape=[..., *image_shape]
             Image tangent vector at image of the base point.
         """
-        out = self.diffeomorphism(tangent_vec)
+        out = self(tangent_vec)
         return repeat_out_multiple_ndim(
             out,
             self._space_ndim,
@@ -491,9 +491,7 @@ class ConstantValueRowSumsDiffeo(Diffeo):
             out_ndim=self._image_space_ndim,
         )
 
-    def inverse_tangent_diffeomorphism(
-        self, image_tangent_vec, image_point=None, base_point=None
-    ):
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         r"""Inverse tangent diffeomorphism at image point.
 
         df^-1_p is a linear map from T_f(p)N to T_pM

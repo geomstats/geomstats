@@ -225,14 +225,14 @@ class PullbackDiffeoMetric(RiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        image_point = self.diffeo.diffeomorphism(base_point)
+        image_point = self.diffeo(base_point)
         return self.image_space.metric.inner_product(
-            self.diffeo.tangent_diffeomorphism(
+            self.diffeo.tangent(
                 tangent_vec_a,
                 base_point=base_point,
                 image_point=image_point,
             ),
-            self.diffeo.tangent_diffeomorphism(
+            self.diffeo.tangent(
                 tangent_vec_b,
                 base_point=base_point,
                 image_point=image_point,
@@ -258,9 +258,9 @@ class PullbackDiffeoMetric(RiemannianMetric):
         sq_norm : array-like, shape=[...,]
             Squared norm.
         """
-        image_point = self.diffeo.diffeomorphism(base_point)
+        image_point = self.diffeo(base_point)
         return self.image_space.metric.squared_norm(
-            self.diffeo.tangent_diffeomorphism(
+            self.diffeo.tangent(
                 vector,
                 base_point=base_point,
                 image_point=image_point,
@@ -289,9 +289,9 @@ class PullbackDiffeoMetric(RiemannianMetric):
         norm : array-like, shape=[...,]
             Norm.
         """
-        image_point = self.diffeo.diffeomorphism(base_point)
+        image_point = self.diffeo(base_point)
         return self.image_space.metric.norm(
-            self.diffeo.tangent_diffeomorphism(
+            self.diffeo.tangent(
                 vector,
                 base_point=base_point,
                 image_point=image_point,
@@ -314,15 +314,15 @@ class PullbackDiffeoMetric(RiemannianMetric):
         exp : array-like, shape=[..., *shape]
             Riemannian exponential of tangent_vec at base_point.
         """
-        image_base_point = self.diffeo.diffeomorphism(base_point)
-        image_tangent_vec = self.diffeo.tangent_diffeomorphism(
+        image_base_point = self.diffeo(base_point)
+        image_tangent_vec = self.diffeo.tangent(
             tangent_vec, base_point=base_point, image_point=image_base_point
         )
         image_exp = self.image_space.metric.exp(
             image_tangent_vec,
             image_base_point,
         )
-        return self.diffeo.inverse_diffeomorphism(image_exp)
+        return self.diffeo.inverse(image_exp)
 
     def log(self, point, base_point):
         """Compute the logarithm map via diffeomorphic pullback.
@@ -339,10 +339,10 @@ class PullbackDiffeoMetric(RiemannianMetric):
         log : array-like, shape=[..., *shape]
             Logarithm of point from base_point.
         """
-        image_base_point = self.diffeo.diffeomorphism(base_point)
-        image_point = self.diffeo.diffeomorphism(point)
+        image_base_point = self.diffeo(base_point)
+        image_point = self.diffeo(point)
         image_log = self.image_space.metric.log(image_point, image_base_point)
-        return self.diffeo.inverse_tangent_diffeomorphism(
+        return self.diffeo.inverse_tangent(
             image_log, image_point=image_base_point, base_point=base_point
         )
 
@@ -361,8 +361,8 @@ class PullbackDiffeoMetric(RiemannianMetric):
         sq_dist : array-like, shape=[...,]
             Squared distance.
         """
-        image_point_a = self.diffeo.diffeomorphism(point_a)
-        image_point_b = self.diffeo.diffeomorphism(point_b)
+        image_point_a = self.diffeo(point_a)
+        image_point_b = self.diffeo(point_b)
         return self.image_space.metric.squared_dist(image_point_a, image_point_b)
 
     def dist(self, point_a, point_b):
@@ -380,8 +380,8 @@ class PullbackDiffeoMetric(RiemannianMetric):
         dist : array-like
             Distance between point_a and point_b.
         """
-        image_point_a = self.diffeo.diffeomorphism(point_a)
-        image_point_b = self.diffeo.diffeomorphism(point_b)
+        image_point_a = self.diffeo(point_a)
+        image_point_b = self.diffeo(point_b)
         return self.image_space.metric.dist(image_point_a, image_point_b)
 
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
@@ -399,15 +399,15 @@ class PullbackDiffeoMetric(RiemannianMetric):
         geodesic : callable
             Geodesic between initial_point and end_point.
         """
-        image_initial_point = self.diffeo.diffeomorphism(initial_point)
+        image_initial_point = self.diffeo(initial_point)
         if end_point is None:
             image_end_point = None
         else:
-            image_end_point = self.diffeo.diffeomorphism(end_point)
+            image_end_point = self.diffeo(end_point)
         if initial_tangent_vec is None:
             image_initial_tangent_vec = None
         else:
-            image_initial_tangent_vec = self.diffeo.tangent_diffeomorphism(
+            image_initial_tangent_vec = self.diffeo.tangent(
                 initial_tangent_vec,
                 base_point=initial_point,
                 image_point=image_initial_point,
@@ -418,7 +418,7 @@ class PullbackDiffeoMetric(RiemannianMetric):
 
         def path(t):
             image_point_t = image_geodesic(t)
-            point_t = self.diffeo.inverse_diffeomorphism(image_point_t)
+            point_t = self.diffeo.inverse(image_point_t)
             return point_t
 
         return path
@@ -442,18 +442,18 @@ class PullbackDiffeoMetric(RiemannianMetric):
         curvature : array-like, shape=[..., *shape]
             Curvature in directions tangent_vec a, b, c at base_point.
         """
-        image_base_point = self.diffeo.diffeomorphism(base_point)
-        image_tangent_vec_a = self.diffeo.tangent_diffeomorphism(
+        image_base_point = self.diffeo(base_point)
+        image_tangent_vec_a = self.diffeo.tangent(
             tangent_vec_a,
             base_point=base_point,
             image_point=image_base_point,
         )
-        image_tangent_vec_b = self.diffeo.tangent_diffeomorphism(
+        image_tangent_vec_b = self.diffeo.tangent(
             tangent_vec_b,
             base_point=base_point,
             image_point=image_base_point,
         )
-        image_tangent_vec_c = self.diffeo.tangent_diffeomorphism(
+        image_tangent_vec_c = self.diffeo.tangent(
             tangent_vec_c,
             base_point=base_point,
             image_point=image_base_point,
@@ -464,7 +464,7 @@ class PullbackDiffeoMetric(RiemannianMetric):
             image_tangent_vec_c,
             image_base_point,
         )
-        return self.diffeo.inverse_tangent_diffeomorphism(
+        return self.diffeo.inverse_tangent(
             image_curvature, image_point=image_base_point, base_point=base_point
         )
 
@@ -489,21 +489,19 @@ class PullbackDiffeoMetric(RiemannianMetric):
         parallel_transport : array-like, shape=[..., *shape]
             Parallel transport.
         """
-        image_base_point = self.diffeo.diffeomorphism(base_point)
-        image_tangent_vec = self.diffeo.tangent_diffeomorphism(
+        image_base_point = self.diffeo(base_point)
+        image_tangent_vec = self.diffeo.tangent(
             tangent_vec, base_point=base_point, image_point=image_base_point
         )
 
         image_direction = (
             None
             if direction is None
-            else self.diffeo.tangent_diffeomorphism(
+            else self.diffeo.tangent(
                 direction, base_point=base_point, image_point=image_base_point
             )
         )
-        image_end_point = (
-            None if end_point is None else self.diffeo.diffeomorphism(end_point)
-        )
+        image_end_point = None if end_point is None else self.diffeo(end_point)
 
         image_parallel_transport = self.image_space.metric.parallel_transport(
             image_tangent_vec,
@@ -517,6 +515,6 @@ class PullbackDiffeoMetric(RiemannianMetric):
                 image_direction, image_base_point
             )
 
-        return self.diffeo.inverse_tangent_diffeomorphism(
+        return self.diffeo.inverse_tangent(
             image_parallel_transport, image_point=image_end_point, base_point=end_point
         )

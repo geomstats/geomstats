@@ -296,7 +296,7 @@ class SRVTransform(Diffeo):
 
         self._point_ndim = self.ambient_manifold.point_ndim + 1
 
-    def diffeomorphism(self, base_point):
+    def __call__(self, base_point):
         r"""Square Root Velocity Transform (SRVT).
 
         Compute the square root velocity representation of a curve. The
@@ -331,7 +331,7 @@ class SRVTransform(Diffeo):
             "...ij,...i->...ij", velocity, 1.0 / gs.sqrt(pointwise_velocity_norm)
         )
 
-    def inverse_diffeomorphism(self, image_point):
+    def inverse(self, image_point):
         r"""Inverse of the Square Root Velocity Transform (SRVT).
 
         Retrieve a curve from its square root velocity representation.
@@ -370,7 +370,7 @@ class SRVTransform(Diffeo):
 
         return gs.cumsum(pointwise_delta_points, axis=-2)
 
-    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
         r"""Differential of the square root velocity transform.
 
         .. math::
@@ -393,7 +393,7 @@ class SRVTransform(Diffeo):
             evaluated at tangent_vec.
         """
         if base_point is None:
-            base_point = self.inverse_diffeomorphism(image_point)
+            base_point = self.inverse(image_point)
 
         ndim = self._point_ndim
         base_point_with_origin = insert_zeros(base_point, axis=-ndim)
@@ -422,9 +422,7 @@ class SRVTransform(Diffeo):
 
         return d_srv_vec
 
-    def inverse_tangent_diffeomorphism(
-        self, image_tangent_vec, image_point=None, base_point=None
-    ):
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         r"""Inverse of differential of the square root velocity transform.
 
         .. math::
@@ -446,7 +444,7 @@ class SRVTransform(Diffeo):
             curve evaluated at tangent_vec.
         """
         if base_point is None:
-            base_point = self.inverse_diffeomorphism(image_point)
+            base_point = self.inverse(image_point)
 
         ndim = self._point_ndim
         base_point_with_origin = insert_zeros(base_point, axis=-ndim)
@@ -606,7 +604,7 @@ class FTransform(AutodiffDiffeo):
 
         return norms[..., :, None] * unit_tangent_vec
 
-    def diffeomorphism(self, base_point):
+    def __call__(self, base_point):
         r"""Compute the f_transform of a curve.
 
         The implementation uses formula (3) from [KN2018]_ , i.e. choses
@@ -639,7 +637,7 @@ class FTransform(AutodiffDiffeo):
 
         return self._polar_to_cartesian(f_polar)
 
-    def inverse_diffeomorphism(self, image_point):
+    def inverse(self, image_point):
         r"""Compute the inverse F_transform of a transformed curve.
 
         This only works if a / (2b) <= 1.
@@ -1510,8 +1508,8 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
         max_slope = self.max_slope
         n_space_grid = self.n_space_grid
 
-        initial_srv = self._srv_transform.diffeomorphism(base_point)
-        end_srv = self._srv_transform.diffeomorphism(point)
+        initial_srv = self._srv_transform(base_point)
+        end_srv = self._srv_transform(point)
 
         resampled_initial_srv = self._resample_srv_function(initial_srv)
         resampled_end_srv = self._resample_srv_function(end_srv)
@@ -1788,8 +1786,8 @@ class RotationBundle(FiberBundle):
             Curve optimally rotated with respect to reference curve.
         """
         transform = self._total_space.metric.diffeo
-        initial_srv = transform.diffeomorphism(base_point)
-        end_srv = transform.diffeomorphism(point)
+        initial_srv = transform(base_point)
+        end_srv = transform(point)
 
         mat = gs.matmul(Matrices.transpose(initial_srv), end_srv)
         u_svd, _, vt_svd = gs.linalg.svd(mat)

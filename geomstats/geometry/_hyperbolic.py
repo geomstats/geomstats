@@ -22,7 +22,7 @@ class HyperbolicDiffeo(Diffeo):
         self.from_coordinates_system = from_coordinates_system
         self.to_coordinates_system = to_coordinates_system
 
-    def diffeomorphism(self, base_point):
+    def __call__(self, base_point):
         """Diffeomorphism at base point.
 
         Parameters
@@ -39,7 +39,7 @@ class HyperbolicDiffeo(Diffeo):
             base_point, self.from_coordinates_system, self.to_coordinates_system
         )
 
-    def inverse_diffeomorphism(self, image_point):
+    def inverse(self, image_point):
         r"""Inverse diffeomorphism at image point.
 
         :math:`f^{-1}: N \rightarrow M`
@@ -58,7 +58,7 @@ class HyperbolicDiffeo(Diffeo):
             image_point, self.to_coordinates_system, self.from_coordinates_system
         )
 
-    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
         r"""Tangent diffeomorphism at base point.
 
         df_p is a linear map from T_pM to T_f(p)N.
@@ -78,7 +78,7 @@ class HyperbolicDiffeo(Diffeo):
             Image tangent vector at image of the base point.
         """
         if base_point is None:
-            base_point = self.inverse_diffeomorphism(image_point)
+            base_point = self.inverse(image_point)
         return _Hyperbolic.change_tangent_coordinates_system(
             tangent_vec,
             base_point,
@@ -86,9 +86,7 @@ class HyperbolicDiffeo(Diffeo):
             self.to_coordinates_system,
         )
 
-    def inverse_tangent_diffeomorphism(
-        self, image_tangent_vec, image_point=None, base_point=None
-    ):
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         r"""Inverse tangent diffeomorphism at image point.
 
         df^-1_p is a linear map from T_f(p)N to T_pM
@@ -108,7 +106,7 @@ class HyperbolicDiffeo(Diffeo):
             Tangent vector at base point.
         """
         if image_point is None:
-            image_point = self.diffeomorphism(base_point)
+            image_point = self(base_point)
 
         return _Hyperbolic.change_tangent_coordinates_system(
             image_tangent_vec,

@@ -17,14 +17,14 @@ class NaturalToStandardDiffeoTestData(DiffeoTestData):
         ]
         return self.generate_tests(data, marks=(pytest.mark.smoke,))
 
-    def inverse_diffeomorphism_test_data(self):
+    def inverse_test_data(self):
         data = [
             dict(image_point=gs.array([1.0, 1.0]), expected=gs.array([1.0, 1.0])),
             dict(image_point=gs.array([1.0, 2.0]), expected=gs.array([1.0, 0.5])),
         ]
         return self.generate_tests(data, marks=(pytest.mark.smoke,))
 
-    def tangent_diffeomorphism_test_data(self):
+    def tangent_test_data(self):
         data = [
             dict(
                 tangent_vec=gs.array([2.0, 1.0]),
@@ -39,7 +39,7 @@ class NaturalToStandardDiffeoTestData(DiffeoTestData):
         ]
         return self.generate_tests(data, marks=(pytest.mark.smoke,))
 
-    def inverse_tangent_diffeomorphism_test_data(self):
+    def inverse_tangent_test_data(self):
         data = [
             dict(
                 image_tangent_vec=gs.array([2.0, 1.0]),
