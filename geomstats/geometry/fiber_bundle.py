@@ -8,7 +8,7 @@ import math
 from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
-from geomstats.numerics.optimizers import ScipyMinimize
+from geomstats.numerics.optimization import ScipyMinimize
 from geomstats.vectorization import check_is_batch, get_batch_shape
 
 

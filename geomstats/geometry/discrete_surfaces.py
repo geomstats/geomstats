@@ -26,7 +26,7 @@ from geomstats.geometry.nfold_manifold import NFoldMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.numerics.geodesic import ExpSolver, PathBasedLogSolver, PathStraightening
-from geomstats.numerics.optimizers import ScipyMinimize
+from geomstats.numerics.optimization import ScipyMinimize
 from geomstats.numerics.path import (
     UniformlySampledDiscretePath,
     UniformlySampledPathEnergy,

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import geomstats.backend as gs
 from geomstats.numerics.bvp import ScipySolveBVP
 from geomstats.numerics.ivp import GSIVPIntegrator
-from geomstats.numerics.optimizers import ScipyMinimize
+from geomstats.numerics.optimization import ScipyMinimize
 from geomstats.numerics.path import (
     UniformlySampledDiscretePath,
     UniformlySampledPathEnergy,

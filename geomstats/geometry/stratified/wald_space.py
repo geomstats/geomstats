@@ -40,7 +40,7 @@ from geomstats.geometry.stratified.vectorization import (
     vectorize_point,
 )
 from geomstats.numerics.interpolation import LinearInterpolator1D
-from geomstats.numerics.optimizers import ScipyMinimize
+from geomstats.numerics.optimization import ScipyMinimize
 
 
 def _manipulate_input_with_array(arg, name):

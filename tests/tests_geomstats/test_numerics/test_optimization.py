@@ -1,7 +1,7 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.numerics.optimizers import ScipyMinimize
+from geomstats.numerics.optimization import ScipyMinimize
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.numerics.optimization import (
     OptimizerTestCase,
