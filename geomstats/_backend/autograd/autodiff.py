@@ -200,7 +200,7 @@ def _value_and_jacobian_op(fun, x):
     return ans, _np.reshape(_np.stack(grads), jacobian_shape)
 
 
-def _value_and_jacobian(fun, point_ndim=1):
+def value_and_jacobian(fun, point_ndim=1):
     def _value_and_jacobian_vec(x):
         if x.ndim == point_ndim:
             return _value_and_jacobian_op(fun)(x)
@@ -335,7 +335,7 @@ def jacobian_and_hessian(func, func_out_ndim=None):
         Function that returns func's jacobian and
         func's hessian values at its inputs args.
     """
-    return _value_and_jacobian(jacobian_vec(func))
+    return value_and_jacobian(jacobian_vec(func))
 
 
 def value_jacobian_and_hessian(func, func_out_ndim=None):
@@ -355,7 +355,7 @@ def value_jacobian_and_hessian(func, func_out_ndim=None):
 
     def _cached_value_and_jacobian(fun, return_cached=False):
         def _jac(x):
-            ans, jac = _value_and_jacobian(fun)(x)
+            ans, jac = value_and_jacobian(fun)(x)
             if not return_cached:
                 cache.append(ans)
                 return jac
