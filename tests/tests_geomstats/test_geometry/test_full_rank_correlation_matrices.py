@@ -11,8 +11,8 @@ from geomstats.geometry.full_rank_correlation_matrices import (
     OffLogDiffeo,
     OffLogMetric,
     PolyHyperbolicCholeskyMetric,
+    SPDScalingFinder,
     UniqueDiagonalMatrixAlgorithm,
-    UniquePositiveDiagonalMatrixAlgorithm,
 )
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import expmh
@@ -32,6 +32,7 @@ from geomstats.geometry.symmetric_matrices import (
     SymmetricHollowMatrices,
     SymmetricMatrices,
 )
+from geomstats.numerics.optimizers import NewtonMethod, ScipyRoot
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
@@ -51,8 +52,8 @@ from .data.full_rank_correlation_matrices import (
     LogScaledMetricTestData,
     OffLogMetricTestData,
     PolyHyperbolicCholeskyMetricTestData,
+    SPDScalingFinderTestData,
     UniqueDiagonalMatrixAlgorithmTestData,
-    UniquePositiveDiagonalMatrixAlgorithmTestData,
 )
 
 
@@ -186,7 +187,7 @@ class TestUniqueDiagonalMatrixAlgorithm(TestCase, metaclass=DataBasedParametrize
     def test_belongs_to_full_rank_cor(self, n_points, atol):
         sym_mat = self.sym_data_generator.random_point(n_points)
 
-        diag_mat = self.algo.apply(sym_mat)
+        diag_mat = self.algo(sym_mat)
         cor_mat = expmh(diag_mat + sym_mat)
         res = self.full_rank_cor.belongs(cor_mat, atol=atol)
         expected = gs.ones_like(res)
@@ -221,19 +222,28 @@ class TestOffLogMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametr
     testing_data = OffLogMetricTestData()
 
 
-class TestUniquePositiveDiagonalMatrixAlgorithm(
-    TestCase, metaclass=DataBasedParametrizer
-):
-    _n = random.randint(2, 5)
-    algo = UniquePositiveDiagonalMatrixAlgorithm()
-    data_generator = RandomDataGenerator(SPDMatrices(n=_n, equip=False))
+@pytest.fixture(
+    scope="class",
+    params=[
+        NewtonMethod(),
+        ScipyRoot(),
+    ],
+)
+def unique_positive_diagonal_matrix_algorithms(request):
+    root_finder = request.param
+    request.cls.algo = SPDScalingFinder(root_finder)
 
-    testing_data = UniquePositiveDiagonalMatrixAlgorithmTestData()
+
+@pytest.mark.usefixtures("unique_positive_diagonal_matrix_algorithms")
+class TestSPDScalingFinder(TestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(2, 5)
+    data_generator = RandomDataGenerator(SPDMatrices(n=_n, equip=False))
+    testing_data = SPDScalingFinderTestData()
 
     @pytest.mark.random
     def test_rows_sum_to_one(self, n_points, atol):
         spd_mat = self.data_generator.random_point(n_points)
-        diag_vec = self.algo.apply(spd_mat)
+        diag_vec = self.algo(spd_mat)
 
         unit_row_sum_spd = spd_mat * gs.outer(diag_vec, diag_vec)
 

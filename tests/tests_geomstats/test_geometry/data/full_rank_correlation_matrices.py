@@ -61,7 +61,7 @@ class OffLogMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_not_implemented_errors = False
 
 
-class UniquePositiveDiagonalMatrixAlgorithmTestData(TestData):
+class SPDScalingFinderTestData(TestData):
     def rows_sum_to_one_test_data(self):
         return self.generate_random_data()
 

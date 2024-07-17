@@ -43,6 +43,7 @@ from geomstats.geometry.symmetric_matrices import (
     NullRowSumsSymmetricMatrices,
     SymmetricHollowMatrices,
 )
+from geomstats.numerics.optimizers import NewtonMethod
 
 
 def corr_map(point):
@@ -456,7 +457,7 @@ class UniqueDiagonalMatrixAlgorithm:
         mat_diff = new_matrix - matrix
         return gs.linalg.norm(mat_diff, axis=(-2, -1)) < self.atol
 
-    def _apply_single(self, sym_mat):
+    def _call_single(self, sym_mat):
         r"""Find unique diagonal matrix corresponding to a full-rank correlation matrix.
 
         Parameters
@@ -485,7 +486,7 @@ class UniqueDiagonalMatrixAlgorithm:
 
         return diag_mat
 
-    def apply(self, sym_mat):
+    def __call__(self, sym_mat):
         r"""Find unique diagonal matrix corresponding to a full-rank correlation matrix.
 
         Parameters
@@ -497,15 +498,15 @@ class UniqueDiagonalMatrixAlgorithm:
         diag_mat : array-like, shape=[..., n, n]
         """
         if sym_mat.ndim == 2:
-            return self._apply_single(sym_mat)
+            return self._call_single(sym_mat)
 
         batch_shape = sym_mat.shape[:-2]
         if len(batch_shape) == 1:
-            return gs.stack([self._apply_single(sym_mat_) for sym_mat_ in sym_mat])
+            return gs.stack([self._call_single(sym_mat_) for sym_mat_ in sym_mat])
 
         mat_shape = sym_mat.shape[-2:]
         flat_sym_mat = gs.reshape(sym_mat, (-1,) + mat_shape)
-        out = gs.stack([self._apply_single(sym_mat_) for sym_mat_ in flat_sym_mat])
+        out = gs.stack([self._call_single(sym_mat_) for sym_mat_ in flat_sym_mat])
         return gs.reshape(out, batch_shape + mat_shape)
 
 
@@ -530,7 +531,7 @@ class OffLogDiffeo(Diffeo):
 
     def __init__(self):
         super().__init__()
-        self.unique_diag_mat_algo = UniqueDiagonalMatrixAlgorithm()
+        self.unique_diag_mat = UniqueDiagonalMatrixAlgorithm()
 
     def diffeomorphism(self, base_point):
         """Diffeomorphism at base point.
@@ -562,7 +563,7 @@ class OffLogDiffeo(Diffeo):
         base_point : array-like, shape=[..., n, n]
             Base point.
         """
-        return expmh(self.unique_diag_mat_algo.apply(image_point) + image_point)
+        return expmh(self.unique_diag_mat(image_point) + image_point)
 
     def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
         r"""Tangent diffeomorphism at base point.
@@ -668,7 +669,7 @@ class OffLogDiffeo(Diffeo):
         """
         if base_point is None:
             sym_mat = image_point
-            mat = sym_mat + self.unique_diag_mat_algo.apply(sym_mat)
+            mat = sym_mat + self.unique_diag_mat(sym_mat)
         else:
             mat = logmh(base_point)
 
@@ -800,7 +801,7 @@ class OffLogMetric(PullbackDiffeoMetric):
         super().__init__(space=space, diffeo=diffeo, image_space=image_space)
 
 
-class UniquePositiveDiagonalMatrixAlgorithm:
+class SPDScalingFinder:
     r"""Find unique positive diagonal matrix corresponding to an SPD matrix.
 
     That is, for every symmetric positive-definite matrix :math:`\Sigma`,
@@ -809,20 +810,28 @@ class UniquePositiveDiagonalMatrixAlgorithm:
     with unit row sums.
 
     This result is known as the existence and uniqueness of the scaling of
-    SPD matrices ([T2023]_, [MO1968]_, [JR2009]_).
+    SPD matrices ([T2024]_, [MO1968]_, [JR2009]_).
+
+    It finds the roots of the gradient of the strictly convex map
+
+    .. math::
+
+        F(D) = \frac{1}{2} \mathbb{1}^{\top} D^{\top}
+        \Sigma D \mathbb{1}-\operatorname{tr}(\log (D))
+
+    For details, check out [T2024]_'s section 3.5.
+
 
     Parameters
     ----------
-    atol : float
-        Tolerance to check algorithm convergence.
-    max_iter : int
-        Maximum iterations.
+    root_finder : RootFinder
 
     References
     ----------
-    .. [T2023] Thanwerdas, Yann. “Permutation-Invariant Log-Euclidean Geometries
-        on Full-Rank Correlation Matrices,”
-        November 2023. https://hal.science/hal-03878729.
+    .. [T2024] Thanwerdas, Yann. “Permutation-Invariant Log-Euclidean Geometries
+        on Full-Rank Correlation Matrices.”
+        SIAM Journal on Matrix Analysis and Applications, 2024, 930–53.
+        https://doi.org/10.1137/22M1538144.
     .. [MO1968] Marshall, Albert W., and Ingram Olkin.
         “Scaling of Matrices to Achieve Specified Row and Column Sums.”
         Numerische Mathematik 12, no. 1 (August 1, 1968): 83–90.
@@ -833,9 +842,11 @@ class UniquePositiveDiagonalMatrixAlgorithm:
         https://doi.org/10.1080/03081080600872327.
     """
 
-    def __init__(self, atol=gs.atol, max_iter=100):
-        self.atol = atol
-        self.max_iter = max_iter
+    def __init__(self, root_finder=None):
+        if root_finder is None:
+            root_finder = NewtonMethod()
+
+        self.root_finder = root_finder
 
     def _jacobian_f(self, spd_matrix, diag_vec):
         r"""Jacobian of objective function.
@@ -875,8 +886,8 @@ class UniquePositiveDiagonalMatrixAlgorithm:
         """
         return spd_matrix + gs.vec_to_diag(1.0 / diag_vec**2)
 
-    def _apply_single(self, spd_matrix):
-        """Apply Newton method to find scaling.
+    def _call_single(self, spd_matrix):
+        """Apply root finder to find scaling.
 
         Parameters
         ----------
@@ -888,25 +899,15 @@ class UniquePositiveDiagonalMatrixAlgorithm:
         diag_vec : array-like, shape=[n]
             Scaling of spd_matrix.
         """
-        xk = gs.ones(spd_matrix.shape[-1])
-        for _ in range(self.max_iter):
-            gradient = self._jacobian_f(spd_matrix, xk)
-            if gs.linalg.norm(gradient) <= self.atol:
-                break
+        x0 = gs.ones(spd_matrix.shape[-1])
 
-            y = gs.linalg.solve(self._hessian_f(spd_matrix, xk), gradient)
-            xk = xk - y
+        func = lambda x: self._jacobian_f(spd_matrix, x)
+        jac = lambda x: self._hessian_f(spd_matrix, x)
+        res = self.root_finder.root(func, x0, fun_jac=jac)
+        return res.x
 
-        else:
-            logging.warning(
-                "Maximum number of iterations %d reached. The mean may be inaccurate",
-                self.max_iter,
-            )
-
-        return xk
-
-    def apply(self, sym_mat):
-        r"""Apply Newton method to find scaling.
+    def __call__(self, spd_matrix):
+        """Apply Newton method to find scaling.
 
         Parameters
         ----------
@@ -918,16 +919,16 @@ class UniquePositiveDiagonalMatrixAlgorithm:
         diag_vec : array-like, shape=[..., n]
             Scaling of spd_matrix.
         """
-        if sym_mat.ndim == 2:
-            return self._apply_single(sym_mat)
+        if spd_matrix.ndim == 2:
+            return self._call_single(spd_matrix)
 
-        batch_shape = sym_mat.shape[:-2]
+        batch_shape = spd_matrix.shape[:-2]
         if len(batch_shape) == 1:
-            return gs.stack([self._apply_single(sym_mat_) for sym_mat_ in sym_mat])
+            return gs.stack([self._call_single(sym_mat_) for sym_mat_ in spd_matrix])
 
-        mat_shape = sym_mat.shape[-2:]
-        flat_sym_mat = gs.reshape(sym_mat, (-1,) + mat_shape)
-        out = gs.stack([self._apply_single(sym_mat_) for sym_mat_ in flat_sym_mat])
+        mat_shape = spd_matrix.shape[-2:]
+        flat_spd_mat = gs.reshape(spd_matrix, (-1,) + mat_shape)
+        out = gs.stack([self._call_single(sym_mat_) for sym_mat_ in flat_spd_mat])
         return gs.reshape(out, batch_shape + (mat_shape.shape[-1],))
 
 
@@ -944,18 +945,19 @@ class LogScalingDiffeo(Diffeo):
         \star \Sigma\right): \operatorname{Cor}^{+}(n)
         \longrightarrow \operatorname{Row}_0(n)
 
-    Check out [T2023]_ for more details.
+    Check out [T2024]_ for more details.
 
     References
     ----------
-    .. [T2023] Thanwerdas, Yann. “Permutation-Invariant Log-Euclidean Geometries
-        on Full-Rank Correlation Matrices,”
-        November 2023. https://hal.science/hal-03878729.
+    .. [T2024] Thanwerdas, Yann. “Permutation-Invariant Log-Euclidean Geometries
+        on Full-Rank Correlation Matrices.”
+        SIAM Journal on Matrix Analysis and Applications, 2024, 930–53.
+        https://doi.org/10.1137/22M1538144.
     """
 
     def __init__(self):
         super().__init__()
-        self.unique_diag_mat_algo = UniquePositiveDiagonalMatrixAlgorithm()
+        self.unique_diag_mat = SPDScalingFinder()
 
     def diffeomorphism(self, base_point):
         """Diffeomorphism at base point.
@@ -972,7 +974,7 @@ class LogScalingDiffeo(Diffeo):
         image_point : array-like, shape=[..., n, n]
             Image point.
         """
-        diag_vec = self.unique_diag_mat_algo.apply(base_point)
+        diag_vec = self.unique_diag_mat(base_point)
         unit_row_sum_spd = FullRankCorrelationMatrices.diag_action(diag_vec, base_point)
 
         return logmh(unit_row_sum_spd)
@@ -1014,7 +1016,7 @@ class LogScalingDiffeo(Diffeo):
             Image tangent vector at image of the base point.
         """
         if image_point is None:
-            diag_vec = self.unique_diag_mat_algo.apply(base_point)
+            diag_vec = self.unique_diag_mat(base_point)
             base_point_row_1 = FullRankCorrelationMatrices.diag_action(
                 diag_vec, base_point
             )
@@ -1069,7 +1071,7 @@ class LogScalingDiffeo(Diffeo):
         if image_point is not None:
             base_point_row_1 = expmh(image_point)
         else:
-            diag_vec = self.unique_diag_mat_algo.apply(base_point)
+            diag_vec = self.unique_diag_mat(base_point)
             base_point_row_1 = FullRankCorrelationMatrices.diag_action(
                 diag_vec, base_point
             )
@@ -1088,7 +1090,7 @@ class LogScaledMetric(PullbackDiffeoMetric):
     Diffeormorphism between full-rank correlation matrices and
     the space of symmetric matrices with null row sums.
 
-    Check out [T2023]_ for more details.
+    Check out [T2024]_ for more details.
 
     Parameters
     ----------
@@ -1102,9 +1104,10 @@ class LogScaledMetric(PullbackDiffeoMetric):
 
     References
     ----------
-    .. [T2023] Thanwerdas, Yann. “Permutation-Invariant Log-Euclidean Geometries
-        on Full-Rank Correlation Matrices,”
-        November 2023. https://hal.science/hal-03878729.
+    .. [T2024] Thanwerdas, Yann. “Permutation-Invariant Log-Euclidean Geometries
+        on Full-Rank Correlation Matrices.”
+        SIAM Journal on Matrix Analysis and Applications, 2024, 930–53.
+        https://doi.org/10.1137/22M1538144.
     """
 
     def __init__(self, space, alpha=None, delta=None, zeta=1.0):

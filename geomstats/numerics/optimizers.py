@@ -1,8 +1,10 @@
 """Optimizers implementations."""
 
 import logging
+from abc import ABC, abstractmethod
 
 import scipy
+from scipy.optimize import OptimizeResult
 
 import geomstats.backend as gs
 from geomstats.exceptions import AutodiffNotImplementedError
@@ -111,5 +113,145 @@ class ScipyMinimize:
 
         if self.save_result:
             self.result_ = result
+
+        return result
+
+
+class RootFinder(ABC):
+    """Find a root of a vector-valued function."""
+
+    @abstractmethod
+    def root(self, fun, x0, fun_jac=None):
+        """Find a root of a vector-valued function.
+
+        Parameters
+        ----------
+        fun : callable
+            Vector-valued function.
+        x0 : array-like
+            Initial guess.
+        fun_jac : callable
+            Ignored if None.
+
+        Returns
+        -------
+        res : OptimizeResult
+        """
+
+
+class ScipyRoot(RootFinder):
+    """Wrapper for scipy.optimize.root."""
+
+    def __init__(
+        self,
+        method="hybr",
+        tol=None,
+        callback=None,
+        options=None,
+        save_result=False,
+    ):
+        self.method = method
+        self.tol = tol
+        self.callback = callback
+        self.options = options
+        self.save_result = save_result
+        self.result_ = None
+
+    def root(self, fun, x0, fun_jac=None):
+        """Find a root of a vector-valued function.
+
+        Parameters
+        ----------
+        fun : callable
+            Vector-valued function.
+        x0 : array-like
+            Initial guess.
+        fun_jac : callable
+            Jacobian of fun. Ignored if None.
+
+        Returns
+        -------
+        res : OptimizeResult
+        """
+        fun_ = lambda x: fun(gs.from_numpy(x))
+        fun_jac_ = fun_jac if fun_jac is None else lambda x: fun_jac(gs.from_numpy(x))
+
+        result = scipy.optimize.root(
+            fun_,
+            x0,
+            method=self.method,
+            jac=fun_jac_,
+            tol=self.tol,
+            callback=self.callback,
+            options=self.options,
+        )
+
+        result = result_to_backend_type(result)
+
+        if not result.success:
+            logging.warning(result.message)
+
+        if self.save_result:
+            self.result_ = result
+
+        return result
+
+
+class NewtonMethod(RootFinder):
+    """Find a root of a vector-valued function with Newton's method.
+
+    Check https://en.wikipedia.org/wiki/Newton%27s_method_in_optimization
+    for details.
+
+    Parameters
+    ----------
+    atol : float
+        Tolerance to check algorithm convergence.
+    max_iter : int
+        Maximum iterations.
+    """
+
+    def __init__(self, atol=gs.atol, max_iter=100):
+        self.atol = atol
+        self.max_iter = max_iter
+
+    def root(self, fun, x0, fun_jac):
+        """Find a root of a vector-valued function.
+
+        Parameters
+        ----------
+        fun : callable
+            Vector-valued function.
+        x0 : array-like
+            Initial guess.
+        fun_jac : callable
+            Jacobian of fun.
+        """
+        xk = x0
+        message = "The solution converged."
+        status = 1
+        for it in range(self.max_iter):
+            fun_xk = fun(xk)
+            if gs.linalg.norm(fun_xk) <= self.atol:
+                break
+
+            y = gs.linalg.solve(fun_jac(xk), fun_xk)
+            xk = xk - y
+        else:
+            message = f"Maximum number of iterations {self.max_iter} reached. The mean may be inaccurate"
+            status = 0
+
+        result = OptimizeResult(
+            x=xk,
+            success=(status == 1),
+            status=status,
+            method="newton",
+            message=message,
+            nfev=it + 1,
+            njac=it,
+        )
+
+        if not result.success:
+            logging.warning(result.message)
 
         return result
