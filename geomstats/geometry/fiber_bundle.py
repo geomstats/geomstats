@@ -275,7 +275,7 @@ class FiberBundle:
             else:
                 aligner = (
                     DistanceMinimizingAligner(total_space)
-                    if not gs.__name__.endswith("numpy")
+                    if gs.has_autodiff()
                     else None
                 )
 

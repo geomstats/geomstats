@@ -109,6 +109,16 @@ power = _box_binary_scalar(target=_torch.pow, box_x2=False)
 std = _preserve_input_dtype(_add_default_dtype_by_casting(target=_torch.std))
 
 
+def has_autodiff():
+    """If allows for automatic differentiation.
+
+    Returns
+    -------
+    has_autodiff : bool
+    """
+    return True
+
+
 def matmul(x, y, out=None):
     for array_ in [x, y]:
         if array_.ndim == 1:

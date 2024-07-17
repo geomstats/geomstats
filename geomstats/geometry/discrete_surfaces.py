@@ -564,7 +564,7 @@ class ElasticMetric(RiemannianMetric):
         self.d1 = d1
         self.a2 = a2
 
-        if not gs.__name__.endswith("numpy"):
+        if gs.has_autodiff():
             self.exp_solver = DiscreteSurfacesExpSolver(space, n_steps=10)
 
             optimizer = ScipyMinimize(
