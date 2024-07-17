@@ -87,6 +87,7 @@ BACKEND_ATTRIBUTES = {
         "get_default_cdtype",
         "get_slice",
         "greater",
+        "has_autodiff",
         "hsplit",
         "hstack",
         "imag",

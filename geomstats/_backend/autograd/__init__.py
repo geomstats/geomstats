@@ -154,6 +154,16 @@ linspace = _dyn_update_dtype(target=_np.linspace)
 empty = _dyn_update_dtype(target=_np.empty)
 
 
+def has_autodiff():
+    """If allows for automatic differentiation.
+
+    Returns
+    -------
+    has_autodiff : bool
+    """
+    return True
+
+
 def imag(x):
     out = _np.imag(x)
     if is_array(x):
