@@ -270,7 +270,7 @@ class CorrelationMatricesBundle(FiberBundle):
     def __init__(self, total_space):
         aligner = (
             DistanceMinimizingAligner(total_space, group_elem_shape=(total_space.n,))
-            if not gs.__name__.endswith("numpy")
+            if gs.has_autodiff()
             else None
         )
 

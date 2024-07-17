@@ -34,7 +34,7 @@ class PullbackMetric(RiemannianMetric):
         self._instantiate_solvers()
 
     def _instantiate_solvers(self):
-        if not gs.__name__.endswith("numpy"):
+        if gs.has_autodiff():
             self.log_solver = LogShootingSolver(self._space)
 
         self.exp_solver = ExpODESolver(

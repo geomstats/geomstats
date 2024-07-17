@@ -30,7 +30,7 @@ class ScipyMinimize:
         options=None,
         save_result=False,
     ):
-        if jac == "autodiff" and gs.__name__.endswith("numpy"):
+        if jac == "autodiff" and not gs.has_autodiff():
             raise AutodiffNotImplementedError(
                 "Minimization with 'autodiff' requires automatic differentiation."
                 "Change backend via the command "
