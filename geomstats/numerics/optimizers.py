@@ -14,15 +14,15 @@ from geomstats.numerics._common import result_to_backend_type
 class ScipyMinimize:
     """Wrapper for scipy.optimize.minimize.
 
-    Only `jac` differs from scipy: if `autodiff`, then
-    `gs.autodiff.value_and_grad` is used to compute the jacobian.
+    Only `autodiff_jac` and `autodiff_hess` differ from scipy: if True, then
+    automatic differentiation is used to compute jacobian and/or hessian.
     """
 
     def __init__(
         self,
         method="L-BFGS-B",
-        jac=None,
-        hess=None,
+        autodiff_jac=False,
+        autodiff_hess=False,
         bounds=None,
         constraints=(),
         tol=None,
@@ -30,7 +30,7 @@ class ScipyMinimize:
         options=None,
         save_result=False,
     ):
-        if jac == "autodiff" and not gs.has_autodiff():
+        if (autodiff_jac or autodiff_hess) and not gs.has_autodiff():
             raise AutodiffNotImplementedError(
                 "Minimization with 'autodiff' requires automatic differentiation."
                 "Change backend via the command "
@@ -38,8 +38,8 @@ class ScipyMinimize:
             )
 
         self.method = method
-        self.jac = jac
-        self.hess = hess
+        self.autodiff_jac = autodiff_jac
+        self.autodiff_hess = autodiff_hess
         self.bounds = bounds
         self.constraints = constraints
         self.tol = tol
@@ -51,28 +51,31 @@ class ScipyMinimize:
 
     def _handle_jac(self, fun, fun_jac):
         if fun_jac is not None:
-            return fun, fun_jac
+            fun_ = lambda x: fun(gs.from_numpy(x))
+            fun_jac_ = fun_jac
+            if callable(fun_jac):
+                fun_jac_ = lambda x: fun_jac(gs.from_numpy(x))
 
-        jac = self.jac
-        if self.jac == "autodiff":
+            return fun_, fun_jac_
+
+        if self.autodiff_jac:
             jac = True
-
-            def fun_(x):
-                value, grad = gs.autodiff.value_and_grad(fun)(gs.from_numpy(x))
-                return value, grad
-
+            fun_ = lambda x: gs.autodiff.value_and_grad(fun)(gs.from_numpy(x))
         else:
-
-            def fun_(x):
-                return fun(gs.from_numpy(x))
+            jac = fun_jac
+            fun_ = lambda x: fun(gs.from_numpy(x))
 
         return fun_, jac
 
-    def _handle_hess(self, fun_hess):
-        if fun_hess is not None:
-            return fun_hess
+    def _handle_hess(self, fun, fun_hess):
+        if fun_hess is not None or not self.autodiff_hess:
+            fun_hess_ = fun_hess
+            if callable(fun_hess):
+                fun_hess_ = lambda x: fun_hess(gs.from_numpy(x))
 
-        return self.hess
+            return fun_hess_
+
+        return lambda x: gs.autodiff.hessian(fun)(gs.from_numpy(x))
 
     def minimize(self, fun, x0, fun_jac=None, fun_hess=None, hessp=None):
         """Minimize objective function.
@@ -84,13 +87,13 @@ class ScipyMinimize:
         x0 : array-like
             Initial guess.
         fun_jac : callable
-            If not None, jac is ignored.
+            Jacobian of fun.
         fun_hess : callable
-            If not None, hess is ignored.
+            Hessian of fun.
         hessp : callable
         """
         fun_, jac = self._handle_jac(fun, fun_jac)
-        hess = self._handle_hess(fun_hess)
+        hess = self._handle_hess(fun, fun_hess)
 
         result = scipy.optimize.minimize(
             fun_,

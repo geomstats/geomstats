@@ -66,7 +66,7 @@ class DistanceMinimizingAligner(AlignerAlgorithm):
         if optimizer is None:
             optimizer = ScipyMinimize(
                 method="L-BFGS-B",
-                jac="autodiff",
+                autodiff_jac=True,
             )
         self.optimizer = optimizer
 

@@ -712,7 +712,6 @@ class LocalProjectionSolver:
         self.btol = btol
         self.optimizer = ScipyMinimize(
             method="L-BFGS-B",
-            jac=True,
             tol=gs.atol,
         )
 
@@ -750,7 +749,7 @@ class LocalProjectionSolver:
         )
 
         self.optimizer.bounds = self._get_bounds(n_splits)
-        res = self.optimizer.minimize(value_and_grad, initial_weights)
+        res = self.optimizer.minimize(value_and_grad, initial_weights, fun_jac=True)
 
         if res.status != 0:
             raise ValueError("Projection failed!")

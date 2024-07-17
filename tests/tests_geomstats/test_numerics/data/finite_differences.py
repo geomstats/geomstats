@@ -26,8 +26,6 @@ class CenteredDifferenceTestData(TestData):
 
         return self.generate_tests(data, marks=marks)
 
-        return self.generate_random_data_with_time()
-
 
 class SecondCenteredDifferenceTestData(TestData):
     N_TIME_POINTS = random.sample(range(5, 10), 1)
