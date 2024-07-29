@@ -380,6 +380,42 @@ def value_and_grad(func, argnums=0, point_ndims=1):
     return func_with_grad
 
 
+def value_and_jacobian(func):
+    """Compute value and jacobian.
+
+    NB: this is a naive implementation for consistency with autograd.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose jacobian values will be computed.
+    """
+
+    def _value_and_jacobian(*args, **kwargs):
+        """Return func's jacobian at args.
+
+        Parameters
+        ----------
+        args : list
+            Argument to function func and its gradients.
+        kwargs : dict
+            Keyword arguments to function func and its gradients.
+
+        Returns
+        -------
+        value : array-like
+            Value of func at input arguments args.
+        jacobian : array-like
+            Value of func's jacobian at input arguments args.
+        """
+        return (
+            func(*args, **kwargs),
+            jacobian_vec(func)(*args, **kwargs),
+        )
+
+    return _value_and_jacobian
+
+
 def value_jacobian_and_hessian(func, func_out_ndim=0):
     """Compute value, jacobian and hessian.
 

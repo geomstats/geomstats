@@ -26,7 +26,7 @@ from geomstats.geometry.nfold_manifold import NFoldMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.numerics.geodesic import ExpSolver, PathBasedLogSolver, PathStraightening
-from geomstats.numerics.optimizers import ScipyMinimize
+from geomstats.numerics.optimization import ScipyMinimize
 from geomstats.numerics.path import (
     UniformlySampledDiscretePath,
     UniformlySampledPathEnergy,
@@ -569,7 +569,7 @@ class ElasticMetric(RiemannianMetric):
 
             optimizer = ScipyMinimize(
                 method="L-BFGS-B",
-                jac="autodiff",
+                autodiff_jac=True,
                 options={"disp": False, "ftol": 0.001},
             )
             self.log_solver = PathStraightening(space, n_nodes=10, optimizer=optimizer)
@@ -943,7 +943,7 @@ class DiscreteSurfacesExpSolver(ExpSolver):
         if optimizer is None:
             optimizer = ScipyMinimize(
                 method="L-BFGS-B",
-                jac="autodiff",
+                autodiff_jac=True,
                 options={"disp": False, "ftol": 0.00001},
             )
 
@@ -1254,7 +1254,7 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
         if optimizer is None:
             optimizer = ScipyMinimize(
                 method="L-BFGS-B",
-                jac="autodiff",
+                autodiff_jac=True,
                 options={"disp": False},
             )
 

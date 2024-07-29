@@ -32,7 +32,7 @@ from geomstats.geometry.symmetric_matrices import (
     SymmetricHollowMatrices,
     SymmetricMatrices,
 )
-from geomstats.numerics.optimizers import NewtonMethod, ScipyRoot
+from geomstats.numerics.optimization import NewtonMethod, ScipyRoot
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase

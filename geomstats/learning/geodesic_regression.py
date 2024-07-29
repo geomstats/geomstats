@@ -29,7 +29,7 @@ from sklearn.base import BaseEstimator
 import geomstats.backend as gs
 import geomstats.errors as error
 from geomstats.learning.frechet_mean import FrechetMean
-from geomstats.numerics.optimizers import ScipyMinimize
+from geomstats.numerics.optimization import ScipyMinimize
 
 
 class RiemannianGradientDescent:

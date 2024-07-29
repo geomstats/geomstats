@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import geomstats.backend as gs
 from geomstats.numerics.bvp import ScipySolveBVP
 from geomstats.numerics.ivp import GSIVPIntegrator
-from geomstats.numerics.optimizers import ScipyMinimize
+from geomstats.numerics.optimization import ScipyMinimize
 from geomstats.numerics.path import (
     UniformlySampledDiscretePath,
     UniformlySampledPathEnergy,
@@ -333,7 +333,7 @@ class _LogShootingSolver(LogSolver, ABC):
         self._space = space
 
         if optimizer is None:
-            optimizer = ScipyMinimize(jac="autodiff")
+            optimizer = ScipyMinimize(autodiff_jac=True)
 
         if initialization is None:
             initialization = self._default_initialization
@@ -772,7 +772,7 @@ class PathStraightening(PathBasedLogSolver):
         if optimizer is None:
             optimizer = ScipyMinimize(
                 method="L-BFGS-B",
-                jac="autodiff",
+                autodiff_jac=True,
                 options={"disp": False},
             )
 

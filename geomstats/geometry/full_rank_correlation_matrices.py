@@ -43,7 +43,7 @@ from geomstats.geometry.symmetric_matrices import (
     NullRowSumsSymmetricMatrices,
     SymmetricHollowMatrices,
 )
-from geomstats.numerics.optimizers import NewtonMethod
+from geomstats.numerics.optimization import NewtonMethod
 
 
 def corr_map(point):
