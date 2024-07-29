@@ -458,10 +458,10 @@ class ElasticMean(BaseEstimator):
             Weighted linear mean of the points (i.e. of the curves).
         """
         diffeo = self.space.metric.diffeo
-        transformed = diffeo.diffeomorphism(points)
+        transformed = diffeo(points)
         transformed_linear_mean = linear_mean(transformed, weights=weights)
 
-        return diffeo.inverse_diffeomorphism(transformed_linear_mean)
+        return diffeo.inverse(transformed_linear_mean)
 
     def fit(self, X, y=None, weights=None):
         """Compute the elastic mean.

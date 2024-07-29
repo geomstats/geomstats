@@ -564,7 +564,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
 class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
     """Diffeomorphism from univariate normal to Poincare half space."""
 
-    def diffeomorphism(self, base_point):
+    def __call__(self, base_point):
         r"""Image of base point in the Poincare upper half-plane.
 
         This is the image by the diffeomorphism
@@ -585,7 +585,7 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
             [base_point[..., 0] / gs.sqrt(2.0), base_point[..., 1]], axis=-1
         )
 
-    def inverse_diffeomorphism(self, image_point):
+    def inverse(self, image_point):
         r"""Inverse image of a point in the Poincare upper half-plane.
 
         This is the inverse image by the diffeomorphism
@@ -606,7 +606,7 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
             [image_point[..., 0] * gs.sqrt(2.0), image_point[..., 1]], axis=-1
         )
 
-    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
         r"""Image of tangent vector.
 
         This is the image by the tangent map of the diffeomorphism
@@ -626,11 +626,9 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
         image_tangent_vec : array-like, shape=[..., 2]
             Image tangent vector at image of the base point.
         """
-        return self.diffeomorphism(tangent_vec)
+        return self(tangent_vec)
 
-    def inverse_tangent_diffeomorphism(
-        self, image_tangent_vec, image_point=None, base_point=None
-    ):
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         r"""Inverse image of tangent vector.
 
         This is the inverse image by the tangent map of the diffeomorphism
@@ -650,7 +648,7 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
         tangent_vec : array-like, shape=[..., 2]
             Inverse image of image_tangent_vec.
         """
-        return self.inverse_diffeomorphism(image_tangent_vec)
+        return self.inverse(image_tangent_vec)
 
 
 class UnivariateNormalMetric(PullbackDiffeoMetric):

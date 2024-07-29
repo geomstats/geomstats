@@ -34,15 +34,13 @@ class PointTransformerFromDiffeo(PointTransformer):
         self.diffeo = diffeo
 
     def transform_point(self, point):
-        return self.diffeo.diffeomorphism(point)
+        return self.diffeo(point)
 
     def transform_tangent_vec(self, tangent_vec, base_point):
-        return self.diffeo.tangent_diffeomorphism(tangent_vec, base_point)
+        return self.diffeo.tangent(tangent_vec, base_point)
 
     def inverse_transform_point(self, other_point):
-        return self.diffeo.inverse_diffeomorphism(other_point)
+        return self.diffeo.inverse(other_point)
 
     def inverse_transform_tangent_vec(self, other_tangent_vec, other_base_point):
-        return self.diffeo.inverse_tangent_diffeomorphism(
-            other_tangent_vec, other_base_point
-        )
+        return self.diffeo.inverse_tangent(other_tangent_vec, other_base_point)

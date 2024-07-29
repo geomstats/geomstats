@@ -26,7 +26,7 @@ class FlattenDiffeo(VectorSpaceDiffeo):
         super().__init__(space_ndim=2, image_space_ndim=1)
         self.m, self.n = m, n or m
 
-    def diffeomorphism(self, base_point=None):
+    def __call__(self, base_point=None):
         """Diffeomorphism at base point.
 
         Parameters
@@ -43,7 +43,7 @@ class FlattenDiffeo(VectorSpaceDiffeo):
             return None
         return Matrices.flatten(base_point)
 
-    def inverse_diffeomorphism(self, image_point=None):
+    def inverse(self, image_point=None):
         r"""Inverse diffeomorphism at image point.
 
         :math:`f^{-1}: N \rightarrow M`
@@ -75,7 +75,7 @@ class BasisRepresentationDiffeo(VectorSpaceDiffeo):
         super().__init__(space_ndim=2, image_space_ndim=1)
         self._space = space
 
-    def diffeomorphism(self, base_point=None):
+    def __call__(self, base_point=None):
         """Diffeomorphism at base point.
 
         Parameters
@@ -92,7 +92,7 @@ class BasisRepresentationDiffeo(VectorSpaceDiffeo):
             return None
         return self._space.basis_representation(base_point)
 
-    def inverse_diffeomorphism(self, image_point=None):
+    def inverse(self, image_point=None):
         r"""Inverse diffeomorphism at image point.
 
         :math:`f^{-1}: N \rightarrow M`

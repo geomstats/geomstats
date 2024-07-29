@@ -29,7 +29,7 @@ class ExtrinsicToBall3TestData(TestData):
         ]
         return self.generate_tests(data)
 
-    def tangent_diffeomorphism_test_data(self):
+    def tangent_test_data(self):
         data = [
             dict(
                 tangent_vec=gs.array([1.0, 1.0, 1.0]),

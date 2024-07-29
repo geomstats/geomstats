@@ -104,7 +104,7 @@ class SymMatrixLog(Diffeo):
     """
 
     @classmethod
-    def diffeomorphism(cls, base_point):
+    def __call__(cls, base_point):
         """Compute the matrix log for a symmetric matrix.
 
         Parameters
@@ -120,7 +120,7 @@ class SymMatrixLog(Diffeo):
         return logmh(base_point)
 
     @classmethod
-    def inverse_diffeomorphism(cls, image_point):
+    def inverse(cls, image_point):
         """Compute the matrix exponential for a symmetric matrix.
 
         Parameters
@@ -136,7 +136,7 @@ class SymMatrixLog(Diffeo):
         return expmh(image_point)
 
     @classmethod
-    def tangent_diffeomorphism(cls, tangent_vec, base_point=None, image_point=None):
+    def tangent(cls, tangent_vec, base_point=None, image_point=None):
         """Compute the differential of the matrix logarithm.
 
         Compute the differential of the matrix logarithm on SPD
@@ -179,9 +179,7 @@ class SymMatrixLog(Diffeo):
         return Matrices.mul(eigvectors, result, transp_eigvectors)
 
     @classmethod
-    def inverse_tangent_diffeomorphism(
-        cls, image_tangent_vec, image_point=None, base_point=None
-    ):
+    def inverse_tangent(cls, image_tangent_vec, image_point=None, base_point=None):
         """Compute the differential of the matrix exponential.
 
         Computes the differential of the matrix exponential on SPD
@@ -234,7 +232,7 @@ class MatrixPower(Diffeo):
     def __init__(self, power):
         self.power = power
 
-    def diffeomorphism(self, base_point):
+    def __call__(self, base_point):
         """Compute the matrix power.
 
         Parameters
@@ -249,7 +247,7 @@ class MatrixPower(Diffeo):
         """
         return powermh(base_point, self.power)
 
-    def inverse_diffeomorphism(self, image_point):
+    def inverse(self, image_point):
         """Compute the inverse matrix power.
 
         Parameters
@@ -264,7 +262,7 @@ class MatrixPower(Diffeo):
         """
         return powermh(image_point, 1 / self.power)
 
-    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
         r"""Compute the differential of the matrix power function.
 
         Compute the differential of the power function on SPD(n),
@@ -285,7 +283,7 @@ class MatrixPower(Diffeo):
             Differential of the power function.
         """
         if base_point is None:
-            base_point = self.inverse_diffeomorphism(image_point)
+            base_point = self.inverse(image_point)
         (
             eigvectors,
             transp_eigvectors,
@@ -298,9 +296,7 @@ class MatrixPower(Diffeo):
         result = power_operator * temp_result
         return Matrices.mul(eigvectors, result, transp_eigvectors)
 
-    def inverse_tangent_diffeomorphism(
-        self, image_tangent_vec, image_point=None, base_point=None
-    ):
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         r"""Compute the inverse of the differential of the matrix power.
 
         Compute the inverse of the differential of the power
@@ -322,7 +318,7 @@ class MatrixPower(Diffeo):
             Inverse of the differential of the power function.
         """
         if base_point is None:
-            base_point = self.inverse_diffeomorphism(image_point)
+            base_point = self.inverse(image_point)
         (
             eigvectors,
             transp_eigvectors,
@@ -343,7 +339,7 @@ class CholeskyMap(Diffeo):
     """
 
     @classmethod
-    def diffeomorphism(cls, base_point):
+    def __call__(cls, base_point):
         """Compute cholesky factor.
 
         Compute cholesky factor for a symmetric positive definite matrix.
@@ -361,7 +357,7 @@ class CholeskyMap(Diffeo):
         return gs.linalg.cholesky(base_point)
 
     @staticmethod
-    def inverse_diffeomorphism(image_point):
+    def inverse(image_point):
         """Compute gram matrix of rows.
 
         Gram_matrix is mapping from point to point.point^{T}.
@@ -380,7 +376,7 @@ class CholeskyMap(Diffeo):
         return gs.einsum("...ij,...kj->...ik", image_point, image_point)
 
     @classmethod
-    def tangent_diffeomorphism(cls, tangent_vec, base_point=None, image_point=None):
+    def tangent(cls, tangent_vec, base_point=None, image_point=None):
         """Compute the differential of the cholesky factor map.
 
         Parameters
@@ -399,7 +395,7 @@ class CholeskyMap(Diffeo):
             lower triangular matrix.
         """
         if image_point is None:
-            image_point = cls.diffeomorphism(base_point)
+            image_point = cls.__call__(base_point)
 
         inv_base_point = gs.linalg.inv(image_point)
         inv_transpose_base_point = Matrices.transpose(inv_base_point)
@@ -409,9 +405,7 @@ class CholeskyMap(Diffeo):
         return Matrices.mul(image_point, aux)
 
     @classmethod
-    def inverse_tangent_diffeomorphism(
-        cls, image_tangent_vec, image_point=None, base_point=None
-    ):
+    def inverse_tangent(cls, image_tangent_vec, image_point=None, base_point=None):
         """Compute differential of gram.
 
         Parameters
@@ -429,7 +423,7 @@ class CholeskyMap(Diffeo):
             Differential of the gram.
         """
         if image_point is None:
-            image_point = cls.diffeomorphism(base_point)
+            image_point = cls.__call__(base_point)
 
         mat1 = gs.einsum("...ij,...kj->...ik", image_tangent_vec, image_point)
         mat2 = gs.einsum("...ij,...kj->...ik", image_point, image_tangent_vec)

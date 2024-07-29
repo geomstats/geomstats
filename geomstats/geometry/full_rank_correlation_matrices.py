@@ -533,7 +533,7 @@ class OffLogDiffeo(Diffeo):
         super().__init__()
         self.unique_diag_mat = UniqueDiagonalMatrixAlgorithm()
 
-    def diffeomorphism(self, base_point):
+    def __call__(self, base_point):
         """Diffeomorphism at base point.
 
         Parameters
@@ -548,7 +548,7 @@ class OffLogDiffeo(Diffeo):
         """
         return off_map(matrix=logmh(mat=base_point))
 
-    def inverse_diffeomorphism(self, image_point):
+    def inverse(self, image_point):
         r"""Inverse diffeomorphism at image point.
 
         :math:`f^{-1}: N \rightarrow M`
@@ -565,7 +565,7 @@ class OffLogDiffeo(Diffeo):
         """
         return expmh(self.unique_diag_mat(image_point) + image_point)
 
-    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
         r"""Tangent diffeomorphism at base point.
 
         df_p is a linear map from T_pM to T_f(p)N.
@@ -585,12 +585,10 @@ class OffLogDiffeo(Diffeo):
             Image tangent vector at image of the base point.
         """
         if base_point is None:
-            base_point = self.inverse_diffeomorphism(image_point)
+            base_point = self.inverse(image_point)
 
         return off_map(
-            SymMatrixLog.tangent_diffeomorphism(
-                tangent_vec=tangent_vec, base_point=base_point
-            )
+            SymMatrixLog.tangent(tangent_vec=tangent_vec, base_point=base_point)
         )
 
     def _divided_difference_exp(self, eigvals):
@@ -723,7 +721,7 @@ class OffLogDiffeo(Diffeo):
             gs.linalg.inv(h0_mat),
             gs.matvec(
                 Matrices.to_diagonal(
-                    SymMatrixLog.inverse_tangent_diffeomorphism(
+                    SymMatrixLog.inverse_tangent(
                         image_point=mat, image_tangent_vec=image_tangent_vec
                     )
                 ),
@@ -732,9 +730,7 @@ class OffLogDiffeo(Diffeo):
         )
         return gs.vec_to_diag(-vec), mat
 
-    def inverse_tangent_diffeomorphism(
-        self, image_tangent_vec, image_point=None, base_point=None
-    ):
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         r"""Inverse tangent diffeomorphism at image point.
 
         df^-1_p is a linear map from T_f(p)N to T_pM
@@ -758,7 +754,7 @@ class OffLogDiffeo(Diffeo):
             base_point=base_point,
             image_tangent_vec=image_tangent_vec,
         )
-        return SymMatrixLog.inverse_tangent_diffeomorphism(
+        return SymMatrixLog.inverse_tangent(
             image_point=sym_mat, image_tangent_vec=image_tangent_vec + diff_D
         )
 
@@ -959,7 +955,7 @@ class LogScalingDiffeo(Diffeo):
         super().__init__()
         self.unique_diag_mat = SPDScalingFinder()
 
-    def diffeomorphism(self, base_point):
+    def __call__(self, base_point):
         """Diffeomorphism at base point.
 
         NB: congruence action is implictly performed.
@@ -979,7 +975,7 @@ class LogScalingDiffeo(Diffeo):
 
         return logmh(unit_row_sum_spd)
 
-    def inverse_diffeomorphism(self, image_point):
+    def inverse(self, image_point):
         r"""Inverse diffeomorphism at image point.
 
         :math:`f^{-1}: N \rightarrow M`
@@ -996,7 +992,7 @@ class LogScalingDiffeo(Diffeo):
         """
         return corr_map(expmh(image_point))
 
-    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
         r"""Tangent diffeomorphism at base point.
 
         df_p is a linear map from T_pM to T_f(p)N.
@@ -1041,15 +1037,13 @@ class LogScalingDiffeo(Diffeo):
             + Matrices.mul(base_point_row_1, tangent_vec_row_1_0)
         )
 
-        return SymMatrixLog.tangent_diffeomorphism(
+        return SymMatrixLog.tangent(
             tangent_vec=tangent_vec_row_1,
             base_point=base_point_row_1,
             image_point=image_point,
         )
 
-    def inverse_tangent_diffeomorphism(
-        self, image_tangent_vec, image_point=None, base_point=None
-    ):
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         r"""Inverse tangent diffeomorphism at image point.
 
         df^-1_p is a linear map from T_f(p)N to T_pM
@@ -1076,7 +1070,7 @@ class LogScalingDiffeo(Diffeo):
                 diag_vec, base_point
             )
 
-        tangent_vec_row_1 = SymMatrixLog.inverse_tangent_diffeomorphism(
+        tangent_vec_row_1 = SymMatrixLog.inverse_tangent(
             image_tangent_vec=image_tangent_vec,
             image_point=image_point,
             base_point=base_point_row_1,

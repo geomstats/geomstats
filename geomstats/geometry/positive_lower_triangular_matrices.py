@@ -334,7 +334,7 @@ class UnitNormedRowsPLTDiffeo(Diffeo):
         super().__init__()
         self.n = n
 
-    def diffeomorphism(self, base_point):
+    def __call__(self, base_point):
         """Diffeomorphism at base point.
 
         Parameters
@@ -386,7 +386,7 @@ class UnitNormedRowsPLTDiffeo(Diffeo):
             indices, gs.flatten(flipped_vec_), batch_shape + (n, n)
         )
 
-    def inverse_diffeomorphism(self, image_point):
+    def inverse(self, image_point):
         r"""Inverse diffeomorphism at base point.
 
         :math:`f^{-1}: N \rightarrow M`
@@ -403,7 +403,7 @@ class UnitNormedRowsPLTDiffeo(Diffeo):
         """
         return self._from_product_to_mat(image_point)
 
-    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
         r"""Tangent diffeomorphism at base point.
 
         df_p is a linear map from T_pM to T_f(p)N.
@@ -423,11 +423,9 @@ class UnitNormedRowsPLTDiffeo(Diffeo):
         image_tangent_vec : array-like, shape=[..., space_dim]
             Image tangent vector at image of the base point.
         """
-        return self.diffeomorphism(tangent_vec)
+        return self(tangent_vec)
 
-    def inverse_tangent_diffeomorphism(
-        self, image_tangent_vec, image_point=None, base_point=None
-    ):
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         r"""Inverse tangent diffeomorphism at image point.
 
         df^-1_p is a linear map from T_f(p)N to T_pM
@@ -481,9 +479,7 @@ class UnitNormedRowsPLTMatrices(DiffeomorphicManifold):
     def belongs(self, point, atol=gs.atol):
         """Check if a point belongs to the unit normed plt matrices."""
         is_plt = self.embedding_space.belongs(point)
-        is_unit_normed = self.image_space.belongs(
-            self.diffeo.diffeomorphism(point),
-        )
+        is_unit_normed = self.image_space.belongs(self.diffeo(point))
         return gs.logical_and(is_plt, is_unit_normed)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
@@ -507,8 +503,8 @@ class UnitNormedRowsPLTMatrices(DiffeomorphicManifold):
         is_lt = self.embedding_space.is_tangent(vector, base_point)
         first_is_zero = gs.isclose(vector[..., 0, 0], 0.0)
 
-        image_point = self.diffeo.diffeomorphism(base_point)
-        image_vector = self.diffeo.tangent_diffeomorphism(
+        image_point = self.diffeo(base_point)
+        image_vector = self.diffeo.tangent(
             vector, base_point=base_point, image_point=image_point
         )
         image_is_tangent = self.image_space.is_tangent(
