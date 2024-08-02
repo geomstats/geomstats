@@ -192,6 +192,7 @@ BACKEND_ATTRIBUTES = {
         "norm",
         "qr",
         "quadratic_assignment",
+        "polar",
         "solve",
         "solve_sylvester",
         "sqrtm",

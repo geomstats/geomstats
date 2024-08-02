@@ -20,6 +20,7 @@ from .._shared_numpy.linalg import (
     fractional_matrix_power,
     is_single_matrix_pd,
     logm,
+    polar,
     qr,
     quadratic_assignment,
     solve_sylvester,
