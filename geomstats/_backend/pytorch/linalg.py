@@ -147,3 +147,13 @@ def fractional_matrix_power(A, t):
         out = _np.stack([_scipy.linalg.fractional_matrix_power(A_, t) for A_ in A])
 
     return _torch.tensor(out)
+
+
+def polar(*args, **kwargs):
+    """Polar decomposition of a matrix."""
+    func = _np.vectorize(
+        _scipy.linalg.polar, signature="(n,n)->(n,n),(n,n)", excluded=["side"]
+    )
+    unitary, hermitian = func = func(*args, **kwargs)
+
+    return _torch.from_numpy(unitary), _torch.from_numpy(hermitian)

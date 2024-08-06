@@ -103,3 +103,10 @@ def fractional_matrix_power(A, t):
         return _scipy.linalg.fractional_matrix_power(A, t)
 
     return _np.stack([_scipy.linalg.fractional_matrix_power(A_, t) for A_ in A])
+
+
+def polar(*args, **kwargs):
+    """Polar decomposition of a matrix."""
+    return _np.vectorize(
+        _scipy.linalg.polar, signature="(n,n)->(n,n),(n,n)", excluded=["side"]
+    )(*args, **kwargs)
