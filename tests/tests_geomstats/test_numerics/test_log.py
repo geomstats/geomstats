@@ -2,6 +2,7 @@ import random
 
 import pytest
 
+import geomstats.backend as gs
 from geomstats.geometry.invariant_metric import (
     InvariantMetric,
     InvariantMetricMatrixLogODESolver,
@@ -12,10 +13,11 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.numerics.geodesic import (
     LogODESolver,
     LogShootingSolver,
+    MultiresPathStraightening,
     PathStraightening,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.test_case import autodiff_backend, autodiff_only
+from geomstats.test.test_case import autodiff_only
 from geomstats.test_cases.numerics.geodesic import (
     LogSolverAgainstMetricTestCase,
     LogSolverTestCase,
@@ -27,13 +29,9 @@ from .data.log import (
     PathStraighteningAgainstClosedFormTestData,
 )
 
-ALLOWS_AUTODIFF = autodiff_backend()
 
-
-def _create_params_autodiff():
+def _create_params():
     params = []
-    if not ALLOWS_AUTODIFF:
-        return params
 
     spaces_1d = [PoincareBall(random.randint(2, 3))]
 
@@ -55,20 +53,58 @@ def _create_params_autodiff():
 
 @pytest.fixture(
     scope="class",
-    params=_create_params_autodiff(),
+    params=_create_params() if gs.has_autodiff() else (),
 )
-def spaces(request):
+def spaces_with_log_solvers(request):
     request.cls.space, request.cls.log_solver = request.param
 
 
-@pytest.mark.usefixtures("spaces")
+@pytest.mark.usefixtures("spaces_with_log_solvers")
 class TestLogSolverAgainstClosedForm(
     LogSolverAgainstMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = LogSolverAgainstClosedFormTestData()
 
 
+def _create_params_path_straightening():
+    params = []
+
+    _dim = random.randint(2, 3)
+    space = PoincareBall(_dim)
+
+    sym_list = [False] if gs.__name__.endswith("autograd") else [True, False]
+
+    for sym in sym_list:
+        params.append(
+            (
+                space,
+                PathStraightening(space, n_nodes=100, symmetric=sym),
+            ),
+        )
+
+    for sym in sym_list:
+        params.append(
+            (
+                space,
+                MultiresPathStraightening(
+                    space, n_levels=random.randint(4, 5), symmetric=sym
+                ),
+            )
+        )
+
+    return params
+
+
+@pytest.fixture(
+    scope="class",
+    params=_create_params_path_straightening() if gs.has_autodiff() else (),
+)
+def spaces_with_path_straightening(request):
+    request.cls.space, request.cls.log_solver = request.param
+
+
 @autodiff_only
+@pytest.mark.usefixtures("spaces_with_path_straightening")
 class TestPathStraighteningAgainstClosedForm(
     LogSolverAgainstMetricTestCase, metaclass=DataBasedParametrizer
 ):
@@ -76,11 +112,6 @@ class TestPathStraighteningAgainstClosedForm(
 
     Not in above test for fine-grained control of tolerances.
     """
-
-    _dim = random.randint(2, 3)
-    space = PoincareBall(_dim)
-    if ALLOWS_AUTODIFF:
-        log_solver = PathStraightening(space)
 
     testing_data = PathStraighteningAgainstClosedFormTestData()
 
