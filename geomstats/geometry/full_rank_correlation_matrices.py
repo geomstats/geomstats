@@ -2,7 +2,6 @@
 
 Lead authors: Yann Thanwerdas and Olivier Bisson.
 
-
 References
 ----------
 .. [T2022] Yann Thanwerdas. Riemannian and stratified
@@ -13,19 +12,28 @@ References
 import logging
 
 import geomstats.backend as gs
+from geomstats.algebra_utils import rowwise_scaling
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.diffeo import ComposedDiffeo, Diffeo
 from geomstats.geometry.fiber_bundle import DistanceMinimizingAligner, FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import expmh
 from geomstats.geometry.hyperboloid import Hyperboloid
+from geomstats.geometry.lower_triangular_matrices import StrictlyLowerTriangularMatrices
 from geomstats.geometry.manifold import register_quotient
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import (
+    Matrices,
+    MatricesMetric,
+    matrix_matrix_transpose,
+    tangent_matrix_matrix_transpose,
+)
 from geomstats.geometry.open_hemisphere import (
     OpenHemispheresProduct,
     OpenHemisphereToHyperboloidDiffeo,
 )
 from geomstats.geometry.positive_lower_triangular_matrices import (
+    LowerMatrixLog,
+    PLTUnitDiagMatrices,
     UnitNormedRowsPLTDiffeo,
 )
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
@@ -419,6 +427,204 @@ class PolyHyperbolicCholeskyMetric(PullbackDiffeoMetric):
 def off_map(matrix):
     """Subtract diagonal to a matrix."""
     return matrix - Matrices.to_diagonal(matrix)
+
+
+class EuclideanCholeskyDiffeo(Diffeo):
+    r"""Euclidean-Cholesky diffeomorphism from Cor+ to LT^1.
+
+    A diffeomorphism between full-rank correlation matrices
+    :math:`\mathrm{Cor}(n)` and lower triangular matrices with
+    unit diagonal :math:`\mathrm{LT}^1(n)`.
+
+    Check out chapter 7 of [T2022]_ for more details.
+
+    References
+    ----------
+    .. [T2022] Yann Thanwerdas. Riemannian and stratified
+        geometries on covariance and correlation matrices. Differential
+        Geometry [math.DG]. Université Côte d'Azur, 2022.
+    """
+
+    # TODO: add equations
+
+    def __call__(self, base_point):
+        """Diffeomorphism at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+        """
+        chol = gs.linalg.cholesky(base_point)
+        diag_inv = 1 / Matrices.diagonal(chol)
+        return rowwise_scaling(diag_inv, chol)
+
+    def inverse(self, image_point):
+        r"""Inverse diffeomorphism at image point.
+
+        :math:`f^{-1}: N \rightarrow M`
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+        """
+        return corr_map(matrix_matrix_transpose(image_point))
+
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
+        r"""Tangent diffeomorphism at base point.
+
+        df_p is a linear map from T_pM to T_f(p)N.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Image tangent vector at image of the base point.
+        """
+        if base_point is None:
+            base_point = self.inverse(image_point)
+
+        if image_point is None:
+            image_point = self(base_point)
+
+        chol = gs.linalg.cholesky(base_point)
+        chol_inv = gs.linalg.inv(chol)
+        aux = Matrices.mul(chol_inv, tangent_vec, Matrices.transpose(chol_inv))
+        term_1 = Matrices.mul(
+            image_point,
+            Matrices.to_lower_triangular_diagonal_scaled(aux),
+        )
+        term_2 = 1 / 2 * rowwise_scaling(Matrices.diagonal(aux), image_point)
+
+        return term_1 - term_2
+
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
+        r"""Inverse tangent diffeomorphism at image point.
+
+        df^-1_p is a linear map from T_f(p)N to T_pM
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Image tangent vector at image point.
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
+        if image_point is None:
+            image_point = self(base_point)
+
+        image_point_ = matrix_matrix_transpose(image_point)
+        image_tangent_vec_ = tangent_matrix_matrix_transpose(
+            image_tangent_vec, image_point
+        )
+        return tangent_corr_map(image_tangent_vec_, image_point_)
+
+
+class EuclideanCholeskyMetric(PullbackDiffeoMetric):
+    """Pullback metric via a diffeomorphism.
+
+    Diffeormorphism is between full-rank correlation matrices and
+    lower triangular matrices with unit diagonal endowed with a
+    Euclidean metric.
+
+    For more details, check section 7.4.2 of [T2022]_.
+
+    Parameters
+    ----------
+    space : FullRankCorrelationMatrices
+        Manifold.
+
+    References
+    ----------
+    .. [T2022] Yann Thanwerdas. Riemannian and stratified
+        geometries on covariance and correlation matrices. Differential
+        Geometry [math.DG]. Université Côte d'Azur, 2022.
+    """
+
+    def __init__(self, space):
+        diffeo = EuclideanCholeskyDiffeo()
+        image_space = PLTUnitDiagMatrices(n=space.n, equip=False).equip_with_metric(
+            MatricesMetric
+        )
+
+        super().__init__(space=space, diffeo=diffeo, image_space=image_space)
+
+
+class LogEuclideanCholeskyDiffeo(ComposedDiffeo):
+    r"""log-Euclidean-Cholesky diffeomorphism from Cor+ to LT^0.
+
+    A diffeomorphism between full-rank correlation matrices
+    :math:`\mathrm{Cor}(n)` and strictly lower triangular matrices
+    :math:`\mathrm{LT}^0(n)`.
+
+    Check out chapter 7 of [T2022]_ for more details.
+
+    References
+    ----------
+    .. [T2022] Yann Thanwerdas. Riemannian and stratified
+        geometries on covariance and correlation matrices. Differential
+        Geometry [math.DG]. Université Côte d'Azur, 2022.
+    """
+
+    def __init__(self):
+        diffeos = [EuclideanCholeskyDiffeo(), LowerMatrixLog()]
+        super().__init__(diffeos=diffeos)
+
+
+class LogEuclideanCholeskyMetric(PullbackDiffeoMetric):
+    """Pullback metric via a diffeomorphism.
+
+    Diffeormorphism is between full-rank correlation matrices and
+    strictly lower triangular matrices endowed with a
+    Euclidean metric.
+
+    For more details, check section 7.4.3 of [T2022]_.
+
+    Parameters
+    ----------
+    space : FullRankCorrelationMatrices
+        Manifold.
+
+    References
+    ----------
+    .. [T2022] Yann Thanwerdas. Riemannian and stratified
+        geometries on covariance and correlation matrices. Differential
+        Geometry [math.DG]. Université Côte d'Azur, 2022.
+    """
+
+    def __init__(self, space):
+        diffeo = LogEuclideanCholeskyDiffeo()
+        image_space = StrictlyLowerTriangularMatrices(
+            n=space.n, equip=False
+        ).equip_with_metric(MatricesMetric)
+
+        super().__init__(space=space, diffeo=diffeo, image_space=image_space)
 
 
 class UniqueDiagonalMatrixAlgorithm:

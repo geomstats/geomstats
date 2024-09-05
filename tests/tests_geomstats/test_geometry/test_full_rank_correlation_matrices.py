@@ -5,7 +5,11 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.diffeo import ComposedDiffeo
 from geomstats.geometry.full_rank_correlation_matrices import (
+    EuclideanCholeskyDiffeo,
+    EuclideanCholeskyMetric,
     FullRankCorrelationMatrices,
+    LogEuclideanCholeskyDiffeo,
+    LogEuclideanCholeskyMetric,
     LogScaledMetric,
     LogScalingDiffeo,
     OffLogDiffeo,
@@ -17,12 +21,14 @@ from geomstats.geometry.full_rank_correlation_matrices import (
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import expmh
 from geomstats.geometry.hyperboloid import Hyperboloid
+from geomstats.geometry.lower_triangular_matrices import StrictlyLowerTriangularMatrices
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.open_hemisphere import (
     OpenHemispheresProduct,
     OpenHemisphereToHyperboloidDiffeo,
 )
 from geomstats.geometry.positive_lower_triangular_matrices import (
+    PLTUnitDiagMatrices,
     UnitNormedRowsPLTDiffeo,
     UnitNormedRowsPLTMatrices,
 )
@@ -47,6 +53,7 @@ from geomstats.test_cases.geometry.quotient_metric import QuotientMetricTestCase
 from .data.diffeo import DiffeoTestData
 from .data.full_rank_correlation_matrices import (
     CorrelationMatricesBundleTestData,
+    EuclideanCholeskyMetricTestData,
     FullRankCorrelationAffineQuotientMetricTestData,
     FullRankCorrelationMatricesTestData,
     LogScaledMetricTestData,
@@ -174,6 +181,46 @@ class TestPolyHyperbolicCholeskyMetric(
     PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = PolyHyperbolicCholeskyMetricTestData()
+
+
+class TestEuclideanCholeskyDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(2, 5)
+
+    space = FullRankCorrelationMatrices(n=_n, equip=False)
+    image_space = PLTUnitDiagMatrices(n=_n, equip=False)
+    diffeo = EuclideanCholeskyDiffeo()
+    testing_data = DiffeoTestData()
+
+
+class TestEuclideanCholeskyMetric(
+    PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
+):
+    _n = random.randint(2, 5)
+
+    space = FullRankCorrelationMatrices(n=_n, equip=False).equip_with_metric(
+        EuclideanCholeskyMetric
+    )
+    testing_data = EuclideanCholeskyMetricTestData()
+
+
+class TestLogEuclideanCholeskyDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(2, 5)
+
+    space = FullRankCorrelationMatrices(n=_n, equip=False)
+    image_space = StrictlyLowerTriangularMatrices(n=_n, equip=False)
+    diffeo = LogEuclideanCholeskyDiffeo()
+    testing_data = DiffeoTestData()
+
+
+class TestLogEuclideanCholeskyMetric(
+    PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
+):
+    _n = random.randint(2, 5)
+
+    space = FullRankCorrelationMatrices(n=_n, equip=False).equip_with_metric(
+        LogEuclideanCholeskyMetric
+    )
+    testing_data = EuclideanCholeskyMetricTestData()
 
 
 class TestUniqueDiagonalMatrixAlgorithm(TestCase, metaclass=DataBasedParametrizer):
