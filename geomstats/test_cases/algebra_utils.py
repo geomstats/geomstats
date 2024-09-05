@@ -38,3 +38,25 @@ class AlgebraUtilsTestCase(TestCase):
         points = sphere.random_point(n_points)
         res = utils.rotate_points(points, north_pole)
         self.assertAllClose(res, points, atol=atol)
+
+    @pytest.mark.random
+    def test_columnwise_scaling(self, n_points, m, n, atol):
+        batch_shape = () if n_points == 1 else (n_points,)
+
+        diag_vec = gs.random.uniform(size=batch_shape + (n,))
+        point = gs.random.uniform(size=batch_shape + (m, n))
+
+        res = utils.columnwise_scaling(diag_vec, point)
+        res_ = gs.matmul(point, gs.vec_to_diag(diag_vec))
+        self.assertAllClose(res, res_, atol=atol)
+
+    @pytest.mark.random
+    def test_rowwise_scaling(self, n_points, m, n, atol):
+        batch_shape = () if n_points == 1 else (n_points,)
+
+        diag_vec = gs.random.uniform(size=batch_shape + (m,))
+        point = gs.random.uniform(size=batch_shape + (m, n))
+
+        res = utils.rowwise_scaling(diag_vec, point)
+        res_ = gs.matmul(gs.vec_to_diag(diag_vec), point)
+        self.assertAllClose(res, res_, atol=atol)

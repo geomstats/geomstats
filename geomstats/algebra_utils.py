@@ -226,3 +226,44 @@ def rotate_points(points, end_point):
     if not gs.allclose(gs.matmul(q, base_point[:, None])[:, 0], end_point):
         new_points = -new_points
     return new_points[0]
+
+
+def columnwise_scaling(vec, mat):
+    r"""Column-wise scaling.
+
+    Equivalent to :math:`AD`, where :math:`D` is a
+    diagonal matrix.
+
+    Parameters
+    ----------
+    vec : array-like, shape=[..., k]
+        Vector of scalings.
+    mat :array-like, shape=[..., n, k]
+        Matrix.
+
+    Returns
+    -------
+    column_scaled_mat : array-like, shape=[..., n, k]
+    """
+    return vec[..., None, :] * mat
+
+
+def rowwise_scaling(vec, mat):
+    r"""Row-wise scaling.
+
+    Equivalent to :math:`DA`, where :math:`D` is a
+    diagonal matrix.
+
+    Parameters
+    ----------
+    vec : array-like, shape=[..., n]
+        Vector of scalings.
+    mat :array-like, shape=[..., n, k]
+        Matrix.
+
+    Returns
+    -------
+    row_scaled_mat : array-like, shape=[..., n, k]
+    """
+    # TODO: add tests from notebook
+    return vec[..., :, None] * mat
