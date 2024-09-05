@@ -3,7 +3,7 @@ import math
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import VectorSpaceOpenSetTestData
+from .base import LevelSetTestData, VectorSpaceOpenSetTestData
 from .invariant_metric import InvariantMetricMatrixTestData
 from .lie_group import MatrixLieGroupTestData
 from .pullback_metric import PullbackDiffeoMetricTestData
@@ -201,3 +201,7 @@ class InvariantPositiveLowerTriangularMatricesMetricTestData(
 class UnitNormedRowsPLTMatricesPullbackMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
+
+
+class PLTUnitDiagMatricesTestData(LevelSetTestData):
+    pass
