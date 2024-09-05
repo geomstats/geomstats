@@ -9,11 +9,11 @@ from torch.linalg import (
     eig,
     eigh,
     eigvalsh,
+    inv,
     matrix_power,
     qr,
     solve,
 )
-from torch.linalg import inverse as inv
 from torch.linalg import matrix_exp as expm
 
 from .._backend_config import np_atol as atol
