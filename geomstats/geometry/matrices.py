@@ -13,6 +13,51 @@ from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.vectorization import repeat_out
 
 
+def matrix_matrix_transpose(point):
+    r"""Matrix multiplication with transpose.
+
+    .. math::
+
+        f(A) = A A^{\top}
+
+    Parameters
+    ----------
+    point : array-like, shape=[n, n]
+        Matrix.
+
+    Returns
+    -------
+    mat : array-like, shape=[n, n]
+        Matrix resulting from operation.
+    """
+    return Matrices.mul(point, Matrices.transpose(point))
+
+
+def tangent_matrix_matrix_transpose(tangent_vec, base_point):
+    r"""Tangent matrix multiplication with transpose.
+
+    .. math::
+
+        d_A f (X) = X A^\top + A X^\top
+
+
+    Parameters
+    ----------
+    tangent_vec : array-like, shape=[..., n, n]
+        Tangent vector.
+    base_point : array-like, shape=[..., n, n]
+        Base point.
+
+    Returns
+    -------
+    image_tangent_vec : array-like, shape=[n, n]
+        Matrix resulting from operation.
+    """
+    return Matrices.mul(tangent_vec, Matrices.transpose(base_point)) + Matrices.mul(
+        base_point, Matrices.transpose(tangent_vec)
+    )
+
+
 class FlattenDiffeo(VectorSpaceDiffeo):
     """A diffeo from matrices to Euclidean by flattening.
 
