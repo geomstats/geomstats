@@ -12,6 +12,7 @@ from autograd.numpy.linalg import (
     eigh,
     eigvalsh,
     inv,
+    matrix_power,
     matrix_rank,
     norm,
     solve,
