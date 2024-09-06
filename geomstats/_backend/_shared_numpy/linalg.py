@@ -110,3 +110,33 @@ def polar(*args, **kwargs):
     return _np.vectorize(
         _scipy.linalg.polar, signature="(n,n)->(n,n),(n,n)", excluded=["side"]
     )(*args, **kwargs)
+
+
+def solve(a, b):
+    """
+    Solve a linear matrix equation, or system of linear scalar equations.
+
+    Computes the "exact" solution, `x`, of the well-determined, i.e., full
+    rank, linear matrix equation `ax = b`.
+
+    Parameters
+    ----------
+    a : array-like, shape=[..., M, M]
+        Coefficient matrix.
+    b : array-like, shape=[..., M]
+        Ordinate or "dependent variable" values".
+
+    Returns
+    -------
+    x : array-like, shape=[..., M]
+        Solution to the system a x = b.
+    """
+    batch_shape = a.shape[:-2]
+    if batch_shape:
+        b = _np.expand_dims(b, axis=-1)
+
+    res = _np.linalg.solve(a, b)
+    if batch_shape:
+        return res[..., 0]
+
+    return res
