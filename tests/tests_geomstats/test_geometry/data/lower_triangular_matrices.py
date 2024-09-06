@@ -1,7 +1,7 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import MatrixVectorSpaceTestData
+from .base import LevelSetTestData, MatrixVectorSpaceTestData
 
 
 class LowerTriangularMatricesTestData(MatrixVectorSpaceTestData):
@@ -84,3 +84,9 @@ class LowerTriangularMatrices3TestData(TestData):
             ),
         ]
         return self.generate_tests(data)
+
+
+class StrictlyLowerTriangularMatricesTestData(
+    LevelSetTestData, MatrixVectorSpaceTestData
+):
+    pass

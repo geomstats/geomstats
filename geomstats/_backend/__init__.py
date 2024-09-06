@@ -189,6 +189,7 @@ BACKEND_ATTRIBUTES = {
         "inv",
         "is_single_matrix_pd",
         "logm",
+        "matrix_power",
         "norm",
         "qr",
         "quadratic_assignment",

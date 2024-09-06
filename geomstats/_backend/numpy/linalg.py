@@ -9,6 +9,7 @@ from numpy.linalg import (  # NOQA
     eigh,
     eigvalsh,
     inv,
+    matrix_power,
     matrix_rank,
     norm,
     solve,
