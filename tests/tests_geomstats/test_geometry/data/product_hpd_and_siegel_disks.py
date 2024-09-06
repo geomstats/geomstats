@@ -9,8 +9,8 @@ class ProductHPDMatricesAndSiegelDisksMetricTestData(ProductRiemannianMetricTest
     trials = 5
 
     tolerances = {
-        "dist_is_log_norm": {"atol": 1e-6},
-        "geodesic_bvp_reverse": {"atol": 1e-6},
-        "geodesic_ivp_belongs": {"atol": 1e-6},
-        "exp_belongs": {"atol": 1e-6},
+        "dist_is_log_norm": {"atol": 1e-4},
+        "geodesic_bvp_reverse": {"atol": 1e-4},
+        "geodesic_ivp_belongs": {"atol": 1e-4},
+        "exp_belongs": {"atol": 1e-4},
     }

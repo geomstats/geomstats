@@ -15,7 +15,6 @@ from autograd.numpy.linalg import (
     matrix_power,
     matrix_rank,
     norm,
-    solve,
     svd,
 )
 from autograd.scipy.linalg import expm
@@ -26,6 +25,7 @@ from .._shared_numpy.linalg import (
     is_single_matrix_pd,
     polar,
     qr,
+    solve,
     solve_sylvester,
     sqrtm,
 )

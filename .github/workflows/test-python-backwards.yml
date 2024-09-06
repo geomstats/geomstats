@@ -25,7 +25,12 @@ jobs:
       - name: install dependencies [pip]
         run: |
           pip install --upgrade pip setuptools wheel
-          pip install -e .[opt,test,test-scripts,${{ matrix.geomstats-backend }}]
+          pip install -e .[opt,test,${{ matrix.geomstats-backend }}]
+
+      - name: install (extra) dependencies [pip]
+        if: ${{matrix.test-folder == 'tests/tests_scripts'}}
+        run: |
+          pip install -e .[test-scripts]
 
       - name: Add annotations [pytest]
         run: pip install pytest-github-actions-annotate-failures
