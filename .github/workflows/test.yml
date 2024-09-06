@@ -44,12 +44,17 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{matrix.geomstats-backend}}-${{matrix.os}}-${{matrix.python-version}}-${{ hashFiles('pyproject.toml') }}
+          key: ${{matrix.geomstats-backend}}-${{matrix.os}}-${{matrix.python-version}}-${{matrix.test-folder}}-${{ hashFiles('pyproject.toml') }}
 
       - name: install dependencies [pip]
         run: |
           pip install --upgrade pip setuptools wheel
-          pip install -e .[opt,test,test-scripts,${{ matrix.geomstats-backend }}]
+          pip install -e .[opt,test,${{ matrix.geomstats-backend }}]
+
+      - name: install (extra) dependencies [pip]
+        if: ${{matrix.test-folder == 'tests/tests_scripts'}}
+        run: |
+          pip install -e .[test-scripts]
 
       - name: Add annotations [pytest]
         run: pip install pytest-github-actions-annotate-failures
