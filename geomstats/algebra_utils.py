@@ -265,5 +265,4 @@ def rowwise_scaling(vec, mat):
     -------
     row_scaled_mat : array-like, shape=[..., n, k]
     """
-    # TODO: add tests from notebook
     return vec[..., :, None] * mat

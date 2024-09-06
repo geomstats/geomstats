@@ -725,8 +725,6 @@ class LowerMatrixLog(Diffeo):
     def tangent(cls, tangent_vec, base_point=None, image_point=None):
         r"""Tangent diffeomorphism at base point.
 
-        df_p is a linear map from T_pM to T_f(p)N.
-
         .. math::
 
             d_z \log (V) = \sum_{k=1}^{n-1}\left(\frac{(-1)^{k+1}}{k}
@@ -772,8 +770,6 @@ class LowerMatrixLog(Diffeo):
     @classmethod
     def inverse_tangent(cls, image_tangent_vec, image_point=None, base_point=None):
         r"""Inverse tangent diffeomorphism at image point.
-
-        df^-1_p is a linear map from T_f(p)N to T_pM.
 
         .. math::
 

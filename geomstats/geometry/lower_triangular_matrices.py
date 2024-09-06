@@ -175,7 +175,6 @@ class StrictlyLowerTriangularMatrices(LevelSet, MatrixVectorSpace):
             gs.one_hot(tril_idxs, self.n * self.n),
             dtype=gs.get_default_dtype(),
         )
-        print(vector_bases.shape)
         return gs.reshape(vector_bases, [-1, self.n, self.n])
 
     @staticmethod

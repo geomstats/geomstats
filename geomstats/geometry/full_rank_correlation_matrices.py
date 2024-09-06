@@ -445,10 +445,13 @@ class EuclideanCholeskyDiffeo(Diffeo):
         Geometry [math.DG]. Université Côte d'Azur, 2022.
     """
 
-    # TODO: add equations
-
     def __call__(self, base_point):
-        """Diffeomorphism at base point.
+        r"""Diffeomorphism at base point.
+
+        .. math::
+
+           \Theta(C) = \operatorname{Diag}(\operatorname{Chol}(C))^{-1}
+           \operatorname{Chol}(C)
 
         Parameters
         ----------
@@ -467,7 +470,13 @@ class EuclideanCholeskyDiffeo(Diffeo):
     def inverse(self, image_point):
         r"""Inverse diffeomorphism at image point.
 
-        :math:`f^{-1}: N \rightarrow M`
+        .. math::
+
+            \begin{aligned}
+            \Phi(\Gamma) &= \operatorname{Diag}\left(\phi(\Gamma)\right)^{-1 / 2} 
+            \phi(\Gamma) \operatorname{Diag}\left(\phi(\Gamma)\right)^{-1 / 2} \\
+            &= \operatorname{Cor} \circ \phi(\Gamma)
+            \end{aligned}
 
         Parameters
         ----------
@@ -484,7 +493,10 @@ class EuclideanCholeskyDiffeo(Diffeo):
     def tangent(self, tangent_vec, base_point=None, image_point=None):
         r"""Tangent diffeomorphism at base point.
 
-        df_p is a linear map from T_pM to T_f(p)N.
+        .. math::
+
+            d_C \Theta (X)=\Theta(C) \operatorname{Low}_s\left(L^{-1} X L^{-\top}\right)
+            -\frac{1}{2} \operatorname{Diag}\left(L^{-1} X L^{-\top}\right) \Theta(C)
 
         Parameters
         ----------
@@ -520,7 +532,10 @@ class EuclideanCholeskyDiffeo(Diffeo):
     def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         r"""Inverse tangent diffeomorphism at image point.
 
-        df^-1_p is a linear map from T_f(p)N to T_pM
+        .. math::
+
+            d_{\Gamma} \Phi (Y)= d_{\phi(\Gamma)} \operatorname{Cor}
+            \circ d_{\Gamma} \phi(Y)
 
         Parameters
         ----------
