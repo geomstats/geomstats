@@ -4,6 +4,7 @@ import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from .base import LevelSetTestData, VectorSpaceOpenSetTestData
+from .diffeo import DiffeoComparisonTestData
 from .invariant_metric import InvariantMetricMatrixTestData
 from .lie_group import MatrixLieGroupTestData
 from .pullback_metric import PullbackDiffeoMetricTestData
@@ -205,3 +206,8 @@ class UnitNormedRowsPLTMatricesPullbackMetricTestData(PullbackDiffeoMetricTestDa
 
 class PLTUnitDiagMatricesTestData(LevelSetTestData):
     pass
+
+
+class LowerMatrixLogCmpTestData(DiffeoComparisonTestData):
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False

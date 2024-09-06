@@ -19,11 +19,17 @@ from geomstats.test_cases.geometry.base import (
     LevelSetTestCase,
     VectorSpaceOpenSetTestCase,
 )
-from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
+from geomstats.test_cases.geometry.diffeo import (
+    DiffeoComparisonTestCase,
+    DiffeoTestCase,
+)
 from geomstats.test_cases.geometry.invariant_metric import InvariantMetricMatrixTestCase
 from geomstats.test_cases.geometry.lie_group import MatrixLieGroupTestCase
 from geomstats.test_cases.geometry.positive_lower_triangular_matrices import (
     CholeskyMetricTestCase,
+)
+from geomstats.test_cases.geometry.positive_lower_triangular_matrices import (
+    LowerMatrixLog as OtherLowerMatrixLog,
 )
 from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
 
@@ -33,6 +39,7 @@ from .data.positive_lower_triangular_matrices import (
     CholeskyMetric2TestData,
     CholeskyMetricTestData,
     InvariantPositiveLowerTriangularMatricesMetricTestData,
+    LowerMatrixLogCmpTestData,
     PLTUnitDiagMatricesTestData,
     PositiveLowerTriangularMatrices2TestData,
     PositiveLowerTriangularMatricesTestData,
@@ -127,3 +134,15 @@ class TestLowerMatrixLog(DiffeoTestCase, metaclass=DataBasedParametrizer):
     image_space = StrictlyLowerTriangularMatrices(n=_n, equip=False)
     diffeo = LowerMatrixLog()
     testing_data = DiffeoTestData()
+
+
+class TestLowerMatrixLogCmp(DiffeoComparisonTestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(2, 5)
+
+    space = PLTUnitDiagMatrices(n=_n, equip=False)
+    image_space = StrictlyLowerTriangularMatrices(n=_n, equip=False)
+
+    diffeo = LowerMatrixLog()
+    other_diffeo = OtherLowerMatrixLog(space.shape)
+
+    testing_data = LowerMatrixLogCmpTestData()

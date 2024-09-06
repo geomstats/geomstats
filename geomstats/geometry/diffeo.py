@@ -114,8 +114,11 @@ class Diffeo:
 class AutodiffDiffeo(Diffeo):
     """Diffeomorphism through autodiff."""
 
-    def __init__(self, space_shape, image_space_shape):
+    def __init__(self, space_shape, image_space_shape=None):
         super().__init__()
+        if image_space_shape is None:
+            image_space_shape = space_shape
+
         self._space_shape = space_shape
         self._space_point_ndim = len(space_shape)
 

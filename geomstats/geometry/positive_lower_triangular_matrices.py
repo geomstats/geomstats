@@ -9,8 +9,6 @@ References
     Geometry [math.DG]. Université Côte d'Azur, 2022.
 """
 
-import math
-
 import geomstats.backend as gs
 from geomstats.geometry.base import DiffeomorphicManifold, LevelSet, VectorSpaceOpenSet
 from geomstats.geometry.diffeo import Diffeo
@@ -665,7 +663,13 @@ class LowerMatrixLog(Diffeo):
 
     @staticmethod
     def __call__(base_point):
-        """Compute the matrix log.
+        r"""Compute the matrix log.
+
+        .. math::
+
+            \log(Z) = \sum_{k=1}^{n-1} \frac{(-1)^{k+1}}{k}
+            \left(Z-I_n\right)^k
+
 
         Parameters
         ----------
@@ -677,12 +681,24 @@ class LowerMatrixLog(Diffeo):
         log : array_like, shape=[..., n, n]
             Matrix logarithm of base_point.
         """
-        # TODO: check if direct implementation is faster
-        return gs.linalg.logm(base_point)
+        n = base_point.shape[-1]
+
+        result = gs.zeros_like(base_point)
+        aux = base_point - gs.eye(n)
+        for k in range(1, n):
+            coeff = (-1) ** (k + 1) / k
+            # aux = aux @ aux could be used, but accumulates too much error
+            result += coeff * gs.linalg.matrix_power(aux, k)
+
+        return result
 
     @staticmethod
     def inverse(image_point):
-        """Compute the matrix exponential.
+        r"""Compute the matrix exponential.
+
+        .. math::
+
+            \exp(L) = \sum_{k=0}^{n-1} \frac{1}{k!} L^k
 
         Parameters
         ----------
@@ -694,14 +710,27 @@ class LowerMatrixLog(Diffeo):
         exponential : array_like, shape=[..., n, n]
             Exponential of image_point.
         """
-        # TODO: check if direct implementation is faster
-        return gs.linalg.expm(image_point)
+        n = image_point.shape[-1]
+
+        result = gs.zeros_like(image_point) + gs.eye(n)
+        factorial = 1
+        for k in range(1, n):
+            factorial *= k
+            # aux = aux @ aux could be used, but accumulates too much error
+            result += 1 / factorial * gs.linalg.matrix_power(image_point, k)
+
+        return result
 
     @classmethod
     def tangent(cls, tangent_vec, base_point=None, image_point=None):
         r"""Tangent diffeomorphism at base point.
 
         df_p is a linear map from T_pM to T_f(p)N.
+
+        .. math::
+
+            d_z \log (V) = \sum_{k=1}^{n-1}\left(\frac{(-1)^{k+1}}{k}
+            \sum_{j=1}^k\left((Z-I)^{j-1} V(Z-I)^{k-j}\right)\right)
 
         Parameters
         ----------
@@ -719,7 +748,6 @@ class LowerMatrixLog(Diffeo):
         """
 
         def _matrix_power(power):
-            # TODO: can be accelerated by using more memory
             return gs.linalg.matrix_power(
                 aux,
                 power,
@@ -733,7 +761,7 @@ class LowerMatrixLog(Diffeo):
         result = gs.zeros_like(tangent_vec)
         aux = base_point - gs.eye(n)
         for k in range(1, n):
-            comp1 = (-1) ** (k - 1) / k
+            comp1 = (-1) ** (k + 1) / k
             comp2 = gs.zeros_like(tangent_vec)
             for j in range(1, k + 1):
                 term = _matrix_power(j - 1) @ tangent_vec @ _matrix_power(k - j)
@@ -745,7 +773,12 @@ class LowerMatrixLog(Diffeo):
     def inverse_tangent(cls, image_tangent_vec, image_point=None, base_point=None):
         r"""Inverse tangent diffeomorphism at image point.
 
-        df^-1_p is a linear map from T_f(p)N to T_pM
+        df^-1_p is a linear map from T_f(p)N to T_pM.
+
+        .. math::
+
+            d_L \exp(X) = \sum_{k=1}^{n-1}\left(\frac{1}{k!}
+            \sum_{j=1}^k\left(L^{j-1} X L^{k-j}\right)\right)
 
         Parameters
         ----------
@@ -763,7 +796,6 @@ class LowerMatrixLog(Diffeo):
         """
 
         def _matrix_power(power):
-            # TODO: can be accelerated by using more memory
             return gs.linalg.matrix_power(image_point, power)
 
         if image_point is None:
@@ -772,8 +804,10 @@ class LowerMatrixLog(Diffeo):
         n = image_tangent_vec.shape[-1]
 
         result = gs.zeros_like(image_tangent_vec)
+        factorial = 1
         for k in range(1, n):
-            comp1 = 1 / math.factorial(k)
+            factorial *= k
+            comp1 = 1 / factorial
             comp2 = gs.zeros_like(image_tangent_vec)
             for j in range(1, k + 1):
                 term = _matrix_power(j - 1) @ image_tangent_vec @ _matrix_power(k - j)
