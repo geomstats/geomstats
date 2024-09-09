@@ -1,4 +1,6 @@
-"""Simple example that demonstrates how geometries from geomstats can be
+"""Example of use of pymanopt with geomstats.
+
+Simple example that demonstrates how geometries from geomstats can be
 used in pymanopt to perform optimization on manifolds. It uses the Riemannian
 steepest descent solver.
 
@@ -19,7 +21,9 @@ from geomstats.geometry.hypersphere import Hypersphere
 
 
 class GeomstatsSphere(EuclideanEmbeddedSubmanifold):
-    """A simple adapter class which proxies calls by pymanopt's solvers to
+    """Geomstats sphere wrapper for pymanopt use.
+
+    A simple adapter class which proxies calls by pymanopt's solvers to
     `Manifold` subclasses to the underlying geomstats `Hypersphere` class.
     """
 
@@ -40,7 +44,9 @@ class GeomstatsSphere(EuclideanEmbeddedSubmanifold):
         return self._sphere.to_tangent(ambient_vector, base_point=base_point)
 
     def retr(self, base_point, tangent_vector):
-        """The retraction operator, which maps a tangent vector in the tangent
+        """Retraction.
+
+        The retraction operator, which maps a tangent vector in the tangent
         space at a specific point back to the manifold by approximating moving
         along a geodesic. Since geomstats's `Hypersphere` class doesn't provide
         a retraction we use the exponential map instead (see also
@@ -61,7 +67,9 @@ class GeomstatsSphere(EuclideanEmbeddedSubmanifold):
 
 
 def estimate_dominant_eigenvector(matrix):
-    """Returns the dominant eigenvector of the symmetric matrix A by minimizing
+    """Estimate dominant eigenvector.
+
+    Returns the dominant eigenvector of the symmetric matrix A by minimizing
     the Rayleigh quotient -x' * A * x / (x' * x).
     """
     num_rows, num_columns = gs.shape(matrix)
@@ -85,7 +93,7 @@ def estimate_dominant_eigenvector(matrix):
 
 
 if __name__ == "__main__":
-    if os.environ.get("GEOMSTATS_BACKEND") != "numpy":
+    if os.environ.get("GEOMSTATS_BACKEND", "numpy") != "numpy":
         raise SystemExit("This example currently only supports the numpy backend")
 
     ambient_dim = 128

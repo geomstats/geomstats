@@ -9,20 +9,20 @@ import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
-SE3_GROUP = SpecialEuclidean(n=3, point_type="vector")
-METRIC = SE3_GROUP.metric
-N_STEPS = 40
-
 
 def main():
     """Plot a geodesic on SE3."""
-    initial_point = SE3_GROUP.identity
+    n_steps = 40
+
+    se3_group = SpecialEuclidean(n=3, point_type="vector")
+
+    initial_point = se3_group.identity
     initial_tangent_vec = gs.array([1.8, 0.2, 0.3, 3.0, 3.0, 1.0])
-    geodesic = METRIC.geodesic(
+    geodesic = se3_group.metric.geodesic(
         initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
     )
 
-    t = gs.linspace(-3.0, 3.0, N_STEPS)
+    t = gs.linspace(-3.0, 3.0, n_steps)
 
     points = geodesic(t)
 

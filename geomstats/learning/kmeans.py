@@ -21,19 +21,19 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
     Parameters
     ----------
+    space : Manifold
+        Equipped manifold.
     n_clusters : int
         Number of clusters (k value of the k-means).
         Optional, default: 8.
-    metric : object of class RiemannianMetric
-        The geomstats Riemannian metric associate to the space used.
     init : str or callable or array-like, shape=[n_clusters, n_features]
-        How to initialize centroids at the beginning of the algorithm. The
-        choice 'random' will select training points as initial centroids
-        uniformly at random. The choice 'kmeans++' selects centroids
+        How to initialize cluster centers at the beginning of the algorithm. The
+        choice 'random' will select training points as initial cluster centers
+        uniformly at random. The choice 'kmeans++' selects cluster centers
         heuristically to improve the convergence rate. When providing an array
-        of shape ``(n_clusters, n_features)``, the centroids are chosen as the
+        of shape ``(n_clusters, n_features)``, the cluster centers are chosen as the
         rows of that array. When providing a callable, it receives as arguments
-        the argument ``X`` to :meth:`fit` and the number of centroids
+        the argument ``X`` to :meth:`fit` and the number of cluster centers
         ``n_clusters`` and is expected to return an array as above.
         Optional, default: 'random'.
     tol : float
@@ -43,13 +43,13 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
     max_iter : int
         Maximum number of iterations.
         Optional, default: 100
-    max_iter_mean : int
-        Maximum number of iterations for the gradient descent of each Frechet
-        mean.
-        Optional, default: 100.
     verbose : int
         If verbose > 0, information will be printed during learning.
         Optional, default: 0.
+
+    Notes
+    -----
+    * Required metric methods: `dist`.
 
     Example
     -------
@@ -59,175 +59,181 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
     def __init__(
         self,
-        metric,
+        space,
         n_clusters=8,
         init="random",
-        init_step_size=1.0,
         tol=1e-2,
         max_iter=100,
-        max_iter_mean=100,
-        mean_method="default",
         verbose=0,
     ):
+        self.space = space
+
         self.n_clusters = n_clusters
         self.init = init
-        self.metric = metric
         self.tol = tol
-        self.init_step_size = init_step_size
         self.verbose = verbose
-        self.mean_method = mean_method
         self.max_iter = max_iter
-        self.max_iter_mean = max_iter_mean
 
-        self.centroids = None
-        self.init_centroids = None
-        self.labels = None
-        self.inertia = None
+        self.init_cluster_centers_ = None
+
+        self.mean_estimator = FrechetMean(space=space)
+        if isinstance(self.mean_estimator, FrechetMean):
+            self.mean_estimator.set(max_iter=100, init_step_size=1.0)
+
+        self.cluster_centers_ = None
+        self.labels_ = None
+        self.inertia_ = None
+
+    def _pick_init_cluster_centers(self, X):
+        n_samples = X.shape[0]
+
+        if isinstance(self.init, str):
+            if self.init == "kmeans++":
+                cluster_centers = [X[randint(0, n_samples - 1)]]
+                for i in range(self.n_clusters - 1):
+                    dists = gs.array(
+                        [
+                            self.space.metric.dist(cluster_centers[j], X)
+                            for j in range(i + 1)
+                        ]
+                    )
+                    dists_to_closest_cluster_center = gs.amin(dists, axis=0)
+                    indices = gs.arange(n_samples)
+                    weights = dists_to_closest_cluster_center / gs.sum(
+                        dists_to_closest_cluster_center
+                    )
+                    index = rv_discrete(
+                        values=(gs.to_numpy(indices), gs.to_numpy(weights))
+                    ).rvs()
+                    cluster_centers.append(X[index])
+            elif self.init == "random":
+                cluster_centers = [
+                    X[randint(0, n_samples - 1)] for i in range(self.n_clusters)
+                ]
+            else:
+                raise ValueError(
+                    f"Unknown initial cluster centers method '{self.init}'."
+                )
+
+            cluster_centers = gs.stack(cluster_centers, axis=0)
+        else:
+            if callable(self.init):
+                cluster_centers = self.init(X, self.n_clusters)
+            else:
+                cluster_centers = self.init
+
+            if cluster_centers.shape[0] != self.n_clusters:
+                raise ValueError("Need as many initial cluster centers as clusters.")
+
+            if cluster_centers.shape[1] != X.shape[1]:
+                raise ValueError(
+                    "Dimensions of initial cluster centers and "
+                    "training data do not match."
+                )
+
+        return cluster_centers
 
     def fit(self, X):
-        """Provide clusters centroids and data labels.
+        """Provide cluster centers and data labels.
 
         Alternate between computing the mean of each cluster
-        and labelling data according to the new positions of the centroids.
+        and labelling data according to the new positions of the cluster centers.
 
         Parameters
         ----------
         X : array-like, shape=[n_samples, n_features]
             Training data, where n_samples is the number of samples and
             n_features is the number of features.
-        max_iter : int
-            Maximum number of iterations.
-            Optional, default: 100.
 
         Returns
         -------
-        self : array-like, shape=[n_clusters,]
-            Centroids.
+        self : object
+            Returns self.
         """
         n_samples = X.shape[0]
         if self.verbose > 0:
             logging.info("Initializing...")
 
-        if isinstance(self.init, str):
-            if self.init == "kmeans++":
-                centroids = [X[randint(0, n_samples - 1)]]
-                for i in range(self.n_clusters - 1):
-                    dists = [self.metric.dist(centroids[j], X) for j in range(i + 1)]
-                    dists_to_closest_centroid = gs.amin(dists, 0)
-                    indices = gs.arange(n_samples)
-                    weights = dists_to_closest_centroid / gs.sum(
-                        dists_to_closest_centroid
-                    )
-                    index = rv_discrete(values=(indices, weights)).rvs()
-                    centroids.append(X[index])
-            elif self.init == "random":
-                centroids = [
-                    X[randint(0, n_samples - 1)] for i in range(self.n_clusters)
-                ]
-            else:
-                raise ValueError(f"Unknown initial centroids method '{self.init}'.")
-
-            centroids = gs.stack(centroids, axis=0)
-        else:
-            if callable(self.init):
-                centroids = self.init(X, self.n_clusters)
-            else:
-                centroids = self.init
-
-            if centroids.shape[0] != self.n_clusters:
-                raise ValueError("Need as many initial centroids as clusters.")
-
-            if centroids.shape[1] != X.shape[1]:
-                raise ValueError(
-                    "Dimensions of initial centroids and training data do not match."
-                )
-
-        self.centroids = gs.copy(centroids)
-        self.init_centroids = gs.copy(centroids)
+        cluster_centers = self._pick_init_cluster_centers(X)
+        self.init_cluster_centers_ = gs.copy(cluster_centers)
 
         dists = [
-            gs.to_ndarray(self.metric.dist(self.centroids[i], X), 2, 1)
+            gs.to_ndarray(self.space.metric.dist(cluster_centers[i], X), 2, 1)
             for i in range(self.n_clusters)
         ]
         dists = gs.hstack(dists)
-        self.labels = gs.argmin(dists, 1)
-        index = 0
+        self.labels_ = gs.argmin(dists, 1)
 
-        mean_estimator = FrechetMean(
-            metric=self.metric,
-            max_iter=self.max_iter_mean,
-            method=self.mean_method,
-            init_step_size=self.init_step_size,
-        )
-        while index < self.max_iter:
-            index += 1
+        for index in range(self.max_iter):
             if self.verbose > 0:
                 logging.info(f"Iteration {index}...")
 
-            old_centroids = gs.copy(self.centroids)
+            old_cluster_centers = gs.copy(cluster_centers)
             for i in range(self.n_clusters):
-                fold = X[self.labels == i]
+                fold = X[self.labels_ == i]
 
                 if len(fold) > 0:
-                    mean_estimator.fit(fold)
-                    self.centroids[i] = mean_estimator.estimate_
+                    self.mean_estimator.fit(fold)
+                    cluster_centers[i] = self.mean_estimator.estimate_
                 else:
-                    self.centroids[i] = X[randint(0, n_samples - 1)]
+                    cluster_centers[i] = X[randint(0, n_samples - 1)]
 
             dists = [
-                gs.to_ndarray(self.metric.dist(self.centroids[i], X), 2, 1)
+                gs.to_ndarray(self.space.metric.dist(cluster_centers[i], X), 2, 1)
                 for i in range(self.n_clusters)
             ]
             dists = gs.hstack(dists)
-            self.labels = gs.argmin(dists, 1)
-            dists_to_closest_centroid = gs.amin(dists, 1)
-            self.inertia = gs.sum(dists_to_closest_centroid**2)
-            centroids_distances = self.metric.dist(old_centroids, self.centroids)
+            self.labels_ = gs.argmin(dists, 1)
+            dists_to_closest_cluster_center = gs.amin(dists, 1)
+            self.inertia_ = gs.sum(dists_to_closest_cluster_center**2)
+            cluster_centers_distances = self.space.metric.dist(
+                old_cluster_centers, cluster_centers
+            )
             if self.verbose > 0:
                 logging.info(
                     f"Convergence criterion at the end of iteration {index} "
-                    f"is {gs.mean(centroids_distances)}."
+                    f"is {gs.mean(cluster_centers_distances)}."
                 )
 
-            if gs.mean(centroids_distances) < self.tol:
+            if gs.mean(cluster_centers_distances) < self.tol:
                 if self.verbose > 0:
                     logging.info(f"Convergence reached after {index} iterations.")
 
-                if self.n_clusters == 1:
-                    self.centroids = gs.squeeze(self.centroids, axis=0)
-
-                return gs.copy(self.centroids)
-
-        if index == self.max_iter:
+                break
+        else:
             logging.warning(
                 f"K-means maximum number of iterations {self.max_iter} reached. "
                 "The mean may be inaccurate."
             )
 
-        if self.n_clusters == 1:
-            self.centroids = gs.squeeze(self.centroids, axis=0)
-        return gs.copy(self.centroids)
+        self.cluster_centers_ = cluster_centers
+
+        return self
 
     def predict(self, X):
         """Predict the labels for each data point.
 
         Label each data point with the cluster having the nearest
-        centroid using metric distance.
+        cluster center using metric distance.
 
         Parameters
         ----------
-        X : array-like, shape=[..., n_features]
+        X : array-like, shape[n_samples, n_features]
             Input data.
 
         Returns
         -------
-        self : array-like, shape=[...,]
+        labels : array-like, shape=[n_samples,]
             Array of predicted cluster indices for each sample.
         """
-        if self.centroids is None:
+        if self.cluster_centers_ is None:
             raise RuntimeError("fit needs to be called first.")
         dists = gs.stack(
-            [self.metric.dist(centroid, X) for centroid in self.centroids], axis=1
+            [
+                self.space.metric.dist(cluster_center, X)
+                for cluster_center in self.cluster_centers_
+            ],
+            axis=1,
         )
         dists = gs.squeeze(dists)
 

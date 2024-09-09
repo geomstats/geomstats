@@ -21,12 +21,12 @@ References
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.base import ComplexOpenSet
+from geomstats.geometry.base import ComplexVectorSpaceOpenSet
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian import Hermitian
 
 
-class ComplexPoincareDisk(ComplexOpenSet):
+class ComplexPoincareDisk(ComplexVectorSpaceOpenSet):
     """Class for the complex Poincaré disk.
 
     The Poincaré disk is a representation of the Hyperbolic
@@ -90,7 +90,7 @@ class ComplexPoincareDisk(ComplexOpenSet):
         """
         scalars = gs.where(
             gs.abs(point) >= 1 - gs.atol,
-            gs.cast((1 - gs.atol) / gs.abs(point), dtype=point.dtype),
+            (1 - gs.atol) / gs.abs(point),
             1.0,
         )
         return scalars * point
@@ -136,7 +136,6 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
             Inner product matrix.
         """
         inner_prod_mat = 1 / (1 - gs.abs(base_point) ** 2) ** 2
-        inner_prod_mat = gs.cast(inner_prod_mat, dtype=gs.get_default_cdtype())
         return gs.expand_dims(inner_prod_mat, axis=-1)
 
     @staticmethod
@@ -157,11 +156,8 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
         """
         base_point, tangent_vec = gs.broadcast_arrays(base_point, tangent_vec)
 
-        theta = gs.cast(gs.angle(tangent_vec), gs.get_default_cdtype())
-        s = gs.cast(
-            2 * gs.abs(tangent_vec) / (1 - gs.abs(base_point) ** 2),
-            gs.get_default_cdtype(),
-        )
+        theta = gs.angle(tangent_vec)
+        s = 2 * gs.abs(tangent_vec) / (1 - gs.abs(base_point) ** 2)
 
         exp_i_theta = gs.exp(1j * theta)
         exp_minus_s = gs.exp(-s)
@@ -221,17 +217,11 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
         log : array-like, shape=[..., 1]
             Riemannian logarithm.
         """
-        angle = gs.cast(
-            gs.angle(point - base_point) - gs.angle(1 - gs.conj(base_point) * point),
-            dtype=gs.get_default_cdtype(),
-        )
-        return gs.exp(1j * angle) * gs.cast(
-            gs.einsum(
-                "...,...i->...i",
-                self._tau(base_point, point),
-                (1 - gs.abs(base_point) ** 2),
-            ),
-            dtype=gs.get_default_cdtype(),
+        angle = gs.angle(point - base_point) - gs.angle(1 - gs.conj(base_point) * point)
+        return gs.exp(1j * angle) * gs.einsum(
+            "...,...i->...i",
+            self._tau(base_point, point),
+            (1 - gs.abs(base_point) ** 2),
         )
 
     def squared_dist(self, point_a, point_b, atol=gs.atol):
@@ -251,8 +241,8 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
         squared_dist : array-like, shape=[...]
             Riemannian squared distance.
         """
-        sq_dist = self._tau(point_a, point_b, atol=atol)
-        return gs.power(sq_dist, 2)
+        dist = self._tau(point_a, point_b, atol=atol)
+        return gs.power(dist, 2)
 
     def dist(self, point_a, point_b, atol=gs.atol):
         """Compute the complex Poincaré disk distance.

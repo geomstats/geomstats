@@ -1,4 +1,4 @@
-from ._dispatch import _common
+from ._dispatch import BACKEND_NAME, _common
 from ._dispatch import numpy as _np
 
 _is_iterable = _common._is_iterable
@@ -39,7 +39,7 @@ power = _box_binary_scalar(target=_np.power)
 
 def angle(z, deg=False):
     out = _np.angle(z, deg=deg)
-    if type(z) is float:
+    if isinstance(z, float):
         return cast(out, get_default_dtype())
 
     return out
@@ -63,7 +63,9 @@ def real(x):
 
 def arange(start_or_stop, /, stop=None, step=1, dtype=None, **kwargs):
     if dtype is None and (
-        type(stop) is float or type(step) is float or type(start_or_stop) is float
+        isinstance(stop, float)
+        or isinstance(step, float)
+        or isinstance(start_or_stop, float)
     ):
         dtype = get_default_dtype()
 
@@ -349,20 +351,20 @@ def ravel_tril_indices(n, k=0, m=None):
     return _np.ravel_multi_index(idxs, size)
 
 
-def matmul(*ar_gs, **kwar_gs):
-    for arg in ar_gs:
+def matmul(*args, **kwargs):
+    for arg in args:
         if arg.ndim == 1:
             raise ValueError("ndims must be >=2")
-    return _np.matmul(*ar_gs, **kwar_gs)
+    return _np.matmul(*args, **kwargs)
 
 
 def outer(a, b):
-    if a.ndim == 2 and b.ndim == 2:
+    if a.ndim > 1 and b.ndim > 1:
         return _np.einsum("...i,...j->...ij", a, b)
 
     out = _np.multiply.outer(a, b)
-    if b.ndim == 2:
-        out = out.swapaxes(-3, -2)
+    if b.ndim > 1:
+        out = out.swapaxes(0, -2)
 
     return out
 
@@ -415,6 +417,8 @@ def scatter_add(input, dim, index, src):
     if dim == 1:
         for j in range(len(input)):
             for i, val in zip(index[j], src[j]):
-                input[j, i] += val
+                if not isinstance(val, _np.float64) and BACKEND_NAME == "autograd":
+                    val = float(val._value)
+                input[j, i] += float(val)
         return input
     raise NotImplementedError

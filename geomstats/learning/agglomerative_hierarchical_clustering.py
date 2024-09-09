@@ -16,15 +16,11 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
 
     Parameters
     ----------
+    space : Manifold
+        Equipped manifold.
     n_clusters : int or None, default=2
         The number of clusters to find. It must be ``None`` if
         ``distance_threshold`` is not ``None``.
-    distance : str or callable, default='euclidean'
-        Distance used to compute the linkage. Can be 'euclidean', 'l1', 'l2',
-        'manhattan', 'cosine', or 'precomputed'.
-        If linkage is 'ward', only 'euclidean' is accepted.
-        If 'precomputed', a distance matrix (instead of a similarity matrix)
-        is needed as input for the fit method.
     memory : str or object, default=None
         Used to cache the output of the computation of the tree.
         By default, no caching is done. If a string is given, it is the
@@ -86,36 +82,34 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
 
     References
     ----------
-        This algorithm uses the scikit-learn library:
-        https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/
-        cluster/_agglomerative.py#L656
+    This algorithm uses the scikit-learn library:
+    https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/cluster
+    /_agglomerative.py#L656
     """
 
     def __init__(
         self,
+        space,
         n_clusters=2,
-        distance="euclidean",
         memory=None,
         connectivity=None,
         compute_full_tree="auto",
         linkage="average",
         distance_threshold=None,
     ):
-        self.distance = distance
+        def affinity(data):
+            data = gs.from_numpy(data)
 
-        if isinstance(distance, str):
-            affinity = distance
-        else:
+            n_samples = data.shape[0]
+            affinity_matrix = gs.zeros([n_samples, n_samples])
+            for i_sample in range(1, n_samples):
+                affinity_matrix[i_sample, :i_sample] = self.space.metric.dist(
+                    data[i_sample, ...], data[:i_sample, ...]
+                ).reshape(i_sample)
+            affinity_matrix = affinity_matrix + affinity_matrix.T
+            return affinity_matrix
 
-            def affinity(data):
-                n_samples = data.shape[0]
-                affinity_matrix = gs.zeros([n_samples, n_samples])
-                for i_sample in range(1, n_samples):
-                    affinity_matrix[i_sample, :i_sample] = distance(
-                        data[i_sample, ...], data[:i_sample, ...]
-                    ).reshape(i_sample)
-                affinity_matrix += affinity_matrix.T
-                return affinity_matrix
+        self.space = space
 
         super().__init__(
             n_clusters=n_clusters,

@@ -1,4 +1,5 @@
 """Utility module of reusable algebra routines."""
+
 import math
 
 import geomstats.backend as gs
@@ -114,8 +115,7 @@ def from_vector_to_diagonal_matrix(vector, num_diag=0):
         is a diagonal matrix containing the `i`-th row of `vector`.
     """
     num_columns = gs.shape(vector)[-1]
-    identity = gs.eye(num_columns)
-    identity = gs.cast(identity, vector.dtype)
+    identity = gs.eye(num_columns, dtype=vector.dtype)
     diagonals = gs.einsum("...i,ij->...ij", vector, identity)
     diagonals = gs.to_ndarray(diagonals, to_ndim=3)
     num_lines = diagonals.shape[0]
@@ -226,3 +226,43 @@ def rotate_points(points, end_point):
     if not gs.allclose(gs.matmul(q, base_point[:, None])[:, 0], end_point):
         new_points = -new_points
     return new_points[0]
+
+
+def columnwise_scaling(vec, mat):
+    r"""Column-wise scaling.
+
+    Equivalent to :math:`AD`, where :math:`D` is a
+    diagonal matrix.
+
+    Parameters
+    ----------
+    vec : array-like, shape=[..., k]
+        Vector of scalings.
+    mat :array-like, shape=[..., n, k]
+        Matrix.
+
+    Returns
+    -------
+    column_scaled_mat : array-like, shape=[..., n, k]
+    """
+    return vec[..., None, :] * mat
+
+
+def rowwise_scaling(vec, mat):
+    r"""Row-wise scaling.
+
+    Equivalent to :math:`DA`, where :math:`D` is a
+    diagonal matrix.
+
+    Parameters
+    ----------
+    vec : array-like, shape=[..., n]
+        Vector of scalings.
+    mat :array-like, shape=[..., n, k]
+        Matrix.
+
+    Returns
+    -------
+    row_scaled_mat : array-like, shape=[..., n, k]
+    """
+    return vec[..., :, None] * mat

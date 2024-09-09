@@ -3,8 +3,7 @@
 
 # From running examples and notebooks
 checkpoint
-initial_weights.hd5.data-00000-of-00001
-initial_weights.hd5.index
+*.h5
 result.png
 
 ### JupyterNotebooks ###

@@ -43,7 +43,7 @@ class Connection(ABC):
     def __init__(self, space):
         self._space = space
 
-    def christoffels(self, base_point):
+    def christoffels(self, base_point=None):
         """Christoffel symbols associated with the connection.
 
         The contravariant index is on the first dimension.
@@ -61,27 +61,30 @@ class Connection(ABC):
         """
         raise NotImplementedError("The Christoffel symbols are not implemented.")
 
-    def geodesic_equation(self, state, _time):
+    def geodesic_equation(self, state):
         """Compute the geodesic ODE associated with the connection.
 
         Parameters
         ----------
-        state : array-like, shape=[..., dim]
+        state : array-like, shape=[..., 2, dim]
             Tangent vector at the position.
-        _time : array-like, shape=[..., dim]
-            Point on the manifold, the position at which to compute the
-            geodesic ODE.
 
         Returns
         -------
-        geodesic_ode : array-like, shape=[..., dim]
+        geodesic_ode : array-like, shape=[..., 2, dim]
             Value of the vector field to be integrated at position.
         """
-        position, velocity = state
+        if self._space.point_ndim != 1:
+            raise NotImplementedError(
+                "The geodesic equation is only implemented for points "
+                "represented by a vector."
+            )
+        position = state[..., 0, :]
+        velocity = state[..., 1, :]
         gamma = self.christoffels(position)
         equation = gs.einsum("...kij,...i->...kj", gamma, velocity)
         equation = -gs.einsum("...kj,...j->...k", equation, velocity)
-        return gs.stack([velocity, equation])
+        return gs.stack([velocity, equation], axis=-2)
 
     def exp(self, tangent_vec, base_point):
         """Exponential map associated to the affine connection.
@@ -99,7 +102,7 @@ class Connection(ABC):
             Point on the manifold.
         """
         _check_exp_solver(self)
-        return self.exp_solver.exp(self._space, tangent_vec, base_point)
+        return self.exp_solver.exp(tangent_vec, base_point)
 
     def log(self, point, base_point):
         """Compute logarithm map associated to the affine connection.
@@ -129,7 +132,7 @@ class Connection(ABC):
             Tangent vector at the base point.
         """
         _check_log_solver(self)
-        return self.log_solver.log(self._space, point, base_point)
+        return self.log_solver.log(point, base_point)
 
     def _pole_ladder_step(
         self, base_point, next_point, base_shoot, return_geodesics=False
@@ -354,33 +357,31 @@ class Connection(ABC):
             "trajectory": trajectory,
         }
 
-    def riemann_tensor(self, base_point):
+    def riemann_tensor(self, base_point=None):
         r"""Compute Riemannian tensor at base_point.
 
-        In the literature the riemannian curvature tensor is noted :math:`R_{ijk}^l`.
+        In the literature the Riemannian curvature tensor is noted :math:`R_{ijk}^l`.
 
         Following tensor index convention (ref. Wikipedia), we have:
         :math:`R_{ijk}^l = dx^l(R(X_j, X_k)X_i)`
 
-        which gives :math:`R_{ijk}^lk` as a sum of four terms:
-        :math:`R_{ijk}^l =
-        :math:`\partial_j \Gamma^l_{ki}`
-        :math:`- \partial_k \Gamma^l_{ji}`
-        :math:`+ \Gamma^l_{jm} \Gamma^m_{ki}`
-        :math:`- \Gamma^l_{km} \Gamma^m_{ji}`
+        which gives :math:`R_{ijk}^l` as a sum of four terms:
+
+        .. math::
+            \partial_j \Gamma^l_{ki} - \partial_k \Gamma^l_{ji}
+            + \Gamma^l_{jm} \Gamma^m_{ki} - \Gamma^l_{km} \Gamma^m_{ji}
 
         Note that geomstats puts the contravariant index on
         the first dimension of the Christoffel symbols.
 
         Parameters
         ----------
-        base_point :  array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim]
             Point on the manifold.
 
         Returns
         -------
-        riemann_curvature : array-like, shape=[..., dim, dim,
-                                                    dim, dim]
+        riemann_curvature : array-like, shape=[..., dim, dim, dim, dim]
             riemann_tensor[...,i,j,k,l] = R_{ijk}^l
             Riemannian tensor curvature,
             with the contravariant index on the last dimension.
@@ -404,13 +405,15 @@ class Connection(ABC):
 
         return riemann_curvature
 
-    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
+    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point=None):
         r"""Compute the Riemann curvature map R.
 
         For three tangent vectors at base point :math:`P`:
+
         - :math:`X|_P = tangent\_vec\_a`,
         - :math:`Y|_P = tangent\_vec\_b`,
         - :math:`Z|_P = tangent\_vec\_c`,
+
         the curvature(X, Y, Z, P) is defined by
         :math:`R(X,Y)Z = \nabla_X \nabla_Y Z - \nabla_Y \nabla_X Z - \nabla_[X, Y]Z`.
 
@@ -445,7 +448,7 @@ class Connection(ABC):
         )
         return curvature
 
-    def ricci_tensor(self, base_point):
+    def ricci_tensor(self, base_point=None):
         r"""Compute Ricci curvature tensor at base_point.
 
         The Ricci curvature tensor :math:`\mathrm{Ric}_{ij}` is defined as:
@@ -467,12 +470,14 @@ class Connection(ABC):
         ricci_tensor = gs.einsum("...ijkj -> ...ik", riemann_tensor)
         return ricci_tensor
 
-    def directional_curvature(self, tangent_vec_a, tangent_vec_b, base_point):
+    def directional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the directional curvature (tidal force operator).
 
         For two tangent vectors at base_point :math:`P`:
+
         - :math:`X|_P = tangent\_vec\_a`,
         - :math:`Y|_P = tangent\_vec\_b`,
+
         the directional curvature, better known
         in relativity as the tidal force operator,
         is defined by
@@ -505,10 +510,12 @@ class Connection(ABC):
         r"""Compute the covariant derivative of the curvature.
 
         For four tangent vectors at base_point :math:`P`:
+
         - :math:`H|_P = tangent\_vec\_a`,
         - :math:`X|_P = tangent\_vec\_b`,
         - :math:`Y|_P = tangent\_vec\_c`,
         - :math:`Z|_P = tangent\_vec\_d`,
+
         the covariant derivative of the curvature is defined as:
         :math:`(\nabla_H R)(X, Y) Z |_P`.
 
@@ -540,8 +547,10 @@ class Connection(ABC):
         r"""Compute the covariant derivative of the directional curvature.
 
         For tangent vector fields at base_point :math:`P`:
+
         - :math:`X|_P = tangent\_vec\_a`,
         - :math:`Y|_P = tangent\_vec\_b`,
+
         the covariant derivative (in the direction `X`)
         :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
         directional curvature (in the direction `Y`)
@@ -561,13 +570,8 @@ class Connection(ABC):
             tangent_vec_a, tangent_vec_b, tangent_vec_a, tangent_vec_b, base_point
         )
 
-    def _geodesic_from_exp(self, initial_point, initial_tangent_vec=None):
+    def _geodesic_from_exp(self, initial_point, initial_tangent_vec):
         """Generate parameterized function for the geodesic curve.
-
-        Geodesic curve defined by either:
-
-        - an initial point and an initial tangent vector,
-        - an initial point and an end point.
 
         Parameters
         ----------
@@ -586,19 +590,12 @@ class Connection(ABC):
             represents the different initial conditions, and the second
             corresponds to time.
         """
-        point_type = self._space.default_point_type
+        ndim = self._space.point_ndim
+        ijk = "ijk"[: self._space.point_ndim]
 
-        if point_type == "vector":
-            initial_point = gs.to_ndarray(initial_point, to_ndim=2)
-            initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=2)
-
-        else:
-            initial_point = gs.to_ndarray(initial_point, to_ndim=3)
-            initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=3)
-        n_initial_conditions = initial_tangent_vec.shape[0]
-
-        if n_initial_conditions > 1 and len(initial_point) == 1:
-            initial_point = gs.stack([initial_point[0]] * n_initial_conditions)
+        multiple_tangent = initial_tangent_vec.ndim > ndim
+        multiple_point = initial_point.ndim > ndim
+        is_batch = multiple_tangent or multiple_point
 
         def path(t):
             """Generate parameterized function for geodesic curve.
@@ -611,21 +608,77 @@ class Connection(ABC):
             t = gs.array(t)
             t = gs.cast(t, initial_tangent_vec.dtype)
             t = gs.to_ndarray(t, to_ndim=1)
-            if point_type == "vector":
-                tangent_vecs = gs.einsum("i,...k->...ik", t, initial_tangent_vec)
-            else:
-                tangent_vecs = gs.einsum("i,...kl->...ikl", t, initial_tangent_vec)
 
-            points_at_time_t = [
-                self.exp(tv, pt) for tv, pt in zip(tangent_vecs, initial_point)
-            ]
-            points_at_time_t = gs.stack(points_at_time_t, axis=0)
+            tangent_vecs = gs.einsum(f"n,...{ijk}->...n{ijk}", t, initial_tangent_vec)
+            if is_batch:
+                if multiple_point and multiple_tangent:
+                    points_at_time_t = [
+                        self.exp(tv, pt) for tv, pt in zip(tangent_vecs, initial_point)
+                    ]
 
-            return (
-                points_at_time_t[0] if n_initial_conditions == 1 else points_at_time_t
-            )
+                elif multiple_point:
+                    points_at_time_t = [
+                        self.exp(tangent_vecs, pt) for pt in initial_point
+                    ]
+
+                elif multiple_tangent:
+                    points_at_time_t = [
+                        self.exp(tv, initial_point) for tv in tangent_vecs
+                    ]
+
+                return gs.stack(points_at_time_t, axis=0)
+
+            return self.exp(tangent_vecs, initial_point)
 
         return path
+
+    def _geodesic_ivp(self, initial_point, initial_tangent_vec):
+        """Solve geodesic initial value problem.
+
+        Compute the parameterized function for the geodesic starting at
+        initial_point with initial velocity given by initial_tangent_vec.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Initial point.
+
+        initial_tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at initial point.
+
+        Returns
+        -------
+        path : function
+            Parameterized function for the geodesic curve starting at
+            initial_point with velocity initial_tangent_vec.
+        """
+        if _check_exp_solver(self, raise_=False) and self.exp_solver.solves_ivp:
+            return self.exp_solver.geodesic_ivp(initial_tangent_vec, initial_point)
+
+        return self._geodesic_from_exp(initial_point, initial_tangent_vec)
+
+    def _geodesic_bvp(self, initial_point, end_point):
+        """Solve geodesic boundary problem.
+
+        Compute the parameterized function for the geodesic starting at
+        initial_point and ending at end_point.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Initial point.
+        end_point : array-like, shape=[..., dim]
+            End point.
+
+        Returns
+        -------
+        path : function
+            Parameterized function for the geodesic curve starting at
+            initial_point and ending at end_point.
+        """
+        if _check_log_solver(self, raise_=False) and self.log_solver.solves_bvp:
+            return self.log_solver.geodesic_bvp(end_point, initial_point)
+        return NotImplemented
 
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
@@ -666,21 +719,13 @@ class Connection(ABC):
                     "Cannot specify both an end point and an initial tangent vector."
                 )
 
-            if _check_log_solver(self, raise_=False):
-                return self.log_solver.geodesic_bvp(
-                    self._space,
-                    end_point,
-                    initial_point,
-                )
+            out = self._geodesic_bvp(initial_point, end_point)
+            if out is not NotImplemented:
+                return out
 
             initial_tangent_vec = self.log(end_point, initial_point)
 
-        if _check_exp_solver(self, raise_=False):
-            return self.exp_solver.geodesic_ivp(
-                self._space, initial_tangent_vec, initial_point
-            )
-
-        return self._geodesic_from_exp(initial_point, initial_tangent_vec)
+        return self._geodesic_ivp(initial_point, initial_tangent_vec)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
@@ -716,7 +761,7 @@ class Connection(ABC):
             "use the ladder_parallel_transport instead."
         )
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a

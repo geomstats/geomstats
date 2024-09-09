@@ -9,8 +9,8 @@ Thank you for opening this pull request!
 - [ ] I added appropriate unit tests.
 - [ ] I made sure the code passes all unit tests. (refer to comment below)
 - [ ] My PR follows [PEP8](https://peps.python.org/pep-0008/) guidelines. (refer to comment below)
-- [ ] My PR follows [geomstats coding style](https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst#coding-style-guidelines) and API.
-- [ ] My code is properly documented and I made sure the documentation renders properly. ([Link](https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst#documentation))
+- [ ] My PR follows [geomstats coding style](https://github.com/geomstats/geomstats/blob/main/docs/contributing.rst#coding-style-guidelines) and API.
+- [ ] My code is properly documented and I made sure the documentation renders properly. ([Link](https://github.com/geomstats/geomstats/blob/main/docs/contributing.rst#documentation))
 - [ ] I linked to issues and PRs that are relevant to this PR.
 
 
@@ -30,15 +30,6 @@ Next, import the `backend` module using:
 import geomstats.backend as gs
 -->
 
-
-<!-- For flake8 tests
-Install dependencies
-$ pip3 install -r dev-requirements.txt
-
-Then run the following commands:
-$ flake8 --ignore=D,W503,W504 geomstats examples tests   #shadows .flake8
-$ flake8 geomstats/geometry geomstats/learning           #passed two subfolders
--->
 
 ## Description
 

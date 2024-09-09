@@ -66,9 +66,8 @@ class Graph:
 
         Returns
         -------
-        self : array-like,
-            Shape=[n_walks_per_node*self.n_edges), walk_length]
-            array containing random walks.
+        self : array-like, shape=[n_walks_per_node*self.n_edges, walk_length]
+            Array containing random walks.
         """
         paths = [
             [0] * (walk_length + 1) for i in range(self.n_nodes * n_walks_per_node)
@@ -302,10 +301,10 @@ class HyperbolicEmbedding:
                             gs.squeeze(gs.cast(one_negative_i, dtype=gs.int64)),
                         )
 
-                        l, g_ex = self.loss(
+                        total_loss_, g_ex = self.loss(
                             example_embedding, context_embedding, negative_embedding
                         )
-                        total_loss.append(l)
+                        total_loss.append(total_loss_)
 
                         example_to_update = embeddings[one_path]
 

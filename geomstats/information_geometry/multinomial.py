@@ -11,7 +11,10 @@ from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.information_geometry.base import InformationManifoldMixin
+from geomstats.information_geometry.base import (
+    InformationManifoldMixin,
+    ScipyMultivariateRandomVariable,
+)
 from geomstats.vectorization import repeat_out
 
 
@@ -35,8 +38,11 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
     def __init__(self, dim, n_draws, equip=True):
         self.dim = dim
 
-        super().__init__(dim=dim, shape=(dim + 1,), equip=equip)
+        super().__init__(
+            dim=dim, support_shape=(dim + 1,), shape=(dim + 1,), equip=equip
+        )
         self.n_draws = n_draws
+        self._scp_rv = MultinomialRandomVariable(self)
 
     @staticmethod
     def default_metric():
@@ -104,7 +110,7 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         ----------
         point: array-like, shape=[..., dim + 1]
             Point in embedding Euclidean space.
-         atol : float
+        atol : float
             Tolerance to evaluate positivity.
 
         Returns
@@ -140,7 +146,9 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         component_mean = gs.mean(vector, axis=-1)
         tangent_vec = gs.transpose(gs.transpose(vector) - component_mean)
 
-        return repeat_out(self, tangent_vec, vector, base_point, out_shape=self.shape)
+        return repeat_out(
+            self.point_ndim, tangent_vec, vector, base_point, out_shape=self.shape
+        )
 
     def sample(self, point, n_samples=1):
         """Sample from the multinomial distribution.
@@ -164,15 +172,25 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
             Note that this can be of shape [n_points, n_samples, dim + 1] if
             several points and several samples are provided as inputs.
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        samples = []
-        for param in point:
-            counts = gs.from_numpy(multinomial.rvs(self.n_draws, param, size=n_samples))
-            if n_samples == 1:
-                samples.append(counts[0])
-            else:
-                samples.append(counts)
-        return samples[0] if len(point) == 1 else gs.stack(samples)
+        return self._scp_rv.rvs(point, n_samples)
+
+    def point_to_pdf(self, point):
+        """Compute pdf associated to point.
+
+        Compute the probability density function of the Multinomial
+        distribution with parameters provided by point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point representing a beta distribution.
+
+        Returns
+        -------
+        pdf : function
+            (Discrete) probability density function.
+        """
+        return lambda x: self._scp_rv.pdf(x, point=point)
 
 
 class MultinomialMetric(RiemannianMetric):
@@ -292,7 +310,7 @@ class MultinomialMetric(RiemannianMetric):
     def exp(self, tangent_vec, base_point):
         """Compute the exponential map.
 
-        Comute the exponential map associated to the Fisher information
+        Compute the exponential map associated to the Fisher information
         metric by pulling back the exponential map on the sphere by the
         simplex_to_sphere map.
 
@@ -357,7 +375,7 @@ class MultinomialMetric(RiemannianMetric):
             Point on the manifold, end point of the geodesic.
             Optional, default: None.
             If None, an initial tangent vector must be given.
-        initial_tangent_vec : array-like, shape=[..., dim + 1],
+        initial_tangent_vec : array-like, shape=[..., dim + 1]
             Tangent vector at base point, the initial speed of the geodesics.
             Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
@@ -450,3 +468,14 @@ class MultinomialMetric(RiemannianMetric):
         n_sec_curv = max(n_sec_curv)
 
         return gs.tile(sectional_curv, (n_sec_curv,))
+
+
+class MultinomialRandomVariable(ScipyMultivariateRandomVariable):
+    """A multinomial random variable."""
+
+    def __init__(self, space):
+        rvs = lambda *args, **kwargs: multinomial.rvs(space.n_draws, *args, **kwargs)
+        pdf = lambda x, *args, **kwargs: multinomial.pmf(
+            x, space.n_draws, *args, **kwargs
+        )
+        super().__init__(space, rvs, pdf)

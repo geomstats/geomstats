@@ -19,6 +19,11 @@ def value_and_grad(*args, **kwargs):
     raise AutodiffNotImplementedError(_USE_OTHER_BACKEND_MSG)
 
 
+def value_and_jacobian(*args, **kwargs):
+    """Return an error when using automatic differentiation with numpy."""
+    raise AutodiffNotImplementedError(_USE_OTHER_BACKEND_MSG)
+
+
 def jacobian(*args, **kwargs):
     """Return an error when using automatic differentiation with numpy."""
     raise AutodiffNotImplementedError(_USE_OTHER_BACKEND_MSG)

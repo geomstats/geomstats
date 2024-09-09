@@ -6,27 +6,26 @@ import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hyperboloid import Hyperboloid
 
-H2 = Hyperboloid(dim=2)
-METRIC = H2.metric
-
-SQUARE_SIZE = 10
-
 
 def main():
     """Plot a square on H2 with Poincare half-plane visualization."""
-    top = SQUARE_SIZE / 2.0
-    bot = -SQUARE_SIZE / 2.0
-    left = -SQUARE_SIZE / 2.0
-    right = SQUARE_SIZE / 2.0
+    square_size = 10
+
+    h2 = Hyperboloid(dim=2)
+
+    top = square_size / 2.0
+    bot = -square_size / 2.0
+    left = -square_size / 2.0
+    right = square_size / 2.0
     corners_int = gs.array([[bot, left], [bot, right], [top, right], [top, left]])
-    corners_ext = H2.from_coordinates(corners_int, "intrinsic")
+    corners_ext = h2.from_coordinates(corners_int, "intrinsic")
     n_steps = 20
     ax = plt.gca()
     edge_points = []
     for i, src in enumerate(corners_ext):
         dst_id = (i + 1) % len(corners_ext)
         dst = corners_ext[dst_id]
-        geodesic = METRIC.geodesic(initial_point=src, end_point=dst)
+        geodesic = h2.metric.geodesic(initial_point=src, end_point=dst)
         t = gs.linspace(0.0, 1.0, n_steps)
         edge_points.append(geodesic(t))
 

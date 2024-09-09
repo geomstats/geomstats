@@ -1,4 +1,5 @@
 """Visualization for Geometric Statistics."""
+
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
@@ -57,7 +58,7 @@ class Ellipses:
             positive definite matrices.
             Optional, default: None.
         plot_kwargs : dict
-            Dictionnary of arguments related to plotting.
+            Dictionary of arguments related to plotting.
         """
         if ax is None:
             ax = self.set_ax()

@@ -7,9 +7,10 @@ import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.manifold import register_quotient
+from geomstats.geometry.matrices import FlattenDiffeo, Matrices
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.integrator import integrate
 from geomstats.vectorization import get_batch_shape, repeat_out
 
@@ -28,7 +29,7 @@ class PreShapeSpace(LevelSet):
     ----------
     k_landmarks : int
         Number of landmarks
-    m_ambient : int
+    ambient_dim : int
         Number of coordinates of each landmark.
 
     References
@@ -40,32 +41,27 @@ class PreShapeSpace(LevelSet):
               https://doi.org/10.1007/s10851-020-00945-w.
     """
 
-    def __init__(self, k_landmarks, m_ambient, equip=True):
+    def __init__(self, k_landmarks, ambient_dim, equip=True):
         self.k_landmarks = k_landmarks
-        self.m_ambient = m_ambient
+        self.ambient_dim = ambient_dim
+        self._sphere = Hypersphere(dim=ambient_dim * k_landmarks - 1)
 
         super().__init__(
-            dim=m_ambient * (k_landmarks - 1) - 1,
+            dim=ambient_dim * (k_landmarks - 1) - 1,
             equip=equip,
         )
 
-        self._sphere = Hypersphere(dim=m_ambient * k_landmarks - 1)
-
-        self._quotient_map = {
-            (PreShapeMetric, "rotations"): (PreShapeSpaceBundle, KendallShapeMetric),
-        }
-
     def _get_total_space_metric(self):
         return (
-            self.metric.fiber_bundle.total_space.metric
-            if hasattr(self.metric, "fiber_bundle")
+            self.metric._total_space.metric
+            if hasattr(self.metric, "_total_space")
             else self.metric
         )
 
     def new(self, equip=True):
         """Create manifold with same parameters."""
         return PreShapeSpace(
-            k_landmarks=self.k_landmarks, m_ambient=self.m_ambient, equip=equip
+            k_landmarks=self.k_landmarks, ambient_dim=self.ambient_dim, equip=equip
         )
 
     @staticmethod
@@ -74,14 +70,14 @@ class PreShapeSpace(LevelSet):
         return PreShapeMetric
 
     def _define_embedding_space(self):
-        return Matrices(self.k_landmarks, self.m_ambient)
+        return Matrices(self.k_landmarks, self.ambient_dim)
 
     def submersion(self, point):
         """Submersion that defines the manifold.
 
         Parameters
         ----------
-        point : array-like, shape=[..., k_landmarks, m_ambient]
+        point : array-like, shape=[..., k_landmarks, ambient_dim]
 
         Returns
         -------
@@ -108,12 +104,12 @@ class PreShapeSpace(LevelSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., k_landmarks, m_ambient]
+        point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point in Matrices space.
 
         Returns
         -------
-        projected_point : array-like, shape=[..., k_landmarks, m_ambient]
+        projected_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point projected on the pre-shape space.
 
         Notes
@@ -155,7 +151,7 @@ class PreShapeSpace(LevelSet):
 
         Returns
         -------
-        samples : array-like, shape=[..., k_landmarks, m_ambient]
+        samples : array-like, shape=[..., k_landmarks, ambient_dim]
             Points sampled on the pre-shape space.
 
         Notes
@@ -163,7 +159,7 @@ class PreShapeSpace(LevelSet):
         * Requires space to be equipped.
         """
         samples = self._sphere.random_uniform(n_samples)
-        samples = gs.reshape(samples, (-1, self.k_landmarks, self.m_ambient))
+        samples = gs.reshape(samples, (-1, self.k_landmarks, self.ambient_dim))
         if n_samples == 1:
             samples = samples[0]
         return self.projection(samples)
@@ -174,7 +170,7 @@ class PreShapeSpace(LevelSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., k_landmarks, m_ambient]
+        point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point in Matrices space.
         atol :  float
             Tolerance at which to evaluate mean == 0.
@@ -194,12 +190,12 @@ class PreShapeSpace(LevelSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., k_landmarks, m_ambient]
+        point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point in Matrices space.
 
         Returns
         -------
-        centered : array-like, shape=[..., k_landmarks, m_ambient]
+        centered : array-like, shape=[..., k_landmarks, ambient_dim]
             Point with centered landmarks.
         """
         mean = gs.mean(point, axis=-2)
@@ -213,15 +209,15 @@ class PreShapeSpace(LevelSet):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., k_landmarks, m_ambient]
+        vector : array-like, shape=[..., k_landmarks, ambient_dim]
             Vector in Matrix space.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point on the pre-shape space defining the tangent space,
             where the vector will be projected.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector in the tangent space of the pre-shape space
             at the base point.
 
@@ -241,10 +237,10 @@ class PreShapeSpace(LevelSet):
         return vector - gs.einsum("...,...ij->...ij", coef, base_point)
 
 
-class PreShapeSpaceBundle(FiberBundle):
+class PreShapeBundle(FiberBundle):
     r"""Class for the Kendall pre-shape space bundle."""
 
-    def align(self, point, base_point, **kwargs):
+    def align(self, point, base_point):
         """Align point to base_point.
 
         Find the optimal rotation R in SO(m) such that the base point and
@@ -252,14 +248,14 @@ class PreShapeSpaceBundle(FiberBundle):
 
         Parameters
         ----------
-        point : array-like, shape=[..., k_landmarks, m_ambient]
+        point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point on the manifold.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point on the manifold.
 
         Returns
         -------
-        aligned : array-like, shape=[..., k_landmarks, m_ambient]
+        aligned : array-like, shape=[..., k_landmarks, ambient_dim]
             R.point.
         """
         return Matrices.align_matrices(point, base_point)
@@ -278,9 +274,9 @@ class PreShapeSpaceBundle(FiberBundle):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector to the pre-shape space at `base_point`.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point on the pre-shape space.
         return_skew : bool
             Whether to return the skew-symmetric matrix A.
@@ -288,9 +284,9 @@ class PreShapeSpaceBundle(FiberBundle):
 
         Returns
         -------
-        vertical : array-like, shape=[..., k_landmarks, m_ambient]
+        vertical : array-like, shape=[..., k_landmarks, ambient_dim]
             Vertical component of `tangent_vec`.
-        skew : array-like, shape=[..., m_ambient, m_ambient]
+        skew : array-like, shape=[..., ambient_dim, ambient_dim]
             Vertical component of `tangent_vec`.
         """
         transposed_point = Matrices.transpose(base_point)
@@ -307,9 +303,9 @@ class PreShapeSpaceBundle(FiberBundle):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point on the manifold.
             Optional, default: none.
         atol : float
@@ -322,7 +318,7 @@ class PreShapeSpaceBundle(FiberBundle):
             Boolean denoting if tangent vector is horizontal.
         """
         product = gs.matmul(Matrices.transpose(tangent_vec), base_point)
-        is_tangent = self.total_space.is_tangent(tangent_vec, base_point, atol)
+        is_tangent = self._total_space.is_tangent(tangent_vec, base_point, atol)
         is_symmetric = Matrices.is_symmetric(product, atol)
         return gs.logical_and(is_tangent, is_symmetric)
 
@@ -330,8 +326,8 @@ class PreShapeSpaceBundle(FiberBundle):
         r"""Compute the fundamental tensor A of the submersion.
 
         The fundamental tensor A is defined for tangent vectors of the total
-        space by [O'Neill]_ :math:`A_X Y = ver\nabla^M_{hor X} (hor Y)
-            + hor \nabla^M_{hor X}( ver Y)`
+        space by [ONeill]_
+        :math:`A_X Y = ver\nabla^M_{hor X}(hor Y) + hor \nabla^M_{hor X}(ver Y)`
         where :math:`hor, ver` are the horizontal and vertical projections.
 
         For the Kendall shape space, we have the closed-form expression at
@@ -343,22 +339,22 @@ class PreShapeSpaceBundle(FiberBundle):
 
         Parameters
         ----------
-        tangent_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_x : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        tangent_vec_e : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_e : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point of the total space.
 
         Returns
         -------
-        vector : array-like, shape=[..., k_landmarks, m_ambient]
+        vector : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of the A tensor applied to
             `tangent_vec_x` and `tangent_vec_e`.
 
         References
         ----------
-        .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
+        .. [ONeill]  O’Neill, Barrett. The Fundamental Equations of a
             Submersion, Michigan Mathematical Journal 13, no. 4
             (December 1966): 459–69. https://doi.org/10.1307/mmj/1028999604.
 
@@ -404,30 +400,30 @@ class PreShapeSpaceBundle(FiberBundle):
         :math:`Y|_P = horizontal\_vec\_y` and a general vector field
         :math:`E` extending :math:`E|_P = tangent\_vec\_e` in a neighborhood
         of the base-point P with covariant derivatives
-        :math:`\nabla_X Y |_P = nabla_x_y` and
-        :math:`\nabla_X E |_P = nabla_x_e`.
+        :math:`\nabla_X Y |_P = nabla_x y` and
+        :math:`\nabla_X E |_P = nabla_x e`.
 
         Parameters
         ----------
-        horizontal_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_x : array-like, shape=[..., k_landmarks, ambient_dim]
             Horizontal tangent vector at `base_point`.
-        horizontal_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Horizontal tangent vector at `base_point`.
-        nabla_x_y : array-like, shape=[..., k_landmarks, m_ambient]
+        nabla_x_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        tangent_vec_e : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_e : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        nabla_x_e : array-like, shape=[..., k_landmarks, m_ambient]
+        nabla_x_e : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point of the total space.
 
         Returns
         -------
-        nabla_x_a_y_e : array-like, shape=[..., k_landmarks, m_ambient]
+        nabla_x_a_y_e : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of :math:`\nabla_X^S
             (A_Y E)`.
-        a_y_e : array-like, shape=[..., k_landmarks, m_ambient]
+        a_y_e : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of :math:`A_Y E`.
 
         References
@@ -435,13 +431,13 @@ class PreShapeSpaceBundle(FiberBundle):
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
         in Kendall shape spaces. Unpublished.
         """
-        if not gs.all(self.total_space.belongs(base_point)):
+        if not gs.all(self._total_space.belongs(base_point)):
             raise ValueError("The base_point does not belong to the pre-shape space")
         if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
             raise ValueError("Tangent vector x is not horizontal")
         if not gs.all(self.is_horizontal(horizontal_vec_y, base_point)):
             raise ValueError("Tangent vector y is not horizontal")
-        if not gs.all(self.total_space.is_tangent(nabla_x_y, base_point)):
+        if not gs.all(self._total_space.is_tangent(nabla_x_y, base_point)):
             raise ValueError("Vector nabla_x_y is not tangent")
         a_x_y = self.integrability_tensor(
             horizontal_vec_x, horizontal_vec_y, base_point
@@ -451,9 +447,9 @@ class PreShapeSpaceBundle(FiberBundle):
                 "Tangent vector nabla_x_y is not the gradient "
                 "of a horizontal distribution"
             )
-        if not gs.all(self.total_space.is_tangent(tangent_vec_e, base_point)):
+        if not gs.all(self._total_space.is_tangent(tangent_vec_e, base_point)):
             raise ValueError("Tangent vector e is not tangent")
-        if not gs.all(self.total_space.is_tangent(nabla_x_e, base_point)):
+        if not gs.all(self._total_space.is_tangent(nabla_x_e, base_point)):
             raise ValueError("Vector nabla_x_e is not tangent")
 
         p_top = Matrices.transpose(base_point)
@@ -485,7 +481,7 @@ class PreShapeSpaceBundle(FiberBundle):
             x_top, tangent_vec_e_sym
         )
 
-        scal_x_a_y_e = self.total_space.metric.inner_product(
+        scal_x_a_y_e = self._total_space.metric.inner_product(
             horizontal_vec_x, a_y_e, base_point
         )
 
@@ -506,8 +502,8 @@ class PreShapeSpaceBundle(FiberBundle):
 
         The horizontal covariant derivative :math:`\nabla_X (A_Y Z)` of the
         integrability tensor A may be computed more efficiently in the case of
-        parallel vector fields in the quotient space. :math:
-        `\nabla_X (A_Y Z)` and :math:`A_Y Z` are computed here for the
+        parallel vector fields in the quotient space.
+        :math:`\nabla_X (A_Y Z)` and :math:`A_Y Z` are computed here for the
         Kendall shape space with quotient-parallel vector fields :math:`X,
         Y, Z` extending the values horizontal_vec_x, horizontal_vec_y and
         horizontal_vec_z by parallel transport in a neighborhood of the
@@ -516,32 +512,32 @@ class PreShapeSpaceBundle(FiberBundle):
 
         Parameters
         ----------
-        horizontal_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_x : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        horizontal_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        horizontal_vec_z : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_z : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point of the total space.
 
         Returns
         -------
-        nabla_x_a_y_z : array-like, shape=[..., k_landmarks, m_ambient]
+        nabla_x_a_y_z : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of
             :math:`\nabla_X (A_Y Z)` with `X = horizontal_vec_x`,
             `Y = horizontal_vec_y` and `Z = horizontal_vec_z`.
-        a_y_z : array-like, shape=[..., k_landmarks, m_ambient]
+        a_y_z : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of :math:`A_Y Z`
             with `Y = horizontal_vec_y` and `Z = horizontal_vec_z`.
 
         References
         ----------
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
-        in Kendall shape spaces. Unpublished.
+            in Kendall shape spaces. Unpublished.
         """
         # Vectors X and Y have to be horizontal.
-        if not gs.all(self.total_space.is_centered(base_point)):
+        if not gs.all(self._total_space.is_centered(base_point)):
             raise ValueError("The base_point does not belong to the pre-shape space")
         if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
             raise ValueError("Tangent vector x is not horizontal")
@@ -594,45 +590,45 @@ class PreShapeSpaceBundle(FiberBundle):
         Kendall shape space in the special case of quotient-parallel vector
         fields :math:`X, Y` extending the values horizontal_vec_x and
         horizontal_vec_y by parallel transport in a neighborhood.
-        Such vector fields verify :math:`\nabla_X^X = A_X X` and :math:
-        `\nabla_X^Y = A_X Y`.
+        Such vector fields verify :math:`\nabla_X^X = A_X X` and
+        :math:`\nabla_X^Y = A_X Y`.
 
         Parameters
         ----------
-        horizontal_vec_x : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_x : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        horizontal_vec_y : array-like, shape=[..., k_landmarks, m_ambient]
+        horizontal_vec_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point of the total space.
 
         Returns
         -------
-        nabla_x_a_y_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
+        nabla_x_a_y_a_x_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of
             :math:`\nabla_X^S (A_Y A_X Y)` with
             `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
-        a_x_a_y_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
+        a_x_a_y_a_x_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of
             :math:`A_X A_Y A_X Y` with
             `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
-        nabla_x_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
+        nabla_x_a_x_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of
             :math:`\nabla_X^S (A_X Y)` with
             `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
-        a_y_a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
+        a_y_a_x_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of :math:`A_Y A_X Y` with
             `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
-        a_x_y : array-like, shape=[..., k_landmarks, m_ambient]
+        a_x_y : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`, result of :math:`A_X Y` with
             `X = horizontal_vec_x` and `Y = horizontal_vec_y`.
 
         References
         ----------
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
-        in Kendall shape spaces. Unpublished.
+            in Kendall shape spaces. Unpublished.
         """
-        if not gs.all(self.total_space.is_centered(base_point)):
+        if not gs.all(self._total_space.is_centered(base_point)):
             raise ValueError("The base_point does not belong to the pre-shape space")
         if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
             raise ValueError("Tangent vector x is not horizontal")
@@ -691,119 +687,16 @@ class PreShapeSpaceBundle(FiberBundle):
         return nabla_x_a_y_v, a_x_a_y_a_x_y, nabla_x_v, a_y_a_x_y, vertical_vec_v
 
 
-class PreShapeMetric(RiemannianMetric):
+class PreShapeMetric(PullbackDiffeoMetric):
     """Procrustes metric on the pre-shape space."""
 
-    def _flatten_point(self, point):
-        sphere_embedding_dim = self._space._sphere.embedding_space.dim
-        return gs.reshape(point, point.shape[:-2] + (sphere_embedding_dim,))
-
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner-product of two tangent vectors at a base point.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
-            First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
-            Second tangent vector at base point.
-        base_point : array-like, shape=[..., dk_landmarks, m_ambient]
-            Point on the pre-shape space.
-
-        Returns
-        -------
-        inner_prod : array-like, shape=[...,]
-            Inner-product of the two tangent vectors.
-        """
-        return self._space.embedding_space.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point
+    def __init__(self, space):
+        k_landmarks, ambient_dim = space.shape
+        super().__init__(
+            space,
+            diffeo=FlattenDiffeo(k_landmarks, ambient_dim),
+            image_space=space._sphere,
         )
-
-    def exp(self, tangent_vec, base_point, **kwargs):
-        """Compute the Riemannian exponential of a tangent vector.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at a base point.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space.
-
-        Returns
-        -------
-        exp : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space equal to the Riemannian exponential
-            of tangent_vec at the base point.
-        """
-        flat_bp = self._flatten_point(base_point)
-        flat_tan = self._flatten_point(tangent_vec)
-        flat_exp = self._space._sphere.metric.exp(flat_tan, flat_bp)
-        return gs.reshape(flat_exp, tangent_vec.shape)
-
-    def log(self, point, base_point, **kwargs):
-        """Compute the Riemannian logarithm of a point.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space.
-
-        Returns
-        -------
-        log : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at the base point equal to the Riemannian logarithm
-            of point at the base point.
-        """
-        batch_shape = get_batch_shape(self._space, point, base_point)
-
-        flat_bp = self._flatten_point(base_point)
-        flat_pt = self._flatten_point(point)
-
-        flat_log = self._space._sphere.metric.log(flat_pt, flat_bp)
-
-        return gs.reshape(flat_log, batch_shape + self._space.shape)
-
-    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
-        r"""Compute the curvature.
-
-        For three tangent vectors at a base point :math:`x,y,z`,
-        the curvature is defined by
-        :math:`R(X, Y)Z = \nabla_{[X,Y]}Z
-        - \nabla_X\nabla_Y Z + - \nabla_Y\nabla_X Z`, where :math:`\nabla`
-        is the Levi-Civita connection. In the case of the hypersphere,
-        we have the closed formula
-        :math:`R(X,Y)Z = \langle X, Z \rangle Y - \langle Y,Z \rangle X`.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`.
-        tangent_vec_c : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`.
-        base_point :  array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the group. Optional, default is the identity.
-
-        Returns
-        -------
-        curvature : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`.
-        """
-        batch_shape = get_batch_shape(
-            self._space, base_point, tangent_vec_a, tangent_vec_b, tangent_vec_c
-        )
-        flat_a = self._flatten_point(tangent_vec_a)
-        flat_b = self._flatten_point(tangent_vec_b)
-        flat_c = self._flatten_point(tangent_vec_c)
-        flat_bp = self._flatten_point(base_point)
-
-        curvature = self._space._sphere.metric.curvature(
-            flat_a, flat_b, flat_c, flat_bp
-        )
-        return gs.reshape(curvature, batch_shape + self._space.shape)
 
     def curvature_derivative(
         self,
@@ -815,38 +708,38 @@ class PreShapeMetric(RiemannianMetric):
     ):
         r"""Compute the covariant derivative of the curvature.
 
-        For four vectors fields :math:`H|_P = tangent\_vec\_a, X|_P =
-        tangent\_vec\_b, Y|_P = tangent\_vec\_c, Z|_P = tangent\_vec\_d` with
-        tangent vector value specified in argument at the base point `P`,
+        For four vectors fields :math:`H|_P =` `tangent_vec_a`,
+        :math:`X|_P =` `tangent_vec_b`, :math:`Y|_P =` `tangent_vec_c`,
+        :math:`Z|_P =` `tangent_vec_d` with
+        tangent vector value specified in argument at the `base_point` :math:`P`,
         the covariant derivative of the curvature
-        :math:`(\nabla_H R)(X, Y) Z |_P` is computed at the base point P.
-        Since the sphere is a constant curvature space this
-        vanishes identically.
+        :math:`(\nabla_H R)(X, Y) Z |_P` is computed at the `base_point` :math:`P`.
+        Since the sphere is a constant curvature space this vanishes identically.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_a : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point` along which the curvature is
             derived.
-        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_b : array-like, shape=[..., k_landmarks, ambient_dim]
             Unused tangent vector at `base_point` (since curvature derivative
             vanishes).
-        tangent_vec_c : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_c : array-like, shape=[..., k_landmarks, ambient_dim]
             Unused tangent vector at `base_point` (since curvature derivative
             vanishes).
-        tangent_vec_d : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_d : array-like, shape=[..., k_landmarks, ambient_dim]
             Unused tangent vector at `base_point` (since curvature derivative
             vanishes).
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Unused point on the group.
 
         Returns
         -------
-        curvature_derivative : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at base point.
+        curvature_derivative : array-like, shape=[..., k_landmarks, ambient_dim]
+            Tangent vector at `base_point`.
         """
         batch_shape = get_batch_shape(
-            self._space,
+            self._space.point_ndim,
             tangent_vec_a,
             tangent_vec_b,
             tangent_vec_c,
@@ -855,54 +748,7 @@ class PreShapeMetric(RiemannianMetric):
         )
         return gs.zeros(batch_shape + self._space.shape)
 
-    def parallel_transport(
-        self, tangent_vec, base_point, direction=None, end_point=None
-    ):
-        """Compute the Riemannian parallel transport of a tangent vector.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at a base point.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space.
-        direction : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at a base point.
-            Optional, default : None.
-        end_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space, to transport to. Unused if
-            `tangent_vec_b` is given.
-            Optional, default : None.
-
-        Returns
-        -------
-        transported : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space equal to the Riemannian exponential
-            of tangent_vec at the base point.
-        """
-        if direction is None:
-            if end_point is not None:
-                direction = self.log(end_point, base_point)
-            else:
-                raise ValueError(
-                    "Either an end_point or a tangent_vec_b must be given to define the"
-                    " geodesic along which to transport."
-                )
-
-        batch_shape = get_batch_shape(
-            self._space, tangent_vec, base_point, direction, end_point
-        )
-
-        flat_bp = self._flatten_point(base_point)
-        flat_tan_a = self._flatten_point(tangent_vec)
-        flat_tan_b = self._flatten_point(direction)
-
-        flat_transport = self._space._sphere.metric.parallel_transport(
-            flat_tan_a, flat_bp, flat_tan_b
-        )
-        return gs.reshape(flat_transport, batch_shape + self._space.shape)
-
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
@@ -913,7 +759,7 @@ class PreShapeMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point on the manifold.
 
         Returns
@@ -922,7 +768,7 @@ class PreShapeMetric(RiemannianMetric):
             Injectivity radius.
         """
         radius = gs.array(gs.pi)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)
 
 
 class KendallShapeMetric(QuotientMetric):
@@ -937,44 +783,45 @@ class KendallShapeMetric(QuotientMetric):
     ):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For two vectors fields :math:`X|_P = tangent\_vec\_a, Y|_P =
-        tangent\_vec\_b` with tangent vector value specified in argument at the
-        base point `P`, the covariant derivative (in the direction 'X')
+        For two vectors fields :math:`X|_P =` `tangent_vec_a`,
+        :math:`Y|_P =` `tangent_vec_b` with tangent vector value specified in argument
+        at the `base_point` :math:`P`,
+        the covariant derivative (in the direction :math:`X`)
         :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
-        directional curvature (in the direction `Y`)
-        :math:`R_Y(X) = R(Y, X) Y`  is a quadratic tensor in 'X' and 'Y' that
-        plays an important role in the computation of the moments of the
+        directional curvature (in the direction :math:`Y`)
+        :math:`R_Y(X) = R(Y, X) Y` is a quadratic tensor in :math:`X` and :math:`Y`
+        that plays an important role in the computation of the moments of the
         empirical Fréchet mean [Pennec]_.
 
         In more details, let :math:`X, Y` be the horizontal lift of parallel
         vector fields extending the tangent vectors given in argument by
-        parallel transport in a neighborhood of the base-point P in the
+        parallel transport in a neighborhood of the`base_point` :math:`P` in the
         base-space. Such vector fields verify :math:`\nabla^T_X X=0` and
-        :math:`\nabla^T_X^Y = A_X Y` using the connection :math:`\nabla^T`
+        :math:`\nabla^T_X Y = A_X Y` using the connection :math:`\nabla^T`
         of the total space. Then the covariant derivative of the
-        directional curvature tensor is given by :math:
-        `\nabla_X (R_Y(X)) = hor \nabla^T_X (R^T_Y(X)) - A_X( ver R^T_Y(X))
+        directional curvature tensor is given by
+        :math:`\nabla_X (R_Y(X)) = hor \nabla^T_X (R^T_Y(X)) - A_X( ver R^T_Y(X))
         - 3 (\nabla_X^T A_Y A_X Y - A_X A_Y A_X Y )`, where :math:`R^T_Y(X)`
         is the directional curvature tensor of the total space.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_a : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec_b : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point on the group.
 
         Returns
         -------
-        curvature_derivative : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at base point.
+        curvature_derivative : array-like, shape=[..., k_landmarks, ambient_dim]
+            Tangent vector at `base_point`.
         """
-        horizontal_x = self.fiber_bundle.horizontal_projection(
+        horizontal_x = self._fiber_bundle.horizontal_projection(
             tangent_vec_a, base_point
         )
-        horizontal_y = self.fiber_bundle.horizontal_projection(
+        horizontal_y = self._fiber_bundle.horizontal_projection(
             tangent_vec_b, base_point
         )
         (
@@ -983,7 +830,7 @@ class KendallShapeMetric(QuotientMetric):
             _,
             _,
             _,
-        ) = self.fiber_bundle.iterated_integrability_tensor_derivative_parallel(
+        ) = self._fiber_bundle.iterated_integrability_tensor_derivative_parallel(
             horizontal_x, horizontal_y, base_point
         )
         return 3.0 * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
@@ -1006,15 +853,15 @@ class KendallShapeMetric(QuotientMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
+        tangent_vec : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector at `base_point` to transport.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Initial point of the geodesic to transport along.
-        direction : array-like, shape=[..., k_landmarks, m_ambient]
+        direction : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector ar `base_point`, initial velocity of the geodesic to
             transport  along.
             Optional, default: None.
-        end_point : array-like, shape=[..., k_landmarks, m_ambient]
+        end_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point to transport to. Unused if `tangent_vec_b` is given.
             Optional, default: None.
         n_steps : int
@@ -1027,7 +874,7 @@ class KendallShapeMetric(QuotientMetric):
 
         Returns
         -------
-        transported :  array-like, shape=[..., k_landmarks, m_ambient]
+        transported :  array-like, shape=[..., k_landmarks, ambient_dim]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
 
         References
@@ -1050,14 +897,12 @@ class KendallShapeMetric(QuotientMetric):
                     "Either an end_point or a tangent_vec_b must be given to define the"
                     " geodesic along which to transport."
                 )
-        horizontal_a = self.fiber_bundle.horizontal_projection(tangent_vec, base_point)
-        horizontal_b = self.fiber_bundle.horizontal_projection(direction, base_point)
+        horizontal_a = self._fiber_bundle.horizontal_projection(tangent_vec, base_point)
+        horizontal_b = self._fiber_bundle.horizontal_projection(direction, base_point)
 
         def force(state, time):
-            gamma_t = self.fiber_bundle.total_space.metric.exp(
-                time * horizontal_b, base_point
-            )
-            speed = self.fiber_bundle.total_space.metric.parallel_transport(
+            gamma_t = self._total_space.metric.exp(time * horizontal_b, base_point)
+            speed = self._total_space.metric.parallel_transport(
                 horizontal_b, base_point, time * horizontal_b
             )
             coef = self.inner_product(speed, state, gamma_t)
@@ -1072,3 +917,12 @@ class KendallShapeMetric(QuotientMetric):
 
         flow = integrate(force, horizontal_a, n_steps=n_steps, step=step)
         return flow[-1]
+
+
+register_quotient(
+    Space=PreShapeSpace,
+    Metric=PreShapeMetric,
+    GroupAction="rotations",
+    FiberBundle=PreShapeBundle,
+    QuotientMetric=KendallShapeMetric,
+)

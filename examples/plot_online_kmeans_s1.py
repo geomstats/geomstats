@@ -13,10 +13,6 @@ import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.online_kmeans import OnlineKMeans
 
-N_POINTS = 1000
-N_CENTERS = 5
-N_REPETITIONS = 20
-
 
 def main():
     """Run online K-means on the circle."""
@@ -25,7 +21,7 @@ def main():
     data = circle.random_uniform(n_samples=1000)
 
     n_clusters = 5
-    clustering = OnlineKMeans(metric=circle.metric, n_clusters=n_clusters)
+    clustering = OnlineKMeans(circle, n_clusters=n_clusters)
     clustering = clustering.fit(data)
 
     plt.figure(0)
@@ -43,7 +39,7 @@ def main():
 
 
 if __name__ == "__main__":
-    if os.environ["GEOMSTATS_BACKEND"] != "numpy":
+    if os.environ.get("GEOMSTATS_BACKEND", "numpy") != "numpy":
         logging.info(
             "Examples with visualizations are only implemented "
             "with numpy backend.\n"

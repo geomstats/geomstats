@@ -3,6 +3,18 @@
 import numpy as _np
 import scipy as _scipy
 import torch as _torch
+from torch.linalg import (
+    cholesky,
+    det,
+    eig,
+    eigh,
+    eigvalsh,
+    inv,
+    matrix_power,
+    qr,
+    solve,
+)
+from torch.linalg import matrix_exp as expm
 
 from .._backend_config import np_atol as atol
 from ..numpy import linalg as _gsnplinalg
@@ -46,15 +58,6 @@ class _Logm(_torch.autograd.Function):
         return _Logm._logm(backward_tensor).to(tensor.dtype)[..., :n, n:]
 
 
-cholesky = _torch.linalg.cholesky
-eig = _torch.linalg.eig
-eigh = _torch.linalg.eigh
-eigvalsh = _torch.linalg.eigvalsh
-expm = _torch.matrix_exp
-inv = _torch.inverse
-det = _torch.det
-solve = _torch.linalg.solve
-qr = _torch.linalg.qr
 logm = _Logm.apply
 
 
@@ -147,3 +150,13 @@ def fractional_matrix_power(A, t):
         out = _np.stack([_scipy.linalg.fractional_matrix_power(A_, t) for A_ in A])
 
     return _torch.tensor(out)
+
+
+def polar(*args, **kwargs):
+    """Polar decomposition of a matrix."""
+    func = _np.vectorize(
+        _scipy.linalg.polar, signature="(n,n)->(n,n),(n,n)", excluded=["side"]
+    )
+    unitary, hermitian = func = func(*args, **kwargs)
+
+    return _torch.from_numpy(unitary), _torch.from_numpy(hermitian)

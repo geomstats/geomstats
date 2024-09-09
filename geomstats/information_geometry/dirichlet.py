@@ -2,6 +2,7 @@
 
 Lead author: Alice Le Brigant.
 """
+
 import math
 
 import numpy as np
@@ -9,19 +10,21 @@ from scipy.optimize import minimize
 from scipy.stats import dirichlet
 
 import geomstats.backend as gs
-import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.information_geometry.base import InformationManifoldMixin
+from geomstats.information_geometry.base import (
+    InformationManifoldMixin,
+    ScipyMultivariateRandomVariable,
+)
 from geomstats.numerics.bvp import ScipySolveBVP
 from geomstats.numerics.geodesic import ExpODESolver, LogODESolver
 from geomstats.numerics.ivp import ScipySolveIVP
 from geomstats.vectorization import repeat_out
 
 
-class DirichletDistributions(InformationManifoldMixin, OpenSet):
+class DirichletDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
     """Class for the manifold of Dirichlet distributions.
 
     This is Dirichlet = :math:`(R_+^*)^dim`, the positive quadrant of the
@@ -35,8 +38,12 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
 
     def __init__(self, dim, equip=True):
         super().__init__(
-            dim=dim, embedding_space=Euclidean(dim=dim, equip=False), equip=equip
+            dim=dim,
+            support_shape=(dim,),
+            embedding_space=Euclidean(dim=dim, equip=False),
+            equip=equip,
         )
+        self._scp_rv = DirichletRandomVariable(self)
 
     @staticmethod
     def default_metric():
@@ -67,7 +74,7 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
         if not belongs:
             return gs.zeros(point.shape[:-1], dtype=bool)
 
-        return gs.all(point >= atol, axis=-1)
+        return gs.all(point >= -atol, axis=-1)
 
     def random_point(self, n_samples=1, bound=5.0):
         """Sample parameters of Dirichlet distributions.
@@ -129,24 +136,7 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
         samples : array-like, shape=[..., n_samples, dim]
             Sample from the Dirichlet distributions.
         """
-        geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=2)
-        samples = []
-        for param in point:
-            sample = gs.array(dirichlet.rvs(param, size=n_samples))
-            samples.append(
-                gs.hstack(
-                    (
-                        sample[:, :-1],
-                        gs.transpose(
-                            gs.to_ndarray(
-                                1 - gs.sum(sample[:, :-1], axis=-1), to_ndim=2
-                            )
-                        ),
-                    )
-                )
-            )
-        return samples[0] if len(point) == 1 else gs.stack(samples)
+        return self._scp_rv.rvs(point, n_samples)
 
     def point_to_pdf(self, point):
         """Compute pdf associated to point.
@@ -165,32 +155,7 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
             Probability density function of the Dirichlet distribution with
             parameters provided by point.
         """
-        geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=2)
-
-        def pdf(x):
-            """Generate parameterized function for normal pdf.
-
-            Parameters
-            ----------
-            x : array-like, shape=[n_points, dim]
-                Points of the simplex at which to compute the probability
-                density function.
-
-            Returns
-            -------
-            pdf_at_x : array-like, shape=[..., n_points]
-                Values of pdf at x for each value of the parameters provided
-                by point.
-            """
-            pdf_at_x = []
-            for param in point:
-                pdf_at_x.append(gs.array([dirichlet.pdf(pt, param) for pt in x]))
-            pdf_at_x = gs.squeeze(gs.stack(pdf_at_x, axis=0))
-
-            return pdf_at_x
-
-        return pdf
+        return lambda x: self._scp_rv.pdf(x, point=point)
 
 
 class DirichletMetric(RiemannianMetric):
@@ -200,9 +165,9 @@ class DirichletMetric(RiemannianMetric):
         super().__init__(space=space)
 
         self.log_solver = LogODESolver(
-            n_nodes=1000, integrator=ScipySolveBVP(max_nodes=1000)
+            space, n_nodes=1000, integrator=ScipySolveBVP(max_nodes=1000)
         )
-        self.exp_solver = ExpODESolver(integrator=ScipySolveIVP(method="LSODA"))
+        self.exp_solver = ExpODESolver(space, integrator=ScipySolveIVP(method="LSODA"))
 
     def metric_matrix(self, base_point):
         """Compute the inner-product matrix.
@@ -235,12 +200,6 @@ class DirichletMetric(RiemannianMetric):
 
         Compute the Christoffel symbols of the Fisher information metric.
 
-        References
-        ----------
-        .. [LPP2021] A. Le Brigant, S. C. Preston, S. Puechmorel. Fisher-Rao
-            geometry of Dirichlet Distributions. Differential Geometry
-            and its Applications, 74, 101702, 2021.
-
         Parameters
         ----------
         base_point : array-like, shape=[..., dim]
@@ -251,7 +210,13 @@ class DirichletMetric(RiemannianMetric):
         christoffels : array-like, shape=[..., dim, dim, dim]
             Christoffel symbols, with the contravariant index on
             the first dimension.
-            :math: 'christoffels[..., i, j, k] = Gamma^i_{jk}'
+            :math:`christoffels[..., i, j, k] = Gamma^i_{jk}`
+
+        References
+        ----------
+        .. [LPP2021] A. Le Brigant, S. C. Preston, S. Puechmorel. Fisher-Rao
+            geometry of Dirichlet Distributions. Differential Geometry
+            and its Applications, 74, 101702, 2021.
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         n_points = base_point.shape[0]
@@ -314,7 +279,7 @@ class DirichletMetric(RiemannianMetric):
         -------
         jac : array-like, shape=[..., dim, dim, dim, dim]
             Jacobian of the Christoffel symbols.
-            :math: 'jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l'
+            :math:`jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l`
         """
         dim = self._space.dim
         n_dim = base_point.ndim
@@ -339,9 +304,7 @@ class DirichletMetric(RiemannianMetric):
         jac_1 = term_1 * term_8 / term_9
         jac_1_mat = gs.squeeze(gs.tile(jac_1, (dim, dim, dim, 1, 1)))
         jac_2 = (
-            -term_6
-            / term_9**2
-            * gs.einsum("j...,i...->ji...", term_4 - term_3, term_1)
+            -term_6 / term_9**2 * gs.einsum("j...,i...->ji...", term_4 - term_3, term_1)
         )
         jac_2_mat = gs.squeeze(gs.tile(jac_2, (dim, dim, 1, 1, 1)))
         jac_3 = term_3 * term_6 / term_9
@@ -390,7 +353,7 @@ class DirichletMetric(RiemannianMetric):
             else gs.transpose(jac, [4, 3, 1, 0, 2])
         )
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
@@ -410,7 +373,7 @@ class DirichletMetric(RiemannianMetric):
             Injectivity radius.
         """
         radius = gs.array(math.inf)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)
 
     def _approx_geodesic_bvp(
         self,
@@ -560,3 +523,11 @@ class DirichletMetric(RiemannianMetric):
         _, dist, curve, velocity = cost_fun(opt_param)
 
         return dist, curve, velocity
+
+
+class DirichletRandomVariable(ScipyMultivariateRandomVariable):
+    """A Dirichlet random variable."""
+
+    def __init__(self, space):
+        pdf = lambda x, point: dirichlet.pdf(gs.transpose(x), point)
+        super().__init__(space, dirichlet.rvs, pdf)

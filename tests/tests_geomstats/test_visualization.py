@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
-import tests.conftest
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
@@ -17,11 +16,12 @@ from geomstats.geometry.special_orthogonal import (
     SpecialOrthogonal,
     _SpecialOrthogonalMatrices,
 )
+from geomstats.test.test_case import TestCase
 
 matplotlib.use("Agg")  # NOQA
 
 
-class TestVisualization(tests.conftest.TestCase):
+class TestVisualization(TestCase):
     def setup_method(self):
         self.n_samples = 10
         self.SO3_GROUP = SpecialOrthogonal(n=3, point_type="vector")
@@ -31,19 +31,18 @@ class TestVisualization(tests.conftest.TestCase):
         self.H2 = Hyperbolic(dim=2)
         self.H2_half_plane = PoincareHalfSpace(dim=2)
         self.M32 = Matrices(m=3, n=2)
-        self.S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)
+        self.S32 = PreShapeSpace(k_landmarks=3, ambient_dim=2)
         self.KS = visualization.KendallSphere()
         self.M33 = Matrices(m=3, n=3)
-        self.S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
+        self.S33 = PreShapeSpace(k_landmarks=3, ambient_dim=3)
         self.S33.equip_with_group_action("rotations")
-        self.S33.equip_with_quotient_structure()
+        self.S33.equip_with_quotient()
         self.KD = visualization.KendallDisk()
         self.spd = SPDMatrices(n=2)
 
         plt.figure()
 
-    @staticmethod
-    def test_tutorial_matplotlib():
+    def test_tutorial_matplotlib(self):
         visualization.tutorial_matplotlib()
 
     def test_plot_points_so3(self):
@@ -172,8 +171,7 @@ class TestVisualization(tests.conftest.TestCase):
         points = self.H2.random_point(self.n_samples)
         visualization.plot(points, space="H2_klein_disk")
 
-    @staticmethod
-    def test_plot_points_se2():
+    def test_plot_points_se2(self):
         points = SpecialEuclidean(n=2, point_type="vector").random_point(4)
         visu = visualization.SpecialEuclidean2(points, point_type="vector")
         ax = visu.set_ax()

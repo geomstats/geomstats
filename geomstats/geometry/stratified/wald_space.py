@@ -1,682 +1,239 @@
 r"""Classes for the Wald Space and elements therein of class Wald and helper classes.
 
-Class ``Split``.
-Essentially, a ``Split`` is a two-set partition of a subset of :math:`\{0,\dots,n-1\}`.
-This class is designed such that one part of both parts of the partition can be empty.
-Splits are corresponding uniquely to edges in a phylogenetic forest, where, if one cuts
-the edge in the forest, the resulting two-set partition of the labels of the respective
-component of the forest is the corresponding split.
-
-Class ``Structure``.
-A structure is a partition into non-empty sets of the set :math:`\{0,\dots,n-1\}`,
-together with a set of splits for each element of the partition, where every split is a
-two-set partition of the respective element.
-A structure basically describes a phylogenetic forest, where each set of splits gives
-the structure of the tree with the labels of the corresponding element of the partition.
-
-Class ``Wald``.
-A wald is essentially a phylogenetic forest with weights between zero and one on the
-edges. The forest structure is stored as a ``Structure`` and the edge weights are an
-array of length that is equal to the total number of splits in the structure. These
-elements are the points in Wald space and other phylogenetic forest spaces, like BHV
-space, although the partition is just the whole set of labels in this case.
-
-Class ``WaldSpace``.
-A topological space. Points in Wald space are instances of the class :class:`Wald`:
-phylogenetic forests with edge weights between 0 and 1.
-In particular, Wald space is a stratified space, each stratum is called grove.
-The highest dimensional groves correspond to fully resolved or binary trees.
-The topology is obtained from embedding wälder into the ambient space of strictly
-positive :math:`n\times n` symmetric matrices, implemented in the
-class :class:`spd.SPDMatrices`.
-
-
 Lead author: Jonas Lueg
-
 
 References
 ----------
-[Garba21]_  Garba, M. K., T. M. W. Nye, J. Lueg and S. F. Huckemann.
-            "Information geometry for phylogenetic trees"
-            Journal of Mathematical Biology, 82(3):19, February 2021a.
-            https://doi.org/10.1007/s00285-021-01553-x.
-[Lueg21]_   Lueg, J., M. K. Garba, T. M. W. Nye, S. F. Huckemann.
-            "Wald Space for Phylogenetic Trees."
-            Geometric Science of Information, Lecture Notes in Computer Science,
-            pages 710–717, Cham, 2021.
-            https://doi.org/10.1007/978-3-030-80209-7_76.
+.. [Garba21] Garba, M. K., T. M. W. Nye, J. Lueg and S. F. Huckemann.
+    "Information geometry for phylogenetic trees"
+    Journal of Mathematical Biology, 82(3):19, February 2021a.
+    https://doi.org/10.1007/s00285-021-01553-x.
+.. [Lueg21] Lueg, J., M. K. Garba, T. M. W. Nye, S. F. Huckemann.
+    "Wald Space for Phylogenetic Trees."
+    Geometric Science of Information, Lecture Notes in Computer Science,
+    pages 710–717, Cham, 2021.
+    https://doi.org/10.1007/978-3-030-80209-7_76.
 """
 
-import functools
-import itertools
+import random
+from abc import ABC
 
 import geomstats.backend as gs
-import geomstats.geometry.spd_matrices as spd
-from geomstats.geometry.stratified.point_set import Point, PointSet, _vectorize_point
+from geomstats.geometry.hermitian_matrices import powermh
+from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.geometry.stratified.point_set import (
+    Point,
+    PointBatch,
+    PointSet,
+    PointSetMetric,
+)
+from geomstats.geometry.stratified.trees import (
+    ForestTopology,
+    Split,
+    delete_splits,
+    generate_splits,
+)
+from geomstats.geometry.stratified.vectorization import (
+    _manipulate_output,
+    broadcast_lists,
+    vectorize_point,
+)
+from geomstats.numerics.interpolation import LinearInterpolator1D
+from geomstats.numerics.optimization import ScipyMinimize
 
 
-@functools.total_ordering
-class Split:
-    r"""Class for two-set partitions of sets.
+def _manipulate_input_with_array(arg, name):
+    if gs.is_array(arg):
+        ndim = 2 if name == "ambient_point" else 1
+        if arg.ndim > ndim:
+            return arg, False
+        return gs.expand_dims(arg, axis=0), True
 
-    Two-set partitions of a smaller subset of :math:`\{0,...,n-1\}` are also allowed,
-    where :math:`n` is a positive integer, which is not passed as an argument as it is
-    nowhere needed.
+    if not isinstance(arg, (list, tuple)):
+        return [arg], True
 
-    The parameters ``part1`` and ``part2`` are assigned to the attributes ``self.part1``
-    and ``self.part2`` in a unique sorted way: the one that contains the smallest
-    minimal value is assigned to ``self.part1`` for consistency.
-
-    Parameters
-    ----------
-    part1 : iterable
-        The first part of the split, an iterable that is a subset of
-        :math:`\{0,\dots,n-1\}`. It may be empty, but must have empty intersection with
-        ``part2``.
-    part2 : iterable
-        The second part of the split, an iterable that is a subset of
-        :math:`\{0,\dots,n-1\}`. It may be empty, but must have empty intersection with
-        ``part1``.
-    """
-
-    def __init__(self, part1, part2):
-        part1, part2 = set(sorted(list(part1))), set(sorted(list(part2)))
-        if part1 & part2:
-            raise ValueError(
-                f"A split consists of disjoint sets, those are not: {part1}, {part2}."
-            )
-        if part1 and part2:
-            self.part1, self.part2 = (
-                (part1, part2) if min(part1) < min(part2) else (part2, part1)
-            )
-        else:
-            self.part1 = part1 or part2
-            self.part2 = set()
-
-    def __bool__(self):
-        """Return True if and only if both parts are non-empty.
-
-        We use the boolean representation to indicate whether both parts of a split are
-        non-empty.
-
-        Returns
-        -------
-        boolean_of_split : bool
-            Returns the boolean representation of a split.
-        """
-        return bool(self.part1) and bool(self.part2)
-
-    def __eq__(self, other):
-        """Check for equal hashes of the two splits.
-
-        Parameters
-        ----------
-        other : Split
-            The other split.
-
-        Returns
-        -------
-        is_equal : bool
-            Return ``True`` if the splits are equal, else ``False``.
-        """
-        return hash(self) == hash(other)
-
-    def __hash__(self):
-        """Compute the hash of a split.
-
-        Note that this hash simply uses the hash function for tuples.
-
-        Returns
-        -------
-        hash_of_split : int
-            Return the hash of the split.
-        """
-        return hash((tuple(self.part1), tuple(self.part2)))
-
-    def __lt__(self, other):
-        """Check if the hash of this split is less than the hash of the other split.
-
-        Note that this partial ordering does not have a mathematical background, this is
-        introduced in order to have a unique ordering for each set of splits at hand.
-
-        Parameters
-        ----------
-        other : Split
-            The other split.
-
-        Returns
-        -------
-        is_strictly_less_than : bool
-            Return ``True`` if hash is less than hash of other, else ``False``.
-        """
-        return hash(self) < hash(other)
-
-    def __repr__(self):
-        """Return the string representation of the split.
-
-        This string representation requires that one can retrieve all necessary
-        information from the string.
-
-        Returns
-        -------
-        string_of_split : str
-            Return the string representation of the split.
-        """
-        return str((self.part1, self.part2))
-
-    def __str__(self):
-        """Return the fancy printable string representation of the split.
-
-        This string representation does NOT require that one can retrieve all necessary
-        information from the string, but this string representation is required to be
-        readable by a human.
-
-        Returns
-        -------
-        string_of_split : str
-            Return the fancy readable string representation of the split.
-        """
-        return f"{self.part1}|{self.part2}"
-
-    def is_compatible(self, other):
-        """Check whether this split is compatible with another split.
-
-        Two splits are compatible, if at least one intersection of the respective parts
-        of the splits is empty.
-
-        Parameters
-        ----------
-        other : Split
-            The other split.
-
-        Returns
-        -------
-        is_compatible_with : bool
-            Return ``True`` if the splits are compatible, else ``False``.
-        """
-        p1, p2 = self.part1, self.part2
-        o1, o2 = other.part1, other.part2
-        return sum([bool(s) for s in [p1 & o1, p1 & o2, p2 & o1, p2 & o2]]) < 4
-
-    def get_part_away_from(self, other):
-        """Return the part of this split that is directed away from other split.
-
-        Parameters
-        ----------
-        other : Split
-            The other split.
-
-        Returns
-        -------
-        part_that_does_not_point : iterable
-            Return the part of the split ``self`` that does not point toward
-            ``other``. See ``self.get_part_towards`` for further explanation.
-        """
-        if other.part_contains(self.part1):
-            return self.part1
-        return self.part2
-
-    def get_part_towards(self, other):
-        """Return the part of this split that is directed toward the other split.
-
-        Each split contains part1 and part2, the parts that the corresponding edge in
-        the graph splits the set of labels into. Thus, one can think of the split as an
-        edge, where part1 points in the direction of the part of the tree where the
-        labels of part1 are contained, and part2 points in the other direction.
-        So, part1 points in the direction of ``other``, if it corresponds to an
-        edge that is contained in the tree that part1 points to, else part2 points in
-        the direction of ``split``.
-
-        Parameters
-        ----------
-        other : Split
-            The other split.
-
-        Returns
-        -------
-        part_towards : iterable
-            Return the part of the split ``self`` that points toward ``other_split``.
-        """
-        if other.part_contains(self.part1):
-            return self.part2
-        return self.part1
-
-    def part_contains(self, subset: set):
-        """Determine if a subset is contained in either part of a split.
-
-        Parameters
-        ----------
-        subset : set
-            The subset containing labels.
-
-        Returns
-        -------
-        is_contained : bool
-            A boolean that is true if the subset is contained in ``self.part1`` or
-            ``self.part2``.
-        """
-        return subset.issubset(self.part1) or subset.issubset(self.part2)
-
-    def restrict_to(self, subset: set):
-        r"""Return the restriction of a split to a subset.
-
-        Parameters
-        ----------
-        subset : set
-            The subset that the split is restricted to.
-
-        Returns
-        -------
-        restr_split : Split
-            The restricted split, if the split is :math:`A\vert B`, then the split
-            restricted to the subset :math:`C` is :math:`A\cap C\vert B\cap C`.
-        """
-        return Split(
-            part1=self.part1 & subset,
-            part2=self.part2 & subset,
-        )
-
-    def separates(self, u, v):
-        """Determine whether the labels (or label sets) are separated by the split.
-
-        Parameters
-        ----------
-        u : list of int, int
-            Either an integer or a set of labels.
-        v : list of int, int
-            Either an integer or a set of labels.
-
-        Returns
-        -------
-        is_separated : bool
-            A boolean determining whether u and v are separated by the split (i.e. if
-             they are not in the same part).
-        """
-        u = {u} if isinstance(u, int) else set(u)
-        v = {v} if isinstance(v, int) else set(v)
-        b1 = u.issubset(self.part1) and v.issubset(self.part2)
-        b2 = v.issubset(self.part1) and u.issubset(self.part2)
-        return b1 or b2
+    return arg, False
 
 
-class Topology:
-    r"""The topology of a forest, using a split-based graph-structure representation.
+def _manipulate_output_wald(out, to_list):
+    return _manipulate_output(out, to_list, manipulate_output_iterable=WaldBatch)
+
+
+def make_splits(n_labels):
+    """Generate all possible splits of a collection.
 
     Parameters
     ----------
     n_labels : int
-        Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
-    partition : tuple
-        A tuple of tuples that is a partition of the set :math:`\{0,\dots,n-1\}`,
-        representing the label sets of each connected component of the forest topology.
-    split_sets : tuple
-        A tuple of tuples containing splits, where each set of splits contains only
-        splits of the respective label set in the partition, so their order
-        is related. The splits are the edges of the connected components of the forest,
-        respectively, and thus the union of all sets of splits yields all edges of the
-        forest topology.
+        Number of labels.
 
-    Attributes
-    ----------
-    where : dict
-        Give the index of a split in the flattened list of all splits.
-    sep : list of int
-        An increasing list of numbers between 0 and m, where m is the total number
-        of splits in ``self.split_sets``, starting with 0, where each number
-        indicates that a new connected component starts at that index.
-        Useful for example for unraveling the tuple of all splits into
-        ``self.split_sets``.
-    paths : list of dict
-        A list of dictionaries, each dictionary is for the respective connected
-        component of the forest, and the items of each dictionary are for each pair
-        of labels u, v, u < v in the respective component, a list of the splits on the
-        unique path between the labels u and v.
-    support : list of array-like
-        For each split, give an :math:`n\times n` dimensional matrix, where the
-        uv-th entry is ``True`` if the split separates the labels u and v, else
-        ``False``.
+    Returns
+    -------
+    split_iterator : Iterator[Split]
     """
+    if n_labels <= 1:
+        raise ValueError("`n_labels` must be greater than 1.")
+    if n_labels == 2:
+        yield Split(part1=[0], part2=[1])
+    else:
+        for split in make_splits(n_labels=n_labels - 1):
+            yield Split(part1=split.part1, part2=split.part2.union((n_labels - 1,)))
+            yield Split(part1=split.part1.union((n_labels - 1,)), part2=split.part2)
+        yield Split(part1=list(range(n_labels - 1)), part2=[n_labels - 1])
 
-    def __init__(self, n_labels, partition, split_sets):
-        """Return a topology with partition and sets of splits of components."""
-        self._check_init(n_labels, partition, split_sets)
 
-        self.n_labels = n_labels
-        partition = [tuple(sorted(x)) for x in partition]
-        seq = [part[0] for part in partition]
-        sort_key = sorted(range(len(seq)), key=seq.__getitem__)
-        self.partition = tuple([partition[key] for key in sort_key])
-        self.split_sets = tuple([tuple(sorted(split_sets[key])) for key in sort_key])
+def make_topologies(n_labels):
+    """Generate all possible sets of compatible splits of a collection.
 
-        self.where = {s: i for i, s in enumerate(self.flatten(self.split_sets))}
+    This only works well for `len(n_labels) < 8`.
 
-        lengths = [len(splits) for splits in self.split_sets]
-        self.sep = [0] + [sum(lengths[0:j]) for j in range(1, len(lengths) + 1)]
+    Parameters
+    ----------
+    n_labels : int
+        Number of labels.
 
-        self.paths = [
-            {
-                (u, v): [s for s in splits if s.separates(u, v)]
-                for u, v in itertools.combinations(part, r=2)
-            }
-            for part, splits in zip(self.partition, self.split_sets)
-        ]
-
-        _support = [
-            gs.zeros((self.n_labels, self.n_labels), dtype=bool)
-            for _ in self.flatten(self.split_sets)
-        ]
-        for path_dict in self.paths:
-            for (u, v), path in path_dict.items():
-                for split in path:
-                    _support[self.where[split]][u][v] = True
-                    _support[self.where[split]][v][u] = True
-        self.support = [gs.array(m) for m in self.flatten(_support)]
-        self._chart_gradient = None
-
-    def _check_init(self, n_labels, partition, split_sets):
-        if len(split_sets) != len(partition):
-            raise ValueError(
-                "Number of split sets is not equal to number of " "components."
-            )
-        if set.union(*[set(part) for part in partition]) != set(range(n_labels)):
-            raise ValueError("The partition is not a partition of the set (0,...,n-1).")
-        for _part, _splits in zip(partition, split_sets):
-            for _sp in _splits:
-                if (_sp.part1 | _sp.part2) != set(_part):
-                    raise ValueError(
-                        f"The split {_sp} is not a split of component {_part}."
-                    )
-
-    def __eq__(self, other):
-        """Check if ``self`` is equal to ``other``.
-
-        Parameters
-        ----------
-        other : Topology
-            The other topology.
-
-        Returns
-        -------
-        is_equal : bool
-            Return ``True`` if the topologies are equal, else ``False``.
-        """
-        equal_n = self.n_labels == other.n_labels
-        equal_partition = self.partition == other.partition
-        equal_split_sets = self.split_sets == other.split_sets
-        return equal_n and equal_partition and equal_split_sets
-
-    def __ge__(self, other):
-        """Check if ``self`` is greater than or equal to ``other``.
-
-        Parameters
-        ----------
-        other : Topology
-            The other topology.
-
-        Returns
-        -------
-        is_greater_than_or_equal : bool
-            Return ``True`` if ``self`` is greater or equal to ``other``, else
-            ``False``.
-        """
-        return other <= self
-
-    def __gt__(self, other):
-        """Check if ``self`` is strictly greater than ``other``.
-
-        Parameters
-        ----------
-        other : Topology
-            The other topology.
-
-        Returns
-        -------
-        is_greater_than : bool
-            Return ``True`` if this topology is greater than the other, else ``False``.
-        """
-        return other < self
-
-    def __hash__(self):
-        """Compute the hash of a topology.
-
-        Note that this hash simply uses the hash function for tuples.
-
-        Returns
-        -------
-        hash_of_topology : int
-            Return the hash of the topology.
-        """
-        return hash((self.n_labels, self.partition, self.split_sets))
-
-    def __le__(self, other):
-        """Check if ``self`` is less than or equal to ``other``.
-
-        This partial ordering is the one defined in [1] and to show if self <= other is
-        True, three things must be satisfied.
-        (i)     ``self.partition`` must be a refinement of ``other.partition`` in the
-                sense of partitions.
-        (ii)    The splits of each component in ``self`` must be contained in the
-                set of splits of ``other`` restricted to the component of ``self``.
-        (iii)   Whenever two components of ``self`` are contained in a component of
-                ``other``, there needs to exist a split in ``other`` separating those
-                two components.
-        If one of those three conditions are not fulfilled, this method returns False.
-
-        Parameters
-        ----------
-        other : Topology
-            The structure to which self is compared to.
-
-        Returns
-        -------
-        is_less_than_or_equal : bool
-            Return ``True`` if (i), (ii) and (iii) are satisfied, else ``False``.
-        """
-
-        class NotPartialOrder(Exception):
-            """Raise an exception when less equal is not true."""
-
-        x_parts = [set(x) for x in self.partition]
-        y_parts = [set(y) for y in other.partition]
-        # (i)
-        try:
-            cover = {
-                i: [j for j, y in enumerate(y_parts) if x.issubset(y)][0]
-                for i, x in enumerate(x_parts)
-            }
-        except IndexError:
-            return False
-        # (ii)
-        try:
-            for (i, j), x in zip(cover.items(), x_parts):
-                y_splits_restricted = {
-                    split_y.restrict_to(subset=x) for split_y in other.split_sets[j]
-                }
-                if not set(self.split_sets[i]).issubset(y_splits_restricted):
-                    raise NotPartialOrder()
-        except NotPartialOrder:
-            return False
-        # (iii)
-        try:
-            for j in range(len(y_parts)):
-                xs_in_y = [x for i, x in enumerate(x_parts) if cover[i] == j]
-                for x1, x2 in itertools.combinations(xs_in_y, r=2):
-                    sep_sp = [sp for sp in other.split_sets[j] if sp.separates(x1, x2)]
-                    if not sep_sp:
-                        raise NotPartialOrder()
-        except NotPartialOrder:
-            return False
-        return True
-
-    def __lt__(self, other):
-        """Check if ``self`` is less than ``other``.
-
-        Parameters
-        ----------
-        other : Topology
-            The other topology.
-
-        Returns
-        -------
-        is_less_than : bool
-            Return ``True`` if ``self`` less than ``other``, else ``False``.
-        """
-        return self <= other and self != other
-
-    def __repr__(self):
-        """Return the string representation of the topology.
-
-        This string representation requires that one can retrieve all necessary
-        information from the string.
-
-        Returns
-        -------
-        string_of_topology : str
-            Return the string representation of the topology.
-        """
-        return str((self.n_labels, self.partition, self.split_sets))
-
-    def __str__(self):
-        """Return the fancy printable string representation of the topology.
-
-        This string representation does NOT require that one can retrieve all necessary
-        information from the string, but this string representation is required to be
-        readable by a human.
-
-        Returns
-        -------
-        string_of_topology : str
-            Return the fancy readable string representation of the topology.
-        """
-        comps = [", ".join(str(sp) for sp in splits) for splits in self.split_sets]
-        return "(" + "; ".join(comps) + ")"
-
-    def corr(self, x):
-        """Compute the correlation matrix of the topology with edge weights ``weights``.
-
-        Parameters
-        ----------
-        x : array-like
-            Takes a vector of length 'number of total splits' of the structure.
-
-        Returns
-        -------
-        corr : array-like, shape=[n, n]
-            Returns the corresponding correlation matrix.
-        """
-        corr = gs.zeros((self.n_labels, self.n_labels))
-        for path_dict in self.paths:
-            for (u, v), path in path_dict.items():
-                corr[u][v] = gs.prod([1 - x[self.where[split]] for split in path])
-                corr[v][u] = corr[u][v]
-
-        corr = gs.array(corr)
-        return corr + gs.eye(corr.shape[0])
-
-    def corr_gradient(self, x):
-        """Compute the gradient of the correlation matrix, differentiated by weights.
-
-        Parameters
-        ----------
-        x : array-like
-            The vector weights at which the gradient is computed.
-
-        Returns
-        -------
-        gradient : array-like, shape=[n_splits, n, n]
-            The gradient of the correlation matrix, differentiated by weights.
-        """
-        x_list = [[y if i != k else 0 for i, y in enumerate(x)] for k in range(len(x))]
-        gradient = gs.array(
-            [-supp * self.corr(x) for supp, x in zip(self.support, x_list)]
+    Returns
+    -------
+    topology_iterator : Iterator[ForestTopology]
+    """
+    if n_labels <= 1:
+        raise ValueError("The collection must have 2 elements or more.")
+    if n_labels in (2, 3):
+        yield ForestTopology(
+            partition=(tuple(range(n_labels)),),
+            split_sets=(list(make_splits(n_labels)),),
         )
-        return gradient
+    else:
+        pendant_split = Split(part1=[n_labels - 1], part2=list(range(n_labels - 1)))
+        for st in make_topologies(n_labels - 1):
+            for s in st.split_sets[0]:
+                new_split_set = [pendant_split]
+                a, b = set(s.part1), set(s.part2)
+                for t in st.split_sets[0]:
+                    _, d = set(t.part1), set(t.part2)
+                    if t != s:
+                        if a.issubset(d) or b.issubset(d):
+                            new_split_set.append(
+                                Split(
+                                    part1=t.part1, part2=t.part2.union((n_labels - 1,))
+                                )
+                            )
+                        else:
+                            new_split_set.append(
+                                Split(
+                                    part1=t.part2, part2=t.part1.union((n_labels - 1,))
+                                )
+                            )
+                    else:
+                        new_split_set.append(
+                            Split(part1=s.part1, part2=s.part2.union((n_labels - 1,)))
+                        )
+                        new_split_set.append(
+                            Split(part1=s.part2, part2=s.part1.union((n_labels - 1,)))
+                        )
+                yield ForestTopology(
+                    partition=(tuple(range(n_labels)),),
+                    split_sets=(new_split_set,),
+                )
 
-    def unflatten(self, x):
-        """Transform list into list of lists according to separators, ``self.sep``.
 
-        The separators are a list of integers, increasing. Then, all elements between to
-        indices in separators will be put into a list, and together, all lists give a
-        nested list.
+def _generate_partition(n_labels, p_new):
+    r"""Generate a random partition of :math:`\{0,\dots,n-1\}`.
 
-        Parameters
-        ----------
-        x : iterable
-            The flat list that will be nested.
+    This algorithm works as follows: Start with a single set containing zero,
+    then successively add the labels from 1 to n-1 to the partition in the
+    following manner: for each label u, with probability `probability`, add the
+    label u to a random existing set of the partition, else add a new singleton
+    set {u} to the partition (i.e. with probability 1 - `probability`).
 
-        Returns
-        -------
-        x_nested : list[list]
-            The nested list of lists.
-        """
-        return [x[i:j] for i, j in zip(self.sep[:-1], self.sep[1:])]
+    Parameters
+    ----------
+    p_new : float
+        A float between 0 and 1, the probability that no new component is added,
+        and 1 - probability that a new component is added.
 
-    @staticmethod
-    def flatten(x):
-        """Flatten a list of lists into a single list by concatenation.
+    Returns
+    -------
+    partition : list[list[int]]
+        A partition of the set :math:`\{0,\dots,n-1\}` into non-empty sets.
+    """
+    _partition = [[0]]
+    for u in range(1, n_labels):
+        if gs.random.rand(1) < p_new:
+            index = random.randint(0, len(_partition) - 1)
+            _partition[index].append(u)
+        else:
+            _partition.append([u])
+    return _partition
 
-        Parameters
-        ----------
-        x : nested list
-            The nested list to flatten.
 
-        Returns
-        -------
-        x_flat : list, tuple
-            The flatted list.
-        """
-        return [y for z in x for y in z]
+def generate_random_wald(n_labels, p_keep, p_new, btol=1e-8, check=True):
+    """Generate a random instance of class ``Wald``.
+
+    Parameters
+    ----------
+    n_labels : int
+        The number of labels the wald is generated with respect to.
+    p_keep : float
+        The probability will be inserted into the generation of a partition as
+        well as for the generation of a split set for the topology of the wald.
+    p_new : float
+        A float between 0 and 1, the probability that no new component is added,
+        and probability of 1 - p_new_ that a new component is added.
+    btol: float
+        Tolerance for the boundary of the coordinates in each grove. Defaults to
+        1e-08.
+    check : bool
+        If True, checks if splits still separate all labels. In this case, the split
+        will not be deleted. If False, any split can be randomly deleted.
+
+    Returns
+    -------
+    random_wald : Wald
+        The randomly generated wald.
+    """
+    partition = _generate_partition(n_labels=n_labels, p_new=p_new)
+    split_sets = [generate_splits(labels=_part) for _part in partition]
+
+    split_sets = [
+        delete_splits(splits=splits, labels=part, p_keep=p_keep, check=check)
+        for part, splits in zip(partition, split_sets)
+    ]
+
+    top = ForestTopology(partition=partition, split_sets=split_sets)
+    x = gs.random.uniform(size=(top.n_splits,), low=0, high=1)
+    x = gs.minimum(gs.maximum(btol, x), 1 - btol)
+    return Wald(topology=top, weights=x)
 
 
 class Wald(Point):
     r"""A class for wälder, that are phylogenetic forests, elements of the Wald Space.
 
+    A wald is essentially a phylogenetic forest with weights between zero and one on
+    the edges. The forest structure is stored as a ``ForestTopology`` and the edge
+    weights are an array of length that is equal to the total number of splits in the
+    structure. These elements are the points in Wald space and other phylogenetic forest
+    spaces, like BHV space, although the partition is just the whole set of labels in
+    this case.
+
     Parameters
     ----------
-    topology : Topology
+    topology : ForestTopology
         The structure of the forest.
-    weights : array-like
+    weights : array-like, shape=[n_splits]
         The edge weights, array of floats between 0 and 1, with m entries, where m is
         the total number of splits/edges in the structure ``top``.
+    corr : array-like, shape=[n_labels, n_labels]
+        Correlation matrix of the topology with edge weights.
     """
 
-    def __init__(self, topology: Topology, weights):
+    def __init__(self, topology, weights):
         super().__init__()
         self.topology = topology
         self.weights = weights
+
         self.corr = self.topology.corr(weights)
-
-    @property
-    def n_labels(self):
-        """Get number of labels."""
-        return self.topology.n_labels
-
-    def __eq__(self, other):
-        """Check for equal hashes of the two wälder.
-
-        Parameters
-        ----------
-        other : Wald
-            The other wald.
-
-        Returns
-        -------
-        is_equal : bool
-            Return ``True`` if the wälder are equal, else ``False``.
-        """
-        return hash(self) == hash(other)
-
-    def __hash__(self):
-        """Compute the hash of the wald.
-
-        Note that this hash simply uses the hash function for tuples.
-
-        Returns
-        -------
-        hash_of_wald : int
-            Return the hash of the wald.
-        """
-        return hash((self.topology, tuple(self.weights)))
 
     def __repr__(self):
         """Return the string representation of the wald.
@@ -705,199 +262,85 @@ class Wald(Point):
         """
         return f"({str(self.topology)};{str(self.weights)})"
 
-    def to_array(self):
-        """Turn the wald into a numpy array, namely its correlation matrix.
-
-        Returns
-        -------
-        array_of_wald : array-like, shape=[n, n]
-            The correlation matrix corresponding to the wald.
-        """
-        return self.corr
-
-    @staticmethod
-    def _check_if_separated(labels, splits):
-        """Check for each pair of labels if exists split that separates them.
+    def _equal_single(self, point, atol=gs.atol):
+        """Check equality against another point.
 
         Parameters
         ----------
-        labels : list[int]
-            A list of integers, the set of labels that we generate splits for.
-        splits : list[Split]
-            A list of splits of the set of labels.
+        point : Wald
+            Point to compare against point.
+        atol : float
 
         Returns
         -------
-        are_separated : bool
-            True if the labels are pair-wise separated by a split else False.
+        is_equal : bool
         """
-        return gs.all(
-            [
-                gs.any([sp.separates(u, v) for sp in splits])
-                for u, v in itertools.combinations(labels, 2)
-            ]
-        )
+        if self.topology != point.topology:
+            return False
 
-    @staticmethod
-    def _delete_splits(splits, labels, p_keep, check=True):
-        """Delete splits randomly from a set of splits.
+        return gs.all(gs.abs(self.weights - point.weights) < atol)
 
-        We require the splits to satisfy the check for if all pair-wise labels are
-        separated. In this way, before deleting a split, this condition is checked
-        to make sure it is not violated.
+    @vectorize_point((1, "point"))
+    def equal(self, point, atol=gs.atol):
+        """Check equality against another point.
 
         Parameters
         ----------
-        splits : list[Split]
-            A list of splits of the set of labels.
-        labels : list[int]
-            A list of integers, the set of labels that we generate splits for.
-        p_keep : float
-            A float between 0 and 1 determining the probability with which a split
-            is kept and not deleted.
-        check : bool
-            If True, checks if splits still separate all labels. In this case, the split
-            will not be deleted. If False, any split can be randomly deleted.
+        point : Wald or WaldBatch
+            Point to compare against point.
+        atol : float
 
         Returns
         -------
-        left_over_splits : list[Split]
-            The list of splits that are not deleted.
+        is_equal : array-like, shape=[...]
         """
-        if p_keep == 1:
-            return splits
-        for i in reversed(range(len(splits))):
-            if gs.random.rand(1) > p_keep:
-                splits_cp = splits.copy()
-                splits_cp.pop(i)
-                if not check:
-                    splits = splits_cp
-                elif Wald._check_if_separated(splits=splits_cp, labels=labels):
-                    splits = splits_cp
-        return splits
+        return gs.array([self._equal_single(point_, atol) for point_ in point])
 
-    @staticmethod
-    def _generate_partition(n_labels, p_new):
-        r"""Generate a random partition of :math:`\{0,\dots,n-1\}`.
 
-        This algorithm works as follows: Start with a single set containing zero,
-        then successively add the labels from 1 to n-1 to the partition in the
-        following manner: for each label u, with probability `probability`, add the
-        label u to a random existing set of the partition, else add a new singleton
-        set {u} to the partition (i.e. with probability 1 - `probability`).
+class WaldBatch(PointBatch):
+    """Wald batch."""
 
-        Parameters
-        ----------
-        p_new : float
-            A float between 0 and 1, the probability that no new component is added,
-            and 1 - probability that a new component is added.
+    @property
+    def topology(self):
+        """Forest topology.
 
         Returns
         -------
-        partition : list[list[int]]
-            A partition of the set :math:`\{0,\dots,n-1\}` into non-empty sets.
+        topology : list[ForestTopology]
         """
-        _partition = [[0]]
-        for u in range(1, n_labels):
-            if gs.random.rand(1) < p_new:
-                index = int(gs.random.randint(0, len(_partition), (1,)))
-                _partition[index].append(u)
-            else:
-                _partition.append([u])
-        return _partition
+        return [point.topology for point in self]
 
-    @staticmethod
-    def _generate_splits(labels):
-        """Generate random maximal set of compatible splits of set ``labels``.
-
-        This method works inductively on the number of elements in labels.
-        Start with a split of two randomly chosen labels. Then, successively choose
-        a label from the labels and add this as a leaf with a split to the existing
-        tree by attaching it to a random split, thereby dividing this split into two
-        splits and one has to update all the other splits accordingly.
-
-        Parameters
-        ----------
-        labels : list[int]
-            A list of integers, the set of labels that we generate splits for.
+    @property
+    def weights(self):
+        """Edge weights.
 
         Returns
         -------
-        splits : list[Split]
-            A list of splits of the set of labels, maximal number of splits.
+        weights : array-like, shape=[n_points, n_splits]
         """
-        if len(labels) <= 1:
-            return []
-        unused_labels = labels.copy()
-        random_index = int(gs.random.randint(0, len(unused_labels), (1,)))
-        u = unused_labels.pop(random_index)
-        random_index = int(gs.random.randint(0, len(unused_labels), (1,)))
-        v = unused_labels.pop(random_index)
-        used_labels = [u, v]
-        splits = [Split(part1={u}, part2={v})]
-        while unused_labels:
-            random_index = int(gs.random.randint(0, len(unused_labels), (1,)))
-            u = unused_labels.pop(random_index)
-            updated_splits = [Split(part1={u}, part2=used_labels)]
-            random_index = int(gs.random.randint(0, len(splits), (1,)))
-            divided_split = splits.pop(random_index)
-            updated_splits.append(
-                Split(part1=divided_split.part1 | {u}, part2=divided_split.part2)
-            )
-            updated_splits.append(
-                Split(part1=divided_split.part1, part2=divided_split.part2 | {u})
-            )
-            for split in splits:
-                updated_splits.append(
-                    Split(
-                        part1=split.get_part_away_from(divided_split),
-                        part2=split.get_part_towards(divided_split) | {u},
-                    )
-                )
-            used_labels.append(u)
-            splits = updated_splits
-        return splits
+        return gs.stack([point.weights for point in self])
 
-    @staticmethod
-    def generate_wald(n_labels, p_keep, p_new, btol=10**-8, check=True):
-        """Generate a random instance of class ``Wald``.
-
-        Parameters
-        ----------
-        n_labels : int
-            The number of labels the wald is generated with respect to.
-        p_keep : float
-            The probability will be inserted into the generation of a partition as
-            well as for the generation of a split set for the topology of the wald.
-        p_new : float
-            A float between 0 and 1, the probability that no new component is added,
-            and probability of 1 - p_new_ that a new component is added.
-        btol: float
-            Tolerance for the boundary of the coordinates in each grove. Defaults to
-            1e-08.
-        check : bool
-            If True, checks if splits still separate all labels. In this case, the split
-            will not be deleted. If False, any split can be randomly deleted.
+    @property
+    def corr(self):
+        """Correlation matrix of the topology with edge weights.
 
         Returns
         -------
-        random_wald : Wald
-            The randomly generated wald.
+        corr : array-like, shape=[n_points, n_nodes, n_nodes]
         """
-        partition = Wald._generate_partition(n_labels=n_labels, p_new=p_new)
-        split_sets = [Wald._generate_splits(labels=_part) for _part in partition]
-        split_sets = [
-            Wald._delete_splits(splits=splits, labels=part, p_keep=p_keep, check=check)
-            for part, splits in zip(partition, split_sets)
-        ]
-        top = Topology(n_labels=n_labels, partition=partition, split_sets=split_sets)
-        x = gs.random.uniform(size=(len(top.flatten(split_sets)),), low=0, high=1)
-        x = gs.minimum(gs.maximum(btol, x), 1 - btol)
-        return Wald(topology=top, weights=x)
+        return gs.stack([point.corr for point in self])
 
 
 class WaldSpace(PointSet):
-    """Class for the Wald space, a metric space for phylogenetic forests.
+    r"""Class for the Wald space, a metric space for phylogenetic forests.
+
+    A topological space. Points in Wald space are instances of the class :class:`Wald`:
+    phylogenetic forests with edge weights between 0 and 1.
+    In particular, Wald space is a stratified space, each stratum is called grove.
+    The highest dimensional groves correspond to fully resolved or binary trees.
+    The topology is obtained from embedding wälder into the ambient space of strictly
+    positive :math:`n\times n` symmetric matrices, implemented in the
+    class :class:`spd.SPDMatrices`.
 
     Parameters
     ----------
@@ -907,18 +350,50 @@ class WaldSpace(PointSet):
 
     Attributes
     ----------
-    ambient :
+    ambient_space : Manifold
         The ambient space, the positive definite n_labels x n_labels matrices that the
         WaldSpace is embedded into.
     """
 
-    def __init__(self, n_labels):
-        super().__init__(equip=False)
+    def __init__(self, n_labels, ambient_space=None, equip=True):
+        super().__init__(equip)
         self.n_labels = n_labels
-        self.ambient = spd.SPDMatrices(n=self.n_labels)
 
-    @_vectorize_point((1, "point"))
-    def belongs(self, point):
+        if ambient_space is None:
+            ambient_space = SPDMatrices(n=self.n_labels)
+        self.ambient_space = ambient_space
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return WaldSpaceMetric
+
+    def _belongs_single(self, point, atol=gs.atol):
+        """Check if a point belongs to Tree space.
+
+        Parameters
+        ----------
+        point : Wald
+            The point to be checked.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        belongs : bool
+            Boolean denoting if point belongs to wald space.
+        """
+        if not self.ambient_space.belongs(self.lift(point)):
+            return False
+
+        if gs.all(point.weights > 0) and gs.all(point.weights < 1):
+            return True
+
+        return False
+
+    @vectorize_point((1, "point"))
+    def belongs(self, point, atol=gs.atol):
         """Check if a point `wald` belongs to Wald space.
 
         From FUTURE PUBLICATION we know that the corresponding matrix of a wald is
@@ -927,24 +402,20 @@ class WaldSpace(PointSet):
 
         Parameters
         ----------
-        point : Wald or list of Wald
+        point : Wald or WaldBatch
             The point to be checked.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
 
         Returns
         -------
-        belongs : bool
+        belongs : array-like, shape=[...]
             Boolean denoting if `point` belongs to Wald space.
         """
-        is_spd = [
-            self.ambient.belongs(single_point.to_array()) for single_point in point
-        ]
-        is_between_0_1 = [
-            gs.all(w.weights > 0) and gs.all(w.weights < 1) for w in point
-        ]
-        results = [is1 and is2 for is1, is2 in zip(is_spd, is_between_0_1)]
-        return results
+        return gs.array([self._belongs_single(point_, atol) for point_ in point])
 
-    def random_point(self, n_samples=1, p_tree=0.9, p_keep=0.9, btol=1e-08):
+    def random_point(self, n_samples=1, p_tree=0.9, p_keep=0.9, btol=1e-8):
         """Sample a random point in Wald space.
 
         Parameters
@@ -967,29 +438,597 @@ class WaldSpace(PointSet):
 
         Returns
         -------
-        samples : Wald or list of Wald, shape=[n_samples]
+        samples : Wald or WaldBatch
             Points sampled in Wald space.
         """
         p_new = p_tree ** (1 / (self.n_labels - 1))
-        sample = [
-            Wald.generate_wald(self.n_labels, p_keep, p_new, btol, check=True)
+        forests = [
+            generate_random_wald(self.n_labels, p_keep, p_new, btol, check=True)
             for _ in range(n_samples)
         ]
-        return sample
 
-    @_vectorize_point((1, "point"))
-    def set_to_array(self, points):
-        """Convert a set of points into an array.
+        if n_samples == 1:
+            return forests[0]
+
+        return WaldBatch(forests)
+
+    def random_grove_point(self, topology, n_samples=1):
+        """Sample a random point in a given grove of wald spcae.
 
         Parameters
         ----------
-        points : list of Wald, shape=[...]
-            Number of samples of wälder to turn into an array.
+        topology : ForestTopology
+        n_samples : int
+            Number of samples. Defaults to 1.
 
         Returns
         -------
-        points_array : array-like, shape=[...]
-            Array of the wälder that are turned into arrays.
+        samples : Wald or WaldBatch
+            Points sampled in Wald space.
         """
-        results = gs.array([wald.to_array() for wald in points])
-        return results
+        n_splits = topology.n_splits
+        weights = gs.random.uniform(size=(n_samples, n_splits))
+
+        forests = [Wald(topology, weights_) for weights_ in weights]
+
+        if n_samples == 1:
+            return forests[0]
+
+        return WaldBatch(forests)
+
+    def lift(self, point):
+        """Lift a point to the ambient space.
+
+        Parameters
+        ----------
+        point : Wald or WaldBatch
+            The point to be lifted.
+
+        Returns
+        -------
+        lifted_point : array-like, shape=[..., n_labels, n_labels]
+            Point in the ambient space.
+        """
+        return point.corr
+
+
+class WaldSpaceMetric(PointSetMetric):
+    """Wald space metric.
+
+    Parameters
+    ----------
+    space : WaldSpace
+        Set to equip with metric.
+    projection_solver : ProjectionSolver
+        Numerical solver to solve projection problem.
+    geodesic_solver : GeodesicSolver
+        Numerical solver to solve geodesic problem.
+    """
+
+    def __init__(self, space, projection_solver=None, geodesic_solver=None):
+        super().__init__(space)
+
+        if projection_solver is None:
+            projection_solver = LocalProjectionSolver(space)
+
+        if geodesic_solver is None:
+            geodesic_solver = SuccessiveProjectionGeodesicSolver(space)
+
+        self.projection_solver = projection_solver
+        self.geodesic_solver = geodesic_solver
+
+    def dist(self, point_a, point_b):
+        """Distance between two points in the WaldSpace.
+
+        Parameters
+        ----------
+        point_a: Wald or WaldBatch
+            Point in the WaldSpace.
+        point_b: Wald or WaldBatch
+            Point in the WaldSpace.
+
+        Returns
+        -------
+        distance : array-like, shape=[...]
+            Distance.
+        """
+        discrete_path = self.discrete_geodesic(point_a, point_b)
+        is_list = not isinstance(discrete_path, WaldBatch)
+        if not is_list:
+            discrete_path = [discrete_path]
+
+        dists = [
+            gs.sum(
+                self._space.ambient_space.metric.dist(
+                    discrete_path_.corr[1:], discrete_path_.corr[:-1]
+                ),
+                axis=-1,
+            )
+            for discrete_path_ in discrete_path
+        ]
+
+        if is_list:
+            return gs.stack(dists)
+
+        return dists[0]
+
+    def geodesic(self, initial_point, end_point):
+        """Compute the geodesic in the WaldSpace.
+
+        Parameters
+        ----------
+        initial_point: Wald or WaldBatch
+            Point in the WaldSpace.
+        end_point: Wald or WaldBatch
+            Point in the WaldSpace.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve.
+        """
+        return self.geodesic_solver.geodesic(initial_point, end_point)
+
+    def discrete_geodesic(self, initial_point, end_point):
+        """Compute a discrete geodesic in the WaldSpace.
+
+        Parameters
+        ----------
+        initial_point: Wald or WaldBatch
+            Point in the WaldSpace.
+        end_point: Wald or WaldBatch
+            Point in the WaldSpace.
+
+        Returns
+        -------
+        geod_points : WaldBatch or list[WaldBatch]
+            Time parameterized geodesic curve.
+        """
+        return self.geodesic_solver.discrete_geodesic(initial_point, end_point)
+
+    def projection(self, ambient_point, topology, initial_weights=None):
+        """Projects a point into Wald space.
+
+        Parameters
+        ----------
+        ambient_point : array-like, shape=[..., n_nodes, n_nodes]
+            Ambient point to project.
+        topology : ForestTopology or list[ForestTopology]
+            Stratum topology.
+        initial_weights : array-like, shape=[..., n_splits]
+            Initial guess for weights.
+        """
+        return self.projection_solver.projection(
+            ambient_point, topology, initial_weights=initial_weights
+        )
+
+
+def _squared_dist_and_grad_affine(space, topology, ambient_point):
+    """Squared distance and gradient wrt weights.
+
+    See section 5.1 of [Garba2021]_.
+
+    Parameters
+    ----------
+    space : WaldSpace
+    topology : ForestTopology
+    ambient_point : array-like, shape=[n_nodes, n_nodes]
+        Point wrt measure distance.
+
+    Returns
+    -------
+    value_and_grad : callable
+        A callable that takes weights and outputs value and grad.
+    """
+    sqrt_ambient_point, inv_sqrt_ambient_point = powermh(
+        ambient_point, [1.0 / 2, -1.0 / 2]
+    )
+
+    def _value_and_grad(weights):
+        corr = topology.corr(weights)
+        inv_corr = gs.linalg.inv(corr)
+        grad = topology.corr_gradient(weights)
+
+        target = space.ambient_space.metric.squared_dist(corr, ambient_point)
+
+        target_grad = 2 * gs.trace(
+            Matrices.mul(
+                gs.linalg.logm(
+                    Matrices.mul(inv_sqrt_ambient_point, corr, inv_sqrt_ambient_point)
+                ),
+                sqrt_ambient_point,
+                inv_corr,
+                grad,
+                inv_sqrt_ambient_point,
+            )
+        )
+
+        return target, target_grad
+
+    return _value_and_grad
+
+
+def _squared_dist_and_grad_euclidean(space, topology, ambient_point):
+    """Squared distance and gradient wrt weights.
+
+    Parameters
+    ----------
+    space : WaldSpace
+    topology : ForestTopology
+    ambient_point : array-like, shape=[n_nodes, n_nodes]
+        Point wrt measure distance.
+
+    Returns
+    -------
+    value_and_grad : callable
+        A callable that takes weights and outputs value and grad.
+    """
+
+    def _value_and_grad(weights):
+        corr = topology.corr(weights)
+        grad = topology.corr_gradient(weights)
+
+        target = space.ambient_space.metric.squared_dist(corr, ambient_point)
+        target_grad = 2 * gs.sum((corr - ambient_point) * grad, axis=(-2, -1))
+        return target, target_grad
+
+    return _value_and_grad
+
+
+def _squared_dist_and_grad_autodiff(space, topology, ambient_point):
+    """Squared distance and gradient wrt weights.
+
+    Parameters
+    ----------
+    space : WaldSpace
+    topology : ForestTopology
+    ambient_point : array-like, shape=[n_nodes, n_nodes]
+        Point wrt measure distance.
+
+    Returns
+    -------
+    value_and_grad : callable
+        A callable that takes weights and outputs value and grad.
+    """
+
+    def _value(weights):
+        corr = topology.corr(weights)
+        return space.ambient_space.metric.squared_dist(corr, ambient_point)
+
+    return gs.autodiff.value_and_grad(_value)
+
+
+_AMBIENT_METRIC_TO_SQUARED_DIST_GRAD = {
+    "SPDAffineMetric": _squared_dist_and_grad_affine,
+    "SPDEuclideanMetric": _squared_dist_and_grad_euclidean,
+}
+
+
+class LocalProjectionSolver:
+    """Local projection solver."""
+
+    def __init__(self, space, btol=1e-10):
+        self._space = space
+        self.btol = btol
+        self.optimizer = ScipyMinimize(
+            method="L-BFGS-B",
+            tol=gs.atol,
+        )
+
+    def _get_bounds(self, n_splits):
+        return [(self.btol, 1 - self.btol)] * n_splits
+
+    def _projection_single(self, ambient_point, topology, initial_weights=None):
+        """Project ambient point into wald space.
+
+        Parameters
+        ----------
+        ambient_point : array-like, shape=[n_nodes, n_nodes]
+            Ambient point to project.
+        topology : ForestTopology
+            Stratum topology.
+        initial_weights : array-like, shape=[n_splits]
+            Initial guess for weights.
+        """
+        if len(topology.partition) == topology.n_labels:
+            return Wald(topology=topology, weights=gs.ones(self.n_labels))
+
+        value_and_grad = _AMBIENT_METRIC_TO_SQUARED_DIST_GRAD.get(
+            self._space.ambient_space.metric.__class__.__name__,
+            _squared_dist_and_grad_autodiff,
+        )(
+            space=self._space,
+            ambient_point=ambient_point,
+            topology=topology,
+        )
+
+        n_splits = topology.n_splits
+
+        initial_weights = (
+            gs.ones(n_splits) * 0.5 if initial_weights is None else initial_weights
+        )
+
+        self.optimizer.bounds = self._get_bounds(n_splits)
+        res = self.optimizer.minimize(value_and_grad, initial_weights, fun_jac=True)
+
+        if res.status != 0:
+            raise ValueError("Projection failed!")
+
+        weights = gs.array(
+            [
+                _x if self.btol < _x < 1 - self.btol else 0 if _x <= self.btol else 1
+                for _x in res.x
+            ]
+        )
+
+        return Wald(topology=topology, weights=weights)
+
+    @vectorize_point(
+        (1, "ambient_point"),
+        (2, "topology"),
+        (3, "initial_weights"),
+        manipulate_input=_manipulate_input_with_array,
+        manipulate_output=_manipulate_output_wald,
+    )
+    def projection(self, ambient_point, topology, initial_weights=None):
+        """Project ambient point into wald space.
+
+        Parameters
+        ----------
+        ambient_point : array-like, shape=[..., n_nodes, n_nodes]
+            Ambient point to project.
+        topology : ForestTopology or list[ForestTopology]
+            Stratum topology.
+        initial_weights : array-like, shape=[..., n_splits]
+            Initial guess for weights.
+        """
+        ambient_point, topology, initial_weights = broadcast_lists(
+            ambient_point, topology, initial_weights
+        )
+        return [
+            self._projection_single(ambient_point_, topology_, initial_weights_)
+            for ambient_point_, topology_, initial_weights_ in zip(
+                ambient_point, topology, initial_weights
+            )
+        ]
+
+
+class BasicWaldGeodesicSolver(ABC):
+    """Abstract class for wald geodesic solver.
+
+    Parameters
+    ----------
+    space : WaldSpace
+    """
+
+    def __init__(self, space):
+        self._space = space
+
+    @vectorize_point(
+        (1, "initial_point"),
+        (2, "end_point"),
+        manipulate_output=lambda out, to_list: _manipulate_output(
+            out, to_list, manipulate_output_iterable=lambda x: x
+        ),
+    )
+    def discrete_geodesic(self, initial_point, end_point):
+        """Compute a discrete geodesic in the WaldSpace.
+
+        Parameters
+        ----------
+        initial_point: Wald or WaldBatch
+            Point in the WaldSpace.
+        initial_point: Wald or WaldBatch
+            Point in the WaldSpace.
+
+        Returns
+        -------
+        geod_points : WaldBatch or list[WaldBatch]
+            Time parameterized geodesic curve.
+        """
+        initial_point, end_point = broadcast_lists(initial_point, end_point)
+        return [
+            self._discrete_geodesic_single(
+                initial_point_,
+                end_point_,
+            )
+            for initial_point_, end_point_ in zip(initial_point, end_point)
+        ]
+
+    def geodesic(self, initial_point, end_point):
+        """Compute the geodesic in the WaldSpace.
+
+        Parameters
+        ----------
+        initial_point: Wald or WaldBatch
+            Point in the WaldSpace.
+        initial_point: Wald or WaldBatch
+            Point in the WaldSpace.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve.
+        """
+
+        def _vec(t, fncs):
+            if len(fncs) == 1:
+                return fncs[0](t)
+
+            return [fnc(t) for fnc in fncs]
+
+        discrete_path = self.discrete_geodesic(initial_point, end_point)
+
+        if isinstance(discrete_path, WaldBatch):
+            return DiscreteWaldPath(self._space, discrete_path)
+
+        return lambda t: _vec(
+            t,
+            fncs=[
+                DiscreteWaldPath(self._space, discrete_path_)
+                for discrete_path_ in discrete_path
+            ],
+        )
+
+
+class NaiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
+    """Naive geodesic projection solver.
+
+    Implementation of algorithm 1 from [Lueg21]_.
+    """
+
+    def __init__(self, space, n_grid=10):
+        super().__init__(space)
+        self.n_grid = n_grid
+
+    def _discrete_geodesic_single(self, initial_point, end_point):
+        """Compute a discrete geodesic in the WaldSpace.
+
+        Parameters
+        ----------
+        initial_point: Wald
+            Point in the WaldSpace.
+        end_point: Wald
+            Point in the WaldSpace.
+
+        Returns
+        -------
+        geod_points : WaldBatch
+            Time parameterized geodesic curve.
+        """
+        if initial_point.topology != end_point.topology:
+            raise ValueError("Can only handle points in the same grove.")
+
+        topology = initial_point.topology
+
+        initial_corr = self._space.lift(initial_point)
+        end_corr = self._space.lift(end_point)
+
+        ambient_geod_func = self._space.ambient_space.metric.geodesic(
+            initial_corr, end_point=end_corr
+        )
+
+        time = gs.linspace(0, 1, self.n_grid)[1:-1]
+        mid_ambient_point = ambient_geod_func(time)
+
+        mid_points = self._space.metric.projection(mid_ambient_point, topology)
+
+        return WaldBatch([initial_point] + mid_points + [end_point])
+
+
+class SuccessiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
+    """Successive projection geodesic projection solver.
+
+    Implementation of algorithm 2 from [Lueg21]_.
+    """
+
+    def __init__(self, space, n_grid=10):
+        super().__init__(space)
+        self.n_grid = n_grid
+
+    def _discrete_geodesic_single(self, initial_point, end_point):
+        """Compute a discrete geodesic in the WaldSpace.
+
+        Parameters
+        ----------
+        initial_point: Wald
+            Point in the WaldSpace.
+        end_point: Wald
+            Point in the WaldSpace.
+
+        Returns
+        -------
+        geod_points : WaldBatch
+            Time parameterized geodesic curve.
+        """
+        if initial_point.topology != end_point.topology:
+            raise ValueError("Can only handle points in the same grove.")
+
+        topology = initial_point.topology
+
+        left_points = [initial_point]
+        right_points = [end_point]
+        for i in range(2, self.n_grid // 2 + 1):
+            time = 1 / (self.n_grid - i + 1)
+
+            left_corr = self._space.lift(left_points[-1])
+            right_corr = self._space.lift(right_points[-1])
+
+            ambient_geod_func = self._space.ambient_space.metric.geodesic(
+                left_corr, right_corr
+            )
+
+            left_points.append(
+                self._space.metric.projection(
+                    ambient_geod_func(time)[0],
+                    topology,
+                    initial_weights=left_points[-1].weights,
+                )
+            )
+            right_points.append(
+                self._space.metric.projection(
+                    ambient_geod_func(1 - time)[0],
+                    topology,
+                    initial_weights=right_points[-1].weights,
+                )
+            )
+
+        right_points.reverse()
+
+        if gs.mod(self.n_grid, 2) == 0:
+            return WaldBatch(left_points + right_points)
+
+        left_corr = self._space.lift(left_points[-1])
+        right_corr = self._space.lift(right_points[0])
+
+        ambient_geod_func = self._space.ambient_space.metric.geodesic(
+            left_corr, end_point=right_corr
+        )
+
+        mid_point = self._space.metric.projection(ambient_geod_func(0.5), topology)
+        return WaldBatch(left_points + mid_point + right_points)
+
+
+class DiscreteWaldPath:
+    """A uniformly-sampled discrete path.
+
+    Parameters
+    ----------
+    space : WaldSpace
+    path : WaldBatch
+        Wald collection with common topology.
+    interpolator : Interpolator1D
+    """
+
+    def __init__(self, space, path, interpolator=None, **interpolator_kwargs):
+        # NB: assumes common topology
+        self._topology = path[0].topology
+
+        times = self._get_times(space, path)
+
+        if interpolator is None:
+            interpolator = LinearInterpolator1D(
+                times, path.weights, point_ndim=1, **interpolator_kwargs
+            )
+        self.interpolator = interpolator
+
+    def _get_times(self, space, path):
+        """Compute times for linear interpolation."""
+        dists = space.ambient_space.metric.dist(path[1:].corr, path[:-1].corr)
+        cum_dists = gs.cumsum(dists)
+        return gs.concatenate([gs.array([0.0]), cum_dists / cum_dists[-1]])
+
+    def __call__(self, t):
+        """Interpolate path.
+
+        Parameters
+        ----------
+        t : array-like, shape=[n_time]
+            Interpolation time.
+
+        Returns
+        -------
+        path : WaldBatch
+        """
+        weights = self.interpolator(t)
+        return WaldBatch([Wald(self._topology, weights_) for weights_ in weights])

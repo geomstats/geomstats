@@ -4,9 +4,9 @@ from collections.abc import Iterable as _Iterable
 
 import numpy as _np
 import torch as _torch
-from torch import arange, argmin
-from torch import broadcast_tensors as broadcast_arrays
 from torch import (
+    arange,
+    argmin,
     clip,
     complex64,
     complex128,
@@ -33,11 +33,9 @@ from torch import (
     ones_like,
     polygamma,
     quantile,
-)
-from torch import repeat_interleave as repeat
-from torch import (
     reshape,
     scatter_add,
+    searchsorted,
     stack,
     trapz,
     uint8,
@@ -46,13 +44,17 @@ from torch import (
     zeros,
     zeros_like,
 )
+from torch import broadcast_tensors as broadcast_arrays
+from torch import repeat_interleave as repeat
 from torch.special import gammaln as _gammaln
 
 from .._backend_config import pytorch_atol as atol
 from .._backend_config import pytorch_rtol as rtol
-from . import autodiff  # NOQA
-from . import linalg  # NOQA
-from . import random  # NOQA
+from . import (
+    autodiff,  # NOQA
+    linalg,  # NOQA
+    random,  # NOQA
+)
 from ._common import array, cast, from_numpy
 from ._dtype import (
     _add_default_dtype_by_casting,
@@ -78,13 +80,6 @@ _DTYPES = {
 }
 
 
-def _raise_not_implemented_error(*args, **kwargs):
-    raise NotImplementedError
-
-
-searchsorted = _raise_not_implemented_error
-
-
 abs = _box_unary_scalar(target=_torch.abs)
 angle = _box_unary_scalar(target=_torch.angle)
 arccos = _box_unary_scalar(target=_torch.arccos)
@@ -107,11 +102,21 @@ tanh = _box_unary_scalar(target=_torch.tanh)
 
 
 arctan2 = _box_binary_scalar(target=_torch.atan2)
-mod = _box_binary_scalar(target=_torch.fmod, box_x2=False)
+mod = _box_binary_scalar(target=_torch.remainder, box_x2=False)
 power = _box_binary_scalar(target=_torch.pow, box_x2=False)
 
 
 std = _preserve_input_dtype(_add_default_dtype_by_casting(target=_torch.std))
+
+
+def has_autodiff():
+    """If allows for automatic differentiation.
+
+    Returns
+    -------
+    has_autodiff : bool
+    """
+    return True
 
 
 def matmul(x, y, out=None):
@@ -358,11 +363,11 @@ def trace(x):
     return _torch.einsum("...ii", x)
 
 
-def linspace(start, stop, num=50, dtype=None):
+def linspace(start, stop, num=50, endpoint=True, dtype=None):
     start_is_array = _torch.is_tensor(start)
     stop_is_array = _torch.is_tensor(stop)
 
-    if not (start_is_array or stop_is_array):
+    if not (start_is_array or stop_is_array) and endpoint:
         return _torch.linspace(start=start, end=stop, steps=num, dtype=dtype)
 
     if not start_is_array:
@@ -374,15 +379,27 @@ def linspace(start, stop, num=50, dtype=None):
     start = _torch.flatten(start)
     stop = _torch.flatten(stop)
 
-    return _torch.reshape(
-        _torch.vstack(
+    if endpoint:
+        result = _torch.vstack(
             [
                 _torch.linspace(start=start[i], end=stop[i], steps=num, dtype=dtype)
                 for i in range(start.shape[0])
             ]
-        ).T,
-        result_shape,
-    )
+        ).T
+    else:
+        result = _torch.vstack(
+            [
+                _torch.arange(
+                    start=start[i],
+                    end=stop[i],
+                    step=(stop[i] - start[i]) / num,
+                    dtype=dtype,
+                )
+                for i in range(start.shape[0])
+            ]
+        ).T
+
+    return _torch.reshape(result, result_shape)
 
 
 def equal(a, b, **kwargs):
@@ -741,9 +758,9 @@ def _unnest_iterable(ls):
     return out
 
 
-def pad(a, pad_width, constant_value=0.0):
+def pad(a, pad_width, mode="constant", constant_values=0.0):
     return _torch.nn.functional.pad(
-        a, _unnest_iterable(reversed(pad_width)), value=constant_value
+        a, _unnest_iterable(reversed(pad_width)), mode=mode, value=constant_values
     )
 
 
@@ -787,9 +804,9 @@ def dot(a, b):
 
 
 def cross(a, b):
-    if a.ndim + b.ndim == 3 or a.ndim == b.ndim == 2 and a.shape[0] != b.shape[0]:
+    if a.shape != b.shape:
         a, b = broadcast_arrays(a, b)
-    return _torch.cross(*convert_to_wider_dtype([a, b]))
+    return _torch.cross(*convert_to_wider_dtype([a, b]), dim=-1)
 
 
 def gamma(a):

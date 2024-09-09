@@ -11,9 +11,11 @@ class FisherRaoMetric(RiemannianMetric):
 
     Given a statistical manifold with coordinates :math:`\theta`,
     the Fisher information metric is:
-    :math:`g_{j k}(\theta)=\int_X \frac{\partial \log p(x, \theta)}
+
+    .. math::
+        g_{j k}(\theta)=\int_X \frac{\partial \log p(x, \theta)}
         {\partial \theta_j}\frac{\partial \log p(x, \theta)}
-        {\partial \theta_k} p(x, \theta) d x`
+        {\partial \theta_k} p(x, \theta) d x
 
     Attributes
     ----------
@@ -40,15 +42,12 @@ class FisherRaoMetric(RiemannianMetric):
         at the tangent space at base point.
 
         .. math::
-
             I(\theta) = \mathbb{E}[YY^T]
 
         where,
 
-        ..math::
-
+        .. math::
             Y = \nabla_{\theta} \log f_{\theta}(x)
-
 
         After manipulation and in indicial notation
 
@@ -57,7 +56,6 @@ class FisherRaoMetric(RiemannianMetric):
              \partial_{i} f_{\theta}(x)\
              \partial_{j} f_{\theta}(x)\
              \frac{1}{f_{\theta}(x)}
-
 
         Parameters
         ----------
@@ -90,7 +88,7 @@ class FisherRaoMetric(RiemannianMetric):
             (
                 pdf_x_at_base_point,
                 pdf_x_derivative_at_base_point,
-            ) = gs.autodiff.value_and_grad(pdf_x, to_numpy=True)(base_point)
+            ) = gs.autodiff.value_and_grad(pdf_x)(base_point)
 
             return gs.einsum(
                 "...ij,...->...ij",
@@ -111,26 +109,22 @@ class FisherRaoMetric(RiemannianMetric):
         the Fisher information metric at the tangent space at base point.
 
         .. math::
-
             \partial_{\theta} I(\theta) = \partial_{\theta} \mathbb{E}[YY^T]
 
         where,
 
-        ..math::
-
+        .. math::
             Y = \nabla_{\theta} \log f_{\theta}(x)
 
         or, in indicial notation:
 
         .. math::
-
             \partial_k I_{ij} = \int\
             \partial_{ki}^2 f\partial_j f \frac{1}{f} + \
             \partial_{kj}^2 f\partial_i f \frac{1}{f} - \
             \partial_i f \partial_j f \partial_k f \frac{1}{f^2}
 
         with :math:`f = f_{\theta}(x)`
-
 
         Parameters
         ----------

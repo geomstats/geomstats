@@ -22,10 +22,14 @@ class Landmarks(NFoldManifold):
     """
 
     def __init__(self, ambient_manifold, k_landmarks, equip=True):
-        self.k_landmarks = k_landmarks
         super().__init__(
             base_manifold=ambient_manifold, n_copies=k_landmarks, equip=equip
         )
+
+    @property
+    def k_landmarks(self):
+        """Number of landmarks."""
+        return self.n_copies
 
     @staticmethod
     def default_metric():

@@ -4,7 +4,7 @@
 Geomstats governance and decision-making
 ========================================
 
-The purpose of this document is to formalize the governance process used by the
+This document formalizes the governance process used by the
 geomstats project, to clarify how decisions are made and how
 elements of our community interact.
 
@@ -207,7 +207,7 @@ Non-compliance with the terms of the governance documents shall be reported to t
 Changing the Governance Documents
 =================================
 
-Changes to the governance documents are submitted via a GitHub pull request targeting `Geomstats governance documents <https://github.com/geomstats/geomstats/blob/master/docs/governance.rst>`_. 
+Changes to the governance documents are submitted via a GitHub pull request targeting `Geomstats governance documents <https://github.com/geomstats/geomstats/blob/main/docs/governance.rst>`_. 
 The pull request is then refined in response to public comment and review, with the goal being consensus in the community. 
 After this open period, a member of the Technical Committee proposes to the core developers that the changes be ratified and the pull request merged (accepting the proposed changes) 
 or proposes that the pull request be closed without merging (rejecting the proposed changes). The Technical Committee member should state the final commit hash in the pull request being proposed 

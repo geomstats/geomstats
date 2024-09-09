@@ -87,6 +87,7 @@ BACKEND_ATTRIBUTES = {
         "get_default_cdtype",
         "get_slice",
         "greater",
+        "has_autodiff",
         "hsplit",
         "hstack",
         "imag",
@@ -174,6 +175,7 @@ BACKEND_ATTRIBUTES = {
         "jacobian_vec",
         "jacobian_and_hessian",
         "value_and_grad",
+        "value_and_jacobian",
         "value_jacobian_and_hessian",
     ],
     "linalg": [
@@ -187,9 +189,11 @@ BACKEND_ATTRIBUTES = {
         "inv",
         "is_single_matrix_pd",
         "logm",
+        "matrix_power",
         "norm",
         "qr",
         "quadratic_assignment",
+        "polar",
         "solve",
         "solve_sylvester",
         "sqrtm",
@@ -215,7 +219,8 @@ class BackendImporter:
     """Importer class to create the backend module."""
 
     def __init__(self, path):
-        self._path = path
+        self._path = self.name = path
+        self.loader = self
 
     @staticmethod
     def _import_backend(backend_name):
@@ -287,8 +292,12 @@ class BackendImporter:
 
         module.set_default_dtype("float64")
 
-        logging.info(f"Using {BACKEND_NAME} backend")
+        logging.debug(f"geomstats is using {BACKEND_NAME} backend")
         return module
+
+    def find_spec(self, fullname, path=None, target=None):
+        """Find module."""
+        return self.find_module(fullname, path=path)
 
 
 sys.meta_path.append(BackendImporter("geomstats.backend"))

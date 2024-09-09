@@ -1,26 +1,51 @@
 """Discrete Surfaces with Elastic metrics.
 
 Lead authors: Emmanuel Hartman, Adele Myers.
+
+References
+----------
+.. [HSKCB2022] Emmanuel Hartman, Yashil Sukurdeep, Eric Klassen,
+    Nicolas Charon, and Martin Bauer.
+    "Elastic shape analysis of surfaces with second-order Sobolev metrics:
+    a comprehensive numerical framework". arXiv:2204.04238 [cs.CV], 25 Sep 2022
+.. [HPBDC2023] Emmanuel Hartman, Emery Pierson, Martin Bauer,
+    Mohamed Daoudi, and Nicolas Charon.
+    “Basis Restricted Elastic Shape Analysis on the Space of Unregistered Surfaces.”
+    arXiv, November 7, 2023. https://doi.org/10.48550/arXiv.2311.04382.
 """
+
 import math
 
 import geomstats.backend as gs
+from geomstats._mesh import Surface
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.fiber_bundle import AlignerAlgorithm, FiberBundle
+from geomstats.geometry.manifold import Manifold, register_quotient
+from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.nfold_manifold import NFoldMetric
+from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.numerics.geodesic import ExpSolver, PathBasedLogSolver, PathStraightening
+from geomstats.numerics.optimization import ScipyMinimize
+from geomstats.numerics.path import (
+    UniformlySampledDiscretePath,
+    UniformlySampledPathEnergy,
+)
+from geomstats.vectorization import get_batch_shape
 
 
 class DiscreteSurfaces(Manifold):
     r"""Space of parameterized discrete surfaces.
 
-    Each surface is sampled with fixed n_vertices vertices and n_faces faces
-    in $\mathbb{R}^3$.
+    Each surface is sampled with fixed `n_vertices` vertices and `n_faces`
+    faces in :math:`\mathbb{R}^3`.
 
-    Each individual surface is represented by a 2d-array of shape `[
-    n_vertices, 3]`. This space corresponds to the space of immersions
+    Each individual surface is represented by a 2d-array of shape
+    `[n_vertices, 3]`. This space corresponds to the space of immersions
     defined below, i.e. the
-    space of smooth functions from a template to manifold $M$ into  $\mathbb{R}^3$,
-    with non-vanishing Jacobian.
+    space of smooth functions from a template to manifold :math:`M`
+    into :math:`\mathbb{R}^3`, with non-vanishing Jacobian.
+
     .. math::
         Imm(M,\mathbb{R}^3)=\{ f \in C^{\infty}(M, \mathbb{R}^3)
         \|Df(x)\|\neq 0 \forall x \in M \}.
@@ -32,7 +57,11 @@ class DiscreteSurfaces(Manifold):
         Each face is given by 3 indices that indicate its vertices.
     """
 
-    def __init__(self, faces):
+    def __init__(
+        self,
+        faces,
+        equip=True,
+    ):
         ambient_dim = 3
         self.ambient_manifold = Euclidean(dim=ambient_dim)
         self.faces = faces
@@ -42,8 +71,27 @@ class DiscreteSurfaces(Manifold):
         super().__init__(
             dim=self.n_vertices * ambient_dim,
             shape=(self.n_vertices, 3),
-            equip=False,
+            equip=equip,
         )
+
+    def new(self, equip=True):
+        """Create manifold with same parameters.
+
+        Parameters
+        ----------
+        equip : bool
+            If True, equip space with default metric.
+
+        Returns
+        -------
+        manifold : DiscreteSurfaces
+        """
+        return DiscreteSurfaces(faces=self.faces, equip=equip)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return ElasticMetric
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate whether a point belongs to the manifold.
@@ -163,14 +211,13 @@ class DiscreteSurfaces(Manifold):
             vertex_i : array-like, shape=[..., n_faces, 3]
                 3D coordinates of the ith vertex of that face.
         """
-        vertex_0, vertex_1, vertex_2 = tuple(
-            gs.take(point, indices=self.faces[:, i], axis=-2) for i in range(3)
+        batch_slc = tuple([slice(None)] * len(point.shape[:-2]))
+        face_coordinates = point[batch_slc + (self.faces,)]
+        return (
+            face_coordinates[batch_slc + (slice(None), 0)],
+            face_coordinates[batch_slc + (slice(None), 1)],
+            face_coordinates[batch_slc + (slice(None), 2)],
         )
-        if point.ndim == 3 and vertex_0.ndim == 2:
-            vertex_0 = gs.expand_dims(vertex_0, axis=0)
-            vertex_1 = gs.expand_dims(vertex_1, axis=0)
-            vertex_2 = gs.expand_dims(vertex_2, axis=0)
-        return vertex_0, vertex_1, vertex_2
 
     def _triangle_areas(self, point):
         """Compute triangle areas for each face of the surface.
@@ -217,26 +264,31 @@ class DiscreteSurfaces(Manifold):
 
         Returns
         -------
-        vertex_areas :  array-like, shape=[..., n_vertices, 1]
+        vertex_areas :  array-like, shape=[..., n_vertices]
             Vertex area for each vertex.
         """
         batch_shape = point.shape[:-2]
         n_vertices = point.shape[-2]
         n_faces = self.faces.shape[0]
+
         area = self._triangle_areas(point)
+
         id_vertices = gs.broadcast_to(
-            gs.flatten(self.faces), batch_shape + (math.prod(self.faces.shape),)
+            gs.reshape(self.faces, (-1,)), batch_shape + (math.prod(self.faces.shape),)
         )
-        incident_areas = gs.zeros(batch_shape + (n_vertices,))
         val = gs.reshape(
             gs.broadcast_to(gs.expand_dims(area, axis=-2), batch_shape + (3, n_faces)),
             batch_shape + (-1,),
         )
+        incident_areas = gs.zeros(batch_shape + (n_vertices,), dtype=val.dtype)
+
         incident_areas = gs.scatter_add(
-            incident_areas, dim=len(batch_shape), index=id_vertices, src=val
+            incident_areas,
+            dim=-1,
+            index=id_vertices,
+            src=val,
         )
-        vertex_areas = 2 * incident_areas / 3.0
-        return vertex_areas
+        return 2 * incident_areas / 3.0
 
     def normals(self, point):
         """Compute normals at each face of a triangulated surface.
@@ -246,17 +298,16 @@ class DiscreteSurfaces(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_vertices, 3]
+        point : array-like, shape=[..., n_vertices, 3]
             Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
         -------
-        normals_at_point : array-like, shape=[n_faces, 3]
+        normals_at_point : array-like, shape=[..., n_faces, 3]
             Normals of each face of the mesh.
         """
         vertex_0, vertex_1, vertex_2 = self._vertices(point)
-        normals_at_point = 0.5 * gs.cross(vertex_1 - vertex_0, vertex_2 - vertex_0)
-        return normals_at_point
+        return 0.5 * gs.cross(vertex_1 - vertex_0, vertex_2 - vertex_0)
 
     def surface_one_forms(self, point):
         """Compute the vector valued one-forms.
@@ -277,8 +328,7 @@ class DiscreteSurfaces(Manifold):
             One form evaluated at each face of the triangulated surface.
         """
         vertex_0, vertex_1, vertex_2 = self._vertices(point)
-        one_forms = gs.stack([vertex_1 - vertex_0, vertex_2 - vertex_0], axis=-2)
-        return one_forms
+        return gs.stack([vertex_1 - vertex_0, vertex_2 - vertex_0], axis=-2)
 
     def face_areas(self, point):
         """Compute the areas for each face of a triangulated surface.
@@ -289,19 +339,19 @@ class DiscreteSurfaces(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_vertices, 3]
+        point : array-like, shape=[..., n_vertices, 3]
             Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
         -------
-        _ : array-like, shape=[n_faces,]
+        _ : array-like, shape=[..., n_faces,]
             Area computed at each face of the triangulated surface.
         """
         surface_metrics_bp = self.surface_metric_matrices(point)
         return gs.sqrt(gs.linalg.det(surface_metrics_bp))
 
     @staticmethod
-    def _surface_metric_matrices_from_one_forms(one_forms):
+    def surface_metric_matrices_from_one_forms(one_forms):
         """Compute the surface metric matrices directly from the one_forms.
 
         This function is useful for efficiency purposes.
@@ -313,14 +363,11 @@ class DiscreteSurfaces(Manifold):
 
         Returns
         -------
-        metric_mats : array-like, shape=[n_faces, 2, 2]
+        metric_mats : array-like, shape=[..., n_faces, 2, 2]
             Surface metric matrices evaluated at each face of
             the triangulated surface.
         """
-        ndim = one_forms.ndim
-        transpose_axes = tuple(range(ndim - 2)) + tuple(reversed(range(ndim - 2, ndim)))
-        transposed_one_forms = gs.transpose(one_forms, axes=transpose_axes)
-        return gs.matmul(one_forms, transposed_one_forms)
+        return gs.matmul(one_forms, Matrices.transpose(one_forms))
 
     def surface_metric_matrices(self, point):
         """Compute the surface metric matrices.
@@ -333,30 +380,31 @@ class DiscreteSurfaces(Manifold):
 
         Parameters
         ----------
-        point : array like, shape=[n_vertices, 3]
+        point : array like, shape=[..., n_vertices, 3]
             Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
         -------
-        metric_mats : array-like, shape=[n_faces, 2, 2]
+        metric_mats : array-like, shape=[..., n_faces, 2, 2]
             Surface metric matrices evaluated at each face of
             the triangulated surface.
         """
         one_forms = self.surface_one_forms(point)
-
-        return self._surface_metric_matrices_from_one_forms(one_forms)
+        return self.surface_metric_matrices_from_one_forms(one_forms)
 
     def laplacian(self, point):
         r"""Compute the mesh Laplacian operator of a triangulated surface.
 
         Denoting q the surface, i.e. the point in the DiscreteSurfaces manifold,
-        the laplacian at q is defined as the operator:
-        :math: `\Delta_q = - Tr(g_q^{-1} \nabla^2)`
+        the laplacian at :math:`q` is defined as the operator:
+        :math:`\Delta_q = - Tr(g_q^{-1} \nabla^2)`
         where :math:`g_q` is the surface metric matrix of :math:`q`.
+
+        The area of the triangles is computed using Heron's formula.
 
         Parameters
         ----------
-        point :  array-like, shape=[n_vertices, 3]
+        point :  array-like, shape=[..., n_vertices, 3]
             Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
@@ -388,7 +436,7 @@ class DiscreteSurfaces(Manifold):
         cot_12 = (sq_len_edge_02 + sq_len_edge_01 - sq_len_edge_12) / area
         cot_02 = (sq_len_edge_12 + sq_len_edge_01 - sq_len_edge_02) / area
         cot_01 = (sq_len_edge_12 + sq_len_edge_02 - sq_len_edge_01) / area
-        cot = gs.stack([cot_12, cot_02, cot_01], axis=1)
+        cot = gs.stack([cot_12, cot_02, cot_01], axis=-1)
         cot /= 2.0
         id_vertices_120 = self.faces[:, [1, 2, 0]]
         id_vertices_201 = self.faces[:, [2, 0, 1]]
@@ -396,12 +444,20 @@ class DiscreteSurfaces(Manifold):
             gs.stack([id_vertices_120, id_vertices_201], axis=0), (2, n_faces * 3)
         )
 
+        cot_flatten = gs.expand_dims(gs.reshape(cot, point.shape[:-2] + (-1,)), axis=-1)
+
         def _laplacian(tangent_vec):
-            """Evaluate the mesh Laplacian operator.
+            r"""Evaluate the mesh Laplacian operator.
 
             The operator is evaluated at a tangent vector at point to the
             manifold of DiscreteSurfaces. In other words, the operator is
             evaluated at a vector field defined on the surface point.
+
+            .. math::
+
+                \left(\Delta_q h\right)_{v_i}=\frac{1}{2} \sum_{\substack{j \mid(i, j)
+                \in E \\ \text { or }(j, i) \in E}}\left(\cot \left(\alpha_{i j}
+                \right)+\cot \left(\beta_{i j}\right)\right)\left(h_i-h_j\right)
 
             Parameters
             ----------
@@ -416,34 +472,41 @@ class DiscreteSurfaces(Manifold):
                 Mesh Laplacian operator of the triangulated surface applied
                 to one its tangent vector tangent_vec.
             """
-            to_squeeze = False
-            if tangent_vec.ndim == 2:
-                tangent_vec = gs.expand_dims(tangent_vec, axis=0)
-                to_squeeze = True
-            n_tangent_vecs = len(tangent_vec)
+            batch_shape = get_batch_shape(2, point, tangent_vec)
+            batch_slc = tuple([slice(None)] * len(batch_shape))
+
             tangent_vec_diff = (
-                tangent_vec[:, id_vertices[0]] - tangent_vec[:, id_vertices[1]]
+                tangent_vec[batch_slc + (id_vertices[0],)]
+                - tangent_vec[batch_slc + (id_vertices[1],)]
             )
+
             values = gs.einsum(
-                "bd,nbd->nbd", gs.stack([gs.flatten(cot)] * 3, axis=1), tangent_vec_diff
+                "...bd,...bd->...bd",
+                gs.broadcast_to(cot_flatten, batch_shape + (n_faces * 3, 3)),
+                tangent_vec_diff,
             )
 
-            laplacian_at_tangent_vec = gs.zeros((n_tangent_vecs, n_vertices, 3))
+            laplacian_at_tangent_vec = gs.zeros(
+                batch_shape + (n_vertices, 3), dtype=values.dtype
+            )
 
-            id_vertices_201_repeated = gs.tile(id_vertices[1, :], (n_tangent_vecs, 1))
+            id_vertices_201 = id_vertices[1, :]
+            id_vertices_201 = gs.broadcast_to(
+                id_vertices_201, batch_shape + id_vertices_201.shape
+            )
 
             for i_dim in range(3):
-                laplacian_at_tangent_vec[:, :, i_dim] = gs.scatter_add(
-                    input=laplacian_at_tangent_vec[:, :, i_dim],
-                    dim=1,
-                    index=id_vertices_201_repeated,
-                    src=values[:, :, i_dim],
+                laplacian_at_tangent_vec[batch_slc + (slice(None), i_dim)] = (
+                    gs.scatter_add(
+                        input=laplacian_at_tangent_vec[
+                            batch_slc + (slice(None), i_dim)
+                        ],
+                        dim=-1,
+                        index=id_vertices_201,
+                        src=values[batch_slc + (slice(None), i_dim)],
+                    )
                 )
-            return (
-                gs.squeeze(laplacian_at_tangent_vec, axis=0)
-                if to_squeeze
-                else laplacian_at_tangent_vec
-            )
+            return laplacian_at_tangent_vec
 
         return _laplacian
 
@@ -451,8 +514,8 @@ class DiscreteSurfaces(Manifold):
 class ElasticMetric(RiemannianMetric):
     """Elastic metric defined by a family of second order Sobolev metrics.
 
-    Each individual discrete surface is represented by a 2D-array of shape `[
-    n_vertices, 3]`. See [HSKCB2022]_ for details.
+    Each individual discrete surface is represented by a 2D-array of shape
+    `[n_vertices, 3]`. See [HSKCB2022]_ and [HPBDC2023]_ (appendix) for details.
 
     The parameters a0, a1, b1, c1, d1, a2 (detailed below) are non-negative weighting
     coefficients for the different terms in the metric.
@@ -482,9 +545,14 @@ class ElasticMetric(RiemannianMetric):
 
     References
     ----------
-    .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
-        Sobolev metrics: a comprehensive numerical framework".
-        arXiv:2204.04238 [cs.CV], 25 Sep 2022
+    .. [HSKCB2022] Emmanuel Hartman, Yashil Sukurdeep, Eric Klassen,
+        Nicolas Charon, and Martin Bauer.
+        "Elastic shape analysis of surfaces with second-order Sobolev metrics:
+        a comprehensive numerical framework". arXiv:2204.04238 [cs.CV], 25 Sep 2022
+    .. [HPBDC2023] Emmanuel Hartman, Emery Pierson, Martin Bauer,
+        Mohamed Daoudi, and Nicolas Charon.
+        “Basis Restricted Elastic Shape Analysis on the Space of Unregistered Surfaces.”
+        arXiv, November 7, 2023. https://doi.org/10.48550/arXiv.2311.04382.
     """
 
     def __init__(self, space, a0=1.0, a1=1.0, b1=1.0, c1=1.0, d1=1.0, a2=1.0):
@@ -496,17 +564,27 @@ class ElasticMetric(RiemannianMetric):
         self.d1 = d1
         self.a2 = a2
 
+        if gs.has_autodiff():
+            self.exp_solver = DiscreteSurfacesExpSolver(space, n_steps=10)
+
+            optimizer = ScipyMinimize(
+                method="L-BFGS-B",
+                autodiff_jac=True,
+                options={"disp": False, "ftol": 0.001},
+            )
+            self.log_solver = PathStraightening(space, n_nodes=10, optimizer=optimizer)
+
     def _inner_product_a0(self, tangent_vec_a, tangent_vec_b, vertex_areas_bp):
         r"""Compute term of order 0 within the inner-product.
 
         Denote h and k the tangent vectors a and b respectively.
-        Denote q the base point, i.e. the surface.
+        Denote q the base point.
 
-        The equation of the inner-product is:
-        :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
+        This method computes :math:`G_{a_0} = a_0 <h, k>`, i.e.
 
-        This method computes :math:`G_{a_0} = a_0 <h, k>`,
-        with notations taken from .. [HSKCB2022].
+        .. math::
+
+            G_{a_0}(h, h) = \sum_{i=1}^N\left\|h_i\right\|^2 \operatorname{vol}_{x_i}
 
         Parameters
         ----------
@@ -514,23 +592,16 @@ class ElasticMetric(RiemannianMetric):
             Tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., n_vertices, 3]
             Tangent vector at base point.
-        vertex_areas : array-like, shape=[n_vertices, 3]
+        vertex_areas : array-like, shape=[..., n_vertices, 1]
             Vertex areas for each vertex of the base_point.
 
         Returns
         -------
-        _ : array-like, shape=[...]
+        inner_prod_a0 : array-like, shape=[...,]
             Term of order 0, and coefficient a0, of the inner-product.
-
-        References
-        ----------
-        .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
-            Sobolev metrics: a comprehensive numerical framework".
-            arXiv:2204.04238 [cs.CV], 25 Sep 2022.
         """
         return self.a0 * gs.sum(
-            vertex_areas_bp
-            * gs.einsum("...bi,...bi->...b", tangent_vec_a, tangent_vec_b),
+            gs.dot(tangent_vec_a, tangent_vec_b) * vertex_areas_bp,
             axis=-1,
         )
 
@@ -538,38 +609,33 @@ class ElasticMetric(RiemannianMetric):
         r"""Compute a1 term of order 1 within the inner-product.
 
         Denote h and k the tangent vectors a and b respectively.
-        Denote q the base point, i.e. the surface.
+        Denote q the base point.
 
-        The equation of the inner-product is:
-        :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
+        This method computes :math:`G_{a_1} = a_1.g_q^{-1} <dh_m, dk_m>`, i.e.
 
-        This method computes :math:`G_{a_1} = a_1.g_q^{-1} <dh_m, dk_m>`,
-        with notations taken from .. [HSKCB2022].
+        .. math::
+
+            G_{a_1}(h, h) = \sum_{f \in F} \operatorname{tr}\left(g_f^{-1}
+            \delta g_f g_f^{-1} \delta g_f\right) \operatorname{vol}_f
 
         Parameters
         ----------
-        ginvdga : array-like, shape=[n_faces, 2, 2]
+        ginvdga : array-like, shape=[..., n_faces, 2, 2]
             Product of the inverse of the surface metric matrices
             with their differential at a.
-        ginvdgb : array-like, shape=[n_faces, 2, 2]
+        ginvdgb : array-like, shape=[..., n_faces, 2, 2]
             Product of the inverse of the surface metric matrices
             with their differential at b.
-        areas_bp : array-like, shape=[n_faces,]
+        areas_bp : array-like, shape=[..., n_faces,]
             Areas of the faces of the surface given by the base point.
 
         Returns
         -------
-        _ : array-like, shape=[...]
-            Term of order 0, and coefficient a1, of the inner-product.
-
-        References
-        ----------
-        .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
-            Sobolev metrics: a comprehensive numerical framework".
-            arXiv:2204.04238 [cs.CV], 25 Sep 2022.
+        inner_prod_a1 : array-like, shape=[...,]
+            Term of order 1, and coefficient a1, of the inner-product.
         """
         return self.a1 * gs.sum(
-            gs.einsum("...bii->...b", gs.matmul(ginvdga, ginvdgb)) * areas_bp,
+            gs.trace(gs.matmul(ginvdga, ginvdgb)) * areas_bp,
             axis=-1,
         )
 
@@ -577,40 +643,33 @@ class ElasticMetric(RiemannianMetric):
         r"""Compute b1 term of order 1 within the inner-product.
 
         Denote h and k the tangent vectors a and b respectively.
-        Denote q the base point, i.e. the surface.
+        Denote q the base point.
 
-        The equation of the inner-product is:
-        :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
+        This method computes :math:`G_{b_1} = b_1.g_q^{-1} <dh_+, dk_+>`, i.e.
 
-        This method computes :math:`G_{b_1} = b_1.g_q^{-1} <dh_+, dk_+>`,
-        with notations taken from .. [HSKCB2022].
+        .. math::
+
+            G_{b_1}(h, h) = \sum_{f \in F} \operatorname{tr}
+            \left(g_f^{-1} \delta g_f\right)^2 \operatorname{vol}_f
 
         Parameters
         ----------
-        ginvdga : array-like, shape=[n_faces, 2, 2]
+        ginvdga : array-like, shape=[..., n_faces, 2, 2]
             Product of the inverse of the surface metric matrices
             with their differential at a.
-        ginvdgb : array-like, shape=[n_faces, 2, 2]
+        ginvdgb : array-like, shape=[..., n_faces, 2, 2]
             Product of the inverse of the surface metric matrices
             with their differential at b.
-        areas_bp : array-like, shape=[n_faces,]
+        areas_bp : array-like, shape=[..., n_faces,]
             Areas of the faces of the surface given by the base point.
 
         Returns
         -------
-        _ : array-like, shape=[...]
-            Term of order 0, and coefficient b1, of the inner-product.
-
-        References
-        ----------
-        .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
-            Sobolev metrics: a comprehensive numerical framework".
-            arXiv:2204.04238 [cs.CV], 25 Sep 2022.
+        inner_prod_b1 : array-like, shape=[...,]
+            Term of order 1, and coefficient b1, of the inner-product.
         """
         return self.b1 * gs.sum(
-            gs.einsum("...bii->...b", ginvdga)
-            * gs.einsum("...bii->...b", ginvdgb)
-            * areas_bp,
+            gs.trace(ginvdga) * gs.trace(ginvdgb) * areas_bp,
             axis=-1,
         )
 
@@ -618,13 +677,15 @@ class ElasticMetric(RiemannianMetric):
         r"""Compute c1 term of order 1 within the inner-product.
 
         Denote h and k the tangent vectors a and b respectively.
-        Denote q the base point, i.e. the surface.
-
-        The equation of the inner-product is:
-        :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
+        Denote q the base point.
 
         This method computes :math:`G_{c_1} = c_1.g_q^{-1} <dh_\perp, dk_\perp>`,
-        with notations taken from .. [HSKCB2022].
+        i.e.
+
+        .. math::
+
+            G_{c_1}(h, h) = \sum_{f \in F}\left\langle\delta n_f,
+            \delta n_f\right\rangle \mathrm{vol}_f
 
         Parameters
         ----------
@@ -632,96 +693,84 @@ class ElasticMetric(RiemannianMetric):
             Point a corresponding to tangent vec a.
         point_b : array-like, shape=[..., n_vertices, 3]
             Point b corresponding to tangent vec b.
-        normals_bp : array-like, shape=[n_faces, 3]
+        normals_bp : array-like, shape=[..., n_faces, 3]
             Normals of each face of the surface given by the base point.
-        areas_bp : array-like, shape=[n_faces,]
+        areas_bp : array-like, shape=[..., n_faces,]
             Areas of the faces of the surface given by the base point.
 
         Returns
         -------
-        _ : array-like, shape=[...]
-            Term of order 0, and coefficient c1, of the inner-product.
-
-        References
-        ----------
-        .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
-            Sobolev metrics: a comprehensive numerical framework".
-            arXiv:2204.04238 [cs.CV], 25 Sep 2022.
+        inner_prod_c1 : array-like, shape=[...,]
+            Term of order 1, and coefficient c1, of the inner-product.
         """
         dna = self._space.normals(point_a) - normals_bp
         dnb = self._space.normals(point_b) - normals_bp
-        return self.c1 * gs.sum(
-            gs.einsum("...bi,...bi->...b", dna, dnb) * areas_bp, axis=-1
-        )
+
+        return self.c1 * gs.sum(gs.dot(dna, dnb) * areas_bp, axis=-1)
 
     def _inner_product_d1(
-        self, one_forms_a, one_forms_b, one_forms_bp, areas_bp, inv_surface_metrics_bp
+        self, one_forms_a, one_forms_b, one_forms_bp, areas_bp, ginv_bp
     ):
         r"""Compute d1 term of order 1 within the inner-product.
 
         Denote h and k the tangent vectors a and b respectively.
-        Denote q the base point, i.e. the surface.
+        Denote q the base point.
 
-        The equation of the inner-product is:
-        :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
+        This method computes :math:`G_{d_1} = d_1.g_q^{-1} <dh_0, dk_0>`, i.e.
 
-        This method computes :math:`G_{d_1} = d_1.g_q^{-1} <dh_0, dk_0>`,
-        with notations taken from .. [HSKCB2022].
+        .. math::
+
+            G_{d_1}(h, h) = \sum_{f \in F} \operatorname{tr}\left(g_f^{-1}
+            \xi_f g_f^{-1} \xi_f^T\right) \operatorname{vol}_f
+
+        where :math:`\xi_f=d q_f^T d h_f-d h_f^T d q_f`.
 
         Parameters
         ----------
-        one_forms_a : array-like, shape=[n_points, n_faces, 2, 3]
+        one_forms_a : array-like, shape=[..., n_faces, 2, 3]
             One forms at point a corresponding to tangent vec a.
-        one_forms_b : array-like, shape=[n_points, n_faces, 2, 3]
+        one_forms_b : array-like, shape=[..., n_faces, 2, 3]
             One forms at point b corresponding to tangent vec b.
-        one_forms_bp : array-like, shape=[n_faces, 2, 3]
+        one_forms_bp : array-like, shape=[..., 2, 3]
             One forms at base point.
-        areas_bp : array-like, shape=[n_faces,]
+        areas_bp : array-like, shape=[..., n_faces,]
             Areas of the faces of the surface given by the base point.
-        inv_surface_metrics_bp : array-like, shape=[n_faces, 2, 2]
+        ginv_bp : array-like, shape=[..., n_faces, 2, 2]
             Inverses of the surface metric matrices at each face.
 
         Returns
         -------
-        _ : array-like, shape=[...]
-            Term of order 0, and coefficient d1, of the inner-product.
-
-        References
-        ----------
-        .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
-            Sobolev metrics: a comprehensive numerical framework".
-            arXiv:2204.04238 [cs.CV], 25 Sep 2022.
+        inner_prod_d1 : array-like, shape=[...,]
+            Term of order 1, and coefficient d1, of the inner-product.
         """
-        one_forms_bp_t = gs.transpose(one_forms_bp, (0, 2, 1))
+        one_forms_bp_t = Matrices.transpose(one_forms_bp)
 
-        one_forms_a_t = gs.transpose(one_forms_a, (0, 1, 3, 2))
-        xa = one_forms_a_t - one_forms_bp_t
+        aux = gs.matmul(one_forms_bp_t, ginv_bp)
 
+        xa = one_forms_a - one_forms_bp
         xa_0 = gs.matmul(
-            gs.matmul(one_forms_bp_t, inv_surface_metrics_bp),
-            gs.matmul(gs.transpose(xa, (0, 1, 3, 2)), one_forms_bp_t)
-            - gs.matmul(one_forms_bp, xa),
+            aux,
+            gs.matmul(xa, one_forms_bp_t)
+            - gs.matmul(one_forms_bp, Matrices.transpose(xa)),
         )
 
-        one_forms_b_t = gs.transpose(one_forms_b, (0, 1, 3, 2))
-        xb = one_forms_b_t - one_forms_bp_t
+        xb = one_forms_b - one_forms_bp
         xb_0 = gs.matmul(
-            gs.matmul(one_forms_bp_t, inv_surface_metrics_bp),
-            gs.matmul(gs.transpose(xb, (0, 1, 3, 2)), one_forms_bp_t)
-            - gs.matmul(one_forms_bp, xb),
+            aux,
+            gs.matmul(xb, one_forms_bp_t)
+            - gs.matmul(one_forms_bp, Matrices.transpose(xb)),
         )
 
         return self.d1 * gs.sum(
-            gs.einsum(
-                "...bii->...b",
-                gs.matmul(
+            gs.trace(
+                Matrices.mul(
                     xa_0,
-                    gs.matmul(
-                        inv_surface_metrics_bp, gs.transpose(xb_0, axes=(0, 1, 3, 2))
-                    ),
+                    ginv_bp,
+                    Matrices.transpose(xb_0),
                 ),
             )
-            * areas_bp
+            * areas_bp,
+            axis=-1,
         )
 
     def _inner_product_a2(
@@ -730,13 +779,15 @@ class ElasticMetric(RiemannianMetric):
         r"""Compute term of order 2 within the inner-product.
 
         Denote h and k the tangent vectors a and b respectively.
-        Denote q the base point, i.e. the surface.
+        Denote q the base point.
 
-        The equation of the inner-product is:
-        :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
+        This method computes :math:`G_{a_2} = a_2 <\Delta_q h, \Delta_q k>`, i.e.
 
-        This method computes :math:`G_{a_2} = a_2 <\Delta_q h, \Delta_q k>`,
-        with notations taken from .. [HSKCB2022].
+        .. math::
+
+            G_{a_2}(h, h) = \sum_{i=1}^N\left\|\left(\Delta_q h\right)_{v_i}
+            \right\|^2 \operatorname{vol}_{x_i}
+
 
         Parameters
         ----------
@@ -744,26 +795,19 @@ class ElasticMetric(RiemannianMetric):
             Tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., n_vertices, 3]
             Tangent vector at base point.
-        base_point : array-like, shape=[n_vertices, 3]
+        base_point : array-like, shape=[..., n_vertices, 3]
             Base point, a surface i.e. the 3D coordinates of its vertices.
-        vertex_areas_bp : array-like, shape=[n_vertices, 1]
+        vertex_areas_bp : array-like, shape=[..., n_vertices, 1]
             Vertex areas for each vertex of the base_point.
 
         Returns
         -------
-        _ : array-like, shape=[...]
+        inner_prod_a2 : array-like, shape=[...,]
             Term of order 2, and coefficient a2, of the inner-product.
-
-        References
-        ----------
-        .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
-            Sobolev metrics: a comprehensive numerical framework".
-            arXiv:2204.04238 [cs.CV], 25 Sep 2022.
         """
         laplacian_at_base_point = self._space.laplacian(base_point)
         return self.a2 * gs.sum(
-            gs.einsum(
-                "...bi,...bi->...b",
+            gs.dot(
                 laplacian_at_base_point(tangent_vec_a),
                 laplacian_at_base_point(tangent_vec_b),
             )
@@ -781,9 +825,13 @@ class ElasticMetric(RiemannianMetric):
         We denote q the base point, i.e. the surface.
 
         The six terms of the inner-product are given by:
-        :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`
+
+        .. math::
+
+            \int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q
 
         where:
+
         - :math:`G_{a_0} = a_0 <h, k>`
         - :math:`G_{a_1} = a_1.g_q^{-1} <dh_m, dk_m>`
         - :math:`G_{b_1} = b_1.g_q^{-1} <dh_+, dk_+>`
@@ -791,47 +839,35 @@ class ElasticMetric(RiemannianMetric):
         - :math:`G_{d_1} = d_1.g_q^{-1} <dh_0, dk_0>`
         - :math:`G_{a_2} = a_2 <\Delta_q h, \Delta_q k>`
 
-        with notations taken from .. [HSKCB2022].
-
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., n_vertices, 3]
             Tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., n_vertices, 3]
             Tangent vector at base point.
-        base_point : array-like, shape=[n_vertices, 3]
+        base_point : array-like, shape=[..., n_vertices, 3]
             Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
         -------
         inner_prod : array-like, shape=[...]
-            Inner-product.
-
-        References
-        ----------
-        .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
-            Sobolev metrics: a comprehensive numerical framework".
-            arXiv:2204.04238 [cs.CV], 25 Sep 2022.
+            Inner product.
         """
-        to_squeeze = False
-        if tangent_vec_a.ndim == 2 and tangent_vec_b.ndim == 2:
-            to_squeeze = True
-        if tangent_vec_a.ndim == 2:
-            tangent_vec_a = gs.expand_dims(tangent_vec_a, axis=0)
-        if tangent_vec_b.ndim == 2:
-            tangent_vec_b = gs.expand_dims(tangent_vec_b, axis=0)
+        inner_prod_a0 = 0.0
+        inner_prod_a1 = 0.0
+        inner_prod_a2 = 0.0
+        inner_prod_b1 = 0.0
+        inner_prod_c1 = 0.0
+        inner_prod_d1 = 0.0
 
-        point_a = base_point + tangent_vec_a
-        point_b = base_point + tangent_vec_b
-        inner_prod = gs.zeros((gs.maximum(len(tangent_vec_a), len(tangent_vec_b)), 1))
         if self.a0 > 0 or self.a2 > 0:
             vertex_areas_bp = self._space.vertex_areas(base_point)
             if self.a0 > 0:
-                inner_prod += self._inner_product_a0(
+                inner_prod_a0 = self._inner_product_a0(
                     tangent_vec_a, tangent_vec_b, vertex_areas_bp=vertex_areas_bp
                 )
             if self.a2 > 0:
-                inner_prod += self._inner_product_a2(
+                inner_prod_a2 = self._inner_product_a2(
                     tangent_vec_a,
                     tangent_vec_b,
                     base_point=base_point,
@@ -839,14 +875,17 @@ class ElasticMetric(RiemannianMetric):
                 )
         if self.a1 > 0 or self.b1 > 0 or self.c1 > 0 or self.b1 > 0:
             one_forms_bp = self._space.surface_one_forms(base_point)
-            surface_metrics_bp = self._space._surface_metric_matrices_from_one_forms(
+            surface_metrics_bp = self._space.surface_metric_matrices_from_one_forms(
                 one_forms_bp
             )
-            normals_bp = self._space.normals(base_point)
             areas_bp = gs.sqrt(gs.linalg.det(surface_metrics_bp))
 
+            point_a = base_point + tangent_vec_a
+            point_b = base_point + tangent_vec_b
+
             if self.c1 > 0:
-                inner_prod += self._inner_product_c1(
+                normals_bp = self._space.normals(base_point)
+                inner_prod_c1 = self._inner_product_c1(
                     point_a, point_b, normals_bp, areas_bp
                 )
             if self.d1 > 0 or self.b1 > 0 or self.a1 > 0:
@@ -854,65 +893,580 @@ class ElasticMetric(RiemannianMetric):
                 one_forms_a = self._space.surface_one_forms(point_a)
                 one_forms_b = self._space.surface_one_forms(point_b)
                 if self.d1 > 0:
-                    inner_prod += self._inner_product_d1(
+                    inner_prod_d1 = self._inner_product_d1(
                         one_forms_a,
                         one_forms_b,
                         one_forms_bp,
-                        areas_bp=areas_bp,
-                        inv_surface_metrics_bp=ginv_bp,
+                        areas_bp,
+                        ginv_bp,
                     )
 
                 if self.b1 > 0 or self.a1 > 0:
-                    dga = (
-                        gs.matmul(
-                            one_forms_a, gs.transpose(one_forms_a, axes=(0, 1, 3, 2))
-                        )
-                        - surface_metrics_bp
+                    surface_metrics_a = (
+                        self._space.surface_metric_matrices_from_one_forms(one_forms_a)
                     )
-                    dgb = (
-                        gs.matmul(
-                            one_forms_b, gs.transpose(one_forms_b, axes=(0, 1, 3, 2))
-                        )
-                        - surface_metrics_bp
+                    surface_metrics_b = (
+                        self._space.surface_metric_matrices_from_one_forms(one_forms_b)
                     )
+                    dga = surface_metrics_a - surface_metrics_bp
+                    dgb = surface_metrics_b - surface_metrics_bp
                     ginvdga = gs.matmul(ginv_bp, dga)
                     ginvdgb = gs.matmul(ginv_bp, dgb)
-                    inner_prod += self._inner_product_a1(ginvdga, ginvdgb, areas_bp)
-                    inner_prod += self._inner_product_b1(ginvdga, ginvdgb, areas_bp)
-        return gs.squeeze(inner_prod, axis=0) if to_squeeze else inner_prod
+                    if self.a1 > 0:
+                        inner_prod_a1 = self._inner_product_a1(
+                            ginvdga, ginvdgb, areas_bp
+                        )
+                    if self.b1 > 0:
+                        inner_prod_b1 = self._inner_product_b1(
+                            ginvdga, ginvdgb, areas_bp
+                        )
 
-    def path_energy_per_time(self, path):
-        """Compute stepwise path energy of a path in the space of discrete surfaces.
+        return (
+            inner_prod_a0
+            + inner_prod_a1
+            + inner_prod_a2
+            + inner_prod_b1
+            + inner_prod_c1
+            + inner_prod_d1
+        )
+
+
+class DiscreteSurfacesExpSolver(ExpSolver):
+    """Class to solve the initial value problem (IVP) for exp.
+
+    Implements methods from discrete geodesic calculus method.
+    """
+
+    def __init__(self, space, n_steps=10, optimizer=None):
+        super().__init__(solves_ivp=True)
+        self._space = space
+        if optimizer is None:
+            optimizer = ScipyMinimize(
+                method="L-BFGS-B",
+                autodiff_jac=True,
+                options={"disp": False, "ftol": 0.00001},
+            )
+
+        self.n_steps = n_steps
+        self.optimizer = optimizer
+
+    def _objective(self, current_point, next_point):
+        """Return objective function to compute the next point on the geodesic.
 
         Parameters
         ----------
-        path : array-like, shape=[n_times, n_vertices, 3]
-            Piecewise linear path of discrete surfaces.
+        current_point : array-like, shape=[n_vertices, 3]
+            Current point on the geodesic.
+        next_point : array-like, shape=[n_vertices, 3]
+            Next point on the geodesic.
 
         Returns
         -------
-        energy : array-like, shape=[n_times - 1,]
-            Stepwise path energy.
+        energy_objective : callable
+            Computes energy wrt next next point.
         """
-        n_times, _, _ = path.shape
-        surface_diffs = path[1:, :, :] - path[:-1, :, :]
-        surface_midpoints = path[: n_times - 1, :, :] + surface_diffs / 2
-        energy = []
-        for diff, midpoint in zip(surface_diffs, surface_midpoints):
-            energy.extend([n_times * self.squared_norm(diff, midpoint)])
-        return gs.array(energy)
+        zeros = gs.zeros_like(current_point)
 
-    def path_energy(self, path):
-        """Compute path energy of a path in the space of discrete surfaces.
+        def energy_objective(flat_next_next_point):
+            """Compute the energy objective to minimize.
+
+            Parameters
+            ----------
+            next_next_point : array-like, shape=[n_vertices*3]
+                Next next point on the geodesic.
+
+            Returns
+            -------
+            energy_tot : array-like, shape=[,]
+                Energy objective to minimize.
+            """
+            next_next_point = gs.reshape(flat_next_next_point, self._space.shape)
+            current_to_next = next_point - current_point
+            next_to_next_next = next_next_point - next_point
+
+            def _inner_product_with_current_to_next(tangent_vec):
+                """Compute inner-product with tangent vector `current_to_next`.
+
+                The tangent vector `current_to_next` is the vector going from the
+                current point, i.e. discrete surface, to the next point on the
+                geodesic that is being computed.
+                """
+                return self._space.metric.inner_product(
+                    current_to_next, tangent_vec, current_point
+                )
+
+            def _inner_product_with_next_to_next_next(tangent_vec):
+                """Compute inner-product with tangent vector `next_to_next_next`.
+
+                The tangent vector `next_to_next_next` is the vector going from the
+                next point, i.e. discrete surface, to the next next point on the
+                geodesic that is being computed.
+                """
+                return self._space.metric.inner_product(
+                    next_to_next_next, tangent_vec, next_point
+                )
+
+            def _norm(base_point):
+                """Compute norm of `next_to_next_next` at the base_point.
+
+                The tangent vector `next_to_next_next` is the vector going from the
+                next point, i.e. discrete surface, to the next next point on the
+                geodesic that is being computed.
+                """
+                return self._space.metric.squared_norm(next_to_next_next, base_point)
+
+            _, energy_1 = gs.autodiff.value_and_grad(
+                _inner_product_with_current_to_next,
+                point_ndims=2,
+            )(zeros)
+            _, energy_2 = gs.autodiff.value_and_grad(
+                _inner_product_with_next_to_next_next,
+                point_ndims=2,
+            )(zeros)
+            _, energy_3 = gs.autodiff.value_and_grad(_norm, point_ndims=2)(next_point)
+
+            energy_tot = 2 * energy_1 - 2 * energy_2 + energy_3
+            return gs.sum(energy_tot**2)
+
+        return energy_objective
+
+    def _stepforward(self, current_point, next_point):
+        """Compute the next point on the geodesic.
 
         Parameters
         ----------
-        path : array-like, shape=[n_times, n_vertices, 3]
-            Piecewise linear path of discrete surfaces.
+        current_point : array-like, shape=[n_vertices, 3]
+            Current point on the geodesic.
+        next_point : array-like, shape=[n_vertices, 3]
+            Next point on the geodesic.
 
         Returns
         -------
-        energy : array-like, shape=[,]
-            Path energy.
+        next_next_point : array-like, shape=[n_vertices, 3]
+            Next next point on the geodesic.
         """
-        return 0.5 * gs.sum(self.path_energy_per_time(path))
+        flat_initial_next_next_point = gs.flatten(
+            (2 * (next_point - current_point) + current_point)
+        )
+
+        energy_objective = self._objective(current_point, next_point)
+
+        sol = self.optimizer.minimize(
+            energy_objective,
+            flat_initial_next_next_point,
+        )
+
+        return gs.reshape(sol.x, self._space.shape)
+
+    def _discrete_geodesic_ivp_single(self, tangent_vec, base_point):
+        """Solve initial value problem (IVP).
+
+        Given an initial tangent vector and an initial point,
+        solve the geodesic equation.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_vertices, 3]
+            Initial tangent vector.
+        base_point : array-like, shape=[n_vertices, 3]
+            Initial point, i.e. initial discrete surface.
+
+        Returns
+        -------
+        geod : array-like, shape=[n_steps, n_vertices, 3]
+            Discretized geodesic uniformly sampled.
+        """
+        next_point = base_point + tangent_vec / (self.n_steps - 1)
+        geod = [base_point, next_point]
+        for _ in range(2, self.n_steps):
+            next_next_point = self._stepforward(geod[-2], geod[-1])
+            geod.append(next_next_point)
+
+        return gs.stack(geod, axis=0)
+
+    def discrete_geodesic_ivp(self, tangent_vec, base_point):
+        """Solve initial value problem (IVP).
+
+        Given an initial tangent vector and an initial point,
+        solve the geodesic equation.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_vertices, 3]
+            Initial tangent vector.
+        base_point : array-like, shape=[n_vertices, 3]
+            Initial point, i.e. initial discrete surface.
+
+        Returns
+        -------
+        geod : array-like, shape=[n_steps, n_vertices, 3]
+            Discretized geodesic uniformly sampled.
+        """
+        if tangent_vec.ndim != base_point.ndim:
+            tangent_vec, base_point = gs.broadcast_arrays(tangent_vec, base_point)
+
+        is_batch = base_point.ndim > self._space.point_ndim
+        if not is_batch:
+            return self._discrete_geodesic_ivp_single(tangent_vec, base_point)
+
+        return gs.stack(
+            [
+                self._discrete_geodesic_ivp_single(tangent_vec_, base_point_)
+                for tangent_vec_, base_point_ in zip(tangent_vec, base_point)
+            ]
+        )
+
+    def exp(self, tangent_vec, base_point):
+        """Compute exponential map associated to the Riemmannian metric.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n_vertices, 3]
+            Tangent vector at the base point.
+        base_point : array-like, shape=[..., n_vertices, 3]
+            Point on the manifold, i.e.
+
+        Returns
+        -------
+        point : array-like, shape=[..., n_vertices, 3]
+            Point on the manifold.
+        """
+        discr_geod_path = self.discrete_geodesic_ivp(tangent_vec, base_point)
+        return discr_geod_path[..., -1, :, :]
+
+    def geodesic_ivp(self, tangent_vec, base_point):
+        """Geodesic curve for initial value problem.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n_vertices, 3]
+            Initial tangent vector.
+        base_point : array-like, shape=[..., n_vertices, 3]
+            Initial point, i.e. initial discrete surface.
+
+        Returns
+        -------
+        path : callable
+            Time parametrized geodesic curve. `f(t)`.
+        """
+        discr_geod_path = self.discrete_geodesic_ivp(tangent_vec, base_point)
+        return UniformlySampledDiscretePath(
+            discr_geod_path, point_ndim=self._space.point_ndim
+        )
+
+
+class L2SurfacesMetric(NFoldMetric):
+    """L2 metric on the space of discrete surfaces.
+
+    Notes
+    -----
+    Adds ``base_manifold`` (manifold that is repeated ``n_copies``
+    times) and ``n_copies`` to ``space`` as attribute if it does
+    not have them as their expected by ``NFoldMetric``.
+    """
+
+    def __init__(self, space):
+        if not hasattr(space, "base_manifold"):
+            space.base_manifold = Euclidean(dim=3)
+            space.n_copies = space.n_vertices
+
+        super().__init__(space=space)
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+        """Compute L2 inner product between two tangent vectors.
+
+        The inner product is the integral of the ambient space inner product,
+        approximated by a left Riemann sum.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n_vertices, 3]
+            Tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., n_vertices, 3]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n_vertices, 3]
+            Surface, as the 3D coordinates of the vertices of its triangulation.
+
+        Return
+        ------
+        inner_prod : array_like, shape=[...]
+            Inner product.
+        """
+        inner_products = self.pointwise_inner_product(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
+        dt = 1 / self._space.n_vertices
+        return dt * gs.sum(inner_products, axis=-1)
+
+
+class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
+    """Class to solve the geodesic boundary value problem with path-straightening.
+
+    Parameters
+    ----------
+    space : Manifold
+        Equipped manifold.
+    n_nodes : int
+        Number of path discretization points.
+    lambda_ : float
+        Discrepancy loss weight.
+    discrepancy_loss : callable
+        A generic discrepancy term. Receives point and outputs a callable
+        which receives another point and outputs a scalar measuring
+        discrepancy between point and another point.
+        Scalar sums to energy of a path.
+    path_energy : callable
+        Method to compute Riemannian path energy.
+    optimizer : ScipyMinimize
+        An optimizer to solve path energy minimization problem.
+    initialization : callable or array-like, shape=[n_nodes - 2, n_vertices, 3]
+        A method to get initial guess for optimization or an initial path.
+
+    References
+    ----------
+    .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
+        Sobolev metrics: a comprehensive numerical framework".
+        arXiv:2204.04238 [cs.CV], 25 Sep 2022
+    """
+
+    def __init__(
+        self,
+        total_space,
+        n_nodes=3,
+        lambda_=1.0,
+        discrepancy_loss=None,
+        path_energy=None,
+        optimizer=None,
+        initialization=None,
+    ):
+        PathBasedLogSolver.__init__(self, space=total_space)
+        AlignerAlgorithm.__init__(self, total_space=total_space)
+
+        if discrepancy_loss is None:
+            discrepancy_loss = self._default_discrepancy_loss()
+
+        if path_energy is None:
+            path_energy = UniformlySampledPathEnergy(total_space)
+
+        if initialization is None:
+            initialization = self._default_initialization
+
+        if optimizer is None:
+            optimizer = ScipyMinimize(
+                method="L-BFGS-B",
+                autodiff_jac=True,
+                options={"disp": False},
+            )
+
+        self.n_nodes = n_nodes
+        self.lambda_ = lambda_
+        self.discrepancy_loss = discrepancy_loss
+        self.path_energy = path_energy
+        self.optimizer = optimizer
+        self.initialization = initialization
+
+    def _default_discrepancy_loss(self):
+        """Discrepancy loss by default.
+
+        Returns
+        -------
+        loss : callable
+            Discrepancy term loss: `f(point) -> g(another_point)`.
+            Returns a callable that computes the discrepancy term between
+            `point` and `another_point`.
+        """
+        from geomstats.varifold import (
+            BinetKernel,
+            GaussianKernel,
+            SurfacesKernel,
+            VarifoldMetric,
+        )
+
+        position_kernel = GaussianKernel(sigma=1.0, init_index=0)
+        tangent_kernel = BinetKernel(init_index=position_kernel.new_variable_index())
+        kernel = SurfacesKernel(
+            position_kernel,
+            tangent_kernel,
+        )
+        varifold_metric = VarifoldMetric(kernel)
+        return lambda point: varifold_metric.loss(
+            point, target_faces=self._total_space.faces
+        )
+
+    def _default_initialization(self, point, base_point):
+        """Linear initialization.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_vertices, 3]
+        base_point : array-like, shape=[n_vertices, 3]
+
+        Returns
+        -------
+        midpoints : array-like, shape=[n_nodes - 1, n_vertices, 3]
+        """
+        return gs.broadcast_to(
+            base_point, (self.n_nodes - 1,) + self._total_space.shape
+        )
+
+    def _discrete_geodesic_bvp_single(self, point, base_point):
+        """Solve boundary value problem (BVP).
+
+        Given an initial point and an end point, solve the geodesic equation
+        via minimizing the Riemannian path energy.
+
+        Parameters
+        ----------
+        point : Surface or list[Surface] or array-like, shape=[n_vertices, 3]
+        base_point : array-like, shape=[n_vertices, 3]
+
+        Returns
+        -------
+        discr_geod_path : array-like, shape=[n_times, n_nodes, *point_shape]
+            Discrete geodesic.
+        """
+        if callable(self.initialization):
+            init_midpoints = self.initialization(point, base_point)
+        else:
+            init_midpoints = self.initialization
+
+        base_point = gs.expand_dims(base_point, axis=0)
+
+        discrepancy_loss = self.discrepancy_loss(point)
+
+        def objective(midpoints):
+            """Compute path energy of paths going through a midpoint.
+
+            Parameters
+            ----------
+            midpoint : array-like, shape=[(self.n_nodes-1) * math.prod(n_vertices*3)]
+                Midpoints of the path.
+
+            Returns
+            -------
+            _ : array-like, shape=[...,]
+                Energy of the path going through this midpoint.
+            """
+            midpoints = gs.reshape(
+                midpoints, (self.n_nodes - 1,) + self._total_space.shape
+            )
+            path = gs.concatenate(
+                [
+                    base_point,
+                    midpoints,
+                ],
+            )
+            return self.path_energy(path) + self.lambda_ * discrepancy_loss(path[-1])
+
+        init_midpoints = gs.reshape(init_midpoints, (-1,))
+        sol = self.optimizer.minimize(objective, init_midpoints)
+
+        solution_midpoints = gs.reshape(
+            gs.array(sol.x), (self.n_nodes - 1,) + self._total_space.shape
+        )
+
+        return gs.concatenate(
+            [
+                base_point,
+                solution_midpoints,
+            ],
+            axis=0,
+        )
+
+    def discrete_geodesic_bvp(self, point, base_point):
+        """Solve boundary value problem (BVP).
+
+        Given an initial point and an end point, solve the geodesic equation
+        via minimizing the Riemannian path energy and a relaxation term.
+
+        Parameters
+        ----------
+        point : Surface or list[Surface] or array-like, shape=[..., n_vertices, 3]
+        base_point : Surface or list[Surface] or array-like, shape=[..., n_vertices, 3]
+
+        Returns
+        -------
+        discr_geod_path : array-like, shape=[..., n_times, n_nodes, n_vertices, 3]
+            Discrete geodesic.
+        """
+        if not gs.is_array(base_point):
+            if _is_iterable(base_point):
+                base_point = gs.stack([point_.vertices for point_ in base_point])
+            else:
+                base_point = base_point.vertices
+
+        if gs.is_array(point):
+            if point.ndim > 2:
+                point = [
+                    Surface(point_, faces=self._total_space.faces) for point_ in point
+                ]
+            else:
+                point = Surface(point, faces=self._total_space.faces)
+
+        if base_point.ndim == 2 and not _is_iterable(point):
+            return self._discrete_geodesic_bvp_single(point, base_point)
+
+        if base_point.ndim == 2:
+            batch_shape = (len(base_point),)
+            base_point = gs.broadcast_to(
+                base_point, batch_shape + self._total_space.shape
+            )
+
+        elif not _is_iterable(point):
+            point = [point] * base_point.shape[-3]
+
+        return gs.stack(
+            [
+                self._discrete_geodesic_bvp_single(point_, base_point_)
+                for base_point_, point_ in zip(base_point, point)
+            ]
+        )
+
+    def align(self, point, base_point):
+        """Align point to base point.
+
+        Parameters
+        ----------
+        point : Surface or list[Surface] or array-like, shape=[..., n_vertices, 3]
+        base_point : array-like, shape=[..., n_vertices, 3]
+
+        Returns
+        -------
+        aligned_point : array-like, shape=[..., n_vertices, 3]
+            Aligned point.
+        """
+        discr_geod_path = self.discrete_geodesic_bvp(point, base_point)
+        point_ndim_slc = (slice(None),) * self._total_space.point_ndim
+        return discr_geod_path[(..., -1) + point_ndim_slc]
+
+
+class ReparametrizationBundle(FiberBundle):
+    """Principal bundle of surfaces module reparametrizations.
+
+    Parameters
+    ----------
+    total_space : DiscreteSurfaces
+        Surfaces equipped with a reparametrization-invariant metric.
+    aligner : AlignerAlgorithm
+        If None, instantiates default
+        RelaxedPathStraightening.
+    """
+
+    def __init__(self, total_space, aligner=None):
+        if aligner is None:
+            aligner = RelaxedPathStraightening(total_space)
+        super().__init__(total_space, aligner=aligner)
+
+
+def _is_iterable(obj):
+    """Check if an object is an iterable."""
+    return isinstance(obj, (list, tuple))
+
+
+register_quotient(
+    Space=DiscreteSurfaces,
+    Metric=ElasticMetric,
+    GroupAction="reparametrizations",
+    FiberBundle=ReparametrizationBundle,
+    QuotientMetric=QuotientMetric,
+)

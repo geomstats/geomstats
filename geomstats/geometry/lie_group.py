@@ -98,7 +98,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
             return lambda tangent_vec: self.compose(point, tangent_vec)
         return lambda tangent_vec: self.compose(tangent_vec, point)
 
-    def lie_bracket(self, tangent_vector_a, tangent_vector_b, base_point=None):
+    def lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the lie bracket of two tangent vectors.
 
         For matrix Lie groups with tangent vectors A,B at the same base point P
@@ -107,9 +107,9 @@ class MatrixLieGroup(Manifold, abc.ABC):
 
         Parameters
         ----------
-        tangent_vector_a : array-like, shape=[..., n, n]
+        tangent_vec_a : array-like, shape=[..., n, n]
             Tangent vector at base point.
-        tangent_vector_b : array-like, shape=[..., n, n]
+        tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
             Base point.
@@ -123,11 +123,11 @@ class MatrixLieGroup(Manifold, abc.ABC):
             base_point = self.identity
         inverse_base_point = self.inverse(base_point)
 
-        first_term = Matrices.mul(inverse_base_point, tangent_vector_b)
-        first_term = Matrices.mul(tangent_vector_a, first_term)
+        first_term = Matrices.mul(inverse_base_point, tangent_vec_b)
+        first_term = Matrices.mul(tangent_vec_a, first_term)
 
-        second_term = Matrices.mul(inverse_base_point, tangent_vector_a)
-        second_term = Matrices.mul(tangent_vector_b, second_term)
+        second_term = Matrices.mul(inverse_base_point, tangent_vec_a)
+        second_term = Matrices.mul(tangent_vec_b, second_term)
 
         return first_term - second_term
 
@@ -387,7 +387,7 @@ class LieGroup(Manifold, abc.ABC):
             Tangent map of the left/right translation by point. It can be
             applied to tangent vectors.
         """
-        if self.default_point_type == "matrix":
+        if self.point_ndim == 2:
             if inverse:
                 point = self.inverse(point)
             if left:
@@ -431,7 +431,7 @@ class LieGroup(Manifold, abc.ABC):
         exp : array-like, shape=[..., {dim, [n, n]}]
             Group exponential.
         """
-        if self.default_point_type == "vector":
+        if self.point_ndim == 1:
             tangent_translation = self.tangent_translation_map(
                 point=base_point, left=True, inverse=True
             )
@@ -504,7 +504,7 @@ class LieGroup(Manifold, abc.ABC):
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
             Group logarithm.
         """
-        if self.default_point_type == "vector":
+        if self.point_ndim == 1:
             tangent_translation = self.tangent_translation_map(
                 point=base_point,
                 left=True,
@@ -547,7 +547,7 @@ class LieGroup(Manifold, abc.ABC):
 
         return self.log_not_from_identity(point, base_point)
 
-    def lie_bracket(self, tangent_vector_a, tangent_vector_b, base_point=None):
+    def lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the lie bracket of two tangent vectors.
 
         For matrix Lie groups with tangent vectors A,B at the same base point P
@@ -556,9 +556,9 @@ class LieGroup(Manifold, abc.ABC):
 
         Parameters
         ----------
-        tangent_vector_a : array-like, shape=[..., n, n]
+        tangent_vec_a : array-like, shape=[..., n, n]
             Tangent vector at base point.
-        tangent_vector_b : array-like, shape=[..., n, n]
+        tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
             Base point.
@@ -572,11 +572,11 @@ class LieGroup(Manifold, abc.ABC):
             base_point = self.identity
         inverse_base_point = self.inverse(base_point)
 
-        first_term = Matrices.mul(inverse_base_point, tangent_vector_b)
-        first_term = Matrices.mul(tangent_vector_a, first_term)
+        first_term = Matrices.mul(inverse_base_point, tangent_vec_b)
+        first_term = Matrices.mul(tangent_vec_a, first_term)
 
-        second_term = Matrices.mul(inverse_base_point, tangent_vector_a)
-        second_term = Matrices.mul(tangent_vector_b, second_term)
+        second_term = Matrices.mul(inverse_base_point, tangent_vec_a)
+        second_term = Matrices.mul(tangent_vec_b, second_term)
 
         return first_term - second_term
 
