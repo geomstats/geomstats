@@ -1,6 +1,6 @@
 """Import main modules."""
 
-__version__ = "2.7.0"
+__version__ = "2.8.0"
 
 import geomstats._backend
 import geomstats._logging
