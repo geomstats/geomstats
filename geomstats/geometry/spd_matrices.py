@@ -96,6 +96,36 @@ def _aux_differential_power(power, tangent_vec, base_point):
     return (eigvectors, transp_eigvectors, numerator, denominator, temp_result)
 
 
+def generalized_eigenvalues(point_a, point_b):
+    """Compute the generalized eigenvalues of SPD matrix pair.
+
+    point_auxiliary function to the functions differential_power and
+    inverse_differential_power.
+
+    Parameters
+    ----------
+    point_a : array_like, shape=[..., n, n]
+        Symmetric positive definite matrix.
+    point_b : array_like, shape=[..., n, n]
+        Symmetric positive definite matrix.
+
+    Returns
+    -------
+    generalized_eigenvalues : array-like, shape=[...]
+    """
+    # Compute eigendecomposition of point_b
+    eigvals_b, eigvecs_b = gs.linalg.eigh(point_b)
+    # Get matrix turning point_b into identity by congruence
+    inv_sqrt_eigvals_b = gs.sqrt(1.0 / eigvals_b)
+    inv_sqrt_eigvals_b = gs.expand_dims(inv_sqrt_eigvals_b, -2)
+    scaled_b_eigvecs = eigvecs_b * inv_sqrt_eigvals_b
+
+    # Apply congruence to point_a and get generalized eigenvalues
+    point_a_scaled = gs.moveaxis(scaled_b_eigvecs, -1, -2) @ point_a @ scaled_b_eigvecs
+    generalized_eigenvalues = gs.linalg.eigvalsh(point_a_scaled)
+    return generalized_eigenvalues
+
+
 class SymMatrixLog(Diffeo):
     """Matrix logarithm diffeomorphism.
 
@@ -643,6 +673,31 @@ class SPDAffineMetric(RiemannianMetric):
 
         log_at_id = logmh(point_near_id)
         return Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
+
+    def squared_dist(self, point_a, point_b):
+        """Compute the Affine Invariant squared distance.
+
+        Compute the Riemannian squared distance between point_a and point_b.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., n, n]
+            Point.
+        point_b : array-like, shape=[..., n, n]
+            Point.
+
+        Returns
+        -------
+        squared_dist : array-like, shape=[...]
+            Riemannian squared distance.
+
+        Notes
+        -----
+        Use of `abs` in the output prevents nan when calling
+        `sqrt` in very small negative outputs (e.g. -1e-16).
+        """
+        gen_eigvals = generalized_eigenvalues(point_a, point_b)
+        return gs.abs(gs.sum(gs.log(gen_eigvals) ** 2, axis=-1))
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
