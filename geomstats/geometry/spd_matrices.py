@@ -99,8 +99,8 @@ def _aux_differential_power(power, tangent_vec, base_point):
 def generalized_eigenvalues(point_a, point_b):
     """Compute the generalized eigenvalues of SPD matrix pair.
 
-    point_auxiliary function to the functions differential_power and
-    inverse_differential_power.
+    Auxiliary function to the function squared_dist for the
+    Affine Invariant metric.
 
     Parameters
     ----------
