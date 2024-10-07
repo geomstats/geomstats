@@ -1038,6 +1038,9 @@ class SPDScalingFinder:
 
     For details, check out [T2024]_'s section 3.5.
 
+    To ensure convergence, it is better to use a damped Newton method, which
+    leverages function being standard self-concordant and strictly convex
+    (check out section 5.1.5 of [N2018]_).
 
     Parameters
     ----------
@@ -1057,11 +1060,12 @@ class SPDScalingFinder:
         “Scaling of Symmetric Matrices by Positive Diagonal Congruence.”
         Linear and Multilinear Algebra 57, no. 2 (March 1, 2009): 123–40.
         https://doi.org/10.1080/03081080600872327.
+    .. [N2018] Yurii Nesterov. Lectures on Convex Optimization. Springer, 2018.
     """
 
     def __init__(self, root_finder=None):
         if root_finder is None:
-            root_finder = NewtonMethod()
+            root_finder = NewtonMethod(damped=True)
 
         self.root_finder = root_finder
 

@@ -38,7 +38,7 @@ from geomstats.geometry.symmetric_matrices import (
     SymmetricHollowMatrices,
     SymmetricMatrices,
 )
-from geomstats.numerics.optimization import NewtonMethod, ScipyRoot
+from geomstats.numerics.optimization import NewtonMethod
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
@@ -272,8 +272,7 @@ class TestOffLogMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametr
 @pytest.fixture(
     scope="class",
     params=[
-        NewtonMethod(),
-        ScipyRoot(),
+        NewtonMethod(damped=True),
     ],
 )
 def unique_positive_diagonal_matrix_algorithms(request):
@@ -299,6 +298,13 @@ class TestSPDScalingFinder(TestCase, metaclass=DataBasedParametrizer):
         batch_shape = (n_points,) if n_points > 1 else ()
         expected = gs.ones(batch_shape + (spd_mat.shape[-1],))
         self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.random
+    def test_values_are_positive(self, n_points):
+        spd_mat = self.data_generator.random_point(n_points)
+        diag_vec = self.algo(spd_mat)
+
+        self.assertAllEqual(diag_vec > 0.0, gs.ones_like(diag_vec, dtype=bool))
 
 
 class TestLogScalingDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
