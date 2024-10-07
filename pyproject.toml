@@ -42,7 +42,7 @@ doc = [
     "pydata-sphinx-theme",
 ]
 lint = ["ruff", "pre-commit"]
-test = ["pytest", "pytest-cov", "coverage", "jupyter", "ipython < 8.23", "pykeops"]
+test = ["pytest", "pytest-cov", "coverage", "jupyter", "ipython < 8.23"]
 test-scripts = ["scikeras", "tensorflow"]
 graph = ["networkx"]
 pykeops = ["pykeops"]

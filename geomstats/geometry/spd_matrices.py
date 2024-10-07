@@ -6,6 +6,7 @@ Lead authors: Yann Thanwerdas and Olivier Bisson.
 import math
 
 import geomstats.backend as gs
+from geomstats.algebra_utils import columnwise_scaling
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.diffeo import Diffeo
@@ -99,8 +100,10 @@ def _aux_differential_power(power, tangent_vec, base_point):
 def generalized_eigenvalues(point_a, point_b):
     """Compute the generalized eigenvalues of SPD matrix pair.
 
-    Auxiliary function to the function squared_dist for the
-    Affine Invariant metric.
+    Steps (check section 7.2 of [GKC2023]_):
+    1. compute eigendecomposition of point_b
+    2. get matrix turning point_b into identity by congruence
+    3. apply congruence to point_a and get generalized eigenvalues
 
     Parameters
     ----------
@@ -112,18 +115,22 @@ def generalized_eigenvalues(point_a, point_b):
     Returns
     -------
     generalized_eigenvalues : array-like, shape=[...]
-    """
-    # Compute eigendecomposition of point_b
-    eigvals_b, eigvecs_b = gs.linalg.eigh(point_b)
-    # Get matrix turning point_b into identity by congruence
-    inv_sqrt_eigvals_b = gs.sqrt(1.0 / eigvals_b)
-    inv_sqrt_eigvals_b = gs.expand_dims(inv_sqrt_eigvals_b, -2)
-    scaled_b_eigvecs = eigvecs_b * inv_sqrt_eigvals_b
 
-    # Apply congruence to point_a and get generalized eigenvalues
-    point_a_scaled = gs.moveaxis(scaled_b_eigvecs, -1, -2) @ point_a @ scaled_b_eigvecs
-    generalized_eigenvalues = gs.linalg.eigvalsh(point_a_scaled)
-    return generalized_eigenvalues
+    References
+    ----------
+    .. [GKC2023] Benyamin Ghojogh, Fakhri Karray, and Mark Crowley.
+    “Eigenvalue and Generalized Eigenvalue Problems: Tutorial.”
+    arXiv, May 20, 2023. https://doi.org/10.48550/arXiv.1903.11240.
+    """
+    eigvals_b, eigvecs_b = gs.linalg.eigh(point_b)
+
+    inv_sqrt_eigvals_b = gs.sqrt(1.0 / eigvals_b)
+    scaled_b_eigvecs = columnwise_scaling(inv_sqrt_eigvals_b, eigvecs_b)
+
+    point_a_scaled = Matrices.mul(
+        Matrices.transpose(scaled_b_eigvecs), point_a, scaled_b_eigvecs
+    )
+    return gs.linalg.eigvalsh(point_a_scaled)
 
 
 class SymMatrixLog(Diffeo):
