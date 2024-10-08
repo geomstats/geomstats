@@ -242,11 +242,18 @@ class NewtonMethod(RootFinder):
         Tolerance to check algorithm convergence.
     max_iter : int
         Maximum iterations.
+    damped : bool
+        Whether to use a damped version. Check p358 of [N2018]_.
+
+    References
+    ----------
+    .. [N2018] Yurii Nesterov. Lectures on Convex Optimization. Springer, 2018.
     """
 
-    def __init__(self, atol=gs.atol, max_iter=100):
+    def __init__(self, atol=gs.atol, max_iter=100, damped=False):
         self.atol = atol
         self.max_iter = max_iter
+        self.damped = damped
 
     def root(self, fun, x0, fun_jac):
         """Find a root of a vector-valued function.
@@ -269,7 +276,11 @@ class NewtonMethod(RootFinder):
                 break
 
             y = gs.linalg.solve(fun_jac(xk), fun_xk)
-            xk = xk - y
+            if self.damped:
+                lambda_xk = gs.sqrt(gs.dot(fun_xk, y))
+            else:
+                lambda_xk = 0.0
+            xk = xk - (1 / (1 + lambda_xk)) * y
         else:
             message = f"Maximum number of iterations {self.max_iter} reached. Results may be inaccurate"
             status = 0

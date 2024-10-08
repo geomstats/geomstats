@@ -70,6 +70,9 @@ class SPDScalingFinderTestData(TestData):
     def rows_sum_to_one_test_data(self):
         return self.generate_random_data()
 
+    def values_are_positive_test_data(self):
+        return self.generate_random_data()
+
 
 class LogScaledMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_autodiff_exceptions = False
