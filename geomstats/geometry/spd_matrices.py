@@ -6,6 +6,7 @@ Lead authors: Yann Thanwerdas and Olivier Bisson.
 import math
 
 import geomstats.backend as gs
+from geomstats.algebra_utils import columnwise_scaling
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.diffeo import Diffeo
@@ -94,6 +95,42 @@ def _aux_differential_power(power, tangent_vec, base_point):
         denominator = gs.cast(denominator, dtype=temp_result.dtype)
 
     return (eigvectors, transp_eigvectors, numerator, denominator, temp_result)
+
+
+def generalized_eigenvalues(point_a, point_b):
+    """Compute the generalized eigenvalues of SPD matrix pair.
+
+    Steps (check section 7.2 of [GKC2023]_):
+    1. compute eigendecomposition of point_b
+    2. get matrix turning point_b into identity by congruence
+    3. apply congruence to point_a and get generalized eigenvalues
+
+    Parameters
+    ----------
+    point_a : array_like, shape=[..., n, n]
+        Symmetric positive definite matrix.
+    point_b : array_like, shape=[..., n, n]
+        Symmetric positive definite matrix.
+
+    Returns
+    -------
+    generalized_eigenvalues : array-like, shape=[...]
+
+    References
+    ----------
+    .. [GKC2023] Benyamin Ghojogh, Fakhri Karray, and Mark Crowley.
+    “Eigenvalue and Generalized Eigenvalue Problems: Tutorial.”
+    arXiv, May 20, 2023. https://doi.org/10.48550/arXiv.1903.11240.
+    """
+    eigvals_b, eigvecs_b = gs.linalg.eigh(point_b)
+
+    inv_sqrt_eigvals_b = gs.sqrt(1.0 / eigvals_b)
+    scaled_b_eigvecs = columnwise_scaling(inv_sqrt_eigvals_b, eigvecs_b)
+
+    point_a_scaled = Matrices.mul(
+        Matrices.transpose(scaled_b_eigvecs), point_a, scaled_b_eigvecs
+    )
+    return gs.linalg.eigvalsh(point_a_scaled)
 
 
 class SymMatrixLog(Diffeo):
@@ -643,6 +680,26 @@ class SPDAffineMetric(RiemannianMetric):
 
         log_at_id = logmh(point_near_id)
         return Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
+
+    def squared_dist(self, point_a, point_b):
+        """Compute the Affine Invariant squared distance.
+
+        Compute the Riemannian squared distance between point_a and point_b.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., n, n]
+            Point.
+        point_b : array-like, shape=[..., n, n]
+            Point.
+
+        Returns
+        -------
+        squared_dist : array-like, shape=[...]
+            Riemannian squared distance.
+        """
+        gen_eigvals = generalized_eigenvalues(point_a, point_b)
+        return gs.sum(gs.log(gen_eigvals) ** 2, axis=-1)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
