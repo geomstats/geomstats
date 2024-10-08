@@ -697,14 +697,9 @@ class SPDAffineMetric(RiemannianMetric):
         -------
         squared_dist : array-like, shape=[...]
             Riemannian squared distance.
-
-        Notes
-        -----
-        Use of `abs` in the output prevents nan when calling
-        `sqrt` in very small negative outputs (e.g. -1e-16).
         """
         gen_eigvals = generalized_eigenvalues(point_a, point_b)
-        return gs.abs(gs.sum(gs.log(gen_eigvals) ** 2, axis=-1))
+        return gs.sum(gs.log(gen_eigvals) ** 2, axis=-1)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
