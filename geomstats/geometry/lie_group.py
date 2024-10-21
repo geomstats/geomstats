@@ -6,9 +6,21 @@ Lead author: Nina Miolane.
 import abc
 
 import geomstats.backend as gs
-from geomstats.geometry.invariant_metric import InvariantMetric
+from geomstats.geometry.euclidean import Euclidean, FlatRiemannianMetric
+from geomstats.geometry.invariant_metric import (
+    BiInvariantMetric,
+    InvariantMetric,
+    _InvariantMetricMatrix,
+)
 from geomstats.geometry.manifold import Manifold
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import (
+    BasisRepresentationDiffeo,
+    Matrices,
+    MatricesDiagMetric,
+    MatricesMetric,
+)
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
+from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 
 ATOL = 1e-6
 
@@ -17,9 +29,73 @@ class MatrixLieGroup(Manifold, abc.ABC):
     """Class for matrix Lie groups."""
 
     def __init__(self, representation_dim, lie_algebra=None, **kwargs):
-        super().__init__(shape=(representation_dim, representation_dim), **kwargs)
         self.lie_algebra = lie_algebra
+        super().__init__(shape=(representation_dim, representation_dim), **kwargs)
         self.representation_dim = representation_dim
+
+    def _equip_lie_algebra_for_invariant_metric(self):
+        """Equip Lie algebra with appropriate metric.
+
+        Three cases for metric on Lie algebra:
+        * no `metric_mat_at_identity` or diagonal with ones: MatricesMetric
+        * diagonal `metric_mat_at_identity`: MatricesDiagMetric
+        * else: generic metric_matric on an Euclidean space
+        """
+        lie_algebra = self.lie_algebra
+        if self.metric.metric_mat_at_identity is None:
+            lie_algebra.equip_with_metric(MatricesMetric)
+            return self
+
+        if Matrices.is_diagonal(self.metric.metric_mat_at_identity):
+            metric_coeffs_vec = gs.diagonal(self.metric.metric_mat_at_identity)
+            if gs.amax(gs.abs(metric_coeffs_vec - 1.0)) < gs.atol:
+                lie_algebra.equip_with_metric(MatricesMetric)
+                return self
+
+            lie_algebra.equip_with_metric(
+                MatricesDiagMetric,
+                metric_coeffs=gs.abs(
+                    lie_algebra.matrix_representation(metric_coeffs_vec)
+                ),
+            )
+            return self
+
+        basis_repr_diffeo = BasisRepresentationDiffeo(lie_algebra)
+        lie_algebra.equip_with_metric(
+            PullbackDiffeoMetric,
+            diffeo=basis_repr_diffeo,
+            image_space=Euclidean(lie_algebra.dim, equip=False).equip_with_metric(
+                FlatRiemannianMetric, metric_matrix=self.metric.metric_mat_at_identity
+            ),
+        )
+        return self
+
+    def _equip_lie_algebra_for_biinvariant_metric(self):
+        """Equip Lie algebra with appropriate metric.
+
+        Equips Lie algebra with scaled MatricesMetric.
+        """
+        self.lie_algebra.equip_with_metric(MatricesMetric)
+        self.lie_algebra.metric = ScalarProductMetric(
+            self.lie_algebra.metric, 1.0 / 2.0
+        )
+
+        return self
+
+    def equip_with_metric(self, Metric=None, **metric_kwargs):
+        """Equip manifold with a Riemannian metric.
+
+        It also equips the Lie algebra with an appropriate metric.
+        """
+        super().equip_with_metric(Metric=Metric, **metric_kwargs)
+
+        if isinstance(self.metric, _InvariantMetricMatrix):
+            return self._equip_lie_algebra_for_invariant_metric()
+
+        if isinstance(self.metric, BiInvariantMetric):
+            return self._equip_lie_algebra_for_biinvariant_metric()
+
+        return self
 
     @property
     def identity(self):
@@ -278,14 +354,14 @@ class LieGroup(Manifold, abc.ABC):
     """
 
     def __init__(self, lie_algebra=None, **kwargs):
-        super().__init__(**kwargs)
         self.lie_algebra = lie_algebra
+        super().__init__(**kwargs)
 
     def default_metric(self):
         """Metric to equip the space with if equip is True."""
         return (
             InvariantMetric,
-            {"left": True, "metric_mat_at_identity": gs.eye(self.dim)},
+            {"left": True},
         )
 
     @property
