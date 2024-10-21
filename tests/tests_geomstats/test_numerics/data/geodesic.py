@@ -35,14 +35,6 @@ class ExpSolverTestData(TestData):
 
 
 class LogSolverAgainstMetricTestData(TestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-    tolerances = {
-        "log": {"atol": 1e-3},
-        "geodesic_bvp": {"atol": 1e-4},
-    }
-
     def log_test_data(self):
         return self.generate_random_data()
 

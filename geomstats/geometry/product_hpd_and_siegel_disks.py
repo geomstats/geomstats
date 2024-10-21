@@ -27,10 +27,10 @@ References
     https://epubs.siam.org/doi/pdf/10.1137/15M102112X
 """
 
-from geomstats.geometry.hpd_matrices import HPDAffineMetric, HPDMatrices
+from geomstats.geometry.hpd_matrices import HPDMatrices
 from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
-from geomstats.geometry.siegel import Siegel, SiegelMetric
+from geomstats.geometry.siegel import Siegel
 
 
 class ProductHPDMatricesAndSiegelDisks(ProductManifold):
@@ -52,14 +52,11 @@ class ProductHPDMatricesAndSiegelDisks(ProductManifold):
         self.n_manifolds = n_manifolds
         self.n = n
 
-        factors = [HPDMatrices(n=n, equip=False)] + [
-            Siegel(n=n, equip=False) for _ in range((n_manifolds - 1))
-        ]
+        factors = [HPDMatrices(n=n)] + [Siegel(n=n) for _ in range((n_manifolds - 1))]
 
         scales = [float(n_manifolds - i_manifold) for i_manifold in range(n_manifolds)]
-        factors[0].metric = ScalarProductMetric(HPDAffineMetric(factors[0]), scales[0])
         for factor, scale in zip(factors[1:], scales[1:]):
-            factor.metric = ScalarProductMetric(SiegelMetric(factor), scale)
+            factor.equip_with_metric(ScalarProductMetric(factor, scale))
 
         super().__init__(
             factors=factors,

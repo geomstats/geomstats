@@ -10,6 +10,7 @@ import geomstats.backend as gs
 from geomstats.geometry.complex_manifold import ComplexManifold
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.pullback_metric import PullbackMetric
+from geomstats.vectorization import get_batch_shape
 
 
 class VectorSpace(Manifold, abc.ABC):
@@ -50,25 +51,6 @@ class VectorSpace(Manifold, abc.ABC):
         if belongs:
             return gs.ones(shape, dtype=bool)
         return gs.zeros(shape, dtype=bool)
-
-    @staticmethod
-    def projection(point):
-        """Project a point to the vector space.
-
-        This method is for compatibility and returns `point`. `point` should
-        have the right shape,
-
-        Parameters
-        ----------
-        point: array-like, shape[..., *point_shape]
-            Point.
-
-        Returns
-        -------
-        point: array-like, shape[..., *point_shape]
-            Point.
-        """
-        return gs.copy(point)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -140,6 +122,42 @@ class VectorSpace(Manifold, abc.ABC):
             size = (n_samples,) + size
         return bound * (gs.random.rand(*size) - 0.5) * 2
 
+    def random_tangent_vec(self, base_point=None, n_samples=1):
+        """Generate random tangent vec.
+
+        This method is not recommended for statistical purposes, as the
+        tangent vectors generated are not drawn from a distribution related
+        to the Riemannian metric.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        base_point :  array-like, shape={[n_samples, *point_shape], [*point_shape,]}
+            Point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *point_shape]
+            Tangent vec at base point.
+        """
+        if base_point is None:
+            return self.random_point(n_samples)
+
+        if (
+            n_samples > 1
+            and base_point.ndim > self.point_ndim
+            and n_samples != base_point.shape[0]
+        ):
+            raise ValueError(
+                "The number of base points must be the same as the "
+                "number of samples, when the number of base points is different from 1."
+            )
+        if n_samples == 1 and base_point.ndim > self.point_ndim:
+            n_samples = base_point.shape[0]
+        return self.random_point(n_samples)
+
     @property
     def basis(self):
         """Basis of the vector space."""
@@ -152,7 +170,7 @@ class VectorSpace(Manifold, abc.ABC):
         """Create a canonical basis."""
 
 
-class MatrixVectorSpace(VectorSpace):
+class MatrixVectorSpace(VectorSpace, abc.ABC):
     """A matrix vector space."""
 
     @abc.abstractmethod
@@ -254,25 +272,6 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         if belongs:
             return gs.ones(shape, dtype=bool)
         return gs.zeros(shape, dtype=bool)
-
-    @staticmethod
-    def projection(point):
-        """Project a point to the vector space.
-
-        This method is for compatibility and returns `point`. `point` should
-        have the right shape,
-
-        Parameters
-        ----------
-        point: array-like, shape[..., *point_shape]
-            Point.
-
-        Returns
-        -------
-        point: array-like, shape[..., *point_shape]
-            Point.
-        """
-        return gs.copy(point)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -467,7 +466,7 @@ class LevelSet(Manifold, abc.ABC):
 
         submersed_vector = self.tangent_submersion(vector, base_point)
 
-        n_batch = max(gs.ndim(base_point), gs.ndim(vector)) - len(self.shape)
+        n_batch = len(get_batch_shape(self.point_ndim, base_point, vector))
         axis = tuple(range(-len(submersed_vector.shape) + n_batch, 0))
 
         constraint = gs.isclose(submersed_vector, 0.0, atol=atol)
@@ -507,38 +506,6 @@ class LevelSet(Manifold, abc.ABC):
         """
         raise NotImplementedError("extrinsic_to_intrinsic_coords is not implemented.")
 
-    @abc.abstractmethod
-    def projection(self, point):
-        """Project a point in embedding manifold on embedded manifold.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., *embedding_space.point_shape]
-            Point in embedding manifold.
-
-        Returns
-        -------
-        projected : array-like, shape=[..., *point_shape]
-            Projected point.
-        """
-
-    @abc.abstractmethod
-    def to_tangent(self, vector, base_point):
-        """Project a vector to a tangent space of the manifold.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., *point_shape]
-            Vector.
-        base_point : array-like, shape=[..., *point_shape]
-            Point on the manifold.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., *point_shape]
-            Tangent vector at base point.
-        """
-
 
 class OpenSet(Manifold, abc.ABC):
     """Class for manifolds that are open sets.
@@ -557,7 +524,7 @@ class OpenSet(Manifold, abc.ABC):
             shape = embedding_space.shape
         super().__init__(shape=shape, **kwargs)
 
-    def is_tangent(self, vector, base_point, atol=gs.atol):
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
 
         Parameters
@@ -577,7 +544,7 @@ class OpenSet(Manifold, abc.ABC):
         """
         return self.embedding_space.is_tangent(vector, base_point, atol)
 
-    def to_tangent(self, vector, base_point):
+    def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
 
         Parameters
@@ -674,21 +641,6 @@ class VectorSpaceOpenSet(OpenSet, abc.ABC):
             return gs.broadcast_to(tangent_vec, base_point.shape)
         return tangent_vec
 
-    @abc.abstractmethod
-    def projection(self, point):
-        """Project a point in embedding manifold on manifold.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., *point_shape]
-            Point in embedding manifold.
-
-        Returns
-        -------
-        projected : array-like, shape=[..., *point_shape]
-            Projected point.
-        """
-
 
 class ComplexVectorSpaceOpenSet(ComplexManifold, abc.ABC):
     """Class for manifolds that are open sets of a complex vector space.
@@ -775,21 +727,6 @@ class ComplexVectorSpaceOpenSet(ComplexManifold, abc.ABC):
         """
         sample = self.embedding_space.random_point(n_samples, bound)
         return self.projection(sample)
-
-    @abc.abstractmethod
-    def projection(self, point):
-        """Project a point in embedding manifold on manifold.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., *point_shape]
-            Point in embedding manifold.
-
-        Returns
-        -------
-        projected : array-like, shape=[..., *point_shape]
-            Projected point.
-        """
 
 
 class ImmersedSet(Manifold, abc.ABC):
@@ -990,7 +927,54 @@ class DiffeomorphicManifold(Manifold):
         self.image_space = image_space
         super().__init__(**kwargs)
 
-    def to_tangent(self, vector, base_point):
+    def belongs(self, point, atol=gs.atol):
+        """Evaluate if a point belongs to the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *point_shape]
+            Point to evaluate.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the manifold.
+        """
+        if not self.intrinsic:
+            raise ValueError("`belongs` is not implemented.")
+        return self.image_space.belongs(self.diffeo(point), atol=atol)
+
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., *point_shape]
+            Vector.
+        base_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        if not self.intrinsic:
+            raise ValueError("`is_tangent` is not implemented.")
+
+        image_point = self.diffeo(base_point)
+        image_vector = self.diffeo.tangent(
+            vector, base_point=base_point, image_point=image_point
+        )
+        return self.image_space.is_tangent(image_vector, image_point, atol=atol)
+
+    def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
 
         Parameters
@@ -1005,16 +989,16 @@ class DiffeomorphicManifold(Manifold):
         tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vector at base point.
         """
-        image_point = self.diffeo.diffeomorphism(base_point)
-        image_vector = self.diffeo.tangent_diffeomorphism(
+        image_point = self.diffeo(base_point)
+        image_vector = self.diffeo.tangent(
             vector, base_point=base_point, image_point=image_point
         )
         image_tangent_vec = self.image_space.to_tangent(image_vector, image_point)
-        return self.diffeo.inverse_tangent_diffeomorphism(
+        return self.diffeo.inverse_tangent(
             image_tangent_vec, image_point=image_point, base_point=base_point
         )
 
-    def random_point(self, n_samples=1, bound=1.0):
+    def random_point(self, n_samples=1, **kwargs):
         """Sample random points on the manifold according to some distribution.
 
         If the manifold is compact, preferably a uniform distribution will be used.
@@ -1024,17 +1008,14 @@ class DiffeomorphicManifold(Manifold):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        bound : float
-            Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
 
         Returns
         -------
         samples : array-like, shape=[..., *point_shape]
             Points sampled on the manifold.
         """
-        image_point = self.image_space.random_point(n_samples=n_samples, bound=bound)
-        return self.diffeo.inverse_diffeomorphism(image_point)
+        image_point = self.image_space.random_point(n_samples=n_samples, **kwargs)
+        return self.diffeo.inverse(image_point)
 
     def regularize(self, point):
         """Regularize a point to the canonical representation for the manifold.
@@ -1049,11 +1030,11 @@ class DiffeomorphicManifold(Manifold):
         regularized_point : array-like, shape=[..., *point_shape]
             Regularized point.
         """
-        image_point = self.diffeo.diffeomorphism(point)
+        image_point = self.diffeo(point)
         regularized_image_point = self.image_space.regularize(image_point)
-        return self.diffeo.inverse_diffeomorphism(regularized_image_point)
+        return self.diffeo.inverse(regularized_image_point)
 
-    def random_tangent_vec(self, base_point, n_samples=1):
+    def random_tangent_vec(self, base_point=None, n_samples=1):
         """Generate random tangent vec.
 
         Parameters
@@ -1069,10 +1050,69 @@ class DiffeomorphicManifold(Manifold):
         tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vec at base point.
         """
-        image_point = self.diffeo.diffeomorphism(base_point)
+        image_point = self.diffeo(base_point)
         image_tangent_vec = self.image_space.random_tangent_vec(
             image_point, n_samples=n_samples
         )
-        return self.diffeo.inverse_tangent_diffeomorphism(
+        return self.diffeo.inverse_tangent(
             image_tangent_vec, image_point=image_point, base_point=base_point
         )
+
+
+class DiffeomorphicVectorSpace(VectorSpace, DiffeomorphicManifold):
+    """A vector space defined by a diffeomorphism."""
+
+    def projection(self, point):
+        r"""Make a matrix null-row-sum symmetric.
+
+        It considers only the first :math:`n-1 \times n-1` components.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        sym : array-like, shape=[..., n, n]
+            Symmetric matrix.
+        """
+        image_point = self.diffeo(point)
+        proj_image_point = self.image_space.projection(image_point)
+        return self.diffeo.inverse(proj_image_point)
+
+
+class DiffeomorphicMatrixVectorSpace(MatrixVectorSpace, DiffeomorphicVectorSpace):
+    """A matrix vector space defined by a diffeomorphism."""
+
+    def basis_representation(self, matrix_representation):
+        """Convert a symmetric matrix into a vector.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., n(n+1)/2]
+            Vector.
+        """
+        image_matrix_representation = self.diffeo(matrix_representation)
+        return self.image_space.basis_representation(image_matrix_representation)
+
+    def matrix_representation(self, basis_representation):
+        """Convert a vector into a symmetric matrix.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., n(n+1)/2]
+            Vector.
+
+        Returns
+        -------
+        matrix_representation : array-like, shape=[..., n, n]
+            Symmetric matrix.
+        """
+        image_point = self.image_space.matrix_representation(basis_representation)
+        return self.diffeo.inverse(image_point)

@@ -122,9 +122,11 @@ from .._shared_numpy import (
     vec_to_diag,
     vectorize,
 )
-from . import autodiff  # NOQA
-from . import linalg  # NOQA
-from . import random  # NOQA
+from . import (
+    autodiff,  # NOQA
+    linalg,  # NOQA
+    random,  # NOQA
+)
 from ._common import (
     _box_binary_scalar,
     _box_unary_scalar,
@@ -150,6 +152,16 @@ from ._common import (
 ones = _dyn_update_dtype(target=_np.ones)
 linspace = _dyn_update_dtype(target=_np.linspace)
 empty = _dyn_update_dtype(target=_np.empty)
+
+
+def has_autodiff():
+    """If allows for automatic differentiation.
+
+    Returns
+    -------
+    has_autodiff : bool
+    """
+    return True
 
 
 def imag(x):

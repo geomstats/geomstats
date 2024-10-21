@@ -13,31 +13,27 @@ References
 
 import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
-from geomstats.geometry.diffeo import Diffeo
+from geomstats.geometry.diffeo import InvolutionDiffeomorphism
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 
 
-class OpenHemisphereToHyperboloidDiffeo(Diffeo):
+class OpenHemisphereToHyperboloidDiffeo(InvolutionDiffeomorphism):
     """A diffeomorphism between the open hemisphere and the hyperboloid."""
 
-    def diffeomorphism(self, base_point):
+    def __call__(self, base_point):
         """Diffeomorphism at base point."""
         return_point = gs.copy(base_point)
         return_point[..., 0] = 1.0
         first_term = base_point[..., 0]
         return gs.einsum("...,...i->...i", 1 / first_term, return_point)
 
-    def inverse_diffeomorphism(self, image_point):
-        """Inverse diffeomorphism at base point."""
-        return self.diffeomorphism(image_point)
-
-    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
         """Tangent diffeomorphism at base point."""
         if base_point is None:
-            base_point = self.inverse_diffeomorphism(image_point)
+            base_point = self.inverse(image_point)
 
         coeffs = tangent_vec[..., 0] / base_point[..., 0]
         image_tangent_vec_0 = gs.array(-tangent_vec[..., 0] / base_point[..., 0])
@@ -50,14 +46,6 @@ class OpenHemisphereToHyperboloidDiffeo(Diffeo):
             axis=-1,
         )
         return gs.einsum("...,...i->...i", 1 / base_point[..., 0], image_tangent_vec)
-
-    def inverse_tangent_diffeomorphism(
-        self, image_tangent_vec, image_point=None, base_point=None
-    ):
-        """Inverse tangent diffeomorphism at image point."""
-        return self.tangent_diffeomorphism(
-            image_tangent_vec, base_point=image_point, image_point=base_point
-        )
 
 
 class OpenHemisphere(OpenSet):

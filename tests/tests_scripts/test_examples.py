@@ -32,6 +32,7 @@ class ExamplesTestData:
             "learning_graph_embedding_and_predicting": ALL_BACKENDS[:-1],
         }
         np_like_backends = [
+            "bhv_space",
             "empirical_frechet_mean_uncertainty_sn",
             "learning_graph_structured_data_h2",
             "plot_bch_so3",

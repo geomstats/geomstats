@@ -10,12 +10,12 @@ References
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.base import DiffeomorphicManifold, VectorSpaceOpenSet
+from geomstats.geometry.base import DiffeomorphicManifold, LevelSet, VectorSpaceOpenSet
 from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
 from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.open_hemisphere import OpenHemisphere, OpenHemispheresProduct
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -205,7 +205,7 @@ class CholeskyMetric(RiemannianMetric):
         )
         return diag_inner_product + strictly_lower_inner_product
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Cholesky exponential map.
 
         Compute the Riemannian exponential at point base_point
@@ -234,7 +234,7 @@ class CholeskyMetric(RiemannianMetric):
         diag_exp = gs.vec_to_diag(diag_base_point * diag_product_expm)
         return sl_exp + diag_exp
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Cholesky logarithm map.
 
         Compute the Riemannian logarithm at point base_point,
@@ -263,7 +263,7 @@ class CholeskyMetric(RiemannianMetric):
         diag_log = gs.vec_to_diag(diag_base_point * diag_product_logm)
         return sl_log + diag_log
 
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Compute the Cholesky Metric squared distance.
 
         Compute the Riemannian squared distance between point_a and point_b.
@@ -334,7 +334,7 @@ class UnitNormedRowsPLTDiffeo(Diffeo):
         super().__init__()
         self.n = n
 
-    def diffeomorphism(self, base_point):
+    def __call__(self, base_point):
         """Diffeomorphism at base point.
 
         Parameters
@@ -386,7 +386,7 @@ class UnitNormedRowsPLTDiffeo(Diffeo):
             indices, gs.flatten(flipped_vec_), batch_shape + (n, n)
         )
 
-    def inverse_diffeomorphism(self, image_point):
+    def inverse(self, image_point):
         r"""Inverse diffeomorphism at base point.
 
         :math:`f^{-1}: N \rightarrow M`
@@ -403,7 +403,7 @@ class UnitNormedRowsPLTDiffeo(Diffeo):
         """
         return self._from_product_to_mat(image_point)
 
-    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
         r"""Tangent diffeomorphism at base point.
 
         df_p is a linear map from T_pM to T_f(p)N.
@@ -423,11 +423,9 @@ class UnitNormedRowsPLTDiffeo(Diffeo):
         image_tangent_vec : array-like, shape=[..., space_dim]
             Image tangent vector at image of the base point.
         """
-        return self.diffeomorphism(tangent_vec)
+        return self(tangent_vec)
 
-    def inverse_tangent_diffeomorphism(
-        self, image_tangent_vec, image_point=None, base_point=None
-    ):
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         r"""Inverse tangent diffeomorphism at image point.
 
         df^-1_p is a linear map from T_f(p)N to T_pM
@@ -467,6 +465,7 @@ class UnitNormedRowsPLTMatrices(DiffeomorphicManifold):
             shape=(n, n),
             diffeo=diffeo,
             image_space=image_space,
+            intrinsic=False,
             equip=equip,
         )
         self.n = n
@@ -480,9 +479,7 @@ class UnitNormedRowsPLTMatrices(DiffeomorphicManifold):
     def belongs(self, point, atol=gs.atol):
         """Check if a point belongs to the unit normed plt matrices."""
         is_plt = self.embedding_space.belongs(point)
-        is_unit_normed = self.image_space.belongs(
-            self.diffeo.diffeomorphism(point),
-        )
+        is_unit_normed = self.image_space.belongs(self.diffeo(point))
         return gs.logical_and(is_plt, is_unit_normed)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
@@ -506,8 +503,8 @@ class UnitNormedRowsPLTMatrices(DiffeomorphicManifold):
         is_lt = self.embedding_space.is_tangent(vector, base_point)
         first_is_zero = gs.isclose(vector[..., 0, 0], 0.0)
 
-        image_point = self.diffeo.diffeomorphism(base_point)
-        image_vector = self.diffeo.tangent_diffeomorphism(
+        image_point = self.diffeo(base_point)
+        image_vector = self.diffeo.tangent(
             vector, base_point=base_point, image_point=image_point
         )
         image_is_tangent = self.image_space.is_tangent(
@@ -530,3 +527,286 @@ class UnitNormedRowsPLTMatricesPullbackMetric(PullbackDiffeoMetric):
         super().__init__(
             space=space, diffeo=space.diffeo, image_space=space.image_space
         )
+
+
+class PLTUnitDiagMatrices(LevelSet):
+    """Lower triangular matrices with unit diagonal.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shapes of the matrices: n x n.
+    equip : bool
+        If True, equip space with default metric.
+    """
+
+    def __init__(self, n, equip=True):
+        self.n = n
+        super().__init__(
+            dim=int(n * (n - 1) / 2),
+            equip=equip,
+        )
+
+    def _define_embedding_space(self):
+        """Define embedding space of the manifold.
+
+        Returns
+        -------
+        embedding_space : Manifold
+            Instance of Manifold.
+        """
+        return LowerTriangularMatrices(self.n, equip=False)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return MatricesMetric
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n]
+        """
+        return Matrices.diagonal(point) - gs.ones(self.n)
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n]
+        """
+        submersed_vector = Matrices.diagonal(vector)
+        if point is not None and point.ndim > vector.ndim:
+            return gs.broadcast_to(submersed_vector, point.shape[:-1])
+
+        return submersed_vector
+
+    def projection(self, point):
+        """Project a point to the manifold.
+
+        Parameters
+        ----------
+        point: array-like, shape[..., n, n]
+            Point to project.
+
+        Returns
+        -------
+        proj_point: array-like, shape[..., n, n]
+            Projected point.
+        """
+        proj_point = self.embedding_space.projection(point)
+        return proj_point + gs.vec_to_diag(
+            1 - gs.diagonal(proj_point, axis1=-2, axis2=-1)
+        )
+
+    def to_tangent(self, vector, base_point):
+        r"""Project a matrix to the tangent space at a base point.
+
+        The tangent space of :math:`\mathrm{LT}^1(n)` is the space of
+        strictly lower triangular matrices, :math:`\mathrm{LT}^0`.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+            Vector.
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
+        tangent_vec = self.embedding_space.to_tangent(vector, base_point)
+        return tangent_vec - gs.vec_to_diag(
+            gs.diagonal(tangent_vec, axis1=-2, axis2=-1)
+        )
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample LT^1 matrices by projecting random LT matrices.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+        bound : float
+            Bound of the interval in which to sample.
+            Optional, default: 1.
+
+        Returns
+        -------
+        cor : array-like, shape=[n_samples, n, n]
+            Sample of full-rank correlation matrices.
+        """
+        plt = self.embedding_space.random_point(n_samples, bound=bound)
+        return self.projection(plt)
+
+
+class LowerMatrixLog(Diffeo):
+    """Matrix logarithm diffeomorphism.
+
+    A diffeomorphism between the lower triangular matrices
+    with unit diagonal and strictly lower triangular matrices.
+    """
+
+    @staticmethod
+    def __call__(base_point):
+        r"""Compute the matrix log.
+
+        .. math::
+
+            \log(Z) = \sum_{k=1}^{n-1} \frac{(-1)^{k+1}}{k}
+            \left(Z-I_n\right)^k
+
+
+        Parameters
+        ----------
+        base_point : array_like, shape=[..., n, n]
+            Symmetric matrix.
+
+        Returns
+        -------
+        log : array_like, shape=[..., n, n]
+            Matrix logarithm of base_point.
+        """
+        n = base_point.shape[-1]
+
+        result = gs.zeros_like(base_point)
+        aux = base_point - gs.eye(n)
+        for k in range(1, n):
+            coeff = (-1) ** (k + 1) / k
+            # aux = aux @ aux could be used, but accumulates too much error
+            result += coeff * gs.linalg.matrix_power(aux, k)
+
+        return result
+
+    @staticmethod
+    def inverse(image_point):
+        r"""Compute the matrix exponential.
+
+        .. math::
+
+            \exp(L) = \sum_{k=0}^{n-1} \frac{1}{k!} L^k
+
+        Parameters
+        ----------
+        image_point : array_like, shape=[..., n, n]
+            Symmetric matrix.
+
+        Returns
+        -------
+        exponential : array_like, shape=[..., n, n]
+            Exponential of image_point.
+        """
+        n = image_point.shape[-1]
+
+        result = gs.zeros_like(image_point) + gs.eye(n)
+        factorial = 1
+        for k in range(1, n):
+            factorial *= k
+            # aux = aux @ aux could be used, but accumulates too much error
+            result += 1 / factorial * gs.linalg.matrix_power(image_point, k)
+
+        return result
+
+    @classmethod
+    def tangent(cls, tangent_vec, base_point=None, image_point=None):
+        r"""Tangent diffeomorphism at base point.
+
+        .. math::
+
+            d_z \log (V) = \sum_{k=1}^{n-1}\left(\frac{(-1)^{k+1}}{k}
+            \sum_{j=1}^k\left((Z-I)^{j-1} V(Z-I)^{k-j}\right)\right)
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Image tangent vector at image of the base point.
+        """
+
+        def _matrix_power(power):
+            return gs.linalg.matrix_power(
+                aux,
+                power,
+            )
+
+        if base_point is None:
+            base_point = cls.inverse(image_point)
+
+        n = tangent_vec.shape[-1]
+
+        result = gs.zeros_like(tangent_vec)
+        aux = base_point - gs.eye(n)
+        for k in range(1, n):
+            comp1 = (-1) ** (k + 1) / k
+            comp2 = gs.zeros_like(tangent_vec)
+            for j in range(1, k + 1):
+                term = _matrix_power(j - 1) @ tangent_vec @ _matrix_power(k - j)
+                comp2 += term
+            result += comp1 * comp2
+        return result
+
+    @classmethod
+    def inverse_tangent(cls, image_tangent_vec, image_point=None, base_point=None):
+        r"""Inverse tangent diffeomorphism at image point.
+
+        .. math::
+
+            d_L \exp(X) = \sum_{k=1}^{n-1}\left(\frac{1}{k!}
+            \sum_{j=1}^k\left(L^{j-1} X L^{k-j}\right)\right)
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Image tangent vector at image point.
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
+
+        def _matrix_power(power):
+            return gs.linalg.matrix_power(image_point, power)
+
+        if image_point is None:
+            image_point = cls.__call__(base_point)
+
+        n = image_tangent_vec.shape[-1]
+
+        result = gs.zeros_like(image_tangent_vec)
+        factorial = 1
+        for k in range(1, n):
+            factorial *= k
+            comp1 = 1 / factorial
+            comp2 = gs.zeros_like(image_tangent_vec)
+            for j in range(1, k + 1):
+                term = _matrix_power(j - 1) @ image_tangent_vec @ _matrix_power(k - j)
+                comp2 += term
+            result += comp1 * comp2
+        return result

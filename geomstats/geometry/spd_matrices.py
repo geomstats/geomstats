@@ -6,6 +6,7 @@ Lead authors: Yann Thanwerdas and Olivier Bisson.
 import math
 
 import geomstats.backend as gs
+from geomstats.algebra_utils import columnwise_scaling
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.diffeo import Diffeo
@@ -96,6 +97,42 @@ def _aux_differential_power(power, tangent_vec, base_point):
     return (eigvectors, transp_eigvectors, numerator, denominator, temp_result)
 
 
+def generalized_eigenvalues(point_a, point_b):
+    """Compute the generalized eigenvalues of SPD matrix pair.
+
+    Steps (check section 7.2 of [GKC2023]_):
+    1. compute eigendecomposition of point_b
+    2. get matrix turning point_b into identity by congruence
+    3. apply congruence to point_a and get generalized eigenvalues
+
+    Parameters
+    ----------
+    point_a : array_like, shape=[..., n, n]
+        Symmetric positive definite matrix.
+    point_b : array_like, shape=[..., n, n]
+        Symmetric positive definite matrix.
+
+    Returns
+    -------
+    generalized_eigenvalues : array-like, shape=[...]
+
+    References
+    ----------
+    .. [GKC2023] Benyamin Ghojogh, Fakhri Karray, and Mark Crowley.
+    “Eigenvalue and Generalized Eigenvalue Problems: Tutorial.”
+    arXiv, May 20, 2023. https://doi.org/10.48550/arXiv.1903.11240.
+    """
+    eigvals_b, eigvecs_b = gs.linalg.eigh(point_b)
+
+    inv_sqrt_eigvals_b = gs.sqrt(1.0 / eigvals_b)
+    scaled_b_eigvecs = columnwise_scaling(inv_sqrt_eigvals_b, eigvecs_b)
+
+    point_a_scaled = Matrices.mul(
+        Matrices.transpose(scaled_b_eigvecs), point_a, scaled_b_eigvecs
+    )
+    return gs.linalg.eigvalsh(point_a_scaled)
+
+
 class SymMatrixLog(Diffeo):
     """Matrix logarithm diffeomorphism.
 
@@ -104,7 +141,7 @@ class SymMatrixLog(Diffeo):
     """
 
     @classmethod
-    def diffeomorphism(cls, base_point):
+    def __call__(cls, base_point):
         """Compute the matrix log for a symmetric matrix.
 
         Parameters
@@ -120,7 +157,7 @@ class SymMatrixLog(Diffeo):
         return logmh(base_point)
 
     @classmethod
-    def inverse_diffeomorphism(cls, image_point):
+    def inverse(cls, image_point):
         """Compute the matrix exponential for a symmetric matrix.
 
         Parameters
@@ -136,7 +173,7 @@ class SymMatrixLog(Diffeo):
         return expmh(image_point)
 
     @classmethod
-    def tangent_diffeomorphism(cls, tangent_vec, base_point=None, image_point=None):
+    def tangent(cls, tangent_vec, base_point=None, image_point=None):
         """Compute the differential of the matrix logarithm.
 
         Compute the differential of the matrix logarithm on SPD
@@ -179,9 +216,7 @@ class SymMatrixLog(Diffeo):
         return Matrices.mul(eigvectors, result, transp_eigvectors)
 
     @classmethod
-    def inverse_tangent_diffeomorphism(
-        cls, image_tangent_vec, image_point=None, base_point=None
-    ):
+    def inverse_tangent(cls, image_tangent_vec, image_point=None, base_point=None):
         """Compute the differential of the matrix exponential.
 
         Computes the differential of the matrix exponential on SPD
@@ -234,7 +269,7 @@ class MatrixPower(Diffeo):
     def __init__(self, power):
         self.power = power
 
-    def diffeomorphism(self, base_point):
+    def __call__(self, base_point):
         """Compute the matrix power.
 
         Parameters
@@ -249,7 +284,7 @@ class MatrixPower(Diffeo):
         """
         return powermh(base_point, self.power)
 
-    def inverse_diffeomorphism(self, image_point):
+    def inverse(self, image_point):
         """Compute the inverse matrix power.
 
         Parameters
@@ -264,7 +299,7 @@ class MatrixPower(Diffeo):
         """
         return powermh(image_point, 1 / self.power)
 
-    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
         r"""Compute the differential of the matrix power function.
 
         Compute the differential of the power function on SPD(n),
@@ -285,7 +320,7 @@ class MatrixPower(Diffeo):
             Differential of the power function.
         """
         if base_point is None:
-            base_point = self.inverse_diffeomorphism(image_point)
+            base_point = self.inverse(image_point)
         (
             eigvectors,
             transp_eigvectors,
@@ -298,9 +333,7 @@ class MatrixPower(Diffeo):
         result = power_operator * temp_result
         return Matrices.mul(eigvectors, result, transp_eigvectors)
 
-    def inverse_tangent_diffeomorphism(
-        self, image_tangent_vec, image_point=None, base_point=None
-    ):
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         r"""Compute the inverse of the differential of the matrix power.
 
         Compute the inverse of the differential of the power
@@ -322,7 +355,7 @@ class MatrixPower(Diffeo):
             Inverse of the differential of the power function.
         """
         if base_point is None:
-            base_point = self.inverse_diffeomorphism(image_point)
+            base_point = self.inverse(image_point)
         (
             eigvectors,
             transp_eigvectors,
@@ -343,7 +376,7 @@ class CholeskyMap(Diffeo):
     """
 
     @classmethod
-    def diffeomorphism(cls, base_point):
+    def __call__(cls, base_point):
         """Compute cholesky factor.
 
         Compute cholesky factor for a symmetric positive definite matrix.
@@ -361,7 +394,7 @@ class CholeskyMap(Diffeo):
         return gs.linalg.cholesky(base_point)
 
     @staticmethod
-    def inverse_diffeomorphism(image_point):
+    def inverse(image_point):
         """Compute gram matrix of rows.
 
         Gram_matrix is mapping from point to point.point^{T}.
@@ -380,7 +413,7 @@ class CholeskyMap(Diffeo):
         return gs.einsum("...ij,...kj->...ik", image_point, image_point)
 
     @classmethod
-    def tangent_diffeomorphism(cls, tangent_vec, base_point=None, image_point=None):
+    def tangent(cls, tangent_vec, base_point=None, image_point=None):
         """Compute the differential of the cholesky factor map.
 
         Parameters
@@ -399,7 +432,7 @@ class CholeskyMap(Diffeo):
             lower triangular matrix.
         """
         if image_point is None:
-            image_point = cls.diffeomorphism(base_point)
+            image_point = cls.__call__(base_point)
 
         inv_base_point = gs.linalg.inv(image_point)
         inv_transpose_base_point = Matrices.transpose(inv_base_point)
@@ -409,9 +442,7 @@ class CholeskyMap(Diffeo):
         return Matrices.mul(image_point, aux)
 
     @classmethod
-    def inverse_tangent_diffeomorphism(
-        cls, image_tangent_vec, image_point=None, base_point=None
-    ):
+    def inverse_tangent(cls, image_tangent_vec, image_point=None, base_point=None):
         """Compute differential of gram.
 
         Parameters
@@ -429,7 +460,7 @@ class CholeskyMap(Diffeo):
             Differential of the gram.
         """
         if image_point is None:
-            image_point = cls.diffeomorphism(base_point)
+            image_point = cls.__call__(base_point)
 
         mat1 = gs.einsum("...ij,...kj->...ik", image_tangent_vec, image_point)
         mat2 = gs.einsum("...ij,...kj->...ik", image_point, image_tangent_vec)
@@ -650,6 +681,26 @@ class SPDAffineMetric(RiemannianMetric):
         log_at_id = logmh(point_near_id)
         return Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
 
+    def squared_dist(self, point_a, point_b):
+        """Compute the Affine Invariant squared distance.
+
+        Compute the Riemannian squared distance between point_a and point_b.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., n, n]
+            Point.
+        point_b : array-like, shape=[..., n, n]
+            Point.
+
+        Returns
+        -------
+        squared_dist : array-like, shape=[...]
+            Riemannian squared distance.
+        """
+        gen_eigvals = generalized_eigenvalues(point_a, point_b)
+        return gs.sum(gs.log(gen_eigvals) ** 2, axis=-1)
+
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
     ):
@@ -693,7 +744,7 @@ class SPDAffineMetric(RiemannianMetric):
         congruence_mat = Matrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
         return Matrices.congruent(tangent_vec, congruence_mat)
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Radius of the largest ball where the exponential is injective.
 
         Because of the negative curvature of this space, the injectivity radius
@@ -833,16 +884,29 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         -------
         squared_dist : array-like, shape=[...]
             Riemannian squared distance.
+
+        Notes
+        -----
+        Use of `abs` in the output prevents nan when calling
+        `sqrt` in very small negative outputs (e.g. -1e-16).
         """
-        product = gs.matmul(point_a, point_b)
-        sqrt_product = gs.linalg.sqrtm(product)
-        trace_a = gs.trace(point_a)
-        trace_b = gs.trace(point_b)
-        trace_prod = gs.trace(sqrt_product)
+        La, Qa = gs.linalg.eigh(point_a)
+        point_a_sqrt = Matrices.mul(
+            Qa,
+            gs.vec_to_diag(
+                gs.sqrt(La * (La > 0)),
+            ),
+            Matrices.transpose(Qa),
+        )
 
-        squared_dist = trace_a + trace_b - 2.0 * trace_prod
+        Lc, Qc = gs.linalg.eigh(point_a_sqrt @ point_b @ point_a_sqrt)
+        cross_term = Matrices.mul(
+            Qc,
+            gs.vec_to_diag(gs.sqrt(Lc * (Lc > 0))),
+            Matrices.transpose(Qc),
+        )
 
-        return gs.where(squared_dist < 0.0, 0.0, squared_dist)
+        return gs.abs(gs.trace(point_a + point_b - 2 * cross_term))
 
     def parallel_transport(
         self,

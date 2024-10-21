@@ -103,3 +103,17 @@ class AlgebraUtilsTestData(TestData):
 
     def rotate_points_test_data(self):
         return self.generate_random_data()
+
+    def columnwise_scaling_test_data(self):
+        data = [
+            dict(n_points=n_points, m=random.randint(2, 5), n=random.randint(2, 5))
+            for n_points in self.N_RANDOM_POINTS
+        ]
+        return self.generate_tests(data)
+
+    def rowwise_scaling_test_data(self):
+        data = [
+            dict(n_points=n_points, m=random.randint(2, 5), n=random.randint(2, 5))
+            for n_points in self.N_RANDOM_POINTS
+        ]
+        return self.generate_tests(data)

@@ -60,6 +60,8 @@ np_autograd_and_torch_only = pytest.mark.skipif(
     reason="Test for numpy, autograd and pytorch backends only.",
 )
 
+autodiff_only = autograd_and_torch_only
+
 
 def pytorch_error_msg(a, b, rtol, atol):
     msg = f"\ntensor 1\n{a}\ntensor 2\n{b}"

@@ -1,10 +1,46 @@
+import pytest
+
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
+from geomstats._mesh import Surface
 from geomstats.test.data import TestData
 from geomstats.vectorization import repeat_point
 
 from .manifold import ManifoldTestData
 from .riemannian_metric import RiemannianMetricTestData
+
+
+class SurfaceTestData(TestData):
+    def face_areas_test_data(self):
+        vertices = gs.array([(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (1.0, 2.0, 0.0)])
+        faces = gs.array([[0, 1, 2]])
+
+        data = [dict(point=Surface(vertices, faces), expected=gs.array([[1.0]]))]
+
+        return self.generate_tests(data)
+
+    def face_normals_test_data(self):
+        vertices = gs.array([(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (1.0, 2.0, 0.0)])
+        faces = gs.array([[0, 1, 2]])
+
+        data = [
+            dict(point=Surface(vertices, faces), expected=gs.array([[0.0, 0.0, 1.0]]))
+        ]
+
+        return self.generate_tests(data)
+
+    def face_centroids_test_data(self):
+        vertices = gs.array([(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (1.0, 2.0, 0.0)])
+        faces = gs.array([[0, 1, 2]])
+
+        data = [
+            dict(
+                point=Surface(vertices, faces),
+                expected=gs.array([[2.0 / 3.0, 2.0 / 3.0, 0.0]]),
+            )
+        ]
+
+        return self.generate_tests(data)
 
 
 class DiscreteSurfacesTestData(ManifoldTestData):
@@ -91,22 +127,39 @@ class DiscreteSurfacesSmokeTestData(TestData):
         return self.generate_tests(data)
 
 
-class ElasticMetricTestData(RiemannianMetricTestData):
-    pass
+class ElasticMetricTestData(TestData):
+    N_RANDOM_POINTS = [1]
+
+    tolerances = {"exp_after_log": {"atol": 1e-1}}
+
+    def exp_after_log_test_data(self):
+        return self.generate_random_data(marks=(pytest.mark.slow, pytest.mark.xfail))
+
+    def inner_product_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def inner_product_is_symmetric_test_data(self):
+        return self.generate_random_data()
 
 
-class ElasticMetricSmokeTestData(TestData):
-    vertices, _ = data_utils.load_cube()
-    vertices = gs.array(vertices, dtype=gs.float64)
+class L2SurfacesMetricTestData(RiemannianMetricTestData):
+    trials = 1
+    skips = (
+        "inner_product_derivative_matrix_vec",
+        "metric_matrix_is_spd",
+        "christoffels_vec",
+    )
+    N_RANDOM_POINTS = [1]
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
 
-    def path_energy_is_positive_test_data(self):
-        data = [
-            dict(path=gs.array([self.vertices, self.vertices, self.vertices])),
-        ]
-        return self.generate_tests(data)
 
-    def path_energy_per_time_is_positive_test_data(self):
-        data = [
-            dict(path=gs.array([self.vertices, self.vertices, self.vertices])),
-        ]
-        return self.generate_tests(data)
+class QuotientElasticMetricTestData(TestData):
+    N_RANDOM_POINTS = [1]
+    trials = 1
+
+    def log_runs_test_data(self):
+        return self.generate_random_data()
+
+    def geodesic_bvp_runs_test_data(self):
+        return self.generate_random_data()

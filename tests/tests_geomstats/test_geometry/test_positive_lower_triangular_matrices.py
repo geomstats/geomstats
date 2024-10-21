@@ -2,9 +2,12 @@ import random
 
 import pytest
 
+from geomstats.geometry.lower_triangular_matrices import StrictlyLowerTriangularMatrices
 from geomstats.geometry.positive_lower_triangular_matrices import (
     CholeskyMetric,
     InvariantPositiveLowerTriangularMatricesMetric,
+    LowerMatrixLog,
+    PLTUnitDiagMatrices,
     PositiveLowerTriangularMatrices,
     UnitNormedRowsPLTDiffeo,
     UnitNormedRowsPLTMatrices,
@@ -13,13 +16,20 @@ from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.base import (
     DiffeomorphicManifoldTestCase,
+    LevelSetTestCase,
     VectorSpaceOpenSetTestCase,
 )
-from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
+from geomstats.test_cases.geometry.diffeo import (
+    DiffeoComparisonTestCase,
+    DiffeoTestCase,
+)
 from geomstats.test_cases.geometry.invariant_metric import InvariantMetricMatrixTestCase
 from geomstats.test_cases.geometry.lie_group import MatrixLieGroupTestCase
 from geomstats.test_cases.geometry.positive_lower_triangular_matrices import (
     CholeskyMetricTestCase,
+)
+from geomstats.test_cases.geometry.positive_lower_triangular_matrices import (
+    LowerMatrixLog as OtherLowerMatrixLog,
 )
 from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
 
@@ -29,26 +39,19 @@ from .data.positive_lower_triangular_matrices import (
     CholeskyMetric2TestData,
     CholeskyMetricTestData,
     InvariantPositiveLowerTriangularMatricesMetricTestData,
+    LowerMatrixLogCmpTestData,
+    PLTUnitDiagMatricesTestData,
     PositiveLowerTriangularMatrices2TestData,
     PositiveLowerTriangularMatricesTestData,
     UnitNormedRowsPLTMatricesPullbackMetricTestData,
 )
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        random.randint(2, 5),
-    ],
-)
-def spaces(request):
-    request.cls.space = PositiveLowerTriangularMatrices(n=request.param, equip=False)
-
-
-@pytest.mark.usefixtures("spaces")
 class TestPositiveLowerTriangularMatrices(
     MatrixLieGroupTestCase, VectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer
 ):
+    _n = random.randint(2, 5)
+    space = PositiveLowerTriangularMatrices(n=_n, equip=False)
     testing_data = PositiveLowerTriangularMatricesTestData()
 
 
@@ -116,3 +119,30 @@ class TestUnitNormedRowsPLTMatricesPullbackMetric(
     space = UnitNormedRowsPLTMatrices(n=_n)
     data_generator = RandomDataGenerator(space, amplitude=5.0)
     testing_data = UnitNormedRowsPLTMatricesPullbackMetricTestData()
+
+
+class TestPLTUnitDiagMatrices(LevelSetTestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(2, 5)
+    space = PLTUnitDiagMatrices(n=_n, equip=False)
+    testing_data = PLTUnitDiagMatricesTestData()
+
+
+class TestLowerMatrixLog(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(2, 5)
+
+    space = PLTUnitDiagMatrices(n=_n, equip=False)
+    image_space = StrictlyLowerTriangularMatrices(n=_n, equip=False)
+    diffeo = LowerMatrixLog()
+    testing_data = DiffeoTestData()
+
+
+class TestLowerMatrixLogCmp(DiffeoComparisonTestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(2, 5)
+
+    space = PLTUnitDiagMatrices(n=_n, equip=False)
+    image_space = StrictlyLowerTriangularMatrices(n=_n, equip=False)
+
+    diffeo = LowerMatrixLog()
+    other_diffeo = OtherLowerMatrixLog(space.shape)
+
+    testing_data = LowerMatrixLogCmpTestData()

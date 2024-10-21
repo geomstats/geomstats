@@ -170,7 +170,7 @@ class ExponentialMetric(RiemannianMetric):
         Sankhyā: The Indian Journal of Statistics, Series A, 345-365.
     """
 
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Compute squared distance associated with the exponential Fisher Rao metric.
 
         Parameters

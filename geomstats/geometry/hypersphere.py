@@ -719,7 +719,7 @@ class HypersphereMetric(RiemannianMetric):
         """
         return self._space.embedding_space.metric.squared_norm(vector)
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -746,7 +746,7 @@ class HypersphereMetric(RiemannianMetric):
 
         return exp
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Riemannian logarithm of a point.
 
         Parameters
@@ -802,7 +802,7 @@ class HypersphereMetric(RiemannianMetric):
 
         return gs.arccos(cos_angle)
 
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Squared geodesic distance between two points.
 
         Parameters
@@ -1101,7 +1101,7 @@ class HypersphereMetric(RiemannianMetric):
             out_shape=self._space.shape,
         )
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a

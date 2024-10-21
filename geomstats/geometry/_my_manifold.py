@@ -29,7 +29,6 @@ class MyManifold(Manifold):
     List the parameters of MyManifold, i.e. the parameters given as inputs
     of the constructor __init__.
 
-    For example:
     Parameters
     ----------
     dim : int
@@ -98,7 +97,6 @@ class MyManifold(Manifold):
             Vector.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
-            Optional, default: None.
         atol : float
             Absolute tolerance threshold
 
@@ -114,7 +112,7 @@ class MyManifold(Manifold):
             is_tangent = gs.tile([is_tangent], (vector.shape[0],))
         return is_tangent
 
-    def to_tangent(self, vector, base_point):
+    def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
 
         Parameters

@@ -18,7 +18,7 @@ EPSILON = 1e-6
 class InvariantMetricMatrixExpODESolver(ExpODESolver):
     """An exp solver adapted to _InvariantMetricMatrix."""
 
-    def exp(self, space, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point):
         r"""Compute Riemannian exponential of tan. vector wrt to base point.
 
         If :math:`\gamma` is a geodesic, then it satisfies the
@@ -59,25 +59,29 @@ class InvariantMetricMatrixExpODESolver(ExpODESolver):
                      Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
                      480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
-        base_point, left_angular_vel = space.metric._pre_exp(tangent_vec, base_point)
-        return super().exp(space, left_angular_vel, base_point)
+        base_point, left_angular_vel = self._space.metric._pre_exp(
+            tangent_vec, base_point
+        )
+        return super().exp(left_angular_vel, base_point)
 
-    def geodesic_ivp(self, space, tangent_vec, base_point):
+    def geodesic_ivp(self, tangent_vec, base_point):
         """Geodesic curve for initial value problem."""
-        base_point, left_angular_vel = space.metric._pre_exp(tangent_vec, base_point)
-        return super().geodesic_ivp(space, left_angular_vel, base_point)
+        base_point, left_angular_vel = self._space.metric._pre_exp(
+            tangent_vec, base_point
+        )
+        return super().geodesic_ivp(left_angular_vel, base_point)
 
 
 class InvariantMetricMatrixLogODESolver(LogODESolver):
     """A log solver adapted to _InvariantMetricMatrix."""
 
-    def log(self, space, point, base_point):
+    def log(self, point, base_point):
         """Logarithm map."""
-        left_angular_vel = super().log(space, point, base_point)
-        return space.to_tangent(
-            space.tangent_translation_map(base_point, left=space.metric.left)(
-                left_angular_vel
-            ),
+        left_angular_vel = super().log(point, base_point)
+        return self._space.to_tangent(
+            self._space.tangent_translation_map(
+                base_point, left=self._space.metric.left
+            )(left_angular_vel),
             base_point,
         )
 
@@ -124,10 +128,10 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
     def _instantiate_solvers(self):
         self.log_solver = InvariantMetricMatrixLogODESolver(
-            n_nodes=100, use_jac=False, integrator=ScipySolveBVP(tol=1e-8)
+            self._space, n_nodes=100, use_jac=False, integrator=ScipySolveBVP(tol=1e-8)
         )
         self.exp_solver = InvariantMetricMatrixExpODESolver(
-            integrator=ScipySolveIVP(atol=1e-8)
+            self._space, integrator=ScipySolveIVP(atol=1e-8, point_ndim=2)
         )
 
     @property
@@ -662,7 +666,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                 "The Logarithm map is not well-defined for"
                 f" antipodal matrices: {point} and {base_point}."
             )
-        return self.log_solver.log(self._space, point, base_point)
+        return self.log_solver.log(point, base_point)
 
     def parallel_transport(
         self,
@@ -743,11 +747,11 @@ class _InvariantMetricMatrix(RiemannianMetric):
         left_angular_vel_a = self._space.to_tangent(translation_map(tangent_vec))
         left_angular_vel_b = self._space.to_tangent(translation_map(tangent_vec_b_))
 
-        def acceleration(state, time):
+        def acceleration(state):
             """Compute the right-hand-side of the parallel transport eq."""
             omega = state[..., 1, :, :]
             zeta = state[..., 2, :, :]
-            new_state = self.geodesic_equation(state[..., :2, :, :], time)
+            new_state = self.geodesic_equation(state[..., :2, :, :])
             gam_dot = new_state[..., 0, :, :]
             omega_dot = new_state[..., 1, :, :]
             zeta_dot = -self.connection_at_identity(omega, zeta)
@@ -760,7 +764,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
             [base_point, left_angular_vel_b, left_angular_vel_a], axis=-3
         )
 
-        flow = integrate(acceleration, initial_state, n_steps=n_steps, step=step)
+        force = lambda state, _: acceleration(state)
+        flow = integrate(force, initial_state, n_steps=n_steps, step=step)
         gamma = flow[-1][..., 0, :, :]
         zeta_t = flow[-1][..., 2, :, :]
         transported = self._space.tangent_translation_map(
@@ -769,7 +774,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         return (transported, gamma) if return_endpoint else transported
 
-    def geodesic_equation(self, state, _time):
+    def geodesic_equation(self, state):
         r"""Compute the geodesic ODE associated with the invariant metric.
 
         This is a reduced geodesic equation written entirely in the Lie
@@ -783,9 +788,6 @@ class _InvariantMetricMatrix(RiemannianMetric):
         ----------
         state : array-like, shape=[..., dim]
             Tangent vector at the position.
-        _time : array-like, shape=[..., dim]
-            Point on the manifold, the position at which to compute the
-            geodesic ODE.
 
         Returns
         -------
@@ -921,7 +923,7 @@ class _InvariantMetricVector(RiemannianMetric):
 
         return self._space.regularize(exp)
 
-    def exp(self, tangent_vec, base_point=None, **kwargs):
+    def exp(self, tangent_vec, base_point=None):
         """Compute Riemannian exponential of tan. vector wrt to base point.
 
         Parameters
@@ -1007,7 +1009,7 @@ class _InvariantMetricVector(RiemannianMetric):
         left_log = self.left_log_from_identity(inv_point)
         return -left_log
 
-    def log(self, point, base_point=None, **kwargs):
+    def log(self, point, base_point=None):
         """Compute Riemannian logarithm of a point from a base point.
 
         Parameters
@@ -1144,7 +1146,7 @@ class BiInvariantMetric(RiemannianMetric):
         if not ("SpecialOrthogonal" in space.__str__() or "SO" in space.__str__()):
             raise ValueError("The bi-invariant metric is only implemented for SO(n)")
 
-    def exp(self, tangent_vec, base_point=None, **kwargs):
+    def exp(self, tangent_vec, base_point=None):
         """Compute Riemannian exponential of tangent vector from the identity.
 
         For a bi-invariant metric, this corresponds to the group exponential.
@@ -1171,7 +1173,7 @@ class BiInvariantMetric(RiemannianMetric):
         """
         return self._space.exp(tangent_vec, base_point)
 
-    def log(self, point, base_point=None, **kwargs):
+    def log(self, point, base_point=None):
         """Compute Riemannian logarithm of a point wrt the identity.
 
         For a bi-invariant metric this corresponds to the group logarithm.
@@ -1302,7 +1304,7 @@ class BiInvariantMetric(RiemannianMetric):
         transported_vec = Matrices.mul(midpoint, transposed, midpoint)
         return (-1.0) * transported_vec
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a

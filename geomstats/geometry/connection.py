@@ -43,7 +43,7 @@ class Connection(ABC):
     def __init__(self, space):
         self._space = space
 
-    def christoffels(self, base_point):
+    def christoffels(self, base_point=None):
         """Christoffel symbols associated with the connection.
 
         The contravariant index is on the first dimension.
@@ -61,16 +61,13 @@ class Connection(ABC):
         """
         raise NotImplementedError("The Christoffel symbols are not implemented.")
 
-    def geodesic_equation(self, state, _time):
+    def geodesic_equation(self, state):
         """Compute the geodesic ODE associated with the connection.
 
         Parameters
         ----------
         state : array-like, shape=[..., 2, dim]
             Tangent vector at the position.
-        _time : array-like, shape=[..., 2, dim]
-            Point on the manifold, the position at which to compute the
-            geodesic ODE.
 
         Returns
         -------
@@ -105,7 +102,7 @@ class Connection(ABC):
             Point on the manifold.
         """
         _check_exp_solver(self)
-        return self.exp_solver.exp(self._space, tangent_vec, base_point)
+        return self.exp_solver.exp(tangent_vec, base_point)
 
     def log(self, point, base_point):
         """Compute logarithm map associated to the affine connection.
@@ -135,7 +132,7 @@ class Connection(ABC):
             Tangent vector at the base point.
         """
         _check_log_solver(self)
-        return self.log_solver.log(self._space, point, base_point)
+        return self.log_solver.log(point, base_point)
 
     def _pole_ladder_step(
         self, base_point, next_point, base_shoot, return_geodesics=False
@@ -360,7 +357,7 @@ class Connection(ABC):
             "trajectory": trajectory,
         }
 
-    def riemann_tensor(self, base_point):
+    def riemann_tensor(self, base_point=None):
         r"""Compute Riemannian tensor at base_point.
 
         In the literature the Riemannian curvature tensor is noted :math:`R_{ijk}^l`.
@@ -408,7 +405,7 @@ class Connection(ABC):
 
         return riemann_curvature
 
-    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
+    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point=None):
         r"""Compute the Riemann curvature map R.
 
         For three tangent vectors at base point :math:`P`:
@@ -451,7 +448,7 @@ class Connection(ABC):
         )
         return curvature
 
-    def ricci_tensor(self, base_point):
+    def ricci_tensor(self, base_point=None):
         r"""Compute Ricci curvature tensor at base_point.
 
         The Ricci curvature tensor :math:`\mathrm{Ric}_{ij}` is defined as:
@@ -473,7 +470,7 @@ class Connection(ABC):
         ricci_tensor = gs.einsum("...ijkj -> ...ik", riemann_tensor)
         return ricci_tensor
 
-    def directional_curvature(self, tangent_vec_a, tangent_vec_b, base_point):
+    def directional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the directional curvature (tidal force operator).
 
         For two tangent vectors at base_point :math:`P`:
@@ -656,9 +653,7 @@ class Connection(ABC):
             initial_point with velocity initial_tangent_vec.
         """
         if _check_exp_solver(self, raise_=False) and self.exp_solver.solves_ivp:
-            return self.exp_solver.geodesic_ivp(
-                self._space, initial_tangent_vec, initial_point
-            )
+            return self.exp_solver.geodesic_ivp(initial_tangent_vec, initial_point)
 
         return self._geodesic_from_exp(initial_point, initial_tangent_vec)
 
@@ -682,11 +677,7 @@ class Connection(ABC):
             initial_point and ending at end_point.
         """
         if _check_log_solver(self, raise_=False) and self.log_solver.solves_bvp:
-            return self.log_solver.geodesic_bvp(
-                self._space,
-                end_point,
-                initial_point,
-            )
+            return self.log_solver.geodesic_bvp(end_point, initial_point)
         return NotImplemented
 
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
@@ -770,7 +761,7 @@ class Connection(ABC):
             "use the ladder_parallel_transport instead."
         )
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a

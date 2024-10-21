@@ -132,7 +132,7 @@ class HermitianMetric(ComplexRiemannianMetric):
         return gs.linalg.norm(vector, axis=-1)
 
     @staticmethod
-    def exp(tangent_vec, base_point, **kwargs):
+    def exp(tangent_vec, base_point):
         """Compute exp map of a base point in tangent vector direction.
 
         The Riemannian exponential is vector addition in the Hermitian space.
@@ -152,7 +152,7 @@ class HermitianMetric(ComplexRiemannianMetric):
         return base_point + tangent_vec
 
     @staticmethod
-    def log(point, base_point, **kwargs):
+    def log(point, base_point):
         """Compute log map using a base point and other point.
 
         The Riemannian logarithm is the subtraction in the Hermitian space.

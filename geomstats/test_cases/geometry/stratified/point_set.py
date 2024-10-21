@@ -1,115 +1,121 @@
 """Core parametrizer classes for Stratified Spaces."""
 
-from collections.abc import Iterable
+import pytest
 
 import geomstats.backend as gs
+from geomstats.test.random import get_random_times
 from geomstats.test.test_case import TestCase
+from geomstats.test_cases.geometry.mixins import (
+    DistTestCaseMixins,
+    GeodesicBVPTestCaseMixins,
+)
 
 
-class PointSetTestCase(TestCase):
-    def test_random_point_belongs(self, space_args, n_points):
-        space = self.testing_data._PointSet(*space_args)
-        random_point = space.random_point(n_points)
-        result = gs.all(space.belongs(random_point))
-        self.assertAllClose(result, True)
+class RandomDataGenerator:
+    def __init__(self, space):
+        self.space = space
 
-    def test_random_point_output_shape(self, space, n_samples):
-        points = space.random_point(n_samples)
-        self.assertTrue(len(points) == n_samples)
-
-    def test_belongs(self, space_args, points, expected):
-        space = self.testing_data._PointSet(*space_args)
-        self.assertAllClose(space.belongs(points), expected)
-
-    def test_set_to_array(self, space_args, points, expected):
-        space = self.testing_data._PointSet(*space_args)
-        self.assertAllClose(space.set_to_array(points), expected)
-
-    def test_set_to_array_output_shape(self, space, points):
-        n = len(points) if type(points) is list else 1
-        self.assertTrue(space.set_to_array(points).shape[0] == n)
+    def random_point(self, n_points=1):
+        return self.space.random_point(n_points)
 
 
 class PointTestCase(TestCase):
-    def test_to_array(self, point_args, expected):
-        pt = self.testing_data._Point(*point_args)
-        self.assertAllClose(pt.to_array(), expected)
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = RandomDataGenerator(self.space)
+
+    @pytest.mark.random
+    def test_point_is_equal_to_itself(self, n_points, atol):
+        initial_point = self.data_generator.random_point(n_points)
+
+        self.assertTrue(gs.all(initial_point.equal(initial_point, atol=atol)))
 
 
-class PointSetMetricTestCase(TestCase):
-    @staticmethod
-    def _convert_to_gs_array(results, is_list):
-        if is_list:
-            resh_res = [[pt.to_array() for pt in pts_geo] for pts_geo in results]
-        else:
-            resh_res = [pt.to_array() for pt in results]
+class PointSetTestCase(TestCase):
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = RandomDataGenerator(self.space)
 
-        return gs.array(resh_res)
+    def test_belongs(self, point, expected, atol):
+        res = self.space.belongs(point, atol=atol)
+        self.assertAllEqual(res, expected)
 
-    def test_dist(self, space_args, point_a, point_b, expected):
-        space = self.testing_data._PointSet(*space_args)
-        results = space.metric.dist(point_a, point_b)
+    @pytest.mark.random
+    def test_random_point_belongs(self, n_points, atol):
+        random_point = self.space.random_point(n_points)
 
-        self.assertAllClose(results, expected)
+        expected = gs.ones(n_points)
+        self.test_belongs(random_point, expected, atol=atol)
 
-    def test_dist_output_shape(self, dist_fnc, point_a, point_b):
-        results = dist_fnc(point_a, point_b)
 
-        is_array = type(point_a) is list or type(point_b) is list
-        if is_array:
-            n_dist = max(
-                len(point_a) if type(point_a) is list else 1,
-                len(point_b) if type(point_b) is list else 1,
-            )
-            self.assertTrue(results.size == n_dist)
-        else:
-            self.assertTrue(not isinstance(results, Iterable))
+class PointSetMetricTestCase(DistTestCaseMixins, TestCase):
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = RandomDataGenerator(self.space)
 
-    def test_dist_properties(self, dist_fnc, point_a, point_b, point_c):
-        dist_ab = dist_fnc(point_a, point_b)
-        dist_ba = dist_fnc(point_b, point_a)
-        self.assertAllClose(dist_ab, dist_ba)
+    @pytest.mark.random
+    def test_geodesic_boundary_points(self, n_points, atol):
+        initial_point = self.data_generator.random_point(n_points)
+        end_point = self.data_generator.random_point(n_points)
 
-        res = dist_fnc(point_a, point_a)
-        self.assertAllClose(res, gs.zeros_like(res))
+        time = gs.array([0.0, 1.0])
 
-        dist_ac = dist_fnc(point_a, point_c)
-        dist_cb = dist_fnc(point_c, point_b)
-        rhs = dist_ac + dist_cb
-        assert dist_ab <= (gs.atol + gs.rtol * rhs) + rhs
+        geod_func = self.space.metric.geodesic(initial_point, end_point)
 
-    def test_geodesic(self, space_args, start_point, end_point, t, expected):
-        space = self.testing_data._PointSet(*space_args)
+        geod_points = geod_func(time)
 
-        geom = self.testing_data._PointSetMetric(space)
-        geodesic = geom.geodesic(start_point, end_point)
-        pts_result = geodesic(t)
+        if n_points == 1:
+            initial_point = [initial_point]
+            end_point = [end_point]
+            geod_points = [geod_points]
 
-        is_list = type(start_point) is list or type(end_point) is list
-        results = self._convert_to_gs_array(pts_result, is_list)
-        self.assertAllClose(results, expected)
+        for geod_point_, initial_point_, end_point_ in zip(
+            geod_points, initial_point, end_point
+        ):
+            self.assertTrue(initial_point_.equal(geod_point_[0], atol=atol))
+            self.assertTrue(end_point_.equal(geod_point_[1], atol=atol))
 
-    def test_geodesic_output_shape(self, metric, start_point, end_point, t):
-        geodesic = metric.geodesic(start_point, end_point)
+    @pytest.mark.random
+    def test_geodesic_bvp_reverse(self, n_points, n_times, atol):
+        initial_point = self.data_generator.random_point(n_points)
+        end_point = self.data_generator.random_point(n_points)
 
-        is_list = type(start_point) is list or type(end_point) is list
-        n_geo = max(
-            len(start_point) if type(start_point) is list else 1,
-            len(end_point) if type(end_point) is list else 1,
+        time = get_random_times(n_times)
+
+        geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
+        geod_func_reverse = self.space.metric.geodesic(
+            end_point, end_point=initial_point
         )
-        pt = start_point[0] if type(start_point) is list else start_point
-        d_array = gs.ndim(pt.to_array())
-        n_t = len(t) if type(t) is list else 1
 
-        results = self._convert_to_gs_array(geodesic(t), is_list)
-        self.assertTrue(results.ndim == d_array + 1 + int(is_list))
-        self.assertTrue(results.shape[-d_array - 1] == n_t)
-        if is_list:
-            self.assertTrue(results.shape[-d_array - 2] == n_geo)
+        geod_point = geod_func(time)
+        geod_point_reverse = geod_func_reverse(1.0 - time)
 
-    def test_geodesic_bounds(self, space, start_point, end_point):
-        geodesic = space.metric.geodesic(start_point, end_point)
+        if n_points == 1:
+            geod_point = [geod_point]
+            geod_point_reverse = [geod_point_reverse]
 
-        results = geodesic([0.0, 1.0])
-        for pt, pt_res in zip([start_point, end_point], results):
-            self.assertAllClose(pt_res.to_array(), pt.to_array())
+        for geod_point_, geod_point_reverse_ in zip(geod_point, geod_point_reverse):
+            self.assertTrue(gs.all(geod_point_.equal(geod_point_reverse_, atol)))
+
+
+class PointSetMetricWithArrayTestCase(
+    DistTestCaseMixins, GeodesicBVPTestCaseMixins, TestCase
+):
+    tangent_to_multiple = False
+    is_metric = True
+
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = RandomDataGenerator(self.space)
+
+    def test_geodesic(
+        self,
+        initial_point,
+        end_point,
+        time,
+        expected,
+        atol,
+    ):
+        geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
+        res = geod_func(time)
+        self.assertAllClose(res, expected, atol=atol)

@@ -157,7 +157,7 @@ class TestSPD3AffineMetricPower05(
 
     image_space = SPDMatrices(n=3, equip=False)
     image_space.equip_with_metric(SPDAffineMetric)
-    image_space.metric = ScalarProductMetric(image_space.metric, scale=_scale)
+    image_space.equip_with_metric(ScalarProductMetric(image_space, scale=_scale))
 
     space = SPDMatrices(n=3, equip=False)
     space.equip_with_metric(SPDPowerMetric, image_space=image_space)
@@ -250,7 +250,7 @@ class TestSPD3EuclideanMetricPower05(
 
     image_space = SPDMatrices(n=3, equip=False)
     image_space.equip_with_metric(SPDEuclideanMetric)
-    image_space.metric = ScalarProductMetric(image_space.metric, scale=_scale)
+    image_space.equip_with_metric(ScalarProductMetric(image_space, scale=_scale))
 
     space = SPDMatrices(n=3, equip=False)
     space.equip_with_metric(SPDPowerMetric, image_space=image_space)

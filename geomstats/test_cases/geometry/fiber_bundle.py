@@ -2,8 +2,10 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
-from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
+from geomstats.geometry.manifold import register_quotient
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
@@ -508,10 +510,7 @@ class FiberBundleTestCase(TestCase):
 
 class GeneralLinearBuresWassersteinBundle(FiberBundle):
     def __init__(self, total_space):
-        super().__init__(
-            total_space=total_space,
-            group=SpecialOrthogonal(total_space.n),
-        )
+        super().__init__(total_space=total_space, aligner=True)
 
     @staticmethod
     def riemannian_submersion(point):
@@ -541,3 +540,11 @@ class GeneralLinearBuresWassersteinBundle(FiberBundle):
     @staticmethod
     def lift(point):
         return gs.linalg.cholesky(point)
+
+
+register_quotient(
+    Space=GeneralLinear,
+    Metric=MatricesMetric,
+    GroupAction=SpecialOrthogonalComposeAction,
+    FiberBundle=GeneralLinearBuresWassersteinBundle,
+)

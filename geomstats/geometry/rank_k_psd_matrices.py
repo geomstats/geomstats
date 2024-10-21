@@ -7,11 +7,11 @@ import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
+from geomstats.geometry.manifold import Manifold, register_quotient
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDEuclideanMetric, SPDMatrices
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
@@ -228,10 +228,7 @@ class BuresWassersteinBundle(FiberBundle):
     """Class for the quotient structure on PSD matrices."""
 
     def __init__(self, total_space):
-        super().__init__(
-            total_space=total_space,
-            group=SpecialOrthogonal(total_space.k, equip=False),
-        )
+        super().__init__(total_space=total_space, aligner=True)
 
     @staticmethod
     def riemannian_submersion(point):
@@ -303,7 +300,7 @@ class BuresWassersteinBundle(FiberBundle):
         vertical = -gs.matmul(base_point, skew)
         return (vertical, skew) if return_skew else vertical
 
-    def align(self, point, base_point, **kwargs):
+    def align(self, point, base_point):
         """Align point to base_point.
 
         Find the optimal rotation R in SO(m) such that the base point and
@@ -333,7 +330,20 @@ class PSDBuresWassersteinMetric(QuotientMetric):
             total_space = FullRankMatrices(space.n, k, equip=False)
             total_space.equip_with_metric(MatricesMetric)
 
-        if not hasattr(total_space, "fiber_bundle"):
-            total_space.fiber_bundle = BuresWassersteinBundle(total_space)
+        if not hasattr(total_space, "group_action"):
+            total_space.equip_with_group_action(
+                SpecialOrthogonalComposeAction(total_space.k)
+            )
+
+        if not hasattr(total_space, "quotient"):
+            total_space.equip_with_quotient()
 
         super().__init__(space=space, total_space=total_space)
+
+
+register_quotient(
+    Space=FullRankMatrices,
+    Metric=MatricesMetric,
+    GroupAction=SpecialOrthogonalComposeAction,
+    FiberBundle=BuresWassersteinBundle,
+)

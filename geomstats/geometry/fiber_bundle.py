@@ -3,16 +3,256 @@
 Lead author: Nicolas Guigui.
 """
 
-import sys
-from abc import ABC
-
-from scipy.optimize import minimize
+import logging
+import math
+from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
-from geomstats.vectorization import get_batch_shape
+from geomstats.numerics.optimization import ScipyMinimize
+from geomstats.vectorization import check_is_batch, get_batch_shape
 
 
-class FiberBundle(ABC):
+def _from_base(method):
+    """Decorate method in order to avoid recursive calls."""
+    method._from_base = True
+    return method
+
+
+class AlignerAlgorithm(ABC):
+    """Base class for point to point aligner.
+
+    Parameters
+    ----------
+    total_space : Manifold
+        Space equipped with a group action and a group-invariant metric.
+    """
+
+    def __init__(self, total_space):
+        self._total_space = total_space
+
+    @abstractmethod
+    def align(self, point, base_point):
+        """Align point to base point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *total_space.shape]
+            Point to align.
+        base_point : array-like, shape=[..., *total_space.shape]
+            Base point.
+
+        Returns
+        -------
+        aligned_point : array-like, shape=[..., *total_space.shape]
+            Aligned point.
+        """
+
+
+class DistanceMinimizingAligner(AlignerAlgorithm):
+    """Aligment based on minimization of squared distance.
+
+    Parameters
+    ----------
+    total_space : Manifold
+        Space equipped with a group action and a group-invariant metric.
+    optimizer : ScipyMinimize
+        Optimizer to solve minimization problem.
+    group_elem_shape : tuple
+        Shape of the group element representation.
+    """
+
+    def __init__(self, total_space, optimizer=None, group_elem_shape=None):
+        super().__init__(total_space)
+        if optimizer is None:
+            optimizer = ScipyMinimize(
+                method="L-BFGS-B",
+                autodiff_jac=True,
+            )
+        self.optimizer = optimizer
+
+        if group_elem_shape is None:
+            group_elem_shape = self._total_space.group_action.group_elem_shape
+        self.group_elem_shape = group_elem_shape
+
+    def _objective(self, point, base_point, batch_shape):
+        """Objective function.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *total_space.shape]
+            Point to align to base point.
+        base_point : array-like, shape=[..., *total_space.shape]
+            Point wrt alignment is performed.
+        batch_shape : tuple
+            Batch shape.
+        """
+
+        def sum_squared_dist(param):
+            """Objective function.
+
+            Parameters
+            ----------
+            param : array-like
+                Flat representation of group element.
+            """
+            group_elem = gs.reshape(param, batch_shape + self.group_elem_shape)
+            aligned_point = self._total_space.group_action(group_elem, point)
+            return gs.sum(
+                self._total_space.metric.squared_dist(aligned_point, base_point)
+            )
+
+        return sum_squared_dist
+
+    def align(self, point, base_point):
+        """Align point to base point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *total_space.shape]
+            Point to align.
+        base_point : array-like, shape=[..., *total_space.shape]
+            Base point.
+
+        Returns
+        -------
+        aligned_point : array-like, shape=[..., *total_space.shape]
+            Aligned point.
+        """
+        batch_shape = get_batch_shape(self._total_space.point_ndim, point, base_point)
+        objective = self._objective(point, base_point, batch_shape)
+
+        initial_param = gs.flatten(
+            gs.random.rand(math.prod(batch_shape + self.group_elem_shape))
+        )
+
+        sol = self.optimizer.minimize(
+            objective,
+            initial_param,
+        )
+
+        group_elem = gs.reshape(sol.x, batch_shape + self.group_elem_shape)
+        aligned_point = self._total_space.group_action(group_elem, point)
+
+        return aligned_point
+
+
+class AlternatingAligner(AlignerAlgorithm):
+    """Alternate alignment algorithm.
+
+    Assumes total space is equipped with several group actions.
+    Aligns points wrt these group actions by alternate minimization
+    wrt each of them (see e.g. [SK2016]_ for more details).
+
+    This alignment results in an approximate quotient of the product
+    group action.
+
+    Parameters
+    ----------
+    total_space : Manifold
+        Manifold equipped with a quotient structure.
+    threshold : float
+        Distance between consecutive aligned points for which
+        convergence is considered reached.
+    max_iter : int
+        Maximum number of iterations.
+    verbose : boolean
+        If log number of iterations need for convergence.
+
+    References
+    ----------
+    .. [SK2016] Anuj Srivastava, and Eric P. Klassen.
+        Functional and Shape Data Analysis. Springer, 2016.
+    """
+
+    def __init__(self, total_space, threshold=1e-3, max_iter=20, verbose=0):
+        super().__init__(total_space=total_space)
+
+        self.threshold = threshold
+        self.max_iter = max_iter
+        self.verbose = verbose
+
+        self.total_spaces = []
+        for group_action in total_space.group_action:
+            total_space = total_space.new(equip=True)
+            total_space.equip_with_group_action(group_action)
+            total_space.equip_with_quotient()
+            self.total_spaces.append(total_space)
+
+    def _align_single(self, point, base_point):
+        """Align point to base point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[*point_shape]
+            Discrete curve to align.
+        base_point : array-like, shape=[*point_shape]
+            Reference discrete curve.
+
+        Returns
+        -------
+        aligned : array-like, shape=[*point_shape]
+            Aligned point.
+        """
+        aligned_point = previous_aligned_point = point
+        for index in range(self.max_iter):
+            for total_space in self.total_spaces:
+                aligned_point = total_space.fiber_bundle.align(
+                    aligned_point, base_point
+                )
+
+            gap = self._total_space.metric.dist(aligned_point, previous_aligned_point)
+            previous_aligned_point = aligned_point
+
+            if gap < self.threshold:
+                if self.verbose > 0:
+                    logging.info(
+                        f"Convergence of alignment reached after {index + 1} "
+                        "iterations."
+                    )
+
+                break
+        else:
+            logging.warning(
+                f"Maximum number of iterations {self.max_iter} reached during "
+                "alignment. The result may be inaccurate."
+            )
+        return aligned_point
+
+    def align(self, point, base_point):
+        """Align point to base point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *point_shape]
+            Discrete curve to align.
+        base_point : array-like, shape=[..., *point_shape]
+            Reference discrete curve.
+
+        Returns
+        -------
+        aligned : array-like, shape=[..., *point_shape]
+            Aligned point.
+        """
+        is_batch = check_is_batch(
+            self._total_space.point_ndim,
+            point,
+            base_point,
+        )
+        if not is_batch:
+            return self._align_single(point, base_point)
+
+        if point.ndim != base_point.ndim:
+            point, base_point = gs.broadcast_arrays(point, base_point)
+
+        return gs.stack(
+            [
+                self._align_single(point_, base_point_)
+                for point_, base_point_ in zip(point, base_point)
+            ]
+        )
+
+
+class FiberBundle:
     """Class for (principal) fiber bundles.
 
     This class implements abstract methods for fiber bundles, or more
@@ -20,31 +260,26 @@ class FiberBundle(ABC):
 
     Parameters
     ----------
-    group : LieGroup
-        Group that acts on the total space by the right.
-        Optional. Default : None.
-        Either the group or the group action must be given.
-    group_action : callable
-        Right group action. It must take as input a point of the total space
-        and an element of the group, and return a point of the total space.
+    total_space : Manifold
+        Space equipped with a group action and a group-invariant metric.
+    aligner : AlignerAlgorithm
+        If True and autodiff works, instantiates default
+        DistanceMinimizationBasedAligner.
     """
 
-    def __init__(
-        self,
-        total_space,
-        group=None,
-        group_action=None,
-        group_dim=None,
-    ):
+    def __init__(self, total_space, aligner=None):
         self._total_space = total_space
-        self.group = group
+        if aligner is True:
+            if isinstance(total_space.group_action, tuple):
+                aligner = AlternatingAligner(total_space)
+            else:
+                aligner = (
+                    DistanceMinimizingAligner(total_space)
+                    if gs.has_autodiff()
+                    else None
+                )
 
-        if group_action is None and group is not None:
-            group_action = group.compose
-        if group_dim is None and group is not None:
-            group_dim = group.dim
-        self.group_dim = group_dim
-        self.group_action = group_action
+        self.aligner = aligner
 
     @staticmethod
     def riemannian_submersion(point):
@@ -90,6 +325,7 @@ class FiberBundle(ABC):
         """
         return gs.copy(point)
 
+    @_from_base
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
         """Project a tangent vector to base manifold.
 
@@ -114,87 +350,33 @@ class FiberBundle(ABC):
         """
         return self.horizontal_projection(tangent_vec, base_point)
 
-    def align(self, point, base_point, max_iter=25, verbose=False, tol=gs.atol):
-        """Align point to base_point.
-
-        Find the optimal group element g such that the base point and
-        point.g are well positioned, meaning that the total space distance is
-        minimized. This also means that the geodesic joining the base point
-        and the aligned point is horizontal. By default, this is solved by a
-        gradient descent in the Lie algebra.
+    def align(self, point, base_point):
+        """Align point to base point.
 
         Parameters
         ----------
-        point : array-like, shape=[..., {total_space.dim, [n, m]}]
-            Point on the manifold.
-        base_point : array-like, shape=[..., {total_space.dim, [n, m]}]
-            Point on the manifold.
-        max_iter : int
-            Maximum number of gradient steps.
-            Optional, default : 25.
-        verbose : bool
-            Verbosity level.
-            Optional, default : False.
-        tol : float
-            Tolerance for the stopping criterion.
-            Optional, default : backend atol
+        point : array-like, shape=[..., *total_space.shape]
+            Point to align.
+        base_point : array-like, shape=[..., *total_space.shape]
+            Base point.
 
         Returns
         -------
-        aligned : array-like, shape=[..., {total_space.dim, [n, m]}]
-            Action of the optimal g on point.
+        aligned_point : array-like, shape=[..., *total_space.shape]
+            Aligned point.
         """
-        group = self.group
-        group_action = self.group_action
+        if self.aligner is None:
+            raise NotImplementedError("Alignment is not implemented.")
+        return self.aligner.align(point, base_point)
 
-        batch_shape = get_batch_shape(self._total_space.point_ndim, point, base_point)
-        max_shape = batch_shape + (self.group_dim,)
-
-        if group is not None:
-
-            def wrap(param):
-                """Wrap a parameter vector to a group element."""
-                algebra_elt = gs.reshape(
-                    gs.cast(gs.array(param), dtype=base_point.dtype), max_shape
-                )
-                algebra_elt = group.lie_algebra.matrix_representation(algebra_elt)
-                group_elt = group.exp(algebra_elt)
-                return self.group_action(point, group_elt)
-
-        elif group_action is not None:
-
-            def wrap(param):
-                vector = gs.reshape(gs.array(param), max_shape)
-                vector = gs.cast(vector, dtype=base_point.dtype)
-                return group_action(vector, point)
-
-        else:
-            raise ValueError("Either the group of its action must be known")
-
-        objective_with_grad = gs.autodiff.value_and_grad(
-            lambda param: gs.sum(
-                self._total_space.metric.squared_dist(wrap(param), base_point)
-            ),
-        )
-
-        tangent_vec = gs.flatten(gs.random.rand(*max_shape))
-        res = minimize(
-            lambda x: objective_with_grad(gs.from_numpy(x)),
-            tangent_vec,
-            method="L-BFGS-B",
-            jac=True,
-            options={"disp": verbose, "maxiter": max_iter},
-            tol=tol,
-        )
-
-        return wrap(res.x)
-
+    @_from_base
     def horizontal_projection(self, tangent_vec, base_point):
         r"""Project to horizontal subspace.
 
         Compute the horizontal component of a tangent vector at a
-        base point by removing the vertical component,
-        or by computing a horizontal lift of the tangent projection.
+        base point from:
+            1. the vertical projection
+            2. the horizontal lift of the tangent submersion
 
         Parameters
         ----------
@@ -208,18 +390,22 @@ class FiberBundle(ABC):
         horizontal : array-like, shape=[..., {total_space.dim, [n, m]}]
             Horizontal component of `tangent_vec`.
         """
-        caller_name = sys._getframe().f_back.f_code.co_name
-        if not caller_name == "vertical_projection":
-            try:
-                return tangent_vec - self.vertical_projection(tangent_vec, base_point)
-            except NotImplementedError:
-                pass
+        if not hasattr(self.vertical_projection, "_from_base"):
+            ver_tangent_vec = self.vertical_projection(tangent_vec, base_point)
+            return tangent_vec - ver_tangent_vec
 
-        return self.horizontal_lift(
-            self.tangent_riemannian_submersion(tangent_vec, base_point),
-            fiber_point=base_point,
-        )
+        if not (
+            hasattr(self.horizontal_lift, "_from_base")
+            or hasattr(self.tangent_riemannian_submersion, "_from_base")
+        ):
+            return self.horizontal_lift(
+                self.tangent_riemannian_submersion(tangent_vec, base_point),
+                fiber_point=base_point,
+            )
 
+        raise NotImplementedError("Horizontal projection is not implemented.")
+
+    @_from_base
     def vertical_projection(self, tangent_vec, base_point):
         r"""Project to vertical subspace.
 
@@ -238,10 +424,6 @@ class FiberBundle(ABC):
         vertical : array-like, shape=[..., {total_space.dim, [n, m]}]
             Vertical component of `tangent_vec`.
         """
-        caller_name = sys._getframe().f_back.f_code.co_name
-        if caller_name == "horizontal_projection":
-            raise NotImplementedError
-
         return tangent_vec - self.horizontal_projection(tangent_vec, base_point)
 
     def is_horizontal(self, tangent_vec, base_point, atol=gs.atol):
@@ -300,6 +482,7 @@ class FiberBundle(ABC):
             axis=(-2, -1),
         )
 
+    @_from_base
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
         """Lift a tangent vector to a horizontal vector in the total space.
 

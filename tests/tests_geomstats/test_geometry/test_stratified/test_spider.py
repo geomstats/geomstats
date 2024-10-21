@@ -1,5 +1,6 @@
-import pytest
+import random
 
+from geomstats.geometry.stratified.spider import Spider
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.stratified.point_set import (
     PointSetMetricTestCase,
@@ -7,20 +8,22 @@ from geomstats.test_cases.geometry.stratified.point_set import (
     PointTestCase,
 )
 
-from .data.spider import SpiderMetricTestData, SpiderPointTestData, SpiderTestData
-
-
-class TestSpider(PointSetTestCase, metaclass=DataBasedParametrizer):
-    testing_data = SpiderTestData()
+from .data.point_set import PointMetricTestData, PointSetTestData, PointTestData
 
 
 class TestSpiderPoint(PointTestCase, metaclass=DataBasedParametrizer):
-    testing_data = SpiderPointTestData()
+    _n_rays = random.randint(2, 4)
+    space = Spider(_n_rays, equip=False)
+    testing_data = PointTestData()
 
-    def test_raise_zero_error(self, point_args):
-        with pytest.raises(ValueError):
-            self.testing_data._Point(*point_args)
+
+class TestSpider(PointSetTestCase, metaclass=DataBasedParametrizer):
+    _n_rays = random.randint(2, 4)
+    space = Spider(_n_rays, equip=False)
+    testing_data = PointSetTestData()
 
 
 class TestSpiderMetric(PointSetMetricTestCase, metaclass=DataBasedParametrizer):
-    testing_data = SpiderMetricTestData()
+    _n_rays = random.randint(2, 4)
+    space = Spider(_n_rays, equip=True)
+    testing_data = PointMetricTestData()

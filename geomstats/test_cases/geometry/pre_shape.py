@@ -27,16 +27,16 @@ def integrability_tensor_alt(total_space, tangent_vec_a, tangent_vec_b, base_poi
     ----------
     total_space : Manifold
         Total space with fiber bundle structure.
-    tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
+    tangent_vec_a : array-like, shape=[..., k_landmarks, ambient_dim]
         Tangent vector at `base_point`.
-    tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
+    tangent_vec_b : array-like, shape=[..., k_landmarks, ambient_dim]
         Tangent vector at `base_point`.
-    base_point : array-like, shape=[..., k_landmarks, m_ambient]
+    base_point : array-like, shape=[..., k_landmarks, ambient_dim]
         Point of the total space.
 
     Returns
     -------
-    vector : array-like, shape=[..., k_landmarks, m_ambient]
+    vector : array-like, shape=[..., k_landmarks, ambient_dim]
         Tangent vector at `base_point`, result of the A tensor applied to
         `tangent_vec_a` and `tangent_vec_b`.
 
@@ -117,7 +117,7 @@ class PreShapeSpaceTestCase(LevelSetTestCase):
         self.test_is_centered(res, expected, atol)
 
 
-class PreShapeSpaceBundleTestCase(FiberBundleTestCase):
+class PreShapeBundleTestCase(FiberBundleTestCase):
     def _test_is_tangent(self, vector, base_point, expected, atol):
         res = self.total_space.is_tangent(vector, base_point, atol=atol)
         self.assertAllEqual(res, expected)

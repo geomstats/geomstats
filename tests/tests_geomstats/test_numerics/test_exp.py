@@ -15,14 +15,12 @@ from geomstats.test_cases.numerics.geodesic import (
     ExpSolverAgainstMetricTestCase,
     ExpSolverComparisonTestCase,
     ExpSolverTestCase,
-    ExpSolverTypeCheck,
 )
 
 from .data.geodesic import (
     ExpSolverAgainstMetricTestData,
     ExpSolverComparisonTestData,
     ExpSolverTestData,
-    ExpSolverTypeCheckTestData,
 )
 
 
@@ -34,7 +32,7 @@ def _create_params():
             GSIVPIntegrator(n_steps=20, step_type="rk4"),
             ScipySolveIVP(rtol=1e-8),
         ):
-            solver = ExpODESolver(integrator=integrator)
+            solver = ExpODESolver(space, integrator=integrator)
             params.append((space, solver))
 
     return params
@@ -76,10 +74,11 @@ class TestExpODESolverMatrixComparison(
     space.metric.exp_solver = None
 
     exp_solver = InvariantMetricMatrixExpODESolver(
+        space,
         integrator=GSIVPIntegrator(n_steps=15, step_type="rk4"),
     )
     cmp_exp_solver = InvariantMetricMatrixExpODESolver(
-        integrator=ScipySolveIVP(rtol=1e-8)
+        space, integrator=ScipySolveIVP(rtol=1e-8, point_ndim=2)
     )
 
     testing_data = ExpSolverComparisonTestData()
@@ -98,33 +97,12 @@ class TestExpODESolverMatrix(ExpSolverTestCase, metaclass=DataBasedParametrizer)
     space.metric.log_solver = None
     space.metric.exp_solver = None
 
-    exp_solver = InvariantMetricMatrixExpODESolver(integrator=ScipySolveIVP(rtol=1e-8))
+    exp_solver = InvariantMetricMatrixExpODESolver(
+        space,
+        integrator=ScipySolveIVP(
+            rtol=1e-8,
+            point_ndim=2,
+        ),
+    )
 
     testing_data = ExpSolverTestData()
-
-
-def _create_params_type_check():
-    params = []
-
-    space = PoincareBall(random.randint(2, 3))
-    for integrator in (
-        GSIVPIntegrator(n_steps=10, step_type="euler"),
-        ScipySolveIVP(),
-    ):
-        solver = ExpODESolver(integrator=integrator)
-        params.append((space, solver))
-
-    return params
-
-
-@pytest.fixture(
-    scope="class",
-    params=_create_params_type_check(),
-)
-def spaces_for_type_checking(request):
-    request.cls.space, request.cls.exp_solver = request.param
-
-
-@pytest.mark.usefixtures("spaces_for_type_checking")
-class TestExpSolverTypeCheck(ExpSolverTypeCheck, metaclass=DataBasedParametrizer):
-    testing_data = ExpSolverTypeCheckTestData()

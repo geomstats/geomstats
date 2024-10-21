@@ -25,7 +25,7 @@ class SymMatrixLogSmokeTestData(TestData):
         ]
         return self.generate_tests(data)
 
-    def tangent_diffeomorphism_test_data(self):
+    def tangent_test_data(self):
         data = [
             dict(
                 tangent_vec=gs.array(
@@ -58,7 +58,7 @@ class SymMatrixLogSmokeTestData(TestData):
         ]
         return self.generate_tests(data)
 
-    def inverse_tangent_diffeomorphism_test_data(self):
+    def inverse_tangent_test_data(self):
         data = [
             dict(
                 image_tangent_vec=gs.array(
@@ -93,7 +93,7 @@ class SymMatrixLogSmokeTestData(TestData):
 
 
 class MatrixPower05TestData(TestData):
-    def tangent_diffeomorphism_test_data(self):
+    def tangent_test_data(self):
         data = [
             dict(
                 tangent_vec=gs.array(
@@ -113,7 +113,7 @@ class MatrixPower05TestData(TestData):
         ]
         return self.generate_tests(data)
 
-    def inverse_tangent_diffeomorphism_test_data(self):
+    def inverse_tangent_test_data(self):
         data = [
             dict(
                 image_tangent_vec=gs.array(
@@ -156,7 +156,7 @@ class CholeskyMapSmokeTestData(TestData):
         ]
         return self.generate_tests(data)
 
-    def inverse_diffeomorphism_test_data(self):
+    def inverse_test_data(self):
         data = [
             dict(
                 image_point=gs.array([[1.0, 0.0], [2.0, 1.0]]),
@@ -173,7 +173,7 @@ class CholeskyMapSmokeTestData(TestData):
         ]
         return self.generate_tests(data)
 
-    def tangent_diffeomorphism_test_data(self):
+    def tangent_test_data(self):
         data = [
             dict(
                 tangent_vec=gs.array([[1.0, 1.0], [1.0, 1.0]]),
@@ -199,7 +199,7 @@ class CholeskyMapSmokeTestData(TestData):
         ]
         return self.generate_tests(data)
 
-    def inverse_tangent_diffeomorphism_test_data(self):
+    def inverse_tangent_test_data(self):
         data = [
             dict(
                 image_tangent_vec=gs.array([[-1.0, 0.0], [2.0, -1.0]]),
@@ -315,17 +315,6 @@ class SPD3AffineMetricPower05TestData(TestData):
 class SPDBuresWassersteinMetricTestData(RiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
-
-    tolerances = {
-        "dist_point_to_itself_is_zero": {"atol": 1e-6},
-    }
-
-    skips = (
-        "parallel_transport_bvp_transported_is_tangent",
-        "parallel_transport_ivp_transported_is_tangent",
-        "parallel_transport_bvp_vec",
-        "parallel_transport_ivp_vec",
-    )
 
 
 class SPD2BuresWassersteinMetricTestData(TestData):

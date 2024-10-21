@@ -13,8 +13,12 @@ class BaseEstimatorTestCase(TestCase):
 
 
 class MeanEstimatorMixinsTestCase:
+    def _self_assert_same_point(self, point, point_, atol):
+        self.assertAllClose(point, point_, atol)
+
     def test_fit(self, X, expected, atol, weights=None):
-        res = self.estimator.fit(X, weights=weights).estimate_
+        kwargs = {} if weights is None else {"weights": weights}
+        res = self.estimator.fit(X, **kwargs).estimate_
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.random
@@ -22,14 +26,14 @@ class MeanEstimatorMixinsTestCase:
         X = gs.expand_dims(self.data_generator.random_point(n_points=1), axis=0)
 
         mean = self.estimator.fit(X).estimate_
-        self.assertAllClose(mean, X[0], atol)
+        self._self_assert_same_point(mean, X[0], atol)
 
     @pytest.mark.random
     def test_n_times_same_point(self, n_samples, atol):
         X = repeat_point(self.data_generator.random_point(n_points=1), n_samples)
 
         mean = self.estimator.fit(X).estimate_
-        self.assertAllClose(mean, X[0], atol)
+        self._self_assert_same_point(mean, X[0], atol)
 
     @pytest.mark.random
     def test_estimate_belongs(self, n_samples, atol):

@@ -4,9 +4,9 @@ from collections.abc import Iterable as _Iterable
 
 import numpy as _np
 import torch as _torch
-from torch import arange, argmin
-from torch import broadcast_tensors as broadcast_arrays
 from torch import (
+    arange,
+    argmin,
     clip,
     complex64,
     complex128,
@@ -33,11 +33,9 @@ from torch import (
     ones_like,
     polygamma,
     quantile,
-)
-from torch import repeat_interleave as repeat
-from torch import (
     reshape,
     scatter_add,
+    searchsorted,
     stack,
     trapz,
     uint8,
@@ -46,13 +44,17 @@ from torch import (
     zeros,
     zeros_like,
 )
+from torch import broadcast_tensors as broadcast_arrays
+from torch import repeat_interleave as repeat
 from torch.special import gammaln as _gammaln
 
 from .._backend_config import pytorch_atol as atol
 from .._backend_config import pytorch_rtol as rtol
-from . import autodiff  # NOQA
-from . import linalg  # NOQA
-from . import random  # NOQA
+from . import (
+    autodiff,  # NOQA
+    linalg,  # NOQA
+    random,  # NOQA
+)
 from ._common import array, cast, from_numpy
 from ._dtype import (
     _add_default_dtype_by_casting,
@@ -76,13 +78,6 @@ _DTYPES = {
     complex64: 4,
     complex128: 5,
 }
-
-
-def _raise_not_implemented_error(*args, **kwargs):
-    raise NotImplementedError
-
-
-searchsorted = _raise_not_implemented_error
 
 
 abs = _box_unary_scalar(target=_torch.abs)
@@ -112,6 +107,16 @@ power = _box_binary_scalar(target=_torch.pow, box_x2=False)
 
 
 std = _preserve_input_dtype(_add_default_dtype_by_casting(target=_torch.std))
+
+
+def has_autodiff():
+    """If allows for automatic differentiation.
+
+    Returns
+    -------
+    has_autodiff : bool
+    """
+    return True
 
 
 def matmul(x, y, out=None):
@@ -753,9 +758,9 @@ def _unnest_iterable(ls):
     return out
 
 
-def pad(a, pad_width, constant_value=0.0):
+def pad(a, pad_width, mode="constant", constant_values=0.0):
     return _torch.nn.functional.pad(
-        a, _unnest_iterable(reversed(pad_width)), value=constant_value
+        a, _unnest_iterable(reversed(pad_width)), mode=mode, value=constant_values
     )
 
 
