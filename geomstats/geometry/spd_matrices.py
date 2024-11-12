@@ -474,6 +474,8 @@ class SPDMatrices(VectorSpaceOpenSet):
     ----------
     n : int
         Integer representing the shape of the matrices: n x n.
+    equip : bool
+        If True, equip space with default metric.
     """
 
     def __init__(self, n, equip=True):
