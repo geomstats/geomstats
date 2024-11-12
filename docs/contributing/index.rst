@@ -78,7 +78,7 @@ from the project GitHub repository using the following instructions:
     .. code-block:: bash
 
       $ cd geomstats
-      $ git remote add upstream https://github.com/<username>/geomstats.git
+      $ git remote add upstream https://github.com/geomstats/geomstats.git
 
    This is so that later you can bring the upstream updates locally by doing:
 
