@@ -49,6 +49,9 @@ class Manifold(abc.ABC):
         if not isinstance(shape, tuple):
             raise ValueError("Expected a tuple for the shape argument.")
 
+        if not isinstance(equip, bool):
+            raise TypeError("Expected a boolean value for 'equip' argument.")
+
         self.dim = dim
         self.shape = shape
         self.intrinsic = intrinsic

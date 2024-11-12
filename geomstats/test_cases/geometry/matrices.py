@@ -83,7 +83,7 @@ class MatrixOperationsTestCase(TestCase):
     @pytest.mark.vec
     def test_bracket_vec(self, n_reps, atol):
         mat_a = self.data_generator.random_square_mat()
-        mat_b = self.data_generator.random_square_mat(shape=mat_a.shape[-2:])
+        mat_b = self.data_generator.random_square_mat(shape=mat_a.shape[-1:])
 
         expected = Matrices.bracket(mat_a, mat_b)
 
@@ -98,7 +98,7 @@ class MatrixOperationsTestCase(TestCase):
     @pytest.mark.random
     def test_bracket_bilinearity(self, n_points, atol):
         mat_a = self.data_generator.random_square_mat(n_points)
-        shape = mat_a.shape[-2:]
+        shape = mat_a.shape[-1:]
         mat_b = self.data_generator.random_square_mat(shape=shape)
         mat_c = self.data_generator.random_square_mat(shape=shape)
 
@@ -255,7 +255,7 @@ class MatrixOperationsTestCase(TestCase):
     @pytest.mark.vec
     def test_congruent_vec(self, n_reps, atol):
         mat_1 = self.data_generator.random_square_mat()
-        shape = mat_1.shape[-2:]
+        shape = mat_1.shape[-1:]
         mat_2 = self.data_generator.random_square_mat(shape=shape)
 
         expected = Matrices.congruent(mat_1, mat_2)
