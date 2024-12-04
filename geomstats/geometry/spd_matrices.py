@@ -892,14 +892,7 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         Use of `abs` in the output prevents nan when calling
         `sqrt` in very small negative outputs (e.g. -1e-16).
         """
-        La, Qa = gs.linalg.eigh(point_a)
-        point_a_sqrt = Matrices.mul(
-            Qa,
-            gs.vec_to_diag(
-                gs.sqrt(La * (La > 0)),
-            ),
-            Matrices.transpose(Qa),
-        )
+        point_a_sqrt = apply_func_to_eigvalsh(point_a, gs.sqrt)
 
         Lc, Qc = gs.linalg.eigh(point_a_sqrt @ point_b @ point_a_sqrt)
         cross_term = Matrices.mul(
