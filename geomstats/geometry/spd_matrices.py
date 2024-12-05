@@ -897,10 +897,10 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
 
         point_a_sqrt = apply_func_to_eigvalsh(point_a, gs.sqrt)
 
-        c_eigvals = gs.linalg.eigvalsh(
-          Matrices.mul(Matrices.mul(point_a_sqrt, point_b), point_a_sqrt)
+        c_sq_eigvals = gs.linalg.eigvalsh(
+            Matrices.mul(Matrices.mul(point_a_sqrt, point_b), point_a_sqrt)
         )
-        cross_term = gs.sum(gs.sqrt(c_eigvals), axis=-1)
+        cross_term = gs.sum(gs.sqrt(c_sq_eigvals), axis=-1)
 
         return gs.abs(tr_a + tr_b - 2 * cross_term)
 
