@@ -118,10 +118,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
     """
 
     def __init__(self, space, metric_mat_at_identity=None, left=True):
-        super().__init__(space=space)
-        if metric_mat_at_identity is None:
-            metric_mat_at_identity = gs.eye(space.dim)
         self.metric_mat_at_identity = metric_mat_at_identity
+        super().__init__(space=space)
         self.left = left
 
         self._instantiate_solvers()
@@ -133,51 +131,6 @@ class _InvariantMetricMatrix(RiemannianMetric):
         self.exp_solver = InvariantMetricMatrixExpODESolver(
             self._space, integrator=ScipySolveIVP(atol=1e-8, point_ndim=2)
         )
-
-    @property
-    def reshaped_metric_matrix(self):
-        """Diagonal metric matrix reshaped to a symmetric matrix of size n.
-
-        Reshape a diagonal metric matrix of size `dim x dim` into a symmetric
-        matrix of size `n x n` where :math:`dim= n (n -1) / 2` is the
-        dimension of the space of skew symmetric matrices. The
-        non-diagonal coefficients in the output matrix correspond to the
-        basis matrices of this space. The diagonal is filled with ones.
-        This useful to compute a matrix inner product.
-
-        Returns
-        -------
-        symmetric_matrix : array-like, shape=[n, n]
-            Symmetric matrix.
-        """
-        if Matrices.is_diagonal(self.metric_mat_at_identity):
-            metric_coeffs = gs.diagonal(self.metric_mat_at_identity)
-            metric_mat = gs.abs(
-                self._space.lie_algebra.matrix_representation(metric_coeffs)
-            )
-            return metric_mat
-        raise ValueError("This is only possible for a diagonal matrix")
-
-    def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
-        """Compute inner product at tangent space at identity.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
-            First tangent vector at identity.
-        tangent_vec_b : array-like, shape=[..., n, n]
-            Second tangent vector at identity.
-
-        Returns
-        -------
-        inner_prod : array-like, shape=[...]
-            Inner-product of the two tangent vectors.
-        """
-        tan_b = tangent_vec_b
-        metric_mat = self.metric_mat_at_identity
-        if Matrices.is_diagonal(metric_mat) and self._space.lie_algebra is not None:
-            tan_b = tangent_vec_b * self.reshaped_metric_matrix
-        return Matrices.frobenius_product(tangent_vec_a, tan_b)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product of two vectors in tangent space at base point.
@@ -197,15 +150,20 @@ class _InvariantMetricMatrix(RiemannianMetric):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
+        lie_algebra = self._space.lie_algebra
         if base_point is None:
-            return self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
+            return lie_algebra.metric.inner_product(
+                tangent_vec_a, tangent_vec_b, base_point=None
+            )
 
         tangent_translation = self._space.tangent_translation_map(
             base_point, left=self.left, inverse=True
         )
         tangent_vec_a_at_id = tangent_translation(tangent_vec_a)
         tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
-        return self.inner_product_at_identity(tangent_vec_a_at_id, tangent_vec_b_at_id)
+        return lie_algebra.metric.inner_product(
+            tangent_vec_a_at_id, tangent_vec_b_at_id, base_point=None
+        )
 
     def structure_constant(self, tangent_vec_a, tangent_vec_b, tangent_vec_c):
         r"""Compute the structure constant of the metric.
@@ -227,7 +185,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
         structure_constant : array-like, shape=[...,]
         """
         bracket = Matrices.bracket(tangent_vec_a, tangent_vec_b)
-        return self.inner_product_at_identity(bracket, tangent_vec_c)
+        return self._space.lie_algebra.metric.inner_product(
+            bracket, tangent_vec_c, base_point=None
+        )
 
     def dual_adjoint(self, tangent_vec_a, tangent_vec_b):
         r"""Compute the metric dual adjoint map.
@@ -1105,6 +1065,10 @@ class InvariantMetric:
         Select the object to instantiate depending on the point_type.
         """
         if space.point_ndim == 1:
+            if metric_mat_at_identity is not None:
+                raise ValueError(
+                    "`metric_mat_at_identity` does not apply for vector type."
+                )
             return _InvariantMetricVector(space, left=left)
         return _InvariantMetricMatrix(
             space,
@@ -1202,26 +1166,6 @@ class BiInvariantMetric(RiemannianMetric):
         log = self._space.log(point, base_point)
         return self._space.to_tangent(log, base_point)
 
-    def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
-        """Compute inner product at tangent space at identity.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., {dim, [n, n]}]
-            First tangent vector at identity.
-        tangent_vec_b : array-like, shape=[..., {dim, [n, n]}]
-            Second tangent vector at identity.
-
-        Returns
-        -------
-        inner_prod : array-like, shape=[...]
-            Inner-product of the two tangent vectors.
-        """
-        if self._space.point_ndim == 1:
-            return gs.dot(tangent_vec_a, tangent_vec_b)
-
-        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b) / 2
-
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product of two vectors in tangent space at base point.
 
@@ -1240,8 +1184,11 @@ class BiInvariantMetric(RiemannianMetric):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
+        lie_algebra = self._space.lie_algebra
         if base_point is None or self._space.point_ndim == 2:
-            inner_prod = self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
+            inner_prod = lie_algebra.metric.inner_product(
+                tangent_vec_a, tangent_vec_b, base_point=None
+            )
             if base_point is not None:
                 return repeat_out(
                     self._space.point_ndim,
@@ -1257,7 +1204,9 @@ class BiInvariantMetric(RiemannianMetric):
         )
         tangent_vec_a_at_id = tangent_translation(tangent_vec_a)
         tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
-        return self.inner_product_at_identity(tangent_vec_a_at_id, tangent_vec_b_at_id)
+        return lie_algebra.metric.inner_product(
+            tangent_vec_a_at_id, tangent_vec_b_at_id, base_point=None
+        )
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
