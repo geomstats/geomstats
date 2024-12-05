@@ -472,9 +472,10 @@ def load_rat_skulls():
     Load data from data/rat_skulls.npy.
 
     We use Vilmann’s rat calvaria (skulls excluding the lower jaw) from X-ray images:
-    - 18 rats
-    - 8 time points: at ages of 7, 14, 21, 30, 40, 60, 90, and 150 days.
-    - 8 landmarks in 2D for each skull shape
+
+    - 18 rats;
+    - 8 time points: at ages of 7, 14, 21, 30, 40, 60, 90, and 150 days;
+    - 8 landmarks in 2D for each skull shape.
 
     Returns
     -------
@@ -483,8 +484,11 @@ def load_rat_skulls():
 
     References
     ----------
-    - Bookstein, F. L. (1991). Morphometric Tools for Landmark Data: Geometry and Biology. Cambridge Univ, 408-414.
-    - Hinkle, J., Muralidharan, P., Fletcher, P. T., Joshi, S. (2012). Polynomial Regression on Riemannian Manifolds. European Conference on Computer Vision, 1-14.
+    .. [1] Bookstein, F. L. (1991). Morphometric Tools for Landmark Data:
+        Geometry and Biology. Cambridge Univ, 408-414.
+    .. [2] Hinkle, J., Muralidharan, P., Fletcher, P. T., Joshi, S. (2012).
+        Polynomial Regression on Riemannian Manifolds. European Conference on
+        Computer Vision, 1-14.
 
 
     """
