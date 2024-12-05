@@ -892,23 +892,17 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         Use of `abs` in the output prevents nan when calling
         `sqrt` in very small negative outputs (e.g. -1e-16).
         """
-        La, Qa = gs.linalg.eigh(point_a)
-        point_a_sqrt = Matrices.mul(
-            Qa,
-            gs.vec_to_diag(
-                gs.sqrt(La * (La > 0)),
-            ),
-            Matrices.transpose(Qa),
-        )
+        tr_a = gs.trace(point_a)
+        tr_b = gs.trace(point_b)
 
-        Lc, Qc = gs.linalg.eigh(point_a_sqrt @ point_b @ point_a_sqrt)
-        cross_term = Matrices.mul(
-            Qc,
-            gs.vec_to_diag(gs.sqrt(Lc * (Lc > 0))),
-            Matrices.transpose(Qc),
-        )
+        point_a_sqrt = apply_func_to_eigvalsh(point_a, gs.sqrt)
 
-        return gs.abs(gs.trace(point_a + point_b - 2 * cross_term))
+        c_sq_eigvals = gs.linalg.eigvalsh(
+            Matrices.mul(Matrices.mul(point_a_sqrt, point_b), point_a_sqrt)
+        )
+        cross_term = gs.sum(gs.sqrt(c_sq_eigvals), axis=-1)
+
+        return gs.abs(tr_a + tr_b - 2 * cross_term)
 
     def parallel_transport(
         self,
