@@ -11,9 +11,10 @@ when it is strictly necessary.
 
 import os
 
-import sklearn
 from sklearn.base import RegressorMixin as _RegressorMixin
 from sklearn.compose import TransformedTargetRegressor
+from sklearn.decomposition import PCA as _PCA
+from sklearn.linear_model import LinearRegression as _LinearRegression
 from sklearn.metrics import r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
@@ -202,7 +203,7 @@ class LinearRegression(GetParamsMixin, ModelAdapter):
         n_jobs=None,
         positive=False,
     ):
-        regressor = sklearn.linear_model.LinearRegression(
+        regressor = _LinearRegression(
             fit_intercept=fit_intercept, copy_X=copy_X, n_jobs=n_jobs, positive=positive
         )
         super().__init__(regressor)
@@ -228,7 +229,7 @@ class PCA(GetParamsMixin, ModelAdapter):
         power_iteration_normalizer="auto",
         random_state=None,
     ):
-        pca = sklearn.decomposition.PCA(
+        pca = _PCA(
             n_components,
             copy=copy,
             whiten=whiten,
