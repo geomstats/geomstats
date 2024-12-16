@@ -9,6 +9,8 @@ For maintainability reasons, we wrap a sklearn object only
 when it is strictly necessary.
 """
 
+import os
+
 import sklearn
 from sklearn.base import RegressorMixin as _RegressorMixin
 from sklearn.compose import TransformedTargetRegressor
@@ -17,6 +19,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
 
 import geomstats.backend as gs
+
+SCIPY_ARRAY_API = True if os.environ.get("SCIPY_ARRAY_API", False) == "1" else False
 
 
 class RegressorMixin(_RegressorMixin):
@@ -89,12 +93,14 @@ class InvertibleFlattenButFirst(FunctionTransformer):
         """Optionally reshape array.
 
         Reshapes array if ndim != 2.
-        Additionally, converts back to proper tensor dtype
-        (hopefully will be removed at some point).
+        Additionally, converts back to proper tensor type
+        if `SCIPY_ARRAY_API` is not activated.
         """
-        if self.shape is None:
-            return gs.from_numpy(array)
-        return gs.from_numpy(array.reshape(self.shape))
+        out = array if self.shape is None else array.reshape(self.shape)
+        if SCIPY_ARRAY_API:
+            return out
+
+        return gs.from_numpy(out)
 
     def fit(self, X, y=None):
         """Fit transform.
@@ -175,7 +181,7 @@ class ModelAdapter(Pipeline):
             return out_
 
         out = getattr(model_, name)
-        if name.endswith("_"):
+        if name.endswith("_") and not SCIPY_ARRAY_API:
             return gs.from_numpy(out)
 
         return out
