@@ -147,6 +147,7 @@ class ModelAdapter(Pipeline):
             model = TransformedTargetRegressor(
                 regressor=model,
                 transformer=InvertibleFlattenButFirst(),
+                check_inverse=False,
             )
 
         steps = [
