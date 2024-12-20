@@ -171,3 +171,22 @@ class ShapeBundleRandomDataGenerator(RandomDataGenerator):
         return (
             self.n_discretized_curves * (geod[..., 1, :, :] - geod[..., 0, :, :])
         ) / self.amplitude
+
+
+class DiffeoBasedRandomDataGenerator(RandomDataGenerator):
+    def __init__(self, space, diffeo, amplitude=2.0):
+        super().__init__(space, amplitude)
+        self.diffeo = diffeo
+
+    def random_point(self, n_points=1):
+        return self.diffeo(self.space.random_point(n_points))
+
+    def random_tangent_vec(self, base_point):
+        image_point = base_point
+        base_point = self.diffeo.inverse(image_point)
+
+        tangent_vec = self.space.random_tangent_vec(base_point)
+        tangent_vec = tangent_vec / self.amplitude
+        return self.diffeo.tangent(
+            tangent_vec, base_point=base_point, image_point=image_point
+        )

@@ -8,6 +8,7 @@ from scipy.stats import dirichlet, multinomial
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import LevelSet
+from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -16,6 +17,92 @@ from geomstats.information_geometry.base import (
     ScipyMultivariateRandomVariable,
 )
 from geomstats.vectorization import repeat_out
+
+
+class SimplexToHypersphere(Diffeo):
+    """Diffeomorphism between simplex and its image under componentwise square root."""
+
+    @staticmethod
+    def __call__(point):
+        """Send point of the simplex to the sphere.
+
+        The map takes the square root of each component.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point on the simplex.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., dim]
+            Point on the sphere.
+        """
+        return point ** (1 / 2)
+
+    @staticmethod
+    def inverse(image_point):
+        """Send point of the sphere to the simplex.
+
+        The map squares each component.
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., dim]
+            Point on the sphere.
+
+        Returns
+        -------
+        point : array-like, shape=[..., dim]
+            Point on the simplex.
+        """
+        return image_point**2
+
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
+        """Send tangent vector of the simplex to tangent space of sphere.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vec to the simplex at base point.
+        base_point : array-like, shape=[..., dim]
+            Point of the simplex.
+        image_point : array-like, shape=[..., dim]
+            Point of the sphere.
+
+        Returns
+        -------
+        image_tangent_vector : array-like, shape=[..., dim]
+            Tangent vec to the sphere at the image of
+            base point by simplex_to_sphere.
+        """
+        if image_point is None:
+            image_point = self(base_point)
+
+        return gs.einsum("...i,...i->...i", tangent_vec, 1 / (2 * image_point))
+
+    def inverse_tangent(self, tangent_vec, image_point=None, base_point=None):
+        """Send tangent vector of the sphere to tangent space of simplex.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vec to the sphere at base point.
+        image_point : array-like, shape=[..., dim]
+            Point of the sphere.
+        base_point : array-like, shape=[..., dim]
+            Point of the simplex.
+
+        Returns
+        -------
+        tangent_vec_simplex : array-like, shape=[..., dim + 1]
+            Tangent vec to the simplex at the image of
+            base point by sphere_to_simplex.
+        """
+        if image_point is None:
+            image_point = self(base_point)
+
+        return gs.einsum("...i,...i->...i", tangent_vec, 2 * image_point)
 
 
 class MultinomialDistributions(InformationManifoldMixin, LevelSet):
@@ -208,6 +295,7 @@ class MultinomialMetric(RiemannianMetric):
 
     def __init__(self, space):
         super().__init__(space)
+        self._transform = SimplexToHypersphere()
         self._sphere = Hypersphere(dim=space.dim)
 
     def metric_matrix(self, base_point):
@@ -227,85 +315,6 @@ class MultinomialMetric(RiemannianMetric):
             Inner-product matrix.
         """
         return self._space.n_draws * from_vector_to_diagonal_matrix(1 / base_point)
-
-    @staticmethod
-    def simplex_to_sphere(point):
-        """Send point of the simplex to the sphere.
-
-        The map takes the square root of each component.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim + 1]
-            Point on the simplex.
-
-        Returns
-        -------
-        point_sphere : array-like, shape=[..., dim + 1]
-            Point on the sphere.
-        """
-        return point ** (1 / 2)
-
-    @staticmethod
-    def sphere_to_simplex(point):
-        """Send point of the sphere to the simplex.
-
-        The map squares each component.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim + 1]
-            Point on the sphere.
-
-        Returns
-        -------
-        point_simplex : array-like, shape=[..., dim + 1]
-            Point on the simplex.
-        """
-        return point**2
-
-    def tangent_simplex_to_sphere(self, tangent_vec, base_point):
-        """Send tangent vector of the simplex to tangent space of sphere.
-
-        This is the differential of the simplex_to_sphere map.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., dim + 1]
-            Tangent vec to the simplex at base point.
-        base_point : array-like, shape=[..., dim + 1]
-            Point of the simplex.
-
-        Returns
-        -------
-        tangent_vec_sphere : array-like, shape=[..., dim + 1]
-            Tangent vec to the sphere at the image of
-            base point by simplex_to_sphere.
-        """
-        return gs.einsum(
-            "...i,...i->...i", tangent_vec, 1 / (2 * self.simplex_to_sphere(base_point))
-        )
-
-    @staticmethod
-    def tangent_sphere_to_simplex(tangent_vec, base_point):
-        """Send tangent vector of the sphere to tangent space of simplex.
-
-        This is the differential of the sphere_to_simplex map.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., dim + 1]
-            Tangent vec to the sphere at base point.
-        base_point : array-like, shape=[..., dim + 1]
-            Point of the sphere.
-
-        Returns
-        -------
-        tangent_vec_simplex : array-like, shape=[..., dim + 1]
-            Tangent vec to the simplex at the image of
-            base point by sphere_to_simplex.
-        """
-        return gs.einsum("...i,...i->...i", tangent_vec, 2 * base_point)
 
     def exp(self, tangent_vec, base_point):
         """Compute the exponential map.
@@ -327,11 +336,11 @@ class MultinomialMetric(RiemannianMetric):
             End point of the geodesic starting at base_point with
             initial velocity tangent_vec and stopping at time 1.
         """
-        base_point_sphere = self.simplex_to_sphere(base_point)
-        tangent_vec_sphere = self.tangent_simplex_to_sphere(tangent_vec, base_point)
+        base_point_sphere = self._transform(base_point)
+        tangent_vec_sphere = self._transform.tangent(tangent_vec, base_point)
         exp_sphere = self._sphere.metric.exp(tangent_vec_sphere, base_point_sphere)
 
-        return self.sphere_to_simplex(exp_sphere)
+        return self._transform.inverse(exp_sphere)
 
     def log(self, point, base_point):
         """Compute the logarithm map.
@@ -353,11 +362,11 @@ class MultinomialMetric(RiemannianMetric):
             Initial velocity of the geodesic starting at base_point and
             reaching point at time 1.
         """
-        point_sphere = self.simplex_to_sphere(point)
-        base_point_sphere = self.simplex_to_sphere(base_point)
+        point_sphere = self._transform(point)
+        base_point_sphere = self._transform(base_point)
         log_sphere = self._sphere.metric.log(point_sphere, base_point_sphere)
 
-        return self.tangent_sphere_to_simplex(log_sphere, base_point_sphere)
+        return self._transform.inverse_tangent(log_sphere, base_point_sphere)
 
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
@@ -388,14 +397,16 @@ class MultinomialMetric(RiemannianMetric):
             represents time, and the second corresponds to the different
             initial conditions.
         """
-        initial_point_sphere = self.simplex_to_sphere(initial_point)
+        initial_point_sphere = self._transform(initial_point)
         end_point_sphere = None
         vec_sphere = None
         if end_point is not None:
-            end_point_sphere = self.simplex_to_sphere(end_point)
+            end_point_sphere = self._transform(end_point)
         if initial_tangent_vec is not None:
-            vec_sphere = self.tangent_simplex_to_sphere(
-                initial_tangent_vec, initial_point
+            vec_sphere = self._transform.tangent(
+                initial_tangent_vec,
+                base_point=initial_point,
+                image_point=initial_point_sphere,
             )
         geodesic_sphere = self._sphere.metric.geodesic(
             initial_point_sphere, end_point_sphere, vec_sphere
@@ -415,7 +426,7 @@ class MultinomialMetric(RiemannianMetric):
                 Values of the geodesic at times t.
             """
             geod_sphere_at_t = geodesic_sphere(t)
-            return self.sphere_to_simplex(geod_sphere_at_t)
+            return self._transform.inverse(geod_sphere_at_t)
 
         return path
 
