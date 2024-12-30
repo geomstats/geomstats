@@ -19,7 +19,7 @@ from geomstats.information_geometry.base import (
 from geomstats.vectorization import repeat_out
 
 
-class SimplexToHypersphere(Diffeo):
+class SimplexToPositiveHypersphere(Diffeo):
     """Diffeomorphism between simplex and its image under componentwise square root."""
 
     @staticmethod
@@ -95,7 +95,7 @@ class SimplexToHypersphere(Diffeo):
 
         Returns
         -------
-        tangent_vec_simplex : array-like, shape=[..., dim + 1]
+        tangent_vec_simplex : array-like, shape=[..., dim]
             Tangent vec to the simplex at the image of
             base point by sphere_to_simplex.
         """
@@ -296,7 +296,7 @@ class MultinomialMetric(PullbackDiffeoMetric):
     def __init__(self, space):
         super().__init__(
             space,
-            diffeo=SimplexToHypersphere(),
+            diffeo=SimplexToPositiveHypersphere(),
             image_space=Hypersphere(dim=space.dim).equip_with_metric(
                 ScalarProductMetric, scale=(2 * gs.sqrt(space.n_draws)) ** 2
             ),
