@@ -8,7 +8,7 @@ from geomstats.information_geometry.multinomial import (
     SimplexToHypersphere,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import DiffeoBasedRandomDataGenerator, RandomDataGenerator
+from geomstats.test.random import DiffeoBasedRandomDataGenerator
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.information_geometry.multinomial import (
     MultinomialDistributionsTestCase,
@@ -76,10 +76,7 @@ class TestMultinomialDistributions3(
 )
 def equipped_spaces(request):
     dim, n_draws = request.param
-    space = request.cls.space = MultinomialDistributions(dim=dim, n_draws=n_draws)
-
-    request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
-    request.cls.data_generator_sphere = RandomDataGenerator(space.metric._sphere)
+    request.cls.space = MultinomialDistributions(dim=dim, n_draws=n_draws)
 
 
 @pytest.mark.usefixtures("equipped_spaces")

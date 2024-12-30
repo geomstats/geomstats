@@ -6,12 +6,12 @@ Lead author: Alice Le Brigant.
 from scipy.stats import dirichlet, multinomial
 
 import geomstats.backend as gs
-from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
+from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.information_geometry.base import (
     InformationManifoldMixin,
     ScipyMultivariateRandomVariable,
@@ -124,11 +124,11 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
 
     def __init__(self, dim, n_draws, equip=True):
         self.dim = dim
+        self.n_draws = n_draws
 
         super().__init__(
             dim=dim, support_shape=(dim + 1,), shape=(dim + 1,), equip=equip
         )
-        self.n_draws = n_draws
         self._scp_rv = MultinomialRandomVariable(self)
 
     @staticmethod
@@ -280,7 +280,7 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         return lambda x: self._scp_rv.pdf(x, point=point)
 
 
-class MultinomialMetric(RiemannianMetric):
+class MultinomialMetric(PullbackDiffeoMetric):
     """Class for the Fisher information metric on multinomial distributions.
 
     The Fisher information metric on the $n$-simplex of multinomial
@@ -294,141 +294,13 @@ class MultinomialMetric(RiemannianMetric):
     """
 
     def __init__(self, space):
-        super().__init__(space)
-        self._transform = SimplexToHypersphere()
-        self._sphere = Hypersphere(dim=space.dim)
-
-    def metric_matrix(self, base_point):
-        """Compute the inner-product matrix.
-
-        Compute the inner-product matrix of the Fisher information metric
-        at the tangent space at base point.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., dim + 1]
-            Base point.
-
-        Returns
-        -------
-        mat : array-like, shape=[..., dim, dim]
-            Inner-product matrix.
-        """
-        return self._space.n_draws * from_vector_to_diagonal_matrix(1 / base_point)
-
-    def exp(self, tangent_vec, base_point):
-        """Compute the exponential map.
-
-        Compute the exponential map associated to the Fisher information
-        metric by pulling back the exponential map on the sphere by the
-        simplex_to_sphere map.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., dim + 1]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., dim + 1]
-            Base point.
-
-        Returns
-        -------
-        exp : array-like, shape=[..., dim + 1]
-            End point of the geodesic starting at base_point with
-            initial velocity tangent_vec and stopping at time 1.
-        """
-        base_point_sphere = self._transform(base_point)
-        tangent_vec_sphere = self._transform.tangent(tangent_vec, base_point)
-        exp_sphere = self._sphere.metric.exp(tangent_vec_sphere, base_point_sphere)
-
-        return self._transform.inverse(exp_sphere)
-
-    def log(self, point, base_point):
-        """Compute the logarithm map.
-
-        Compute logarithm map associated to the Fisher information
-        metric by pulling back the exponential map on the sphere by
-        the simplex_to_sphere map.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim + 1]
-            Point.
-        base_point : array-like, shape=[..., dim + 1]
-            Base po int.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., dim + 1]
-            Initial velocity of the geodesic starting at base_point and
-            reaching point at time 1.
-        """
-        point_sphere = self._transform(point)
-        base_point_sphere = self._transform(base_point)
-        log_sphere = self._sphere.metric.log(point_sphere, base_point_sphere)
-
-        return self._transform.inverse_tangent(log_sphere, base_point_sphere)
-
-    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
-        """Generate parameterized function for the geodesic curve.
-
-        Geodesic curve defined by either:
-
-        - an initial point and an initial tangent vector,
-        - an initial point and an end point.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[..., dim + 1]
-            Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., dim + 1]
-            Point on the manifold, end point of the geodesic.
-            Optional, default: None.
-            If None, an initial tangent vector must be given.
-        initial_tangent_vec : array-like, shape=[..., dim + 1]
-            Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
-            If None, an end point must be given and a logarithm is computed.
-
-        Returns
-        -------
-        path : callable
-            Time parameterized geodesic curve. If a batch of initial
-            conditions is passed, the output array's first dimension
-            represents time, and the second corresponds to the different
-            initial conditions.
-        """
-        initial_point_sphere = self._transform(initial_point)
-        end_point_sphere = None
-        vec_sphere = None
-        if end_point is not None:
-            end_point_sphere = self._transform(end_point)
-        if initial_tangent_vec is not None:
-            vec_sphere = self._transform.tangent(
-                initial_tangent_vec,
-                base_point=initial_point,
-                image_point=initial_point_sphere,
-            )
-        geodesic_sphere = self._sphere.metric.geodesic(
-            initial_point_sphere, end_point_sphere, vec_sphere
+        super().__init__(
+            space,
+            diffeo=SimplexToHypersphere(),
+            image_space=Hypersphere(dim=space.dim).equip_with_metric(
+                ScalarProductMetric, scale=(2 * gs.sqrt(space.n_draws)) ** 2
+            ),
         )
-
-        def path(t):
-            """Generate parameterized function for geodesic curve.
-
-            Parameters
-            ----------
-            t : array-like, shape=[n_times,]
-                Times at which to compute points of the geodesics.
-
-            Returns
-            -------
-            geodesic : array-like, shape=[..., n_times, dim + 1]
-                Values of the geodesic at times t.
-            """
-            geod_sphere_at_t = geodesic_sphere(t)
-            return self._transform.inverse(geod_sphere_at_t)
-
-        return path
 
     def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the sectional curvature.
