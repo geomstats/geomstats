@@ -302,56 +302,6 @@ class MultinomialMetric(PullbackDiffeoMetric):
             ),
         )
 
-    def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        r"""Compute the sectional curvature.
-
-        In the literature sectional curvature is noted K.
-
-        For two orthonormal tangent vectors :math:`x,y` at a base point,
-        the sectional curvature is defined by :math:`K(x,y) = <R(x, y)x, y>`.
-
-        For non-orthonormal vectors, it is
-        :math:`K(x,y) = <R(x, y)y, x> / (<x, x><y, y> - <x, y>^2)`.
-
-        sectional_curvature(X, Y, P) = K(X,Y) where X, Y are tangent vectors
-        at base point P.
-
-        The information manifold of multinomial distributions has constant
-        sectional curvature given by :math:`K = 2 \sqrt{n}`.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., dim + 1]
-            Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., dim + 1]
-            Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., dim + 1]
-            Point in the manifold.
-
-        Returns
-        -------
-        sectional_curvature : array-like, shape=[...,]
-            Sectional curvature at `base_point`.
-        """
-        sectional_curv = 2 * gs.sqrt(self._space.n_draws)
-        if (
-            tangent_vec_a.ndim == 1
-            and tangent_vec_b.ndim == 1
-            and (base_point is None or base_point.ndim == 1)
-        ):
-            return gs.array(sectional_curv)
-
-        n_sec_curv = []
-        if base_point is not None and base_point.ndim == 2:
-            n_sec_curv.append(base_point.shape[0])
-        if tangent_vec_a.ndim == 2:
-            n_sec_curv.append(tangent_vec_a.shape[0])
-        if tangent_vec_b.ndim == 2:
-            n_sec_curv.append(tangent_vec_b.shape[0])
-        n_sec_curv = max(n_sec_curv)
-
-        return gs.tile(sectional_curv, (n_sec_curv,))
-
 
 class MultinomialRandomVariable(ScipyMultivariateRandomVariable):
     """A multinomial random variable."""
