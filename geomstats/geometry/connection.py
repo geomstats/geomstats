@@ -414,7 +414,7 @@ class Connection(ABC):
         - :math:`Y|_P = tangent\_vec\_b`,
         - :math:`Z|_P = tangent\_vec\_c`,
 
-        the curvature :math:`(X, Y, Z, P) is defined by
+        the curvature :math:`(X, Y, Z, P)` is defined by
         :math:`R(X,Y)Z = \nabla_X \nabla_Y Z - \nabla_Y \nabla_X Z - \nabla_{[X, Y]}Z`.
 
         The output is the tangent vector:

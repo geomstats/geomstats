@@ -404,7 +404,7 @@ class CholeskyMap(Diffeo):
         Parameters
         ----------
         image_point : array-like, shape=[..., n, n]
-            Element in cholesky space.
+            Element in Cholesky space.
 
         Returns
         -------
