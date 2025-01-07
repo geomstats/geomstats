@@ -280,7 +280,7 @@ class Connection(ABC):
         order approximation [GP2020]_. Both schemes are available on any affine
         connection manifolds whose exponential and logarithm maps are
         implemented. `tangent_vec` is transported along the geodesic starting
-        at the base_point with initial tangent vector `direction`.
+        at the `base_point` with initial tangent vector `direction`.
 
         Parameters
         ----------
@@ -414,8 +414,8 @@ class Connection(ABC):
         - :math:`Y|_P = tangent\_vec\_b`,
         - :math:`Z|_P = tangent\_vec\_c`,
 
-        the curvature(X, Y, Z, P) is defined by
-        :math:`R(X,Y)Z = \nabla_X \nabla_Y Z - \nabla_Y \nabla_X Z - \nabla_[X, Y]Z`.
+        the curvature :math:`(X, Y, Z, P) is defined by
+        :math:`R(X,Y)Z = \nabla_X \nabla_Y Z - \nabla_Y \nabla_X Z - \nabla_{[X, Y]}Z`.
 
         The output is the tangent vector:
         :math:`dx^l(R(X, Y)Z) = R_{ijk}^l X_j Y_k Z_i`
@@ -473,7 +473,7 @@ class Connection(ABC):
     def directional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the directional curvature (tidal force operator).
 
-        For two tangent vectors at base_point :math:`P`:
+        For two tangent vectors at `base_point` :math:`P`:
 
         - :math:`X|_P = tangent\_vec\_a`,
         - :math:`Y|_P = tangent\_vec\_b`,
@@ -509,7 +509,7 @@ class Connection(ABC):
     ):
         r"""Compute the covariant derivative of the curvature.
 
-        For four tangent vectors at base_point :math:`P`:
+        For four tangent vectors at `base_point` :math:`P`:
 
         - :math:`H|_P = tangent\_vec\_a`,
         - :math:`X|_P = tangent\_vec\_b`,
@@ -546,7 +546,7 @@ class Connection(ABC):
     ):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For tangent vector fields at base_point :math:`P`:
+        For tangent vector fields at `base_point` :math:`P`:
 
         - :math:`X|_P = tangent\_vec\_a`,
         - :math:`Y|_P = tangent\_vec\_b`,
