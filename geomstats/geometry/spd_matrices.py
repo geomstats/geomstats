@@ -101,9 +101,10 @@ def generalized_eigenvalues(point_a, point_b):
     """Compute the generalized eigenvalues of SPD matrix pair.
 
     Steps (check section 7.2 of [GKC2023]_):
-    1. compute eigendecomposition of point_b
-    2. get matrix turning point_b into identity by congruence
-    3. apply congruence to point_a and get generalized eigenvalues
+
+    1. compute eigendecomposition of `point_b`;
+    2. get matrix turning `point_b` into identity by congruence;
+    3. apply congruence to `point_a` and get generalized eigenvalues.
 
     Parameters
     ----------
@@ -119,8 +120,8 @@ def generalized_eigenvalues(point_a, point_b):
     References
     ----------
     .. [GKC2023] Benyamin Ghojogh, Fakhri Karray, and Mark Crowley.
-    “Eigenvalue and Generalized Eigenvalue Problems: Tutorial.”
-    arXiv, May 20, 2023. https://doi.org/10.48550/arXiv.1903.11240.
+        “Eigenvalue and Generalized Eigenvalue Problems: Tutorial.”
+        arXiv, May 20, 2023. https://doi.org/10.48550/arXiv.1903.11240.
     """
     eigvals_b, eigvecs_b = gs.linalg.eigh(point_b)
 
@@ -152,7 +153,7 @@ class SymMatrixLog(Diffeo):
         Returns
         -------
         log : array_like, shape=[..., n, n]
-            Matrix logarithm of base_point.
+            Matrix logarithm of `base_point`.
         """
         return logmh(base_point)
 
@@ -168,7 +169,7 @@ class SymMatrixLog(Diffeo):
         Returns
         -------
         exponential : array_like, shape=[..., n, n]
-            Exponential of image_point.
+            Exponential of `image_point`.
         """
         return expmh(image_point)
 
@@ -177,7 +178,7 @@ class SymMatrixLog(Diffeo):
         """Compute the differential of the matrix logarithm.
 
         Compute the differential of the matrix logarithm on SPD
-        matrices at base_point applied to tangent_vec.
+        matrices at `base_point` applied to `tangent_vec`.
 
         Parameters
         ----------
@@ -220,7 +221,7 @@ class SymMatrixLog(Diffeo):
         """Compute the differential of the matrix exponential.
 
         Computes the differential of the matrix exponential on SPD
-        matrices at base_point applied to tangent_vec.
+        matrices at `base_point` applied to `tangent_vec`.
 
         Parameters
         ----------
@@ -303,7 +304,7 @@ class MatrixPower(Diffeo):
         r"""Compute the differential of the matrix power function.
 
         Compute the differential of the power function on SPD(n),
-        :math:`A^p=\exp(p \log(A))`, at base_point applied to tangent_vec.
+        :math:`A^p=\exp(p \log(A))`, at `base_point` applied to `tangent_vec`.
 
         Parameters
         ----------
@@ -337,8 +338,8 @@ class MatrixPower(Diffeo):
         r"""Compute the inverse of the differential of the matrix power.
 
         Compute the inverse of the differential of the power
-        function on SPD matrices, :math:`A^p=\exp(p \log(A))`, at base_point
-        applied to tangent_vec.
+        function on SPD matrices, :math:`A^p=\exp(p \log(A))`, at `base_point`
+        applied to `tangent_vec`.
 
         Parameters
         ----------
@@ -403,7 +404,7 @@ class CholeskyMap(Diffeo):
         Parameters
         ----------
         image_point : array-like, shape=[..., n, n]
-            element in cholesky space.
+            Element in cholesky space.
 
         Returns
         -------
@@ -570,7 +571,7 @@ class SPDMatrices(VectorSpaceOpenSet):
         Returns
         -------
         samples : array-like, shape=[..., n, n]
-            Points sampled in the tangent space at base_point.
+            Points sampled in the tangent space at `base_point`.
         """
         n = self.n
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
@@ -604,8 +605,8 @@ class SPDAffineMetric(RiemannianMetric):
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the affine-invariant inner-product.
 
-        Compute the inner-product of tangent_vec_a and tangent_vec_b
-        at point base_point using the affine invariant Riemannian metric.
+        Compute the inner-product of `tangent_vec_a` and `tangent_vec_b`
+        at point `base_point` using the affine invariant Riemannian metric.
 
         Parameters
         ----------
@@ -630,8 +631,8 @@ class SPDAffineMetric(RiemannianMetric):
     def exp(self, tangent_vec, base_point):
         """Compute the affine-invariant exponential map.
 
-        Compute the Riemannian exponential at point base_point
-        of tangent vector tangent_vec wrt the metric defined in inner_product.
+        Compute the Riemannian exponential at point `base_point`
+        of tangent vector `tangent_vec` wrt the metric defined in inner_product.
         This gives a symmetric positive definite matrix.
 
         Parameters
@@ -660,9 +661,9 @@ class SPDAffineMetric(RiemannianMetric):
     def log(self, point, base_point):
         """Compute the affine-invariant logarithm map.
 
-        Compute the Riemannian logarithm at point base_point,
+        Compute the Riemannian logarithm at point `base_point`,
         of point wrt the metric defined in inner_product.
-        This gives a tangent vector at point base_point.
+        This gives a tangent vector at point `base_point`.
 
         Parameters
         ----------
@@ -674,7 +675,7 @@ class SPDAffineMetric(RiemannianMetric):
         Returns
         -------
         log : array-like, shape=[..., n, n]
-            Riemannian logarithm of point at base_point.
+            Riemannian logarithm of point at `base_point`.
         """
         sqrt_base_point, inv_sqrt_base_point = powermh(base_point, [1.0 / 2, -1.0 / 2])
         point_near_id = Matrices.mul(inv_sqrt_base_point, point, inv_sqrt_base_point)
@@ -686,7 +687,7 @@ class SPDAffineMetric(RiemannianMetric):
     def squared_dist(self, point_a, point_b):
         """Compute the Affine Invariant squared distance.
 
-        Compute the Riemannian squared distance between point_a and point_b.
+        Compute the Riemannian squared distance between `point_a` and `point_b`.
 
         Parameters
         ----------
@@ -736,7 +737,7 @@ class SPDAffineMetric(RiemannianMetric):
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., n, n]
-            Transported tangent vector at exp_(base_point)(tangent_vec_b).
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         if end_point is None:
             end_point = self.exp(direction, base_point)
@@ -782,9 +783,9 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the Bures-Wasserstein inner-product.
 
-        Compute the inner-product of tangent_vec_a :math:`A` and tangent_vec_b
-        :math:`B` at point base_point :math:`S=PDP^\top` using the
-        Bures-Wasserstein Riemannian metric:
+        Compute the inner-product of `tangent_vec_a` :math:`A` and
+        `tangent_vec_b` :math:`B` at point `base_point` :math:`S=PDP^\top`
+        using the Bures-Wasserstein Riemannian metric:
 
         .. math::
             \frac{1}{2}\sum_{i,j}\frac{[P^\top AP]_{ij}[P^\top BP]_{ij}}{d_i+d_j}
@@ -847,9 +848,9 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
     def log(self, point, base_point):
         """Compute the Bures-Wasserstein logarithm map.
 
-        Compute the Riemannian logarithm at point base_point,
+        Compute the Riemannian logarithm at point `base_point`,
         of point wrt the Bures-Wasserstein metric.
-        This gives a tangent vector at point base_point.
+        This gives a tangent vector at point `base_point`.
 
         Parameters
         ----------
@@ -873,7 +874,8 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
     def squared_dist(self, point_a, point_b):
         """Compute the Bures-Wasserstein squared distance.
 
-        Compute the Riemannian squared distance between point_a and point_b.
+        Compute the Riemannian squared distance between `point_a`
+        and `point_b`.
 
         Parameters
         ----------
