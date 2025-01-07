@@ -93,19 +93,19 @@ class LogNormal:
     """LogNormal Distribution on manifold of SPD Matrices and Euclidean Spaces.
 
     (1) For Euclidean Spaces, if X is distributed as Normal(mean, cov), then
-      exp(X) is distributed as LogNormal(mean, cov).
+        exp(X) is distributed as LogNormal(mean, cov).
 
     (2) For SPDMatrices, there are different distributions based on metric
 
         a) LogEuclidean Metric : With this metric, LogNormal distribution
-        is defined by transforming the mean -- an SPD matrix -- into
-        a symmetric matrix through the Matrix logarithm, which gives
-        the element "log-mean" that now belongs to a vector space.
-        This log-mean and given cov are used to parametrize a Normal
-        Distribution.
+           is defined by transforming the mean -- an SPD matrix -- into
+           a symmetric matrix through the Matrix logarithm, which gives
+           the element "log-mean" that now belongs to a vector space.
+           This log-mean and given cov are used to parametrize a Normal
+           Distribution.
 
         b) AffineInvariant Metric : X is distributed as LogNormal(mean, cov)
-        if exp(mean^{1/2}.X.mean^{1/2}) is distributed as Normal(0, cov)
+           if exp(mean^{1/2}.X.mean^{1/2}) is distributed as Normal(0, cov)
 
     Parameters
     ----------

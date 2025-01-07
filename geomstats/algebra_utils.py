@@ -154,7 +154,7 @@ def taylor_exp_even_func(point, taylor_function, order=5, tol=EPSILON):
 
     Returns
     -------
-    function_value: array-like
+    function_value : array-like
         Value of the function at point.
     """
     approx = gs.einsum(
@@ -172,12 +172,12 @@ def flip_determinant(matrix, det):
     """Change sign of the determinant if it is negative.
 
     For a batch of matrices, multiply the matrices which have negative
-    determinant by a diagonal matrix :math:`diag(1,...,1,-1) from the right.
+    determinant by a diagonal matrix :math:`diag(1,...,1,-1)` from the right.
     This changes the sign of the last column of the matrix.
 
     Parameters
     ----------
-    matrix : array-like, shape=[...,n ,m]
+    matrix : array-like, shape=[..., n , m]
         Matrix to transform.
 
     det : array-like, shape=[...]
@@ -238,7 +238,7 @@ def columnwise_scaling(vec, mat):
     ----------
     vec : array-like, shape=[..., k]
         Vector of scalings.
-    mat :array-like, shape=[..., n, k]
+    mat : array-like, shape=[..., n, k]
         Matrix.
 
     Returns
@@ -258,7 +258,7 @@ def rowwise_scaling(vec, mat):
     ----------
     vec : array-like, shape=[..., n]
         Vector of scalings.
-    mat :array-like, shape=[..., n, k]
+    mat : array-like, shape=[..., n, k]
         Matrix.
 
     Returns
