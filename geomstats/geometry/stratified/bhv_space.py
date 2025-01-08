@@ -338,12 +338,12 @@ class TreeSpace(PointSet):
 class BHVMetric(PointSetMetric):
     """BHV metric for Tree Space for phylogenetic trees.
 
-    The BHV Tree Space as it is introduced in [BHV01], a metric space that
+    The BHV Tree Space as it is introduced in [BHV01]_, a metric space that
     is CAT(0), and there exist unique geodesics between each pair of points
     in the BHV Space.
     The polynomial time algorithm for computing the distance and geodesic
     between two points is implemented, following the definitions and results
-    of [OP11].
+    of [OP11]_.
     There, computing the geodesic between two trees is called the 'Geodesic
     Tree Path' problem, and that is why some methods below (not visible to the
     user though) start with the letters 'gtp'.

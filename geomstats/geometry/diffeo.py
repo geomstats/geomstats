@@ -187,7 +187,7 @@ class AutodiffDiffeo(Diffeo):
         Parameters
         ----------
         image_point : array-like, shape=[..., *image_shape]
-            Base point.
+            Image point.
 
         Returns
         -------
@@ -206,7 +206,7 @@ class AutodiffDiffeo(Diffeo):
         image_tangent_vec : array-like, shape=[..., *image_shape]
             Tangent vector at base point.
         image_point : array-like, shape=[..., *image_shape]
-            Base point.
+            Image point.
         base_point : array-like, shape=[..., *space_shape]
             Base point.
 

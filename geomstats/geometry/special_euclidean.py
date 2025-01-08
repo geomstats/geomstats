@@ -404,7 +404,7 @@ class _SpecialEuclideanVectors(LieGroup):
         Returns
         -------
         composition : array-like, shape=[..., dim]
-            Composition of point_a and point_b.
+            Composition of `point_a` and `point_b`.
         """
         rotations = self.rotations
         dim_rotations = rotations.dim
@@ -952,9 +952,9 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., n, n]
-            First tangent vector at base_point.
+            First tangent vector at `base_point`.
         tangent_vec_b : array-like, shape=[..., n, n]
-            Second tangent vector at base_point.
+            Second tangent vector at `base_point`.
         base_point : array-like, shape=[..., n, n]
             Point in the group.
             Optional, defaults to identity if None.

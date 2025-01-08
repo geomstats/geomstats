@@ -4,8 +4,8 @@ Lead author: Yann Cabanes.
 
 References
 ----------
-https://en.wikipedia.org/wiki/Kernel_(statistics)
-https://en.wikipedia.org/wiki/Radial_basis_function
+.. [1] https://en.wikipedia.org/wiki/Kernel_(statistics)
+.. [2] https://en.wikipedia.org/wiki/Radial_basis_function
 
 Notes
 -----

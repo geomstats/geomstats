@@ -109,7 +109,7 @@ class PullbackMetric(RiemannianMetric):
 
         The derivative of the metrix matrix is given by
         :math:`\partial_k g_{ij}(p)`
-        where :math:`p` is the base_point.
+        where :math:`p` is the `base_point`.
 
         The index k of the derivation is last.
 
@@ -138,7 +138,7 @@ class PullbackMetric(RiemannianMetric):
         given by the formula:
         :math:`\RN{2}(p)_{ij}^\alpha = \partial_{i j}^2 f^\alpha(p)`
         :math:`-\Gamma_{i j}^k(p) \partial_k f^\alpha(p)`
-        at base_point :math:`p`.
+        at `base_point` :math:`p`.
 
         Parameters
         ----------
@@ -312,7 +312,7 @@ class PullbackDiffeoMetric(RiemannianMetric):
         Returns
         -------
         exp : array-like, shape=[..., *shape]
-            Riemannian exponential of tangent_vec at base_point.
+            Riemannian exponential of `tangent_vec` at `base_point`.
         """
         image_base_point = self.diffeo(base_point)
         image_tangent_vec = self.diffeo.tangent(
@@ -337,7 +337,7 @@ class PullbackDiffeoMetric(RiemannianMetric):
         Returns
         -------
         log : array-like, shape=[..., *shape]
-            Logarithm of point from base_point.
+            Logarithm of `point` from `base_point`.
         """
         image_base_point = self.diffeo(base_point)
         image_point = self.diffeo(point)
@@ -378,7 +378,7 @@ class PullbackDiffeoMetric(RiemannianMetric):
         Returns
         -------
         dist : array-like
-            Distance between point_a and point_b.
+            Distance between `point_a` and `point_b`.
         """
         image_point_a = self.diffeo(point_a)
         image_point_b = self.diffeo(point_b)
@@ -397,7 +397,7 @@ class PullbackDiffeoMetric(RiemannianMetric):
         Returns
         -------
         geodesic : callable
-            Geodesic between initial_point and end_point.
+            Geodesic between `initial_point` and `end_point`.
         """
         image_initial_point = self.diffeo(initial_point)
         if end_point is None:
@@ -440,7 +440,7 @@ class PullbackDiffeoMetric(RiemannianMetric):
         Returns
         -------
         curvature : array-like, shape=[..., *shape]
-            Curvature in directions tangent_vec a, b, c at base_point.
+            Curvature in directions `tangent_vec` `a`, `b`, `c` at `base_point`.
         """
         image_base_point = self.diffeo(base_point)
         image_tangent_vec_a = self.diffeo.tangent(
