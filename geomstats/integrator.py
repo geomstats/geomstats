@@ -3,7 +3,7 @@ r"""Integrator functions used when no closed forms are available.
 Lead author: Nicolas Guigui.
 
 These are designed for first order systems of ODEs written as a
-spatial variable x and a time variable t:
+spatial variable :math:`x` and a time variable :math:`t`:
 
 .. math::
 
@@ -104,9 +104,9 @@ def leapfrog_step(force, state, time, dt):
         State at time t + dt, corresponds to position and velocity variables
         at time t + dt.
 
-    See Also
-    --------
-    https://en.wikipedia.org/wiki/Leapfrog_integration
+    References
+    ----------
+    .. [1] https://en.wikipedia.org/wiki/Leapfrog_integration
     """
     pos, vel = state[..., 0, :], state[..., 1, :]
     vel_half_step = vel + 0.5 * dt * force(pos, time)
@@ -138,9 +138,9 @@ def rk2_step(force, state, time, dt):
     point_new : array-like, shape=[..., n, dim]
         Variables at time t + dt.
 
-    See Also
-    --------
-    https://en.wikipedia.org/wiki/Runge–Kutta_methods
+    References
+    ----------
+    .. [1] https://en.wikipedia.org/wiki/Runge–Kutta_methods
     """
     k1 = force(state, time)
     k2 = force(state + dt / 2 * k1, time + dt / 2)
@@ -168,9 +168,9 @@ def rk4_step(force, state, time, dt):
     point_new : array-like, shape=[..., n, dim]
         Variables at time t + dt.
 
-    See Also
-    --------
-    https://en.wikipedia.org/wiki/Runge–Kutta_methods
+    References
+    ----------
+    .. [1] https://en.wikipedia.org/wiki/Runge–Kutta_methods
     """
     k1 = force(state, time)
     k2 = force(state + dt / 2 * k1, time + dt / 2)

@@ -459,7 +459,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
 
     This is the class for multivariate normal distributions on the Euclidean space.
     Each distribution is represented by the concatenation of its mean vector and
-    its covariance matrix reshaped in a vector of size :math:`sample\_dim ** 2`.
+    its covariance matrix reshaped in a vector of size :math:`sample\_dim ^ 2`.
 
     Parameters
     ----------
@@ -506,7 +506,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         point : array-like, shape=[..., sample_dim + sample_dim ** 2]
             Point representing a multivariate normal distribution.
             First :math:`sample\_dim` elements contain the mean vector and the last
-            :math:`sample\_dim ** 2` elements contain the covariance matrix row by row.
+            :math:`sample\_dim ^ 2` elements contain the covariance matrix row by row.
         n_samples : int
             Number of points to sample with each parameter in point.
             Optional, default: 1.
@@ -526,7 +526,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         point : array-like, shape=[..., sample_dim + sample_dim ** 2]
             Point representing a multivariate normal distribution.
             First :math:`sample\_dim` elements contain the mean vector and the last
-            :math:`sample\_dim ** 2` elements contain the covariance matrix row by row.
+            :math:`sample\_dim ^ 2` elements contain the covariance matrix row by row.
 
         Returns
         -------

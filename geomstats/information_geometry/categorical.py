@@ -14,7 +14,7 @@ class CategoricalDistributions(MultinomialDistributions):
 
     This is the set of `n+1`-tuples of positive reals that sum up to one,
     i.e. the `n`-simplex. Each point is the parameter of a categorical
-    distribution, i.e. gives the probabilities of $n$ different outcomes
+    distribution, i.e. gives the probabilities of `n` different outcomes
     in a single experiment.
 
     Attributes
@@ -38,9 +38,9 @@ class CategoricalDistributions(MultinomialDistributions):
 class CategoricalMetric(MultinomialMetric):
     """Class for the Fisher information metric on categorical distributions.
 
-    The Fisher information metric on the $n$-simplex of categorical
+    The Fisher information metric on the `n`-simplex of categorical
     distributions parameters can be obtained as the pullback metric of the
-    $n$-sphere using the componentwise square root.
+    `n`-sphere using the componentwise square root.
 
     References
     ----------

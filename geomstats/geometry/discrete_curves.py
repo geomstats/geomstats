@@ -109,17 +109,17 @@ class DiscreteCurves:
 class DiscreteCurvesStartingAtOrigin(NFoldManifold):
     r"""Space of discrete curves modulo translations.
 
-    Each individual curve is represented by a 2d-array of shape `[
-    k_sampling_points - 1, ambient_dim]`.
+    Each individual curve is represented by a 2d-array of shape
+    `[k_sampling_points - 1, ambient_dim]`.
 
     This space corresponds to the space of immersions defined below, i.e. the
-    space of smooth functions from an interval I into the ambient Euclidean
-    space M, with non-vanishing derivative.
+    space of smooth functions from an interval :math:`I` into the ambient Euclidean
+    space :math:`M`, with non-vanishing derivative.
 
     .. math::
         Imm(I, M)=\{c \in C^{\infty}(I, M) \|c'(s)\|\neq 0 \forall s \in I \},
 
-    where the interval of parameters I is taken to be I = [0, 1]
+    where the interval of parameters :math:`I` is taken to be :math:`I = [0, 1]`
     without loss of generality.
 
     Parameters
@@ -374,7 +374,7 @@ class SRVTransform(Diffeo):
         r"""Differential of the square root velocity transform.
 
         .. math::
-            (h, c) -> dQ_c(h) = |c'|^(-1/2) * (h' - 1/2 * <h',v>v)
+            (h, c) \rightarrow dQ_c(h) = |c'|^(-1/2) * (h' - 1/2 * <h',v>v)
             v = c'/|c'|
 
         Parameters
@@ -426,7 +426,8 @@ class SRVTransform(Diffeo):
         r"""Inverse of differential of the square root velocity transform.
 
         .. math::
-            (c, k) -> h, \text{ where } dQ_c(h)=k \text{ and } h' = |c'| * (k + <k,v> v)
+            (c, k) \rightarrow h, \text{ where } dQ_c(h)=k
+            \text{ and } h' = |c'| * (k + <k,v> v)
 
         Parameters
         ----------
@@ -494,8 +495,8 @@ class FTransform(AutodiffDiffeo):
     .. math::
         f(c) = 2b r^{1/2}\exp(i\theta * a/(2b)) * \exp(ik\pi * a/b)
 
-    where (r, theta) is the polar representation of c', and for
-    any :math:`k \in Z`.
+    where :math:`(r, theta)` is the polar representation of :math:`c`,
+    and for any :math:`k \in Z`.
 
     Parameters
     ----------
@@ -750,15 +751,15 @@ class ElasticMetric(PullbackDiffeoMetric):
     r"""Elastic metric on the space of discrete curves.
 
     Family of elastic metric parametrized by bending and stretching parameters
-    a and b.
+    :math:`a` and :math:`b`.
 
     For curves in :math:`\mathbb{R}^2`, it pullbacks the L2 metric by
-    the F-transform (see [NK2018]_).
+    the F-transform (see [KN2018]_).
 
     For curves in :math:`\mathbb{R}^d`, it pullbacks a scaled L2 metric by the SRV
-    transform (see [BCKKNP2022_). It only works for ratio :math:`a / 2b = 1`.
+    transform (see [BCKKNP2022]_). It only works for ratio :math:`a / 2b = 1`.
 
-    When a=1, and b=1/2, it is equivalent to the SRV metric.
+    When :math:`a=1`, and :math:`b=1/2`, it is equivalent to the SRV metric.
 
     Parameters
     ----------
@@ -882,16 +883,17 @@ class IterativeHorizontalGeodesicAligner(AlignerAlgorithm):
     curve. This procedure is based on the decomposition of any path of curves into a
     horizontal path of curves composed with a path of reparametrizations:
     :math:`c(t, s) = c_h(t, phi(t, s))` where :math:`d/dt c_h(t, .)` is horizontal.
-    Here t is the time parameter of the path and s the space parameter of the curves.
+    Here :math:`t` is the time parameter of the path and :math:`s` the space parameter of the curves.
 
     The algorithm sets current_end_curve to be the end curve and iterates three steps:
-    1) compute the geodesic between the initial curve and current_end_curve
+
+    1) compute the geodesic between the initial curve and current_end_curve;
     2) compute the path of reparametrizations such that the path of its inverses
-    transforms this geodesic into a horizontal path of curves
+       transforms this geodesic into a horizontal path of curves;
     3) invert this path of reparametrizations to find the horizontal path and update
-    current_end_curve to be its end point.
-    The algorithm stops when the new current_end_curve is sufficiently
-    close to the former current_end_curve.
+       current_end_curve to be its end point.
+       The algorithm stops when the new current_end_curve is sufficiently
+       close to the former current_end_curve.
 
     Parameters
     ----------
@@ -1018,7 +1020,7 @@ class IterativeHorizontalGeodesicAligner(AlignerAlgorithm):
         :math:`c(t, s) = c_h(t, phi(t, s))` where :math:`d/dt c_h(t, .)` is horizontal.
         This is done by solving a partial differential equation, using an Euler
         step that enforces that the solution phi(t,.) is an increasing function of
-        the unit interval that preserves the end points 0 and 1, for all time t.
+        the unit interval that preserves the end points 0 and 1, for all time :math:`t`.
 
         Parameters
         ----------
@@ -1322,7 +1324,7 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
 
     References
     ----------
-    [WAJ2007] M. Washington, S. Anuj & H. Joshi,
+    .. [WAJ2007] M. Washington, S. Anuj & H. Joshi,
         "On Shape of Plane Elastic Curves", in International Journal of Computer
         Vision. 73(3):307-324, 2007.
     """
@@ -1634,7 +1636,8 @@ class ReparametrizationBundle(FiberBundle):
     will be horizontal, and will project to a geodesic on the shape space.
 
     Two different aligners are available:
-    - IterativeHorizontalGeodesicAligner (default)
+
+    - IterativeHorizontalGeodesicAligner (default),
     - DynamicProgrammingAligner.
 
     Parameters

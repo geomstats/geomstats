@@ -209,7 +209,7 @@ class QuotientMetric(RiemannianMetric):
 
         In more details, let :math:`X, Y, Z` be the horizontal lift of
         vector fields extending the tangent vectors given in argument in a
-        neighborhood of the base-point P in the base-space. Then the
+        neighborhood of the base-point :math:`P` in the base-space. Then the
         curvature of the base-space at the base-points is
         :math:`R(X,Y) Z = hor( R^T(X,Y) Z) - 2 A_Z A_X Y + A_X A_Y Z - A_Y
         A_X Z`, where :math:`R^T(X,Y)Z` is the curvature tensor of the
@@ -291,8 +291,8 @@ class QuotientMetric(RiemannianMetric):
         parallel vector fields extending the tangent vectors given in argument
         by parallel transport in a neighborhood of the `base_point` :math:`P` in the
         base-space. Such vector fields verify :math:`\nabla^T_H H=0`,
-        :math:`\nabla^T_H X = A_H X` (and similarly for Y and Z) using the
-        connection :math:`\nabla^T` of the total space. Then the covariant
+        :math:`\nabla^T_H X = A_H X` (and similarly for :math:`Y` and :math:`Z`)
+        using the connection :math:`\nabla^T` of the total space. Then the covariant
         derivative of the curvature tensor is given by
 
         .. math::
@@ -412,7 +412,7 @@ class QuotientMetric(RiemannianMetric):
         vector fields extending the tangent vectors given in argument by
         parallel transport in a neighborhood of the `base_point` :math:`P` in the
         base-space. Such vector fields verify :math:`\nabla^T_X X=0` and
-        :math:`\nabla^T_X^Y = A_X Y` using the connection :math:`\nabla^T`
+        :math:`\nabla^T_X Y = A_X Y` using the connection :math:`\nabla^T`
         of the total space. Then the covariant derivative of the
         directional curvature tensor is given by
 

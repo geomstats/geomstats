@@ -795,7 +795,7 @@ class KendallShapeMetric(QuotientMetric):
 
         In more details, let :math:`X, Y` be the horizontal lift of parallel
         vector fields extending the tangent vectors given in argument by
-        parallel transport in a neighborhood of the`base_point` :math:`P` in the
+        parallel transport in a neighborhood of the `base_point` :math:`P` in the
         base-space. Such vector fields verify :math:`\nabla^T_X X=0` and
         :math:`\nabla^T_X Y = A_X Y` using the connection :math:`\nabla^T`
         of the total space. Then the covariant derivative of the

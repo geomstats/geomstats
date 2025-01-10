@@ -375,8 +375,9 @@ class FiberBundle:
 
         Compute the horizontal component of a tangent vector at a
         base point from:
-            1. the vertical projection
-            2. the horizontal lift of the tangent submersion
+
+        1. the vertical projection
+        2. the horizontal lift of the tangent submersion
 
         Parameters
         ----------

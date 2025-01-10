@@ -197,6 +197,7 @@ def RestrictedGaussianKernel(sigma=1.0, oriented=False, init_index=0, dim=3):
         K(u, v)=e^{2 (\langle u, v \rangle / - 1) - 1}
 
     Generates the expression:
+
     * oriented: `Exp(IntCst(2)*a*((u|v)-IntCst(1)))`
     * unoriented: `Exp(IntCst(2)*a*(Square((u|v))-IntCst(1)))`
 

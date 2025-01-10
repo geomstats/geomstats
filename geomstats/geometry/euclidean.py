@@ -68,6 +68,7 @@ class EuclideanMetric(RiemannianMetric):
     """Class for a Euclidean metric.
 
     This metric is:
+
     - flat: the inner-product is independent of the base point;
     - positive definite
     """
@@ -197,14 +198,14 @@ class EuclideanMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point: array-like, shape=[..., dim]
+        point : array-like, shape=[..., dim]
             Point.
-        base_point: array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim]
             Base point.
 
         Returns
         -------
-        log: array-like, shape=[..., dim]
+        log : array-like, shape=[..., dim]
             Riemannian logarithm.
         """
         return point - base_point
@@ -234,7 +235,7 @@ class EuclideanMetric(RiemannianMetric):
 
         Returns
         -------
-        transported_tangent_vec: array-like, shape=[..., dim]
+        transported_tangent_vec : array-like, shape=[..., dim]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         transported_tangent_vec = gs.copy(tangent_vec)
@@ -263,7 +264,7 @@ class EuclideanMetric(RiemannianMetric):
         end_point : array-like, shape=[..., dim], optional
             Point on the manifold, end point of the geodesic. If None,
             an initial tangent vector must be given.
-        initial_tangent_vec : array-like, shape=[..., dim],
+        initial_tangent_vec : array-like, shape=[..., dim], optional
             Tangent vector at base point, the initial speed of the geodesics.
             Optional, default: None.
             If None, an end point must be given and a logarithm is computed.

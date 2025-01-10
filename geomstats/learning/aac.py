@@ -466,10 +466,10 @@ class AAC:
         "regression": _AACRegression,
     }
 
-    def __new__(cls, space, *args, estimate="frechet", **kwargs):
+    def __new__(cls, space, *, estimate="frechet_mean", **kwargs):
         """Class for Align all and Compute algorithm on Graph Space."""
         check_parameter_accepted_values(
             estimate, "estimate", list(cls.MAP_ESTIMATE.keys())
         )
 
-        return cls.MAP_ESTIMATE[estimate](space, *args, **kwargs)
+        return cls.MAP_ESTIMATE[estimate](space, **kwargs)

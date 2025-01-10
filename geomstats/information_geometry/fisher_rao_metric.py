@@ -135,7 +135,7 @@ class FisherRaoMetric(RiemannianMetric):
         -------
         mat : array-like, shape=[..., dim, dim, dim]
             Derivative of the inner-product matrix, where the index
-            k of the derivation is last: math:`mat_{ijk} = \partial_k g_{ij}`.
+            k of the derivation is last :math:`mat_{ijk} = \partial_k g_{ij}`.
         """
 
         def pdf(x):

@@ -9,12 +9,19 @@ For maintainability reasons, we wrap a sklearn object only
 when it is strictly necessary.
 """
 
+import os
+
 from sklearn.base import RegressorMixin as _RegressorMixin
+from sklearn.compose import TransformedTargetRegressor
 from sklearn.decomposition import PCA as _PCA
 from sklearn.linear_model import LinearRegression as _LinearRegression
 from sklearn.metrics import r2_score
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import FunctionTransformer
 
 import geomstats.backend as gs
+
+SCIPY_ARRAY_API = True if os.environ.get("SCIPY_ARRAY_API", False) == "1" else False
 
 
 class RegressorMixin(_RegressorMixin):
@@ -28,7 +35,188 @@ class RegressorMixin(_RegressorMixin):
         )
 
 
-class PCA(_PCA):
+class GetParamsMixin:
+    # to avoid pprint error when not storing
+
+    def get_params(self, deep=True):
+        """Get parameters for this estimator.
+
+        Parameters
+        ----------
+        deep : bool, default=True
+            If True, will return the parameters for this estimator and
+            contained subobjects that are estimators.
+
+        Returns
+        -------
+        params : dict
+            Parameter names mapped to their values.
+        """
+        out = dict()
+        for key in self._get_param_names():
+            try:
+                value = getattr(self, key)
+            except AttributeError:
+                continue
+
+            if deep and hasattr(value, "get_params") and not isinstance(value, type):
+                deep_items = value.get_params().items()
+                out.update((key + "__" + k, val) for k, val in deep_items)
+            out[key] = value
+        return out
+
+
+class InvertibleFlattenButFirst(FunctionTransformer):
+    """Data reshaper.
+
+    Reshapes data and transforms it into proper backend when inverting.
+    """
+
+    def __init__(self):
+        super().__init__(
+            func=self._optional_flatten,
+            inverse_func=self._optional_reshape,
+            check_inverse=False,
+        )
+        self.shape = None
+
+    @staticmethod
+    def _optional_flatten(array):
+        """Optionally flatten array.
+
+        Flattens array if ndim != 2.
+        """
+        if array.ndim == 2:
+            return array
+        return array.reshape((array.shape[0], -1))
+
+    def _optional_reshape(self, array):
+        """Optionally reshape array.
+
+        Reshapes array if ndim != 2.
+        Additionally, converts back to proper tensor type
+        if `SCIPY_ARRAY_API` is not activated.
+        """
+        out = array if self.shape is None else array.reshape(self.shape)
+        if SCIPY_ARRAY_API:
+            return out
+
+        return gs.from_numpy(out)
+
+    def fit(self, X, y=None):
+        """Fit transform.
+
+        Parameters
+        ----------
+        X : {array-like, sparse-matrix} of shape (n_samples, n_features) \
+                if `validate=True` else any object that `func` can handle
+            Input array.
+        y : Ignored
+            Not used, present here for API consistency by convention.
+
+        Returns
+        -------
+        self : object
+            FunctionTransformer class instance.
+        """
+        if X.ndim == 2:
+            return self
+        self.shape = (-1,) + X.shape[1:]
+        return self
+
+
+class ModelAdapter(Pipeline):
+    """Adapter sklearn model.
+
+    Handles input/output transformations in a pipeline-way.
+    In particular, reshapes points and transforms them into
+    appropriate backend.
+
+    Parameters
+    ----------
+    model : sklearn.BaseEstimator
+        Estimator to be adapted.
+    """
+
+    def __init__(self, model):
+        self.model = model
+        self._regression = False
+
+        if isinstance(model, _RegressorMixin):
+            self._regression = True
+            model = TransformedTargetRegressor(
+                regressor=model,
+                transformer=InvertibleFlattenButFirst(),
+                check_inverse=False,
+            )
+
+        steps = [
+            ("reshape", InvertibleFlattenButFirst()),
+            ("estimator", model),
+        ]
+
+        super().__init__(steps=steps)
+
+    def get_model(self):
+        """Get fitted model."""
+        if self._regression:
+            return self.named_steps["estimator"].regressor_
+
+        return self.named_steps["estimator"]
+
+    def __getattr__(self, name):
+        """Get attribute.
+
+        It is only called when ``__getattribute__`` fails.
+        Delegates attribute calling to fitted model.
+        If name starts with ``reshaped``, then inverse transform
+        is applied to recover expected shape/backend.
+        """
+        model_ = self.get_model()
+
+        if name.startswith("reshaped_") and name.endswith("_"):
+            out = getattr(model_, name[9:])
+            out_ = self.named_steps["reshape"].inverse_transform(out)
+            if out.ndim == 1:
+                return out_[0]
+
+            return out_
+
+        out = getattr(model_, name)
+        if name.endswith("_") and not SCIPY_ARRAY_API:
+            return gs.from_numpy(out)
+
+        return out
+
+
+class LinearRegression(GetParamsMixin, ModelAdapter):
+    """Ordinary least squares Linear Regression.
+
+    See https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html
+    for details.
+    """
+
+    def __init__(
+        self,
+        *,
+        fit_intercept=True,
+        copy_X=True,
+        n_jobs=None,
+        positive=False,
+    ):
+        regressor = _LinearRegression(
+            fit_intercept=fit_intercept, copy_X=copy_X, n_jobs=n_jobs, positive=positive
+        )
+        super().__init__(regressor)
+
+
+class PCA(GetParamsMixin, ModelAdapter):
+    """Principal component analysis (PCA).
+
+    See https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
+    for details.
+    """
+
     def __init__(
         self,
         n_components=None,
@@ -42,7 +230,7 @@ class PCA(_PCA):
         power_iteration_normalizer="auto",
         random_state=None,
     ):
-        super().__init__(
+        pca = _PCA(
             n_components,
             copy=copy,
             whiten=whiten,
@@ -53,107 +241,4 @@ class PCA(_PCA):
             power_iteration_normalizer=power_iteration_normalizer,
             random_state=random_state,
         )
-        self._init_shape = None
-
-    def __repr__(self):
-        # to use *args and **kwargs
-        return object.__repr__(self)
-
-    def _from_numpy(self):
-        """Transform learned attributes in the right backend."""
-        self.components_ = gs.from_numpy(self.components_)
-        self.explained_variance_ = gs.from_numpy(self.explained_variance_)
-        self.explained_variance_ratio_ = gs.from_numpy(self.explained_variance_ratio_)
-        self.singular_values_ = gs.from_numpy(self.singular_values_)
-        self.mean_ = gs.from_numpy(self.mean_)
-
-    @property
-    def reshaped_components_(self):
-        if self.components_ is None:
-            return None
-        return gs.reshape(self.components_, (self.n_components, *self._init_shape[1:]))
-
-    @property
-    def reshaped_mean_(self):
-        if self.mean_ is None:
-            return None
-
-        return gs.reshape(self.mean_, self._init_shape[1:])
-
-    def _reshape(self, x):
-        return gs.reshape(x, (x.shape[0], -1))
-
-    def _reshape_X(self, X):
-        self._init_shape = X.shape
-        return self._reshape(X)
-
-    def fit(self, X, y=None):
-        super().fit(self._reshape_X(X))
-        self._from_numpy()
-        return self
-
-    def fit_transform(self, X, y=None):
-        out = super().fit_transform(self._reshape_X(X))
-        self._from_numpy()
-        return out
-
-    def score_samples(self, X, y=None):
-        return super().score_samples(self._reshape(X))
-
-    def score(self, X, y=None):
-        return super().score(self._reshape(X))
-
-
-class LinearRegression(_LinearRegression):
-    def __init__(
-        self,
-        *,
-        fit_intercept=True,
-        copy_X=True,
-        n_jobs=None,
-        positive=False,
-    ):
-        super().__init__(
-            fit_intercept=fit_intercept, copy_X=copy_X, n_jobs=n_jobs, positive=positive
-        )
-
-        self._init_shape_X = None
-        self._init_shape_y = None
-
-    def __repr__(self):
-        # to use *args and **kwargs
-        return object.__repr__(self)
-
-    def _from_numpy(self):
-        """Transform learned attributes in the right backend."""
-        self.coef_ = gs.from_numpy(self.coef_)
-        self.singular_ = gs.from_numpy(self.singular_)
-        self.intercept_ = gs.from_numpy(self.intercept_)
-
-    def _validate_data(self, X, y=None, **kwargs):
-        # hack to avoid tensor conversion within validate data
-        if y is None:
-            return X
-        return X, y
-
-    def _reshape(self, x):
-        return gs.reshape(x, (x.shape[0], -1))
-
-    def _reshape_X(self, X):
-        self._init_shape_X = X.shape
-        return self._reshape(X)
-
-    def _reshape_y(self, y):
-        self._init_shape_y = y.shape
-        return self._reshape(y)
-
-    def _reshape_out(self, out):
-        return gs.reshape(out, (out.shape[0], *self._init_shape_y[1:]))
-
-    def fit(self, X, y):
-        super().fit(gs.to_numpy(self._reshape_X(X)), y=gs.to_numpy(self._reshape_y(y)))
-        self._from_numpy()
-        return self
-
-    def predict(self, X):
-        return self._reshape_out(super().predict(self._reshape(X)))
+        super().__init__(pca)
