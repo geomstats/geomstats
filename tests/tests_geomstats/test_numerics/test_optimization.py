@@ -1,7 +1,11 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.numerics.optimization import NewtonMethod, ScipyMinimize, ScipyRoot
+from geomstats.numerics.optimization import (
+    NewtonMethod,
+    ScipyMinimize,
+    ScipyRoot,
+)
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.numerics.optimization import (
     OptimizerTestCase,
@@ -15,6 +19,23 @@ from .data.optimization import (
     RootFindingJacSmokeTestData,
     RootFindingSmokeTestData,
 )
+
+TORCH_OPTIMIZERS = []
+
+try:
+    from geomstats.numerics.optimization import TorchLBFGS
+
+    TORCH_OPTIMIZERS.append(TorchLBFGS())
+except ImportError:
+    pass
+
+
+try:
+    from geomstats.numerics.optimization import TorchminMinimize
+
+    TORCH_OPTIMIZERS.append(TorchminMinimize())
+except ImportError:
+    pass
 
 
 @pytest.fixture(
@@ -30,7 +51,8 @@ from .data.optimization import (
         ]
         if gs.has_autodiff()
         else []
-    ),
+    )
+    + (TORCH_OPTIMIZERS if gs.__name__.endswith("pytorch") else []),
 )
 def optimizers(request):
     request.cls.optimizer = request.param

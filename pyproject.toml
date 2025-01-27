@@ -49,7 +49,7 @@ pykeops = ["pykeops"]
 autograd = ["autograd >= 1.3"]
 pytorch = ["torch >= 1.9.1"]
 backends = ["geomstats[autograd, pytorch]"]
-opt = ["geomstats[graph, pykeops]"]
+opt = ["geomstats[graph, pykeops, pytorch-minimize]"]
 dev = ["geomstats[test, test-scripts, lint, doc]"]
 all = ["geomstats[dev, opt, backends]"]
 
