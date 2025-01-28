@@ -55,7 +55,7 @@ class DistanceMinimizingAligner(AlignerAlgorithm):
     ----------
     total_space : Manifold
         Space equipped with a group action and a group-invariant metric.
-    optimizer : ScipyMinimize
+    optimizer : Minimizer
         Optimizer to solve minimization problem.
     group_elem_shape : tuple
         Shape of the group element representation.

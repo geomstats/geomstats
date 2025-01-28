@@ -289,8 +289,8 @@ class LogShootingSolver:
     ----------
     space : Manifold
         Equipped manifold.
-    optimizer : ScipyMinimize
-        Instance of ScipyMinimize.
+    optimizer : Minimizer
+        Optimizer to solve minimization problem.
     initialization : callable
         Function to provide initial solution. `f(point, base_point)`.
         Defaults to linear initialization.
@@ -321,8 +321,8 @@ class _LogShootingSolver(LogSolver, ABC):
     ----------
     space : Manifold
         Equipped manifold.
-    optimizer : ScipyMinimize
-        Instance of ScipyMinimize.
+    optimizer : Minimizer
+        Optimizer to solve minimization problem.
     initialization : callable
         Function to provide initial solution. `f(point, base_point)`.
         Defaults to linear initialization.
@@ -381,8 +381,8 @@ class _LogShootingSolverFlatten(_LogShootingSolver):
     ----------
     space : Manifold
         Equipped manifold.
-    optimizer : ScipyMinimize
-        Instance of ScipyMinimize.
+    optimizer : Minimizer
+        Optimizer to solve minimization problem.
     initialization : callable
         Function to provide initial solution. `f(point, base_point)`.
         Defaults to linear initialization.
@@ -427,8 +427,8 @@ class _LogShootingSolverUnflatten(_LogBatchMixins, _LogShootingSolver):
     ----------
     space : Manifold
         Equipped manifold.
-    optimizer : ScipyMinimize
-        Instance of ScipyMinimize.
+    optimizer : Minimizer
+        Optimizer to solve minimization problem.
     initialization : callable
         Function to provide initial solution. `f(point, base_point)`.
         Defaults to linear initialization.
@@ -821,7 +821,7 @@ class PathStraightening(_DiscreteGeodesicBVPBatchMixins, PathBasedLogSolver):
         Method to compute Riemannian path energy.
     n_nodes : int
         Number of path discretization points.
-    optimizer : ScipyMinimize
+    optimizer : Minimizer
         An optimizer to solve path energy minimization problem.
     initialization : callable
         A method to get initial guess for optimization.
@@ -986,7 +986,7 @@ class MultiresPathStraightening(_DiscreteGeodesicBVPBatchMixins, PathBasedLogSol
     n_levels : int
         Number of resolutions to use. Sets number of nodes following a sequence.
         Ignored if ``n_nodes`` is not None.
-    optimizer : ScipyMinimize
+    optimizer : Minimizer
         An optimizer to solve path energy minimization problem.
     initialization : callable
         A method to get initial guess for optimization.
