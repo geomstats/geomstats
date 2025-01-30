@@ -43,7 +43,6 @@ def equipped_spaces(request):
     space = request.cls.space = CategoricalDistributions(dim=request.param)
 
     request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
-    request.cls.data_generator_sphere = RandomDataGenerator(space.metric._sphere)
 
 
 @pytest.mark.redundant
