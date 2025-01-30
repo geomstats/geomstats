@@ -169,7 +169,7 @@ def split(x, indices_or_sections, axis=0):
     if isinstance(indices_or_sections, int):
         indices_or_sections = x.shape[axis] // indices_or_sections
         return _torch.split(x, indices_or_sections, dim=axis)
-    indices_or_sections = _np.array(indices_or_sections)
+    indices_or_sections = _np.asarray(indices_or_sections)
     intervals_length = indices_or_sections[1:] - indices_or_sections[:-1]
     last_interval_length = x.shape[axis] - indices_or_sections[-1]
     if last_interval_length > 0:
@@ -657,7 +657,7 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    return _torch.sparse.FloatTensor(
+    return _torch.sparse_coo_tensor(
         _torch.LongTensor(indices).t(),
         array(data),
         _torch.Size(target_shape),

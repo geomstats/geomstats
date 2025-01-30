@@ -24,7 +24,6 @@ def _estimate_von_mises_kappa(X, n_steps=100):
     mean_norm = gs.linalg.norm(sum_points) / n_points
 
     kappa_estimate = mean_norm * (dim + 1.0 - mean_norm**2) / (1.0 - mean_norm**2)
-    kappa_estimate = gs.cast(kappa_estimate, gs.float64)
     p = dim + 1
     for _ in range(n_steps):
         bessel_func_1 = scipy.special.iv(p / 2.0, kappa_estimate)

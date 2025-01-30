@@ -350,22 +350,17 @@ class GammaMetric(RiemannianMetric):
         ----------
         .. [AD2008] Arwini, K. A., & Dodson, C. T. (2008).
             Information geometry (pp. 31-54). Springer Berlin Heidelberg.
-
         .. [GQ2015] Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015).
             Sharp inequalities for polygamma functions.
             Mathematica Slovaca, 65(1), 103-120.
         """
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-
-        kappa, gamma = base_point[:, 0], base_point[:, 1]
+        kappa, gamma = base_point[..., 0], base_point[..., 1]
 
         if gs.any(kappa > 4e15):
             raise ValueError(
                 "Christoffels computation overflows with values of kappa. "
                 "All values of kappa < 4e15 work."
             )
-
-        shape = kappa.shape
 
         c111 = gs.where(
             gs.polygamma(1, kappa) - 1 / kappa > gs.atol,
@@ -380,24 +375,16 @@ class GammaMetric(RiemannianMetric):
             -(kappa**2) / (4 * gamma**2),
         )
 
-        c1 = gs.squeeze(
-            from_vector_to_diagonal_matrix(gs.transpose(gs.array([c111, c122])))
+        c1 = from_vector_to_diagonal_matrix(gs.stack([c111, c122], axis=-1))
+        c2 = gs.stack(
+            [
+                gs.stack([gs.zeros_like(kappa), 1 / (2 * kappa)], axis=-1),
+                gs.stack([1 / (2 * kappa), -1 / gamma], axis=-1),
+            ],
+            axis=-1,
         )
 
-        c2 = gs.squeeze(
-            gs.transpose(
-                gs.array(
-                    [[gs.zeros(shape), 1 / (2 * kappa)], [1 / (2 * kappa), -1 / gamma]]
-                )
-            )
-        )
-
-        christoffels = gs.array([c1, c2])
-
-        if len(christoffels.shape) == 4:
-            christoffels = gs.transpose(christoffels, [1, 0, 2, 3])
-
-        return gs.squeeze(christoffels)
+        return gs.stack([c1, c2], axis=-3)
 
     def jacobian_christoffels(self, base_point):
         """Compute the Jacobian of the Christoffel symbols.

@@ -117,20 +117,24 @@ def from_vector_to_diagonal_matrix(vector, num_diag=0):
     num_columns = gs.shape(vector)[-1]
     identity = gs.eye(num_columns, dtype=vector.dtype)
     diagonals = gs.einsum("...i,ij->...ij", vector, identity)
-    diagonals = gs.to_ndarray(diagonals, to_ndim=3)
-    num_lines = diagonals.shape[0]
+    batch_shape = diagonals.shape[:-2]
+
+    diag_index = abs(num_diag)
+
+    left_or_right_zeros = gs.zeros(batch_shape + (num_columns, diag_index))
+    upper_or_lower_zeros = gs.zeros(
+        batch_shape + (diag_index, num_columns + diag_index)
+    )
+
     if num_diag > 0:
-        left_zeros = gs.zeros((num_lines, num_columns, num_diag))
-        lower_zeros = gs.zeros((num_lines, num_diag, num_columns + num_diag))
-        diagonals = gs.concatenate((left_zeros, diagonals), axis=2)
-        diagonals = gs.concatenate((diagonals, lower_zeros), axis=1)
+        diagonals = gs.concatenate((left_or_right_zeros, diagonals), axis=-1)
+        diagonals = gs.concatenate((diagonals, upper_or_lower_zeros), axis=-2)
+
     elif num_diag < 0:
-        num_diag = gs.abs(num_diag)
-        right_zeros = gs.zeros((num_lines, num_columns, num_diag))
-        upper_zeros = gs.zeros((num_lines, num_diag, num_columns + num_diag))
-        diagonals = gs.concatenate((diagonals, right_zeros), axis=2)
-        diagonals = gs.concatenate((upper_zeros, diagonals), axis=1)
-    return gs.squeeze(diagonals) if gs.ndim(vector) == 1 else diagonals
+        diagonals = gs.concatenate((diagonals, left_or_right_zeros), axis=-1)
+        diagonals = gs.concatenate((upper_or_lower_zeros, diagonals), axis=-2)
+
+    return diagonals
 
 
 def taylor_exp_even_func(point, taylor_function, order=5, tol=EPSILON):

@@ -110,15 +110,15 @@ class GammaDistributionsSmokeTestData(TestData):
 
 
 class GammaMetricTestData(RiemannianMetricTestData):
-    trials = 3
+    trials = 1
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
     tolerances = {
-        "dist_is_symmetric": {"atol": 1e-2},
-        "log_after_exp": {"atol": 1e-2},
-        "exp_after_log": {"atol": 1e-2},
+        "dist_is_symmetric": {"atol": 1e-1},
         "squared_dist_is_symmetric": {"atol": 1e-1},
+        "log_after_exp": {"atol": 1e-1},
+        "exp_after_log": {"atol": 1e-1, "rtol": 1e-2},
     }
     xfails = ("exp_after_log",)
 

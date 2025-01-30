@@ -49,5 +49,5 @@ class TestGammaDistributionsSmoke(
 
 class TestGammaMetric(GammaMetricTestCase, metaclass=DataBasedParametrizer):
     space = GammaDistributions()
-    data_generator = RandomDataGenerator(space, amplitude=5.0)
+    data_generator = RandomDataGenerator(space, amplitude=20.0)
     testing_data = GammaMetricTestData()

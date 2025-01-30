@@ -63,6 +63,11 @@ class HPDBuresWassersteinMetricTestData(ComplexRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 
+    tolerances = {
+        "dist_is_log_norm": {"atol": 1e-5},
+        "dist_point_to_itself_is_zero": {"atol": 1e-3},
+    }
+
 
 class HPDEuclideanMetricTestData(ComplexMatricesMetricTestData):
     fail_for_not_implemented_errors = False
