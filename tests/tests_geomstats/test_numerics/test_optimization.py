@@ -23,17 +23,18 @@ from .data.optimization import (
 TORCH_OPTIMIZERS = []
 
 try:
-    from geomstats.numerics.optimization import TorchLBFGS
-
-    TORCH_OPTIMIZERS.append(TorchLBFGS())
+    from geomstats.numerics.optimization import (
+        TorchAdam,
+        TorchLBFGS,
+        TorchRMSprop,
+        TorchSGD,
+    )
 except ImportError:
     pass
 
 
 try:
     from geomstats.numerics.optimization import TorchminMinimize
-
-    TORCH_OPTIMIZERS.append(TorchminMinimize())
 except ImportError:
     pass
 
@@ -52,7 +53,17 @@ except ImportError:
         if gs.has_autodiff()
         else []
     )
-    + (TORCH_OPTIMIZERS if gs.__name__.endswith("pytorch") else []),
+    + (
+        [
+            TorchLBFGS(),
+            TorchSGD(lr=1e-2),
+            TorchRMSprop(),
+            TorchAdam(lr=1e-2),
+            TorchminMinimize(),
+        ]
+        if gs.__name__.endswith("pytorch")
+        else []
+    ),
 )
 def optimizers(request):
     request.cls.optimizer = request.param
