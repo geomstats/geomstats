@@ -33,6 +33,7 @@ jobs:
       fail-fast: false
     env:
       GEOMSTATS_BACKEND: ${{matrix.geomstats-backend}}
+      JUPYTER_PLATFORM_DIRS: 1
 
     steps:
       - uses: actions/checkout@v4
