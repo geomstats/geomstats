@@ -1,5 +1,5 @@
 try:
-    from ._torch import TorchLBFGS
+    from ._torch import TorchAdam, TorchLBFGS, TorchRMSprop, TorchSGD
 except ImportError:
     pass
 

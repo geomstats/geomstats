@@ -19,6 +19,8 @@ def _hessian_sum_squares(x):
 class OptimizationSmokeTestData(TestData):
     trials = 1
 
+    tolerances = {"minimize": {"atol": 1e-4}}
+
     def minimize_test_data(self):
         dim = random.randint(1, 10)
 
