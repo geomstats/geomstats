@@ -75,6 +75,9 @@ jobs:
           pytest ${{matrix.test-folder}}
 
       - name: uploading code coverage [codecov]
-        if: ${{github.ref == 'refs/heads/main' && matrix.test-folder == 'tests/tests_geomstats/'}}
-        run: |
-          bash <(curl -s https://codecov.io/bash) -c -F ${{matrix.geomstats-backend}}
+        if: ${{ matrix.test-folder == 'tests/tests_geomstats/' }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: ${{ matrix.geomstats-backend }}
+          fail_ci_if_error: true
