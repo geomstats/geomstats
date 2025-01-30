@@ -175,7 +175,7 @@ class HilbertSphereMetric(RiemannianMetric):
         tangent_vec_a, tangent_vec_b = gs.broadcast_arrays(tangent_vec_a, tangent_vec_b)
         x = gs.broadcast_to(self._space._sinf.domain, tangent_vec_a.shape)
 
-        return gs.trapz(tangent_vec_a * tangent_vec_b, x=x, axis=-1)
+        return gs.trapezoid(tangent_vec_a * tangent_vec_b, x=x, axis=-1)
 
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.

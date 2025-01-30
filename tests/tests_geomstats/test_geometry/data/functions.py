@@ -9,7 +9,7 @@ def gaussian(x, mu, sig):
     a = (x - mu) ** 2 / (2 * (sig**2))
     b = 1 / (sig * (gs.sqrt(2 * gs.pi)))
     f = b * gs.exp(-a)
-    l2_norm = gs.sqrt(gs.trapz(f**2, x))
+    l2_norm = gs.sqrt(gs.trapezoid(f**2, x))
     f_sinf = f / l2_norm
 
     return gs.array([f_sinf])

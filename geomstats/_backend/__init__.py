@@ -165,7 +165,7 @@ BACKEND_ATTRIBUTES = {
         "where",
         "zeros",
         "zeros_like",
-        "trapz",
+        "trapezoid",
     ],
     "autodiff": [
         "custom_gradient",

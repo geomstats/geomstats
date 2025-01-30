@@ -37,7 +37,7 @@ from torch import (
     scatter_add,
     searchsorted,
     stack,
-    trapz,
+    trapezoid,
     uint8,
     unique,
     vstack,
