@@ -30,9 +30,8 @@ class _Logm(_torch.autograd.Function):
 
     @staticmethod
     def _logm(x):
-        np_logm = _gsnplinalg.logm(x.detach().cpu())
-        torch_logm = _torch.from_numpy(np_logm).to(x.device, dtype=x.dtype)
-        return torch_logm
+        mat_log = _gsnplinalg.logm(x.detach().cpu().numpy())
+        return _torch.from_numpy(mat_log).to(x.device)
 
     @staticmethod
     def forward(ctx, tensor):
