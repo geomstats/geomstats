@@ -413,13 +413,11 @@ class GammaMetric(RiemannianMetric):
             Sharp inequalities for polygamma functions.
             Mathematica Slovaca, 65(1), 103-120.
         """
-        base_point = gs.to_ndarray(base_point, 2)
+        batch_shape = base_point.shape[:-1]
 
-        n_points = base_point.shape[0]
+        kappa, gamma = base_point[..., 0], base_point[..., 1]
 
-        kappa, gamma = base_point[:, 0], base_point[:, 1]
-
-        term_0 = gs.zeros((n_points))
+        term_0 = gs.zeros(batch_shape)
         term_1 = 1 / gamma**2
         term_2 = gs.where(
             gs.polygamma(1, kappa) - 1 / kappa > gs.atol,
@@ -474,10 +472,10 @@ class GammaMetric(RiemannianMetric):
             ]
         )
 
-        if n_points > 1:
-            jac = gs.transpose(jac, [4, 0, 1, 2, 3])
+        if batch_shape:
+            jac = gs.moveaxis(jac, -1, 0)
 
-        return gs.squeeze(jac)
+        return jac
 
 
 class GammaDistributionsRandomVariable(ScipyUnivariateRandomVariable):

@@ -298,12 +298,15 @@ def minimum(a, b):
     return _torch.min(array(a), array(b))
 
 
-def to_ndarray(x, to_ndim, axis=0):
-    if not _torch.is_tensor(x):
-        x = array(x)
+def to_ndarray(x, to_ndim, axis=0, dtype=None):
+    x = _torch.as_tensor(x, dtype=dtype)
 
-    if x.dim() == to_ndim - 1:
+    if x.dim() > to_ndim:
+        raise ValueError("The ndim cannot be adapted properly.")
+
+    while x.dim() < to_ndim:
         x = _torch.unsqueeze(x, dim=axis)
+
     return x
 
 

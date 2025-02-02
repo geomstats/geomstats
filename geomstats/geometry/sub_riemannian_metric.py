@@ -358,9 +358,7 @@ class SubRiemannianMetric:
             t : array-like, shape=[n_points,]
                 Times at which to compute points of the geodesics.
             """
-            t = gs.array(t)
-            t = gs.cast(t, initial_cotangent_vec.dtype)
-            t = gs.to_ndarray(t, to_ndim=1)
+            t = gs.to_ndarray(t, to_ndim=1, dtype=initial_cotangent_vec.dtype)
 
             cotangent_vecs = gs.einsum("i,...k->...ik", t, initial_cotangent_vec)
 

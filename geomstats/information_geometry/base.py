@@ -153,7 +153,7 @@ class ScipyMultivariateRandomVariable(ScipyRandomVariable):
 
     def _rvs_single(self, point, n_samples):
         return gs.to_ndarray(
-            gs.from_numpy(self.scp_rvs(point, size=n_samples)),
+            self.scp_rvs(point, size=n_samples),
             to_ndim=len(self.space.support_shape) + 1,
         )
 

@@ -245,9 +245,7 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
             )
 
             aux = gs.exp(-0.5 * gs.dot(x_, gs.matvec(inv_cov_, x_)))
-            return gs.einsum(
-                "...,...i->...i", pdf_normalization, gs.to_ndarray(aux, to_ndim=1)
-            )
+            return gs.einsum("...,...i->...i", pdf_normalization, aux)
 
         return pdf
 
@@ -447,9 +445,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             )
 
             aux = gs.exp(-0.5 * gs.sum(((x_ - mean_) ** 2) / diagonal_, axis=-1))
-            return gs.einsum(
-                "...,...i->...i", pdf_normalization, gs.to_ndarray(aux, to_ndim=1)
-            )
+            return gs.einsum("...,...i->...i", pdf_normalization, aux)
 
         return pdf
 
@@ -554,9 +550,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
             )
             aux_0 = x_ - mean_
             aux_1 = gs.exp(-0.5 * gs.dot(aux_0, gs.matvec(inv_cov_, aux_0)))
-            return gs.einsum(
-                "...,...i->...i", pdf_normalization, gs.to_ndarray(aux_1, to_ndim=1)
-            )
+            return gs.einsum("...,...i->...i", pdf_normalization, aux_1)
 
         return pdf
 

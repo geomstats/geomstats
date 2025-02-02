@@ -605,9 +605,7 @@ class Connection(ABC):
             t : array-like, shape=[n_points,]
                 Times at which to compute points of the geodesics.
             """
-            t = gs.array(t)
-            t = gs.cast(t, initial_tangent_vec.dtype)
-            t = gs.to_ndarray(t, to_ndim=1)
+            t = gs.to_ndarray(t, to_ndim=1, dtype=initial_tangent_vec.dtype)
 
             tangent_vecs = gs.einsum(f"n,...{ijk}->...n{ijk}", t, initial_tangent_vec)
             if is_batch:
