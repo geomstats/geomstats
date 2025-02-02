@@ -264,17 +264,7 @@ def allclose(a, b, atol=atol, rtol=rtol):
         a = _torch.tensor(a)
     if not isinstance(b, _torch.Tensor):
         b = _torch.tensor(b)
-    a = to_ndarray(a.float(), to_ndim=1)
-    b = to_ndarray(b.float(), to_ndim=1)
-    n_a = a.shape[0]
-    n_b = b.shape[0]
-    nb_dim = a.dim()
-    if n_a > n_b:
-        reps = (int(n_a / n_b),) + (nb_dim - 1) * (1,)
-        b = tile(b, reps)
-    elif n_a < n_b:
-        reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
-        a = tile(a, reps)
+    a, b = _torch.broadcast_tensors(a, b)
     return _torch.allclose(a, b, atol=atol, rtol=rtol)
 
 

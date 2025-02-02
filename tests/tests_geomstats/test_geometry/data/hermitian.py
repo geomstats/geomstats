@@ -44,6 +44,6 @@ class Hermitian2MetricTestData(TestData):
 
     def metric_matrix_test_data(self):
         data = [
-            dict(base_point=None, expected=gs.eye(2)),
+            dict(base_point=None, expected=gs.eye(2, dtype=gs.get_default_cdtype())),
         ]
         return self.generate_tests(data)

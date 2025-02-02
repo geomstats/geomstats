@@ -172,9 +172,5 @@ class ElasticMetricTestCase(PullbackDiffeoMetricTestCase):
             a=self.space.metric.a,
             b=self.space.metric.b,
         )
-        print(point_a.shape, point_b.shape)
-
-        print(dist)
-        print(dist_)
 
         self.assertAllClose(dist, dist_, atol=atol)

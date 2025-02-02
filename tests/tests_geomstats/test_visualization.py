@@ -188,8 +188,8 @@ class TestVisualization(TestCase):
         point = gs.eye(2)
         ellipsis = visualization.Ellipses(k_sampling_points=4)
         x, y = ellipsis.compute_coordinates(point)
-        self.assertAllClose(x, gs.array([1, 0, -1, 0, 1]))
-        self.assertAllClose(y, gs.array([0, 1, 0, -1, 0]))
+        self.assertAllClose(x, gs.array([1.0, 0.0, -1.0, 0.0, 1.0]))
+        self.assertAllClose(y, gs.array([0.0, 1.0, 0.0, -1.0, 0.0]))
 
     @staticmethod
     def teardown_method():

@@ -43,7 +43,7 @@ class WrappedGaussianProcessTestCase(BaseEstimatorTestCase):
         self.estimator.fit(X, y)
 
         res = self.estimator.score(X, y)
-        self.assertAllClose(res, 1, atol=atol)
+        self.assertAllClose(res, 1.0, atol=atol)
 
     @pytest.mark.random
     def test_predict_at_train_belongs(self, n_samples, atol):

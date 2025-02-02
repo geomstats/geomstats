@@ -22,16 +22,16 @@ class HPDMatrices2TestData(TestData):
     def projection_test_data(self):
         smoke_data = [
             dict(
-                point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
-                expected=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                point=gs.array([[1.0 + 0.0j, 0.0], [0.0, 1.0]]),
+                expected=gs.array([[1.0 + 0.0j, 0.0], [0.0, 1.0]]),
             ),
             dict(
                 point=gs.array([[1.0 + 0.0j, 0.5j], [0.5j, 1.0 + 0.0j]]),
-                expected=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                expected=gs.array([[1.0 + 0.0j, 0.0], [0.0, 1.0]]),
             ),
             dict(
-                point=gs.array([[-1.0, 0.0], [0.0, -2.0]]),
-                expected=gs.array([[gs.atol, 0.0], [0.0, gs.atol]]),
+                point=gs.array([[-1.0 + 0.0j, 0.0], [0.0, -2.0]]),
+                expected=gs.array([[gs.atol + 0.0j, 0.0], [0.0, gs.atol]]),
             ),
         ]
         return self.generate_tests(smoke_data)

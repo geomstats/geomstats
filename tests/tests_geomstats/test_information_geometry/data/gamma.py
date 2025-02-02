@@ -110,7 +110,7 @@ class GammaDistributionsSmokeTestData(TestData):
 
 
 class GammaMetricTestData(RiemannianMetricTestData):
-    trials = 1
+    trials = 3
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
