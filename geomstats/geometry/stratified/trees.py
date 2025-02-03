@@ -691,7 +691,7 @@ class ForestTopology:
             [y if i != k else 0 for i, y in enumerate(weights)]
             for k in range(len(weights))
         ]
-        gradient = gs.array(
+        gradient = gs.stack(
             [-supp * self.corr(x) for supp, x in zip(self.support, x_list)]
         )
         return gradient

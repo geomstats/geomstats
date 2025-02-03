@@ -59,11 +59,11 @@ class PoissonMetricSmokeTestData(TestData):
         data = [
             dict(
                 base_point=gs.array([0.5]),
-                expected=gs.array([[2]]),
+                expected=gs.array([[2.0]]),
             ),
             dict(
                 base_point=gs.array([[0.5], [0.2]]),
-                expected=gs.array([[[2]], [[5]]]),
+                expected=gs.array([[[2.0]], [[5.0]]]),
             ),
         ]
         return self.generate_tests(data)

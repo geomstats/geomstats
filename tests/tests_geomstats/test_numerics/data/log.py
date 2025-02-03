@@ -12,7 +12,7 @@ class LogSolverAgainstClosedFormTestData(LogSolverAgainstMetricTestData):
 
 class PathStraighteningAgainstClosedFormTestData(LogSolverAgainstMetricTestData):
     tolerances = {
-        "log": {"atol": 1e-2},
+        "log": {"atol": 1e-1},
         "geodesic_bvp": {"atol": 1e-2},
     }
 

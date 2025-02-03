@@ -223,8 +223,7 @@ class HyperbolicEmbedding:
         negative_distance_grad = self.grad_squared_distance(
             reshaped_example_embedding, negative_embedding
         )
-
-        negative_distance = gs.to_ndarray(negative_distance, to_ndim=2, axis=-1)
+        negative_distance = gs.expand_dims(negative_distance, axis=-1)
         negative_log_sigmoid_grad = self.grad_log_sigmoid(negative_distance)
 
         negative_grad = negative_log_sigmoid_grad * negative_distance_grad
@@ -315,7 +314,7 @@ class HyperbolicEmbedding:
                         embeddings = gs.assignment(
                             embeddings,
                             valeur,
-                            gs.to_ndarray(one_path, to_ndim=1),
+                            gs.expand_dims(one_path, axis=-1),
                             axis=1,
                         )
 

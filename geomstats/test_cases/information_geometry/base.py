@@ -56,7 +56,6 @@ class InformationManifoldMixinTestCase(TestCase):
 
         sample_point = point if n_points == 1 else point[0]
         sample = self.space.sample(sample_point, n_samples=n_samples)
-        print(sample.shape)
 
         res = self.space.point_to_pdf(point)(sample)
         res_ = self.random_variable.pdf(sample, point)

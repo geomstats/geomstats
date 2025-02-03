@@ -22,7 +22,7 @@ class StiefelStaticMethodsTestData(TestData):
 
         point1 = gs.array([[1.0, -1.0], [1.0, 1.0], [0.0, 0.0]]) / gs.sqrt(2.0)
         batch_points = Matrices.mul(
-            GeneralLinear.exp(gs.array([gs.pi * r_z / n for n in [2, 3, 4]])),
+            GeneralLinear.exp(gs.stack([gs.pi * r_z / n for n in [2, 3, 4]])),
             point1,
         )
         data = [
@@ -35,25 +35,6 @@ class StiefelStaticMethodsTestData(TestData):
 class StiefelCanonicalMetricTestData(RiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
-
-    xfails = (
-        "dist_is_log_norm",
-        "dist_is_positive",
-        "dist_triangle_inequality",
-        "dist_is_symmetric",
-        "exp_after_log",
-        "geodesic_bvp_belongs",
-        "geodesic_bvp_reverse",
-        "geodesic_boundary_points",
-        "log_after_exp",
-        "log_is_tangent",
-        "squared_dist_is_positive",
-        "squared_dist_is_symmetric",
-    )
-
-    tolerances = {
-        "log_is_tangent": {"atol": 1e-4},
-    }
 
     def retraction_vec_test_data(self):
         return self.generate_vec_data()

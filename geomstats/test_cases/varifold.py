@@ -78,7 +78,6 @@ def GaussianKernel_(sigma):
     a_param = 1 / gs.array([sigma]) ** 2
 
     def kernel_eval(point_a, point_b):
-        print(type(a_param), type(point_a), type(point_b))
         return expr(a_param, point_a, point_b)
 
     return kernel_eval

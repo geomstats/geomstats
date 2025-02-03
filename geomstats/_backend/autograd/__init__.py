@@ -61,7 +61,7 @@ from autograd.numpy import (
     take,
     tile,
     transpose,
-    trapz,
+    trapezoid,
     tril,
     tril_indices,
     triu,

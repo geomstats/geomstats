@@ -37,7 +37,7 @@ from torch import (
     scatter_add,
     searchsorted,
     stack,
-    trapz,
+    trapezoid,
     uint8,
     unique,
     vstack,
@@ -169,7 +169,7 @@ def split(x, indices_or_sections, axis=0):
     if isinstance(indices_or_sections, int):
         indices_or_sections = x.shape[axis] // indices_or_sections
         return _torch.split(x, indices_or_sections, dim=axis)
-    indices_or_sections = _np.array(indices_or_sections)
+    indices_or_sections = _np.asarray(indices_or_sections)
     intervals_length = indices_or_sections[1:] - indices_or_sections[:-1]
     last_interval_length = x.shape[axis] - indices_or_sections[-1]
     if last_interval_length > 0:
@@ -264,17 +264,7 @@ def allclose(a, b, atol=atol, rtol=rtol):
         a = _torch.tensor(a)
     if not isinstance(b, _torch.Tensor):
         b = _torch.tensor(b)
-    a = to_ndarray(a.float(), to_ndim=1)
-    b = to_ndarray(b.float(), to_ndim=1)
-    n_a = a.shape[0]
-    n_b = b.shape[0]
-    nb_dim = a.dim()
-    if n_a > n_b:
-        reps = (int(n_a / n_b),) + (nb_dim - 1) * (1,)
-        b = tile(b, reps)
-    elif n_a < n_b:
-        reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
-        a = tile(a, reps)
+    a, b = _torch.broadcast_tensors(a, b)
     return _torch.allclose(a, b, atol=atol, rtol=rtol)
 
 
@@ -298,12 +288,15 @@ def minimum(a, b):
     return _torch.min(array(a), array(b))
 
 
-def to_ndarray(x, to_ndim, axis=0):
-    if not _torch.is_tensor(x):
-        x = array(x)
+def to_ndarray(x, to_ndim, axis=0, dtype=None):
+    x = _torch.as_tensor(x, dtype=dtype)
 
-    if x.dim() == to_ndim - 1:
+    if x.dim() > to_ndim:
+        raise ValueError("The ndim cannot be adapted properly.")
+
+    while x.dim() < to_ndim:
         x = _torch.unsqueeze(x, dim=axis)
+
     return x
 
 
@@ -657,7 +650,7 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    return _torch.sparse.FloatTensor(
+    return _torch.sparse_coo_tensor(
         _torch.LongTensor(indices).t(),
         array(data),
         _torch.Size(target_shape),

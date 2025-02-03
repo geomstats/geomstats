@@ -185,15 +185,13 @@ class DirichletMetric(RiemannianMetric):
         mat : array-like, shape=[..., dim, dim]
             Inner-product matrix.
         """
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        n_points = base_point.shape[0]
+        batch_shape = base_point.shape[:-1]
 
-        mat_ones = gs.ones((n_points, self._space.dim, self._space.dim))
-        poly_sum = gs.polygamma(1, gs.sum(base_point, -1))
+        mat_ones = gs.ones(batch_shape + (self._space.dim, self._space.dim))
+        poly_sum = gs.polygamma(1, gs.sum(base_point, axis=-1))
         mat_diag = from_vector_to_diagonal_matrix(gs.polygamma(1, base_point))
 
-        mat = mat_diag - gs.einsum("i,ijk->ijk", poly_sum, mat_ones)
-        return gs.squeeze(mat)
+        return mat_diag - gs.einsum("...,...jk->...jk", poly_sum, mat_ones)
 
     def christoffels(self, base_point):
         """Compute the Christoffel symbols.

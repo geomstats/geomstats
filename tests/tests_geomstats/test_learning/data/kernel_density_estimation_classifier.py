@@ -157,7 +157,7 @@ class KernelDensityEstimationClassifierTestData(TestData):
                 X_train=X_train_2d,
                 y_train=y_train_2d,
                 X_test=gs.array([[1.0, 0.0]]),
-                expected=gs.array([[1, 0]]),
+                expected=gs.array([[1.0, 0.0]]),
             ),
             dict(
                 estimator=KernelDensityEstimationClassifier(

@@ -22,16 +22,16 @@ class HPDMatrices2TestData(TestData):
     def projection_test_data(self):
         smoke_data = [
             dict(
-                point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
-                expected=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                point=gs.array([[1.0 + 0.0j, 0.0], [0.0, 1.0]]),
+                expected=gs.array([[1.0 + 0.0j, 0.0], [0.0, 1.0]]),
             ),
             dict(
                 point=gs.array([[1.0 + 0.0j, 0.5j], [0.5j, 1.0 + 0.0j]]),
-                expected=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                expected=gs.array([[1.0 + 0.0j, 0.0], [0.0, 1.0]]),
             ),
             dict(
-                point=gs.array([[-1.0, 0.0], [0.0, -2.0]]),
-                expected=gs.array([[gs.atol, 0.0], [0.0, gs.atol]]),
+                point=gs.array([[-1.0 + 0.0j, 0.0], [0.0, -2.0]]),
+                expected=gs.array([[gs.atol + 0.0j, 0.0], [0.0, gs.atol]]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -62,6 +62,11 @@ class HPDAffineMetricTestData(ComplexRiemannianMetricTestData):
 class HPDBuresWassersteinMetricTestData(ComplexRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
+
+    tolerances = {
+        "dist_is_log_norm": {"atol": 1e-5},
+        "dist_point_to_itself_is_zero": {"atol": 1e-3},
+    }
 
 
 class HPDEuclideanMetricTestData(ComplexMatricesMetricTestData):

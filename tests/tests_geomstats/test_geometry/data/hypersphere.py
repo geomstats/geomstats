@@ -263,13 +263,13 @@ class Hypersphere4ExtrinsicMetricTestData(TestData):
                 expected=gs.array(gs.pi / 2),
             ),
             dict(
-                point_a=gs.array(
-                    [
-                        1.0 / gs.sqrt(129.0) * gs.array([10.0, -2.0, -5.0, 0.0, 0.0]),
-                    ]
+                point_a=gs.expand_dims(
+                    1.0 / gs.sqrt(129.0) * gs.array([10.0, -2.0, -5.0, 0.0, 0.0]),
+                    axis=0,
                 ),
-                point_b=gs.array(
-                    [1.0 / gs.sqrt(435.0) * gs.array([1.0, -20.0, -5.0, 0.0, 3.0])]
+                point_b=gs.expand_dims(
+                    1.0 / gs.sqrt(435.0) * gs.array([1.0, -20.0, -5.0, 0.0, 3.0]),
+                    axis=0,
                 ),
                 expected=gs.array([1.24864502]),
             ),

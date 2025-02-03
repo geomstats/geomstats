@@ -82,7 +82,7 @@ class DtypeTestData(TestData):
             dict(func_name="abs", x=1.0),
             dict(func_name="angle", x=1.0),
             dict(func_name="arccos", x=0.1),
-            dict(func_name="arccosh", x=0.1),
+            dict(func_name="arccosh", x=2.5),
             dict(func_name="arcsin", x=0.1),
             dict(func_name="arctanh", x=0.1),
             dict(func_name="ceil", x=1.0),
