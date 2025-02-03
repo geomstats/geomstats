@@ -21,9 +21,9 @@ $ pytest tests/tests_geomstats/test_spd_matrices.py
 and then run the tests of the whole codebase to check that your feature is not breaking any of them:
 $ pytest tests/
 
-This way, further modifications on the code base are guaranteed to be consistent with the desired behavior. Merging your PR should not break any test in any backend (numpy, tensorflow or pytorch)."
+This way, further modifications on the code base are guaranteed to be consistent with the desired behavior. Merging your PR should not break any test in any backend (numpy, autograd or pytorch)."
 
-For testing in alternative backends such as `numpy`, `pytorch`, `autograd`, `tensorflow` set the environment variable using:
+For testing in alternative backends such as `numpy`, `pytorch`, `autograd`, set the environment variable using:
 $ export GEOMSTATS_BACKEND=<backend_name>
 
 Next, import the `backend` module using:

@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.9, 3.10.x, 3.11]
+        python-version: [3.9, 3.10.x, 3.11, 3.12]
         geomstats-backend: ["autograd", "numpy", "pytorch"]
         test-folder: ["tests/tests_geomstats/", "tests/tests_scripts"]
       fail-fast: false
@@ -30,7 +30,7 @@ jobs:
       - name: install (extra) dependencies [pip]
         if: ${{matrix.test-folder == 'tests/tests_scripts'}}
         run: |
-          pip install -e .[test-scripts]
+          pip install -e .[test-scripts-all]
 
       - name: unit testing for geomstats [pytest]
         if: ${{matrix.test-folder == 'tests/tests_geomstats/'}}
