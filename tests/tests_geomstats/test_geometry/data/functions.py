@@ -12,7 +12,7 @@ def gaussian(x, mu, sig):
     l2_norm = gs.sqrt(gs.trapezoid(f**2, x))
     f_sinf = f / l2_norm
 
-    return gs.array([f_sinf])
+    return gs.expand_dims(f_sinf, axis=0)
 
 
 class HilbertSphereTestData(ManifoldTestData):
@@ -23,7 +23,7 @@ class HilbertSphereSmokeTestData(TestData):
     def belongs_test_data(self):
         domain = gs.linspace(0, 1, num=50)
         points = gs.squeeze(
-            gs.array([gaussian(domain, a, 0.1) for a in gs.linspace(0.2, 0.8, 5)])
+            gs.stack([gaussian(domain, a, 0.1) for a in gs.linspace(0.2, 0.8, 5)])
         )
 
         data = [

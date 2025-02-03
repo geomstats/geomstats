@@ -148,7 +148,7 @@ class MatrixOperationsSmokeTestData(TestData):
         mat_1_x_mat_2 = gs.array([[[10.0], [22.0]], [[5.0], [9.0]], [[-5.0], [-9.0]]])
         smoke_data = [
             dict(mats=mats_1, expected=gs.array([[23.0, -26.0], [51.0, -58.0]])),
-            dict(mats=(gs.array(mats_1), mats_2), expected=mat_1_x_mat_2),
+            dict(mats=(gs.stack(mats_1), mats_2), expected=mat_1_x_mat_2),
         ]
         return self.generate_tests(smoke_data)
 

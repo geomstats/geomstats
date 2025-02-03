@@ -1001,14 +1001,12 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         Returns
         -------
-        rot_mat : array-like, shape=[..., 3]
+        rot_mat : array-like, shape=[..., 3, 3]
             Rotation matrix.
         """
-        is_vec = quaternion.ndim > 1
-
         w, x, y, z = gs.hsplit(quaternion, 4)
 
-        column_1 = gs.array(
+        column_1 = gs.hstack(
             [
                 w**2 + x**2 - y**2 - z**2,
                 2 * x * y - 2 * w * z,
@@ -1016,7 +1014,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             ]
         )
 
-        column_2 = gs.array(
+        column_2 = gs.hstack(
             [
                 2 * x * y + 2 * w * z,
                 w**2 - x**2 + y**2 - z**2,
@@ -1024,7 +1022,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             ]
         )
 
-        column_3 = gs.array(
+        column_3 = gs.hstack(
             [
                 2 * x * z - 2 * w * y,
                 2 * y * z + 2 * w * x,
@@ -1032,22 +1030,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             ]
         )
 
-        if is_vec:
-            column_1 = gs.moveaxis(column_1, 0, 1)
-            column_2 = gs.moveaxis(column_2, 0, 1)
-            column_3 = gs.moveaxis(column_3, 0, 1)
-
-            rot_mat = gs.stack(
-                [
-                    gs.transpose(gs.hstack(columns))
-                    for columns in zip(column_1, column_2, column_3)
-                ]
-            )
-
-        else:
-            rot_mat = gs.transpose(gs.hstack([column_1, column_2, column_3]))
-
-        return rot_mat
+        return gs.stack([column_1, column_2, column_3], axis=-2)
 
     @staticmethod
     def _matrix_from_tait_bryan_angles_extrinsic_xyz(tait_bryan_angles):
@@ -1072,8 +1055,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         -------
         rot_mat : array-like, shape=[..., 3, 3]
         """
-        is_vec = tait_bryan_angles.ndim > 1
-
         angle_1 = tait_bryan_angles[..., 0]
         angle_2 = tait_bryan_angles[..., 1]
         angle_3 = tait_bryan_angles[..., 2]
@@ -1085,41 +1066,32 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         cos_angle_3 = gs.cos(angle_3)
         sin_angle_3 = gs.sin(angle_3)
 
-        column_1 = gs.array(
+        column_1 = gs.stack(
             [
-                [cos_angle_1 * cos_angle_2],
-                [cos_angle_2 * sin_angle_1],
-                [-sin_angle_2],
-            ]
+                cos_angle_1 * cos_angle_2,
+                cos_angle_2 * sin_angle_1,
+                -sin_angle_2,
+            ],
+            axis=-1,
         )
-        column_2 = gs.array(
+        column_2 = gs.stack(
             [
-                [(cos_angle_1 * sin_angle_2 * sin_angle_3 - cos_angle_3 * sin_angle_1)],
-                [(cos_angle_1 * cos_angle_3 + sin_angle_1 * sin_angle_2 * sin_angle_3)],
-                [cos_angle_2 * sin_angle_3],
-            ]
+                cos_angle_1 * sin_angle_2 * sin_angle_3 - cos_angle_3 * sin_angle_1,
+                cos_angle_1 * cos_angle_3 + sin_angle_1 * sin_angle_2 * sin_angle_3,
+                cos_angle_2 * sin_angle_3,
+            ],
+            axis=-1,
         )
-        column_3 = gs.array(
+        column_3 = gs.stack(
             [
-                [(sin_angle_1 * sin_angle_3 + cos_angle_1 * cos_angle_3 * sin_angle_2)],
-                [(cos_angle_3 * sin_angle_1 * sin_angle_2 - cos_angle_1 * sin_angle_3)],
-                [cos_angle_2 * cos_angle_3],
-            ]
+                sin_angle_1 * sin_angle_3 + cos_angle_1 * cos_angle_3 * sin_angle_2,
+                cos_angle_3 * sin_angle_1 * sin_angle_2 - cos_angle_1 * sin_angle_3,
+                cos_angle_2 * cos_angle_3,
+            ],
+            axis=-1,
         )
 
-        if is_vec:
-            column_1 = gs.moveaxis(column_1, 2, 0)
-            column_2 = gs.moveaxis(column_2, 2, 0)
-            column_3 = gs.moveaxis(column_3, 2, 0)
-
-            rot_mat = gs.stack(
-                [gs.hstack(columns) for columns in zip(column_1, column_2, column_3)]
-            )
-
-        else:
-            rot_mat = gs.hstack([column_1, column_2, column_3])
-
-        return rot_mat
+        return gs.stack([column_1, column_2, column_3], axis=-1)
 
     @staticmethod
     def _matrix_from_tait_bryan_angles_extrinsic_zyx(tait_bryan_angles):
@@ -1144,8 +1116,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         -------
         rot_mat : array-like, shape=[..., n, n]
         """
-        is_vec = tait_bryan_angles.ndim > 1
-
         angle_1 = tait_bryan_angles[..., 0]
         angle_2 = tait_bryan_angles[..., 1]
         angle_3 = tait_bryan_angles[..., 2]
@@ -1157,43 +1127,34 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         cos_angle_3 = gs.cos(angle_3)
         sin_angle_3 = gs.sin(angle_3)
 
-        column_1 = gs.array(
+        column_1 = gs.stack(
             [
-                [cos_angle_2 * cos_angle_3],
-                [(cos_angle_1 * sin_angle_3 + cos_angle_3 * sin_angle_1 * sin_angle_2)],
-                [(sin_angle_1 * sin_angle_3 - cos_angle_1 * cos_angle_3 * sin_angle_2)],
-            ]
+                cos_angle_2 * cos_angle_3,
+                cos_angle_1 * sin_angle_3 + cos_angle_3 * sin_angle_1 * sin_angle_2,
+                sin_angle_1 * sin_angle_3 - cos_angle_1 * cos_angle_3 * sin_angle_2,
+            ],
+            axis=-1,
         )
 
-        column_2 = gs.array(
+        column_2 = gs.stack(
             [
-                [-cos_angle_2 * sin_angle_3],
-                [(cos_angle_1 * cos_angle_3 - sin_angle_1 * sin_angle_2 * sin_angle_3)],
-                [(cos_angle_3 * sin_angle_1 + cos_angle_1 * sin_angle_2 * sin_angle_3)],
-            ]
+                -cos_angle_2 * sin_angle_3,
+                cos_angle_1 * cos_angle_3 - sin_angle_1 * sin_angle_2 * sin_angle_3,
+                cos_angle_3 * sin_angle_1 + cos_angle_1 * sin_angle_2 * sin_angle_3,
+            ],
+            axis=-1,
         )
 
-        column_3 = gs.array(
+        column_3 = gs.stack(
             [
-                [sin_angle_2],
-                [-cos_angle_2 * sin_angle_1],
-                [cos_angle_1 * cos_angle_2],
-            ]
+                sin_angle_2,
+                -cos_angle_2 * sin_angle_1,
+                cos_angle_1 * cos_angle_2,
+            ],
+            axis=-1,
         )
 
-        if is_vec:
-            column_1 = gs.moveaxis(column_1, 2, 0)
-            column_2 = gs.moveaxis(column_2, 2, 0)
-            column_3 = gs.moveaxis(column_3, 2, 0)
-
-            rot_mat = gs.stack(
-                [gs.hstack(columns) for columns in zip(column_1, column_2, column_3)]
-            )
-
-        else:
-            rot_mat = gs.hstack([column_1, column_2, column_3])
-
-        return rot_mat
+        return gs.stack([column_1, column_2, column_3], axis=-1)
 
     def matrix_from_tait_bryan_angles(
         self,
@@ -1515,7 +1476,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         angle = gs.sqrt(squared_angle)
         delta_angle = angle - gs.pi
         approx_at_pi = gs.sum(
-            gs.array([TAYLOR_COEFFS_1_AT_PI[k] * delta_angle**k for k in range(1, 7)])
+            gs.stack([TAYLOR_COEFFS_1_AT_PI[k] * delta_angle**k for k in range(1, 7)])
         )
         coef_1 = utils.taylor_exp_even_func(squared_angle / 4, utils.inv_tanc_close_0)
         coef_1 = gs.where(-delta_angle < utils.EPSILON, approx_at_pi, coef_1)

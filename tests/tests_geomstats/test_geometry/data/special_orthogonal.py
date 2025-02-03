@@ -132,8 +132,8 @@ class SpecialOrthogonalMatrices3TestData(TestData):
         data = [
             dict(rotation_mat1=mat1, rotation_mat2=mat2, expected=gs.array(True)),
             dict(
-                rotation_mat1=gs.array([mat1, mat2]),
-                rotation_mat2=gs.array([mat2, mat2]),
+                rotation_mat1=gs.stack([mat1, mat2]),
+                rotation_mat2=gs.stack([mat2, mat2]),
                 expected=gs.array([True, False]),
             ),
         ]

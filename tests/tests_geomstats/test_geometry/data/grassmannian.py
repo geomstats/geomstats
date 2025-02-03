@@ -38,16 +38,16 @@ class GrassmannianCanonicalMetric32TestData(TestData):
 
         data = [
             dict(
-                tangent_vec=Matrices.bracket(pi_2 * r_y, gs.array([p_xy, p_yz])),
-                base_point=gs.array([p_xy, p_yz]),
-                expected=gs.array([p_yz, p_xy]),
+                tangent_vec=Matrices.bracket(pi_2 * r_y, gs.stack([p_xy, p_yz])),
+                base_point=gs.stack([p_xy, p_yz]),
+                expected=gs.stack([p_yz, p_xy]),
             ),
             dict(
                 tangent_vec=Matrices.bracket(
-                    pi_2 * gs.array([r_y, r_z]), gs.array([p_xy, p_yz])
+                    pi_2 * gs.stack([r_y, r_z]), gs.stack([p_xy, p_yz])
                 ),
-                base_point=gs.array([p_xy, p_yz]),
-                expected=gs.array([p_yz, p_xz]),
+                base_point=gs.stack([p_xy, p_yz]),
+                expected=gs.stack([p_yz, p_xz]),
             ),
         ]
         return self.generate_tests(data)
