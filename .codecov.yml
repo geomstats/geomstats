@@ -8,7 +8,7 @@ coverage:
         threshold: 1%
         flags:
           - unit
-       # advanced
+        # advanced
         branches:
           - main
         if_not_found: success
@@ -50,7 +50,6 @@ coverage:
         flags:
           - pytorch
 
-
 # Files to ignore
 ignore:
   - "geomstats/datasets/data"
@@ -64,16 +63,13 @@ flags:
     ignore:
       - geomstats/_backend/numpy
       - geomstats/_backend/pytorch
-      - geomstats/_backend/tensorflow
 
   numpy:
     ignore:
       - geomstats/_backend/autograd
       - geomstats/_backend/pytorch
-      - geomstats/_backend/tensorflow
 
   pytorch:
     ignore:
       - geomstats/_backend/autograd
       - geomstats/_backend/numpy
-      - geomstats/_backend/tensorflow
