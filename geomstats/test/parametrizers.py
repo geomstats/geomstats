@@ -576,6 +576,17 @@ def _exec_notebook(path):
     eprocessor.preprocess(notebook)
 
 
+def _has_package(package_name):
+    """Check if package is installed.
+
+    Parameters
+    ----------
+    package_name : str
+        Package name.
+    """
+    return importlib.util.find_spec(package_name) is not None
+
+
 class NotebooksParametrizer(type):
     def __new__(cls, name, bases, attrs):
         def _create_new_test(path, **kwargs):
@@ -601,7 +612,10 @@ class NotebooksParametrizer(type):
                 metadata = json.load(file).get("metadata")
 
             backends = metadata.get("backends", None)
-            if backends and BACKEND not in backends:
+            requires = metadata.get("requires", [])
+            if (backends and BACKEND not in backends) or not all(
+                [_has_package(package) for package in requires]
+            ):
                 test_func = pytest.mark.skip()(test_func)
 
             attrs[func_name] = test_func
