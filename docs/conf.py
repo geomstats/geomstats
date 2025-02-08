@@ -14,6 +14,7 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.doctest",
     "sphinx.ext.githubpages",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
@@ -121,3 +122,16 @@ texinfo_documents = [
 
 epub_title = project
 epub_exclude_files = ["search.html"]
+
+# -- intersphinx -------------------------------------------------------------
+intersphinx_mapping = {
+    "joblib": ("https://joblib.readthedocs.io/en/latest", None),
+    "matplotlib": ("https://matplotlib.org/stable", None),
+    "numpy": ("https://numpy.org/doc/stable", None),
+    "pandas": ("https://pandas.pydata.org/pandas-docs/dev", None),
+    "python": ("https://docs.python.org/3", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy", None),
+    "sklearn": ("https://scikit-learn.org/stable", None),
+    "torch": ("https://pytorch.org/docs/stable", None),
+}
+intersphinx_timeout = 5
