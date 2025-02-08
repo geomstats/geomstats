@@ -658,6 +658,39 @@ class _Hypersphere(LevelSet):
         sample = self.metric.exp(tangent_sample_at_pt, mean)
         return sample[0] if (n_samples == 1) else sample
 
+    @property
+    def is_connected(self):
+        """Indicates whether the geometric object is connected.
+
+        Returns
+        -------
+        bool
+            Always True for n-spheres, as they are path-connected.
+            Any two points in a Euclidean space can be joined by an arc
+
+        References
+        ----------
+        .. [1] James Munkres, "Topology," 2nd edition, page 155.
+        """
+        return True
+
+    @property
+    def is_compact(self):
+        """Indicates whether the geometric object is compact.
+
+        Returns
+        -------
+        bool
+            Always True for n-spheres, as they are closed and
+            bounded subsets of the Euclidean space.
+
+        References
+        ----------
+        .. [1] James Munkres, "Topology," 2nd edition, Theorem 27.3 on
+               page 173.
+        """
+        return True
+
 
 class HypersphereMetric(RiemannianMetric):
     """Class for the Hypersphere Metric."""

@@ -63,6 +63,40 @@ class Euclidean(VectorSpace):
         """
         return tangent_vec + base_point
 
+    @property
+    def is_connected(self):
+        """Indicates whether the geometric object is connected.
+
+        Returns
+        -------
+        bool
+            Always True for Euclidean spaces, as they are path-connected.
+            Any two points in a Euclidean space can be joined by a straight
+            line segment.
+
+        References
+        ----------
+        .. [1] James Munkres, "Topology," 2nd edition, page 155.
+        """
+        return True
+
+    @property
+    def is_compact(self):
+        """Indicates whether the geometric object is compact.
+
+        Returns
+        -------
+        bool
+            Always False for Euclidean spaces, as they are not
+            bounded
+
+        References
+        ----------
+        .. [1] James Munkres, "Topology," 2nd edition, Theorem 27.3 on
+               page 173.
+        """
+        return False
+
 
 class EuclideanMetric(RiemannianMetric):
     """Class for a Euclidean metric.

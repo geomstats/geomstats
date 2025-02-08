@@ -237,6 +237,38 @@ class Grassmannian(LevelSet):
         p_d = gs.einsum("...ij,...j->...ij", eigvecs, diagonal)
         return Matrices.mul(p_d, Matrices.transpose(eigvecs))
 
+    @property
+    def is_connected(self):
+        """Indicates whether the geometric object is connected.
+
+        Returns
+        -------
+        bool
+            Always True for real Grassmannians.
+
+        References
+        ----------
+        .. [1] V.A. Rokhlin, D.B. Fuks, "Beginner's Course in Topology,"
+               page 177-179.
+        """
+        return True
+
+    @property
+    def is_compact(self):
+        """Indicates whether the geometric object is compact.
+
+        Returns
+        -------
+        bool
+            Always True for real Grassmannians.
+
+        References
+        ----------
+        .. [1] V.A. Rokhlin, D.B. Fuks, "Beginner's Course in Topology,"
+               page 179.
+        """
+        return True
+
 
 class GrassmannianCanonicalMetric(RiemannianMetric):
     """Canonical metric of the Grassmann manifold."""
