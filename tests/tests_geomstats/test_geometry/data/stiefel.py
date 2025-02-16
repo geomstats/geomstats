@@ -67,9 +67,10 @@ class StiefelConnectednessTestData(TestData):
         p = random.randint(2, n_gt_5 - 2)
 
         data = [
+            dict(point=(1, 1), expected=False),
             dict(point=(n, 1), expected=True),
             dict(point=(n, n), expected=False),
-            dict(point=(n_gt_3, n_gt_3 - 1), expected=False),
+            dict(point=(n_gt_3, n_gt_3 - 1), expected=True),
             dict(point=(n_gt_5, p), expected=True),
         ]
         return self.generate_tests(data)
