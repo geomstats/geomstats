@@ -2,6 +2,7 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.grassmannian import Grassmannian
+from geomstats.geometry.stiefel import Stiefel
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import LevelSetTestCase
@@ -122,3 +123,12 @@ class StiefelCanonicalMetricTestCase(RiemannianMetricTestCase):
 
         with pytest.raises(ValueError):
             self.space.metric.log(point, base_point)
+
+
+class StiefelConnectednessTestCase(TestCase):
+    def test_is_connected(self, point, expected):
+        n, k = point
+        connectedness = Stiefel(n=n, k=k, equip=False).is_connected()
+        expected_connected = " " if expected else " not "
+        msg = f"St({n}, {k}) is{expected_connected}connected."
+        self.assertTrue(connectedness & expected, msg=msg)

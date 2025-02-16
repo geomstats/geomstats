@@ -665,14 +665,13 @@ class _Hypersphere(LevelSet):
         Returns
         -------
         bool
-            Always True for n-spheres, as they are path-connected.
-            Any two points in a Euclidean space can be joined by an arc
+            Only False for 0-sphere, which is a set of two points.
 
         References
         ----------
         .. [1] James Munkres, "Topology," 2nd edition, page 155.
         """
-        return True
+        return self.dim > 0
 
     @property
     def is_compact(self):

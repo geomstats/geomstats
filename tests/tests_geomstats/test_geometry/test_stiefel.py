@@ -6,6 +6,7 @@ from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
 from geomstats.test.parametrizers import DataBasedParametrizer, Parametrizer
 from geomstats.test_cases.geometry.stiefel import (
     StiefelCanonicalMetricTestCase,
+    StiefelConnectednessTestCase,
     StiefelStaticMethodsTestCase,
     StiefelTestCase,
 )
@@ -13,6 +14,7 @@ from geomstats.test_cases.geometry.stiefel import (
 from .data.stiefel import (
     StiefelCanonicalMetricSquareTestData,
     StiefelCanonicalMetricTestData,
+    StiefelConnectednessTestData,
     StiefelStaticMethodsTestData,
     StiefelTestData,
 )
@@ -84,3 +86,7 @@ class TestStiefelCanonicalMetricSquare(
     space = Stiefel(n=k, p=k, equip=False)
     space.equip_with_metric(StiefelCanonicalMetric)
     testing_data = StiefelCanonicalMetricSquareTestData()
+
+
+class TestStiefelConnectedness(StiefelConnectednessTestCase, metaclass=Parametrizer):
+    testing_data = StiefelConnectednessTestData()
