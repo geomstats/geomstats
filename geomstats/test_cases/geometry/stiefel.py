@@ -128,7 +128,7 @@ class StiefelCanonicalMetricTestCase(RiemannianMetricTestCase):
 class StiefelConnectednessTestCase(TestCase):
     def test_is_connected(self, point, expected):
         n, p = point
-        connectedness = Stiefel(n=n, p=p, equip=False).is_connected()
+        connectedness = Stiefel(n=n, p=p, equip=False).is_connected
         expected_connected = " " if expected else " not "
         msg = f"St({n}, {p}) is{expected_connected}connected."
         self.assertTrue(connectedness & expected, msg=msg)
