@@ -204,27 +204,27 @@ class Stiefel(LevelSet):
     def is_connected(self):
         """Indicates whether the geometric object is connected.
 
+        The connectedness of the (real) Stiefel manifold St(n, p)
+        are:
+
+        - St(n, 1) is the (n-1)-sphere.
+        - St(n, n) is the orthogonal group O(n).
+        - St(n, n-1) is the special orthogonal group SO(n)
+        - St(n, p) with p < n-1 are continuous images of
+          St(n, n-1)
+
+        See [FR1984]_ page 171--173.
+
         Returns
         -------
-        bool
-            The connectedness of the (real) Stiefel manifold St(n, p).
-
-            - St(n, 0) is a point.
-            - St(n, 1) is the (n-1)-sphere.
-            - St(n, n) is the orthogonal group O(n).
-            - St(n, n-1) is the special orthogonal group SO(n)
-            - St(n, p) with p < n-1 are continuous images of
-              St(n, n-1)
+        is_connected: bool
 
         References
         ----------
-        .. [1] V.A. Rokhlin, D.B. Fuks, "Beginner's Course in Topology,"
-               page 171--173.
+        .. [FR1984] Fuks, D. B., and V. A. Rokhlin. Beginner's Course in Topology.
+           1st ed. Universitext. Springer, August 1984. Berlin, Germany.
         """
-        if self.p == 0:
-            return True
-
-        elif self.p == 1:
+        if self.p == 1:
             return self.n > 1
 
         elif self.p <= self.n - 1:
@@ -237,15 +237,17 @@ class Stiefel(LevelSet):
     def is_compact(self):
         """Indicates whether the geometric object is compact.
 
+        All real Stiefel manifolds are compact. See [FR1984]_
+        page 173.
+
         Returns
         -------
-        bool
-            Always True for real Stiefel manifolds.
+        is_compact: bool
 
         References
         ----------
-        .. [1] V.A. Rokhlin, D.B. Fuks, "Beginner's Course in Topology,"
-               page 173.
+        .. [FR1984] Fuks, D. B., and V. A. Rokhlin. Beginner's Course in Topology.
+           1st ed. Universitext. Springer, August 1984. Berlin, Germany.
         """
         return True
 

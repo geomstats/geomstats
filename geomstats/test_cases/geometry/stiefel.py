@@ -2,7 +2,6 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.grassmannian import Grassmannian
-from geomstats.geometry.stiefel import Stiefel
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import LevelSetTestCase
@@ -126,9 +125,14 @@ class StiefelCanonicalMetricTestCase(RiemannianMetricTestCase):
 
 
 class StiefelConnectednessTestCase(TestCase):
-    def test_is_connected(self, point, expected):
-        n, p = point
-        connectedness = Stiefel(n=n, p=p, equip=False).is_connected
+    def test_is_connected(self, n, p, expected):
+        connectedness = self.Space(n=n, p=p, equip=False).is_connected
         expected_connected = " " if expected else " not "
         msg = f"St({n}, {p}) is{expected_connected}connected."
         self.assertTrue(connectedness == expected, msg=msg)
+
+
+class StiefelCompactnessTestCase(TestCase):
+    def test_is_compact(self):
+        msg = "All real Stiefel manifolds are compact."
+        self.assertTrue(self.space.is_compact, msg=msg)
