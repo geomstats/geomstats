@@ -131,4 +131,4 @@ class StiefelConnectednessTestCase(TestCase):
         connectedness = Stiefel(n=n, p=p, equip=False).is_connected
         expected_connected = " " if expected else " not "
         msg = f"St({n}, {p}) is{expected_connected}connected."
-        self.assertTrue(connectedness and expected, msg=msg)
+        self.assertTrue(connectedness == expected, msg=msg)
