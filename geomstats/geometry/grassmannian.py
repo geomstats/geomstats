@@ -241,15 +241,16 @@ class Grassmannian(LevelSet):
     def is_connected(self):
         """Indicates whether the geometric object is connected.
 
+        Grassmannians are connected. See [FV1984]_.
+
         Returns
         -------
-        bool
-            Always True for real Grassmannians.
+        is_connected: bool
 
         References
         ----------
-        .. [1] V.A. Rokhlin, D.B. Fuks, "Beginner's Course in Topology,"
-               page 177-179.
+        .. [FR1984] Fuks, D. B., and V. A. Rokhlin. "Beginner's Course in Topology."
+           1st ed. Universitext. Springer, August 1984. Berlin, Germany.
         """
         return True
 
@@ -257,15 +258,16 @@ class Grassmannian(LevelSet):
     def is_compact(self):
         """Indicates whether the geometric object is compact.
 
+        All Grassmannians are compact. See [FR1984]_.
+
         Returns
         -------
-        bool
-            Always True for real Grassmannians.
+        is_compact: bool
 
         References
         ----------
-        .. [1] V.A. Rokhlin, D.B. Fuks, "Beginner's Course in Topology,"
-               page 179.
+        .. [FR1984] Fuks, D. B., and V. A. Rokhlin. "Beginner's Course in Topology."
+           1st ed. Universitext. Springer, August 1984. Berlin, Germany.
         """
         return True
 

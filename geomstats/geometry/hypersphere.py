@@ -662,14 +662,16 @@ class _Hypersphere(LevelSet):
     def is_connected(self):
         """Indicates whether the geometric object is connected.
 
+        Only the 0-dimensional Hypersphere is not connected.
+        See [M2000]_ page 155.
+
         Returns
         -------
-        bool
-            Only False for 0-sphere, which is a set of two points.
+        is_connected: bool
 
         References
         ----------
-        .. [1] James Munkres, "Topology," 2nd edition, page 155.
+        .. [M2000] James R. Munkres. "Topology." 2nd edition. Prentice Hall, 2000.
         """
         return self.dim > 0
 
@@ -677,16 +679,16 @@ class _Hypersphere(LevelSet):
     def is_compact(self):
         """Indicates whether the geometric object is compact.
 
+        All Hyperspheres are compact.
+        See [M2000]_ Theorem 27.3 on page 173
+
         Returns
         -------
-        bool
-            Always True for n-spheres, as they are closed and
-            bounded subsets of the Euclidean space.
+        is_compact: bool
 
         References
         ----------
-        .. [1] James Munkres, "Topology," 2nd edition, Theorem 27.3 on
-               page 173.
+        .. [M2000] James R. Munkres. "Topology." 2nd edition. Prentice Hall, 2000.
         """
         return True
 

@@ -67,16 +67,15 @@ class Euclidean(VectorSpace):
     def is_connected(self):
         """Indicates whether the geometric object is connected.
 
+        All Euclidean spaces are connected. See [M2000]_ page 155.
+
         Returns
         -------
-        bool
-            Always True for Euclidean spaces, as they are path-connected.
-            Any two points in a Euclidean space can be joined by a straight
-            line segment.
+        is_connected: bool
 
         References
         ----------
-        .. [1] James Munkres, "Topology," 2nd edition, page 155.
+        .. [M2000] James R. Munkres. "Topology." 2nd edition. Prentice Hall, 2000.
         """
         return True
 
@@ -84,16 +83,16 @@ class Euclidean(VectorSpace):
     def is_compact(self):
         """Indicates whether the geometric object is compact.
 
+        All Euclidean spaces are not compact. See [M2000]_
+        Theorem 27.3 on page 173.
+
         Returns
         -------
-        bool
-            Always False for Euclidean spaces, as they are not
-            bounded
+        is_compact: bool
 
         References
         ----------
-        .. [1] James Munkres, "Topology," 2nd edition, Theorem 27.3 on
-               page 173.
+        .. [M2000] James R. Munkres. "Topology." 2nd edition. Prentice Hall, 2000.
         """
         return False
 

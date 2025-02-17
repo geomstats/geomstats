@@ -221,7 +221,7 @@ class Stiefel(LevelSet):
 
         References
         ----------
-        .. [FR1984] Fuks, D. B., and V. A. Rokhlin. Beginner's Course in Topology.
+        .. [FR1984] Fuks, D. B., and V. A. Rokhlin. "Beginner's Course in Topology."
            1st ed. Universitext. Springer, August 1984. Berlin, Germany.
         """
         if self.p == 1:
@@ -246,7 +246,7 @@ class Stiefel(LevelSet):
 
         References
         ----------
-        .. [FR1984] Fuks, D. B., and V. A. Rokhlin. Beginner's Course in Topology.
+        .. [FR1984] Fuks, D. B., and V. A. Rokhlin. "Beginner's Course in Topology."
            1st ed. Universitext. Springer, August 1984. Berlin, Germany.
         """
         return True
