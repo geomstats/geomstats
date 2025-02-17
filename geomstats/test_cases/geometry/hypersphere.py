@@ -569,3 +569,15 @@ class HypersphereIntrinsicTestCase(ManifoldTestCase):
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
+
+
+class HypersphereConnectednessTestCase(TestCase):
+    def test_is_connected(self):
+        msg = "Only 0-dimensional Hypersphere is disconnected."
+        self.assertTrue(self.space.is_connected, msg=msg)
+
+
+class HypersphereCompactnessTestCase(TestCase):
+    def test_is_compact(self):
+        msg = "All Hyperspheres are compact."
+        self.assertTrue(self.space.is_compact, msg=msg)
