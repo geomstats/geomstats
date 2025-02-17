@@ -2,7 +2,7 @@ from geomstats.test.test_case import TestCase
 
 
 class GrassmannianConnectednessTestCase(TestCase):
-    def test_is_connected(self, n, p, expected):
+    def test_is_connected(self):
         msg = "All Grassmannians are connected."
         self.assertTrue(self.space.is_connected, msg=msg)
 
