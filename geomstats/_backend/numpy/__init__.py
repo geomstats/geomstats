@@ -71,7 +71,7 @@ from numpy import (
     where,
     zeros_like,
 )
-# Import trapezoid function with version-dependent name
+# Import trapezoid or trapz depending on NumPy version
 numpy_version = _np.__version__
 major_version = int(numpy_version.split('.')[0])
 if major_version >= 2:
