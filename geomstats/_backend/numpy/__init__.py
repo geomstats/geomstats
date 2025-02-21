@@ -61,7 +61,6 @@ from numpy import (
     take,
     tile,
     transpose,
-    trapezoid,
     tril,
     tril_indices,
     triu,
@@ -72,6 +71,13 @@ from numpy import (
     where,
     zeros_like,
 )
+# Import trapezoid function with version-dependent name
+numpy_version = _np.__version__
+major_version = int(numpy_version.split('.')[0])
+if major_version >= 2:
+    from numpy import trapezoid
+else:
+    from numpy import trapz as trapezoid
 from scipy.special import erf, gamma, polygamma  # NOQA
 
 from .._shared_numpy import (
