@@ -61,7 +61,6 @@ from autograd.numpy import (
     take,
     tile,
     transpose,
-    trapezoid,
     tril,
     tril_indices,
     triu,
@@ -72,6 +71,13 @@ from autograd.numpy import (
     where,
     zeros_like,
 )
+# Import trapezoid or trapz depending on NumPy version
+from numpy import __version__ as numpy_version
+major_version = int(numpy_version.split('.')[0])
+if major_version >= 2:
+    from autograd.numpy import trapezoid
+else:
+    from autograd.numpy import trapz as trapezoid
 from autograd.scipy.special import erf, gamma, polygamma  # NOQA
 
 from .._shared_numpy import (
