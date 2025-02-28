@@ -61,7 +61,6 @@ from numpy import (
     take,
     tile,
     transpose,
-    trapezoid,
     tril,
     tril_indices,
     triu,
@@ -72,6 +71,12 @@ from numpy import (
     where,
     zeros_like,
 )
+
+try:
+    from numpy import trapezoid
+except ImportError:
+    from numpy import trapz as trapezoid
+
 from scipy.special import erf, gamma, polygamma  # NOQA
 
 from .._shared_numpy import (
