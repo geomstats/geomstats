@@ -71,13 +71,12 @@ from numpy import (
     where,
     zeros_like,
 )
-# Import trapezoid or trapz depending on NumPy version
-numpy_version = _np.__version__
-major_version = int(numpy_version.split('.')[0])
-if major_version >= 2:
+
+try:
     from numpy import trapezoid
-else:
+except ImportError:
     from numpy import trapz as trapezoid
+
 from scipy.special import erf, gamma, polygamma  # NOQA
 
 from .._shared_numpy import (
