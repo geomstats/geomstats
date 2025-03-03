@@ -63,6 +63,39 @@ class Euclidean(VectorSpace):
         """
         return tangent_vec + base_point
 
+    @property
+    def is_connected(self):
+        """Indicates whether the geometric object is connected.
+
+        All Euclidean spaces are connected. See [M2000]_ page 155.
+
+        Returns
+        -------
+        is_connected: bool
+
+        References
+        ----------
+        .. [M2000] James R. Munkres. "Topology." 2nd edition. Prentice Hall, 2000.
+        """
+        return True
+
+    @property
+    def is_compact(self):
+        """Indicates whether the geometric object is compact.
+
+        All Euclidean spaces are not compact. See [M2000]_
+        Theorem 27.3 on page 173.
+
+        Returns
+        -------
+        is_compact: bool
+
+        References
+        ----------
+        .. [M2000] James R. Munkres. "Topology." 2nd edition. Prentice Hall, 2000.
+        """
+        return False
+
 
 class EuclideanMetric(RiemannianMetric):
     """Class for a Euclidean metric.
