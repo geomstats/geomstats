@@ -117,7 +117,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
     space :math:`M`, with non-vanishing derivative.
 
     .. math::
-        Imm(I, M)=\{c \in C^{\infty}(I, M) \|c'(s)\|\neq 0 \forall s \in I \},
+        Imm(I, M)={c \in C^{\infty}(I, M) \|c'(s)\|\neq 0 \forall s \in I },
 
     where the interval of parameters :math:`I` is taken to be :math:`I = [0, 1]`
     without loss of generality.
@@ -134,6 +134,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
 
     def __init__(self, ambient_dim=2, k_sampling_points=10, equip=True):
         ambient_manifold = Euclidean(ambient_dim)
+        self.closed = False
         super().__init__(ambient_manifold, k_sampling_points - 1, equip=equip)
 
         self._sphere = Hypersphere(dim=ambient_dim - 1)
@@ -272,29 +273,208 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
         return gs.einsum("...ij,...->...ij", point, 1 / self.length(point))
 
 
+class ClosedDiscreteCurvesStartingAtOrigin(NFoldManifold):
+    r"""Space of discrete closed curves modulo translations.
+
+    Each individual curve is represented by a 2d-array of shape
+    `[k_sampling_points - 2, ambient_dim]`.
+
+    The choice to represent each curve by `k_sampling_points - 2` guarantees that
+    :math:`delta = 1 / (k_sampling_points - 1)` is valid.
+
+    This space corresponds to the space of immersions defined below, i.e. the
+    space of smooth functions from an interval I into the ambient Euclidean
+    space M, with non-vanishing derivative.
+
+    .. math::
+        Imm(I, M)=\{c \in C^{\infty}(I, M) \|c'(s)\|\neq 0 \forall s \in I \},
+
+    where the interval of parameters I is taken to be I = [0, 1]
+    without loss of generality.
+
+    Parameters
+    ----------
+    ambient_dim : int
+        Dimension of the ambient Euclidean space in which curves take values.
+    k_sampling_points : int
+        Number of sampling points.
+    equip : bool
+        If True, equip space with default metric.
+    """
+
+    def __init__(self, ambient_dim=2, k_sampling_points=10, equip=True):
+        ambient_manifold = Euclidean(ambient_dim)
+        self.closed = True
+        super().__init__(ambient_manifold, k_sampling_points - 2, equip=equip)
+
+        self._sphere = Hypersphere(dim=ambient_dim - 1)
+        self._discrete_curves_with_l2 = None
+
+    @property
+    def ambient_manifold(self):
+        """Manifold in which curves take values."""
+        return self.base_manifold
+
+    @property
+    def k_sampling_points(self):
+        """Number of sampling points for the discrete curves."""
+        return self.n_copies + 2
+
+    @property
+    def discrete_curves_with_l2(self):
+        """Copy of discrete curves with the L^2 metric."""
+        if self._discrete_curves_with_l2 is None:
+            self._discrete_curves_with_l2 = DiscreteCurvesStartingAtOrigin(
+                k_sampling_points=self.k_sampling_points,
+                ambient_dim=self.ambient_manifold.dim,
+                equip=False,
+            ).equip_with_metric(L2CurvesMetric)
+        return self._discrete_curves_with_l2
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return SRVMetric
+
+    def insert_origin(self, point):
+        """Insert origin as first  and last element of point."""
+        return insert_zeros(
+            insert_zeros(point, axis=-self.point_ndim),
+            axis=-self.point_ndim,
+            end=True,
+        )
+
+    def projection(self, point):
+        """Project a point from discrete curves.
+
+        Removes translation and origin, i.e. first and last elements of point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points, ambient_dim]
+
+        Returns
+        -------
+        proj_point : array-like, shape=[..., k_sampling_points - 2, ambient_dim]
+        """
+        if point.shape[-2] == self.k_sampling_points - 2:
+            return gs.copy(point)
+
+        elif point.shape[-2] == self.k_sampling_points - 1:
+            return (point[..., :, :] - gs.expand_dims(point[..., 0, :], axis=-2))[
+                ..., 1:, :
+            ]
+
+        return (point[..., :, :] - gs.expand_dims(point[..., 0, :], axis=-2))[
+            ..., 1:-1, :
+        ]
+
+    def random_point(self, n_samples=1, scale=0.1):
+        """Sample random curves.
+
+        This simply adds random noise to a circle.
+
+        Parameters
+        ----------
+        n_samples : int.
+            Number of sample points.
+        scale : float
+            Scale of random noise.
+
+        Returns
+        -------
+        random_point : array-like, shape=[..., k_sampling_points - 2, ambient_dim]
+        """
+        if self.ambient_manifold.dim != 2:
+            raise NotImplementedError("`random_point` only implemented for n=2")
+
+        theta = 2 * gs.pi * gs.linspace(0.0, 1.0, num=self.k_sampling_points)[1:]
+
+        x = gs.cos(theta)
+        y = gs.sin(theta)
+
+        point = gs.stack([x, y], axis=-1)
+        batch_shape = () if n_samples == 1 else (n_samples,)
+        random_noise = gs.random.normal(scale=scale, size=batch_shape + point.shape)
+
+        return self.projection(point + random_noise)
+
+    def interpolate(self, point):
+        """Interpolate between the sampling points of a discrete curve.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points - 2, ambient_dim]
+            Discrete curve starting at the origin.
+
+        Returns
+        -------
+        spline : function
+            Cubic spline that interpolates between the sampling points
+            of the discrete curve.
+        """
+        k_sampling_points = self.k_sampling_points
+        t_space = gs.linspace(0.0, 1.0, k_sampling_points)
+        point_with_origin = self.insert_origin(point)
+        is_batch = check_is_batch(self.point_ndim, point)
+
+        def interpolating_curve(t):
+            if not is_batch:
+                return gs.from_numpy(
+                    CubicSpline(t_space, point_with_origin, axis=-self.point_ndim)(t)
+                )
+            return gs.stack(
+                [
+                    gs.from_numpy(
+                        CubicSpline(t_space, point_with_origin_, axis=-self.point_ndim)(
+                            t
+                        )
+                    )
+                    for point_with_origin_ in point_with_origin
+                ]
+            )
+
+        return interpolating_curve
+
+    def length(self, point):
+        """Compute the length of a discrete curve.
+
+        This is the integral of the absolute value of the velocity.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points, ambient_dim]
+            Discrete curve starting at the origin.
+
+        Returns
+        -------
+        length : array-like, shape=[..., ]
+            Length of the discrete curve.
+        """
+        point_with_origin = self.insert_origin(point)
+        velocity = forward_difference(point_with_origin, axis=-self.point_ndim)
+        l2_metric = self.discrete_curves_with_l2.metric
+        return l2_metric.norm(velocity, point_with_origin[..., :-1, :])
+
+    def normalize(self, point):
+        """Rescale discrete curve to have unit length."""
+        return gs.einsum("...ij,...->...ij", point, 1 / self.length(point))
+
+
 class SRVTransform(Diffeo):
     """SRV transform.
 
     Diffeomorphism between discrete curves starting at origin with
     `k_sampling_points` and landmarks with `k_sampling_points - 1`.
 
-    Parameters
-    ----------
-    ambient_manifold : Manifold
-        Manifold in which curves take values.
-    k_sampling_points : int
-        Number of sampling points.
-
     Notes
     -----
     It is currently only implemented for the Euclidean ambient manifold.
     """
 
-    def __init__(self, ambient_manifold, k_sampling_points):
-        self.ambient_manifold = ambient_manifold
-        self.k_sampling_points = k_sampling_points
-
-        self._point_ndim = self.ambient_manifold.point_ndim + 1
+    def __init__(self, space):
+        self.space = space
+        self._point_ndim = self.space.ambient_manifold.point_ndim + 1
 
     def __call__(self, base_point):
         r"""Square Root Velocity Transform (SRVT).
@@ -320,11 +500,9 @@ class SRVTransform(Diffeo):
             SRV representation.
         """
         ndim = self._point_ndim
-        base_point_with_origin = insert_zeros(base_point, axis=-ndim)
-
+        base_point_with_origin = self.space.insert_origin(base_point)
         velocity = forward_difference(base_point_with_origin, axis=-ndim)
-
-        pointwise_velocity_norm = self.ambient_manifold.metric.norm(
+        pointwise_velocity_norm = self.space.ambient_manifold.metric.norm(
             velocity, base_point_with_origin[..., :-1, :]
         )
         return gs.einsum(
@@ -360,15 +538,18 @@ class SRVTransform(Diffeo):
         curve : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Discrete curve.
         """
-        image_point_norm = self.ambient_manifold.metric.norm(image_point)
-
-        dt = 1 / (self.k_sampling_points - 1)
+        image_point_norm = self.space.ambient_manifold.metric.norm(image_point)
+        dt = 1 / (self.space.k_sampling_points - 1)
 
         pointwise_delta_points = gs.einsum(
             "...,...i->...i", dt * image_point_norm, image_point
         )
 
-        return gs.cumsum(pointwise_delta_points, axis=-2)
+        cumsum = gs.cumsum(pointwise_delta_points, axis=-2)
+        if self.space.closed:
+            return cumsum[..., :-1, :]
+
+        return cumsum
 
     def tangent(self, tangent_vec, base_point=None, image_point=None):
         r"""Differential of the square root velocity transform.
@@ -396,18 +577,16 @@ class SRVTransform(Diffeo):
             base_point = self.inverse(image_point)
 
         ndim = self._point_ndim
-        base_point_with_origin = insert_zeros(base_point, axis=-ndim)
-        tangent_vec_with_zeros = insert_zeros(tangent_vec, axis=-ndim)
-
+        base_point_with_origin = self.space.insert_origin(base_point)
+        tangent_vec_with_zeros = self.space.insert_origin(tangent_vec)
         d_vec = forward_difference(tangent_vec_with_zeros, axis=-ndim)
         velocity_vec = forward_difference(base_point_with_origin, axis=-ndim)
 
-        velocity_norm = self.ambient_manifold.metric.norm(velocity_vec)
+        velocity_norm = self.space.ambient_manifold.metric.norm(velocity_vec)
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
-
-        pointwise_inner_prod = self.ambient_manifold.metric.inner_product(
+        pointwise_inner_prod = self.space.ambient_manifold.metric.inner_product(
             d_vec, unit_velocity_vec, base_point_with_origin[..., :-1, :]
         )
         d_vec_tangential = gs.einsum(
@@ -448,16 +627,14 @@ class SRVTransform(Diffeo):
             base_point = self.inverse(image_point)
 
         ndim = self._point_ndim
-        base_point_with_origin = insert_zeros(base_point, axis=-ndim)
-
+        base_point_with_origin = self.space.insert_origin(base_point)
         position = base_point_with_origin[..., :-1, :]
         velocity_vec = forward_difference(base_point_with_origin, axis=-ndim)
-        velocity_norm = self.ambient_manifold.metric.norm(velocity_vec, position)
+        velocity_norm = self.space.ambient_manifold.metric.norm(velocity_vec, position)
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
-
-        pointwise_inner_prod = self.ambient_manifold.metric.inner_product(
+        pointwise_inner_prod = self.space.ambient_manifold.metric.inner_product(
             image_tangent_vec,
             unit_velocity_vec,
             position,
@@ -467,9 +644,13 @@ class SRVTransform(Diffeo):
         )
         d_vec = image_tangent_vec + tangent_vec_tangential
         d_vec = gs.einsum("...ij,...i->...ij", d_vec, velocity_norm ** (1 / 2))
-        increment = d_vec / (self.k_sampling_points - 1)
+        increment = d_vec / (self.space.k_sampling_points - 1)
 
-        return gs.cumsum(increment, axis=-2)
+        cumsum = gs.cumsum(increment, axis=-2)
+        if self.space.closed:
+            return cumsum[..., :-1, :]
+
+        return cumsum
 
 
 class FTransform(AutodiffDiffeo):
@@ -851,7 +1032,7 @@ class SRVMetric(PullbackDiffeoMetric):
 
         image_space = self._instantiate_image_space(space)
 
-        diffeo = SRVTransform(space.ambient_manifold, space.k_sampling_points)
+        diffeo = SRVTransform(space)
         super().__init__(space=space, diffeo=diffeo, image_space=image_space)
 
     def _check_ambient_manifold(self, ambient_manifold):
