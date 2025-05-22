@@ -9,6 +9,7 @@ from numpy import (
     any,
     argmax,
     argmin,
+    asarray,
     broadcast_arrays,
     broadcast_to,
     clip,

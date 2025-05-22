@@ -47,6 +47,7 @@ BACKEND_ATTRIBUTES = {
         "argmin",
         "array",
         "array_from_sparse",
+        "asarray",
         "as_dtype",
         "assignment",
         "assignment_by_sum",
