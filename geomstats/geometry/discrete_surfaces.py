@@ -277,7 +277,7 @@ class DiscreteSurfaces(Manifold):
             gs.reshape(self.faces, (-1,)), batch_shape + (math.prod(self.faces.shape),)
         )
         val = gs.reshape(
-            gs.broadcast_to(gs.expand_dims(area, axis=-2), batch_shape + (3, n_faces)),
+            gs.broadcast_to(gs.expand_dims(area, axis=-1), batch_shape + (n_faces, 3)),
             batch_shape + (-1,),
         )
         incident_areas = gs.zeros(batch_shape + (n_vertices,), dtype=val.dtype)
