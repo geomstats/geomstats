@@ -75,10 +75,8 @@ def svd(x, full_matrices=True, compute_uv=True):
     return _torch.linalg.svdvals(x)
 
 
-def norm(x, ord=None, axis=None):
-    if axis is None:
-        return _torch.linalg.norm(x, ord=ord)
-    return _torch.linalg.norm(x, ord=ord, dim=axis)
+def norm(x, ord=None, axis=None, keepdims=False):
+    return _torch.linalg.norm(x, ord=ord, dim=axis, keepdim=keepdims)
 
 
 def matrix_rank(a, hermitian=False, **_unused_kwargs):
