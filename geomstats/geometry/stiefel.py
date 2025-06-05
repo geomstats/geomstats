@@ -200,6 +200,57 @@ class Stiefel(LevelSet):
         mat_u, _, mat_v = gs.linalg.svd(point)
         return Matrices.mul(mat_u[..., :, : self.p], mat_v)
 
+    @property
+    def is_connected(self):
+        """Indicates whether the geometric object is connected.
+
+        The connectedness of the (real) Stiefel manifold St(n, p)
+        are:
+
+        - St(n, 1) is the (n-1)-sphere.
+        - St(n, n) is the orthogonal group O(n).
+        - St(n, n-1) is the special orthogonal group SO(n)
+        - St(n, p) with p < n-1 are continuous images of
+          St(n, n-1)
+
+        See [FR1984]_ page 171--173.
+
+        Returns
+        -------
+        is_connected: bool
+
+        References
+        ----------
+        .. [FR1984] Fuks, D. B., and V. A. Rokhlin. "Beginner's Course in Topology."
+           1st ed. Universitext. Springer, August 1984. Berlin, Germany.
+        """
+        if self.p == 1:
+            return self.n > 1
+
+        elif self.p <= self.n - 1:
+            return True
+
+        else:
+            return False
+
+    @property
+    def is_compact(self):
+        """Indicates whether the geometric object is compact.
+
+        All real Stiefel manifolds are compact. See [FR1984]_
+        page 173.
+
+        Returns
+        -------
+        is_compact: bool
+
+        References
+        ----------
+        .. [FR1984] Fuks, D. B., and V. A. Rokhlin. "Beginner's Course in Topology."
+           1st ed. Universitext. Springer, August 1984. Berlin, Germany.
+        """
+        return True
+
 
 class StiefelCanonicalMetric(RiemannianMetric):
     """Class that defines the canonical metric for Stiefel manifolds."""
