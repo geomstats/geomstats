@@ -7,6 +7,7 @@ import torch as _torch
 from torch import (
     arange,
     argmin,
+    asarray,
     clip,
     complex64,
     complex128,
@@ -39,7 +40,6 @@ from torch import (
     stack,
     trapezoid,
     uint8,
-    unique,
     vstack,
     zeros,
     zeros_like,
@@ -812,3 +812,7 @@ def imag(a):
     if is_complex(a):
         return _torch.imag(a)
     return _torch.zeros(a.shape, dtype=a.dtype)
+
+
+def unique(ar, axis=None):
+    return _torch.unique(ar, dim=axis)
