@@ -6,41 +6,20 @@ from geomstats.test.data import TestData
 from ._base import BaseEstimatorTestData, MeanEstimatorMixinsTestData
 
 
-class FrechetMeanTestData(MeanEstimatorMixinsTestData, BaseEstimatorTestData):
-    fail_for_autodiff_exceptions = False
-
-    def logs_at_mean_test_data(self):
-        return self.generate_tests([{}])
-
-    def weighted_mean_two_points_test_data(self):
-        return self.generate_tests([{}])
-
-
-class FrechetMeanSOCoincideTestData(BaseEstimatorTestData):
+class RobustMestimatorSOCoincideTestData(BaseEstimatorTestData):
     def estimate_coincide_test_data(self):
         return self.generate_random_data()
 
 
-class CircularMeanTestData(FrechetMeanTestData):
-    skips = ("weighted_mean_two_points",)
-
-    def against_optimization_test_data(self):
-        # TODO: something wrong for certain n_points?
-        return self.generate_tests([dict(n_points=10, atol=1e-4)])
+class HuberMeanExtremeCTestData(BaseEstimatorTestData):
+    def huber_extreme_c_test_data(self):
+        return self.generate_random_data()
 
 
-class LinearMeanEuclideaTestData(TestData):
-    def fit_test_data(self):
-        data = [
-            dict(
-                X=gs.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0], [4.0, 5.0]]),
-                weights=gs.array([1.0, 2.0, 1.0, 2.0]),
-                expected=gs.array([16.0 / 6.0, 22.0 / 6.0]),
-            )
-        ]
-
-        return self.generate_tests(data)
-
+class AutoGradientDescentTestData(TestData):
+    def auto_grad_descent_same_as_explicit_grad_descent_test_data(self):
+        return self.generate_random_data()
+    
 
 class VarianceTestData(BaseEstimatorTestData):
     def variance_repeated_is_zero_test_data(self):
@@ -58,10 +37,3 @@ class VarianceEuclideanTestData(TestData):
             )
         ]
         return self.generate_tests(data)
-
-
-class BatchGradientDescentTestData(TestData):
-    def against_default_test_data(self):
-        return self.generate_tests(
-            [dict(n_points=random.randint(2, 10), n_reps=random.randint(2, 5))]
-        )
