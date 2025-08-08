@@ -1,15 +1,6 @@
-"""Riemannian Robust M-estimator Fitting
+"""Riemannian Robust M-estimator Fitting.
 
 Lead author: Jihyun Ryu.
-"""
-"""
-2nd upload of Riemannian robust M-estimators code
-Fitting robust M-estimators on Riemannian Manifolds. By utilizing autograd and pytorch backends, 
-we can also automatically calculate the gradient of loss function(either for M-estimators provided in the code(rho function) 
-or loss function provided by user in a certain manner).
-
-6/30 commit : Autograd, default base gradient, adaptive gradient code revision(iteration result tracking, escaping local minima, step size bounding)
-
 """
 
 import abc
@@ -17,14 +8,14 @@ import logging
 import math
 import time
 
-from sklearn.base import BaseEstimator
 from scipy.optimize import OptimizeResult
+from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
 import geomstats.errors as error
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.geometric_median import GeometricMedian
-from geomstats.geometry.spd_matrices import SPDMatrices
 
 
 def _scalarmul(scalar, array):
@@ -39,10 +30,27 @@ def _batchscalarmulsum(array_1, array_2):
     return gs.einsum("ni,ni...->i...", array_1, array_2)
 
 def gs_argsort(sorted_target):
+    """Sort values and return sorted index from input.
+    
+    Notes
+    -----
+    The same as np.argsort method in numpy
+
+    """
     sorted_idx = gs.array([i for i, _ in sorted(enumerate(sorted_target), key=lambda x: x[1])])
     return sorted_idx
     
 def set_midpoint(points):
+    """Generate midpoint as initial point for Riemannian gradient descent based on dataset.
+        
+    Parameters
+    ----------
+    points : Given dataset.
+
+    Returns
+    -------
+    Midpoint with respect to the first dimension axis values of the dataset.
+    """
     n_points = points.shape[0]
     medpoint = int(n_points/2-1) if n_points%2==0 else int((points.shape[0]-1)/2)
     first_coord = tuple([0]*(len(points.shape)-1))
@@ -50,6 +58,17 @@ def set_midpoint(points):
     return points[gs_argsort(sorted_target)[medpoint]]
 
 def set_mean_projection(space,points):
+    """Generate mean-projection as initial point for Riemannian gradient descent based on dataset.
+    
+    Parameters
+    ----------
+    space : Manifold which data are on.
+    points : Given dataset.
+
+    Returns
+    -------
+    Projected value of Euclidean average point to given manifold.
+    """
     mean_points = gs.mean(points,axis=0)
     mean_projection = space.projection(mean_points)
     return mean_projection
@@ -160,6 +179,22 @@ class BaseGradientDescent(abc.ABC):
         self.perturbation_epsilon = perturbation_epsilon
 
     def fun__(self, fun, base):
+        """Set given function as the function with one base point input.
+
+        Parameters
+        ----------
+        function : method
+            An M-estimator like method for gradient descent algorithm.
+            The given method must must have variables (space, points, base)
+              - space : geomstats geometry class, the manifold which data are on.
+              - points : dataset.
+              - base : points for the tangent space where gradient is computed.
+            and optional variables (critical_value, weight) 
+              - critical_value : float or array-like, parameter to manage the impact of outliers.
+              - weight : weight for each data, shape=[points.shape[0],...], default None.
+        base : Not valid
+
+        """
         return lambda base: fun(self.points, base, self.weights)
 
     def _set_init_point(self, space, points, init_point_method):
@@ -331,9 +366,7 @@ class RiemannianAutoGradientDescent(BaseGradientDescent):
 
 
 class GradientDescent(BaseGradientDescent):
-    """Default gradient descent.
-    
-    """
+    """Default gradient descent."""
 
     def minimize(self, space, points, critical_value, loss_grad_fun=None, weights=None, init_point_method='first'):
         """Perform default gradient descent.
@@ -354,7 +387,6 @@ class GradientDescent(BaseGradientDescent):
             midpoint : sort by first dimension values and using the midpoint from the sorted order.
             
         """
-        
         n_points = gs.shape(points)[0]
         if weights is None:
             weights = gs.ones((n_points,))
@@ -437,6 +469,7 @@ class AdaptiveGradientDescent(BaseGradientDescent):
 
     def minimize(self, space, points, critical_value, loss_grad_fun=None, weights=None, init_point_method='first'):
         """Perform adaptive gradient descent.
+
         M-estimator mean of (weighted) points using adaptive time-steps
         The loss function optimized is given by M-estimator loss function.
         
@@ -568,6 +601,7 @@ class RiemannianRobustMestimator(BaseEstimator):
         bases : containing all base results throughout learning
         n_iter : total iteration counts
         time : elapsed time to finish learning
+    
     Notes
     -----
     * Required metric methods for general case:
@@ -708,8 +742,10 @@ class RiemannianRobustMestimator(BaseEstimator):
         sum_weights = gs.sum(weights)
         return weights,sum_weights        
    
+
     def _riemannian_huber_loss_grad(self, points, base, critical_value=1.345, weights=None, loss_and_grad=False):
-        """Huber loss
+        """Huber loss.
+
         ρ(ξ) = ξ²          if ξ ≤ c
                2c(ξ-c/2)   if ξ > c
 
@@ -737,6 +773,7 @@ class RiemannianRobustMestimator(BaseEstimator):
         Reference
         ---------
         [LJ2024] Lee, Jongmin, Jung, Sungkyu. “Huber means on Riemannian manifolds”, arXiv preprint arXiv:2407.15764, 2024. https://doi.org/10.48550/arXiv.2407.15764
+
         """
         n = points.shape[0]
         weights, sum_weights = self._set_weights(n,weights=None)
@@ -761,7 +798,7 @@ class RiemannianRobustMestimator(BaseEstimator):
         return loss, self.space.to_tangent(current_gradient_value,base_point=base)
    
     def _riemannian_pseudo_huber_loss_grad(self, points, base, critical_value=1.345, weights=None, loss_and_grad=False):
-        """pseudo Huber loss
+        """Pseudo Huber loss.
 
         ρ(ξ) = 2c²{sqrt(1+(ξ/c)²)-1}
 
@@ -813,7 +850,7 @@ class RiemannianRobustMestimator(BaseEstimator):
 
    
     def _riemannian_fair_loss_grad(self, points, base, critical_value=1.3998, weights=None, loss_and_grad=False):
-        """Fair loss function
+        """Fair loss function.
         
         ρ(ξ)=c²(ξ/c - ln(1+ξ/c))
         gradients: ρ'(ξ)=c·ξ/(c+ξ) → grad_i = -(c/(c+ξ))·v
@@ -839,7 +876,6 @@ class RiemannianRobustMestimator(BaseEstimator):
             gradient of loss from the points provided.
             This should be on the tangent space of the manifold(space) provided.
         """
-        
         n = len(points)
         weights,sum_weights = self._set_weights(n,weights=None)
         self.critical_value = critical_value
@@ -857,7 +893,7 @@ class RiemannianRobustMestimator(BaseEstimator):
         return loss, self.space.to_tangent(grad,base_point=base)
    
     def _riemannian_cauchy_loss_grad(self, points, base, critical_value=2.3849, weights=None, loss_and_grad=False):
-        """Cauchy loss function
+        """Cauchy loss function.
         
         ρ(ξ) = (c²/2)·ln(1 + ξ²/c²)
         gradients: ρ'(ξ)=c²/(c²+ξ²) → grad_i = -(c²/(c²+ξ²))·v
@@ -883,7 +919,6 @@ class RiemannianRobustMestimator(BaseEstimator):
             gradient of loss from the points provided.
             This should be on the tangent space of the manifold(space) provided.
         """
-        
         n = len(points)
         weights,sum_weights = self._set_weights(n,weights=None)
         self.critical_value = critical_value
@@ -901,9 +936,10 @@ class RiemannianRobustMestimator(BaseEstimator):
        
    
     def _riemannian_biweight_loss_grad(self, points, base, critical_value=4.6851, weights=None, loss_and_grad=False):
-        """Tukey’s biweight loss function:
+        """Tukey’s biweight loss function.
+
           ρ(ξ) = (c²/6)[1 - (1 - ξ²/c²)³],  |ξ|≤c
-                 c²/6,                      |ξ|>c
+                 c²/6,                      |ξ|>c.
           gradients: ρ'(ξ)=ξ·(1 - ξ²/c²)² → grad_i = -(1 - (ξ/c)²)² · v
         
         Parameters
@@ -945,7 +981,7 @@ class RiemannianRobustMestimator(BaseEstimator):
         return loss, self.space.to_tangent(grad,base_point=base)
    
     def _riemannian_welsch_loss_grad(self, points, base, critical_value=2.9846, weights=None, loss_and_grad=False):
-        """Welsch loss function
+        """Welsch loss function.
           
         ρ(ξ) = (c²/2)[1 - exp(-ξ²/c²)]
         gradients: ρ'(ξ)=ξ·exp(-ξ²/c²) → grad_i = -exp(-ξ²/c²)·v
@@ -988,7 +1024,7 @@ class RiemannianRobustMestimator(BaseEstimator):
    
    
     def _riemannian_hampel_loss_grad(self, points, base, critical_value=1.35, weights=None, loss_and_grad=False):
-        """Hampel‐type redescending loss        
+        """Hampel‐type redescending loss.
         
         grad = - (ρ'(ξ)/ξ) · v
         
@@ -1016,13 +1052,12 @@ class RiemannianRobustMestimator(BaseEstimator):
         Notes
         -----
         critical_value = (a_H, b_H, c_H)
-            - a_H: quadratic-to-linear change point
-            - b_H: linear-to-redescending change point
-            - c_H: redescending-to-constant change point
-            If float type critical value is given, critical value is modified to 
-                (critical_value, 2*critical_value, 4*critical_value)
-        """
-        
+            a_H: quadratic-to-linear change point
+            b_H: linear-to-redescending change point
+            c_H: redescending-to-constant change point
+            If float type critical value is given, critical value is modified
+            to (critical_value, 2*critical_value, 4*critical_value) automatically.
+        """        
         self.critical_value = critical_value
         if isinstance(self.critical_value,float) or isinstance(self.critical_value,int):
             a = self.critical_value*1.0
@@ -1055,7 +1090,8 @@ class RiemannianRobustMestimator(BaseEstimator):
    
    
     def _riemannian_correntropy_loss_grad(self, points, base, critical_value=2.1105, weights=None, loss_and_grad=False):
-        ''' correntropy loss
+        """Correntropy loss function.
+
         grad_i = - (1/(C^3√(2π)))·e^{-ξ²/(2C²)} · v
         
         Parameters
@@ -1078,7 +1114,7 @@ class RiemannianRobustMestimator(BaseEstimator):
         gradient : array-like, shape=[dim,]
             gradient of loss from the points provided.
             This should be on the tangent space of the manifold(space) provided.
-        '''
+        """
         n = len(points)
         weights,sum_weights = self._set_weights(n,weights=None)
         self.critical_value = critical_value
@@ -1097,8 +1133,9 @@ class RiemannianRobustMestimator(BaseEstimator):
         grad = _scalarmulsum(weights, grad) / sum_weights
         return loss, self.space.to_tangent(grad,base_point=base)
    
+
     def _riemannian_logistic_loss_grad(self, points, base, critical_value=1.205, weights=None, loss_and_grad=False):
-        ''' logistic loss
+        """Logistic loss.
                 
         Parameters
         ----------
@@ -1120,7 +1157,7 @@ class RiemannianRobustMestimator(BaseEstimator):
         gradient : array-like, shape=[dim,]
             gradient of loss from the points provided.
             This should be on the tangent space of the manifold(space) provided.
-        '''
+        """
         n = len(points)
         weights,sum_weights = self._set_weights(n,weights=None)
         self.critical_value = critical_value
@@ -1138,9 +1175,8 @@ class RiemannianRobustMestimator(BaseEstimator):
         return loss, self.space.to_tangent(grad,base_point=base)
        
    
-    # ── #23 Lorentzian-quadratic loss ────────────────────────────────────────
     def _riemannian_lorentzian_loss_grad(self, points, base, critical_value=2.678, weights=None, loss_and_grad=False):
-        ''' Lorentzian loss
+        """Lorentzian loss.
                 
         Parameters
         ----------
@@ -1162,7 +1198,7 @@ class RiemannianRobustMestimator(BaseEstimator):
         gradient : array-like, shape=[dim,]
             gradient of loss from the points provided.
             This should be on the tangent space of the manifold(space) provided.
-        '''
+        """
         n = len(points)
         weights,sum_weights = self._set_weights(n,weights=None)
         self.critical_value = critical_value
@@ -1223,10 +1259,9 @@ class RiemannianRobustMestimator(BaseEstimator):
         self : object
             Returns self.
         """
-       
         if self.method not in ['autograd']:
             if self.fun_provided:
-                raise ValueError(f"Only autograd method available if Loss Function/M-estimator provided. check gs.has_autodiff() is True")
+                raise ValueError("Only autograd method available if Loss Function/M-estimator provided. check gs.has_autodiff() is True")
             self.estimate_ = self.optimizer.minimize(
                 space=self.space,
                 points=X,
