@@ -1,9 +1,7 @@
-import random
-
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from ._base import BaseEstimatorTestData, MeanEstimatorMixinsTestData
+from ._base import BaseEstimatorTestData
 
 
 class RobustMestimatorSOCoincideTestData(BaseEstimatorTestData):

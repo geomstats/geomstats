@@ -1,28 +1,20 @@
 import random
-# import os
-# os.environ["GEOMSTATS_BACKEND"] = "autograd"  ## TODO
-# import geomstats.backend as gs
-# print(gs.has_autodiff())
+
 import pytest
 
-from geomstats.geometry.hyperboloid import Hyperboloid
-from geomstats.geometry.poincare_half_space import PoincareHalfSpace
-from geomstats.geometry.poincare_ball  import PoincareBall
-from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.spd_matrices import (
-    SPDLogEuclideanMetric,
-    SPDMatrices,
-)
+from geomstats.geometry.hyperboloid import Hyperboloid
+from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.poincare_ball import PoincareBall
+from geomstats.geometry.poincare_half_space import PoincareHalfSpace
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.learning.riemannian_robust_m_estimator import (
-    RiemannianRobustMestimator,
-    BaseGradientDescent,
-    RiemannianAutoGradientDescent,
-)
-from geomstats.test.test_case import autograd_and_torch_only
+from geomstats.learning.frechet_mean import FrechetMean
+from geomstats.learning.geometric_median import GeometricMedian
+from geomstats.learning.riemannian_robust_m_estimator import RiemannianRobustMestimator
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.test_case import autograd_and_torch_only
 from geomstats.test_cases.learning._base import BaseEstimatorTestCase
 from geomstats.test_cases.learning.riemannian_robust_m_estimator import (
     AutoGradientDescentTestCase,
@@ -37,8 +29,6 @@ from .data.riemannian_robust_m_estimator import (
     VarianceEuclideanTestData,
     VarianceTestData,
 )
-from geomstats.learning.frechet_mean import FrechetMean
-from geomstats.learning.geometric_median import GeometricMedian
 
 
 class TestRobustMestimatorSOCoincide(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
