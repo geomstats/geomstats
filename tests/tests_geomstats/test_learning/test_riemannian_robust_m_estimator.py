@@ -12,20 +12,28 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.geometric_median import GeometricMedian
-from geomstats.learning.riemannian_robust_m_estimator import RiemannianRobustMestimator
+from geomstats.learning.riemannian_robust_m_estimator import (
+    RiemannianAutoGradientDescent,
+    RiemannianRobustMestimator,
+)
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.test_case import autograd_and_torch_only
+from geomstats.test.test_case import autograd_and_torch_only, np_only
 from geomstats.test_cases.learning._base import BaseEstimatorTestCase
 from geomstats.test_cases.learning.riemannian_robust_m_estimator import (
     AutoGradientDescentTestCase,
+    DiffStartingPointSameResultTestCase,
     HuberMeanExtremeCTestCase,
+    SameMestimatorFunctionGivenByCustomAndExplicitTestCase,
     VarianceTestCase,
 )
 
 from .data.riemannian_robust_m_estimator import (
     AutoGradientDescentTestData,
+    AutoGradientNotImplementedOnNumpyBackendTestData,
+    DiffStartingPointSameResultTestData,
     HuberMeanExtremeCTestData,
     RobustMestimatorSOCoincideTestData,
+    SameMestimatorFunctionGivenByCustomAndExplicitTestData,
     VarianceEuclideanTestData,
     VarianceTestData,
 )
@@ -131,3 +139,94 @@ class TestVariance(VarianceTestCase, metaclass=DataBasedParametrizer):
 class TestVarianceEuclidean(VarianceTestCase, metaclass=DataBasedParametrizer):
     space = Euclidean(dim=2)
     testing_data = VarianceEuclideanTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (Hypersphere(dim=3),'default'),
+        (Hypersphere(dim=3),'pseudo_huber'),
+        (Hypersphere(dim=3),'cauchy'),
+        (Hypersphere(dim=3),'biweight'),
+        (Hypersphere(dim=3),'fair'),
+        (Hypersphere(dim=3),'hampel'),
+        (Hypersphere(dim=3),'welsch'),
+        (Hypersphere(dim=3),'logistic'),
+        (Hypersphere(dim=3),'lorentzian'),
+        (Hypersphere(dim=3),'correntropy'),
+        (PoincareBall(dim=3),'default'),
+        (PoincareBall(dim=3),'pseudo_huber'),
+        (PoincareBall(dim=3),'cauchy'),
+        (PoincareBall(dim=3),'biweight'),
+        (PoincareBall(dim=3),'fair'),
+        (PoincareBall(dim=3),'hampel'),
+        (PoincareBall(dim=3),'welsch'),
+        (PoincareBall(dim=3),'logistic'),
+        (PoincareBall(dim=3),'lorentzian'),
+        (PoincareBall(dim=3),'correntropy'),
+    ],
+)
+def estimators_starting_point(request):
+    request.cls.space, m_estimator = request.param
+
+    cutoff = 3 if m_estimator == 'biweight' else 1.5
+    
+    request.cls.estimator = RiemannianRobustMestimator(
+        request.cls.space, m_estimator=m_estimator, method='default', init_point_method='mean-projection', critical_value=cutoff)
+    request.cls.estimator_md = RiemannianRobustMestimator(
+        request.cls.space, m_estimator=m_estimator, method='default', init_point_method='midpoint', critical_value=cutoff)
+    request.cls.estimator_f = RiemannianRobustMestimator(
+        request.cls.space, m_estimator=m_estimator, method='default', init_point_method='first', critical_value=cutoff)
+    
+    step_size = 5 if m_estimator == 'biweight' else 0.1
+        
+    request.cls.estimator.set(init_step_size=step_size, max_iter=2048, epsilon=1e-7, verbose=True)
+    request.cls.estimator_md.set(init_step_size=step_size, max_iter=2048, epsilon=1e-7, verbose=True)
+    request.cls.estimator_f.set(init_step_size=step_size, max_iter=2048, epsilon=1e-7, verbose=True)
+
+
+@pytest.mark.usefixtures("estimators_starting_point")
+class TestDiffStartingPointSameResult(DiffStartingPointSameResultTestCase, metaclass=DataBasedParametrizer):
+    testing_data = DiffStartingPointSameResultTestData()
+    
+
+@np_only
+class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
+    estimator = RiemannianRobustMestimator(
+        Hypersphere(dim=3), 
+        critical_value=1,
+        m_estimator='huber',
+        method='adaptive',
+    )
+    
+    testing_data = AutoGradientNotImplementedOnNumpyBackendTestData()
+
+    def test_auto_gradient_not_implemented_on_numpy_backend(self):
+        with pytest.raises(NotImplementedError):
+            RiemannianAutoGradientDescent()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (Hypersphere(dim=3)),
+        (PoincareBall(dim=3)),
+        (SPDMatrices(n=3)),
+        (SpecialOrthogonal(n=3, point_type="matrix")),
+        (SpecialEuclidean(n=3)),
+    ],
+)
+def estimators_custom_and_explicit(request):
+    request.cls.space = request.param
+    
+    request.cls.estimator = RiemannianRobustMestimator(
+        request.cls.space, m_estimator='cauchy', method='default', init_point_method='mean-projection', critical_value=1)
+    request.cls.estimator.set(init_step_size=1, max_iter=4096, epsilon=1e-7, verbose=True)
+    request.cls.estimator_custom = RiemannianRobustMestimator(
+        request.cls.space, m_estimator='default', method='default', init_point_method='mean-projection', critical_value=1)
+    request.cls.estimator_custom.set(init_step_size=1, max_iter=4096, epsilon=1e-7, verbose=True)
+      
+
+@pytest.mark.usefixtures("estimators_custom_and_explicit")
+class TestSameMestimatorFunctionGivenByCustomAndExplicit(SameMestimatorFunctionGivenByCustomAndExplicitTestCase, metaclass=DataBasedParametrizer):
+    testing_data = SameMestimatorFunctionGivenByCustomAndExplicitTestData()

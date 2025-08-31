@@ -35,3 +35,18 @@ class VarianceEuclideanTestData(TestData):
             )
         ]
         return self.generate_tests(data)
+
+
+class DiffStartingPointSameResultTestData(BaseEstimatorTestData):
+    def diff_starting_point_same_result_test_data(self):
+        return self.generate_random_data()
+    
+
+class AutoGradientNotImplementedOnNumpyBackendTestData(BaseEstimatorTestData):
+    def auto_gradient_not_implemented_on_numpy_backend_test_data(self):
+        return self.generate_tests([{}])
+      
+
+class SameMestimatorFunctionGivenByCustomAndExplicitTestData(BaseEstimatorTestData):
+    def same_m_estimator_function_given_by_custom_and_explicit_test_data(self):
+        return self.generate_random_data()
