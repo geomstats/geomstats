@@ -16,27 +16,6 @@ from geomstats.test_cases.learning._base import (
 from geomstats.vectorization import repeat_point
 
 
-class HuberMeanExtremeCTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
-    """Test huber limiting case"""
-
-    @pytest.mark.random
-    def test_huber_extreme_c(self, atol):
-        """Test huber limiting case"""
-        X = self.data_generator.random_point(n_points=30)
-
-        huber_mean_0 = self.estimator.fit(X).estimate_.x
-        geometric_median = self.estimator_geometric_median.fit(X).estimate_
-
-        huber_mean_inf = self.estimator_inf.fit(X).estimate_.x
-        frechet_mean = self.estimator_frechet_mean.fit(X).estimate_
-
-        gm_close = gs.abs(huber_mean_0 - geometric_median)
-        fm_close = gs.abs(huber_mean_inf - frechet_mean)
-
-        res = gs.mean(gm_close) + gs.mean(fm_close)
-        assert res < 0.0005
-
-
 class AutoGradientDescentTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
     """Test autograd quality case"""
 
@@ -74,6 +53,27 @@ class AutoGradientDescentTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTest
         assert len(result) == 1
 
 
+class HuberMeanExtremeCTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
+    """Test huber limiting case"""
+
+    @pytest.mark.random
+    def test_huber_extreme_c(self, atol):
+        """Test huber limiting case"""
+        X = self.data_generator.random_point(n_points=30)
+
+        huber_mean_0 = self.estimator.fit(X).estimate_.x
+        geometric_median = self.estimator_geometric_median.fit(X).estimate_
+
+        huber_mean_inf = self.estimator_inf.fit(X).estimate_.x
+        frechet_mean = self.estimator_frechet_mean.fit(X).estimate_
+
+        gm_close = gs.abs(huber_mean_0 - geometric_median)
+        fm_close = gs.abs(huber_mean_inf - frechet_mean)
+
+        res = gs.mean(gm_close) + gs.mean(fm_close)
+        assert res < 0.0005
+
+        
 class VarianceTestCase(TestCase):
     """Test Variance quality case"""
 
