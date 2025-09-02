@@ -40,6 +40,8 @@ from .data.riemannian_robust_m_estimator import (
 
 
 class TestRobustMestimatorSOCoincide(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
+    """Test SO matrix/vector coincidence."""
+
     estimator = RiemannianRobustMestimator(
         SpecialOrthogonal(n=3, point_type="matrix"), 
         critical_value=1,
@@ -57,6 +59,7 @@ class TestRobustMestimatorSOCoincide(BaseEstimatorTestCase, metaclass=DataBasedP
 
     @pytest.mark.random
     def test_estimate_coincide(self, n_samples, atol):
+        """Test SO matrix/vector coincidence."""
         mat_space = self.estimator.space
         X = mat_space.random_point(n_samples)
 
@@ -80,6 +83,8 @@ class TestRobustMestimatorSOCoincide(BaseEstimatorTestCase, metaclass=DataBasedP
     ],
 )
 def estimators_huber_extreme_c(request):
+    """Test huber limiting data inputs."""
+
     space = request.param
     request.cls.estimator = RiemannianRobustMestimator(
         space, m_estimator='huber', method='default', init_point_method='mean-projection', critical_value=1e-10)
@@ -94,6 +99,8 @@ def estimators_huber_extreme_c(request):
 
 @pytest.mark.usefixtures("estimators_huber_extreme_c")
 class TestHuberMeanExtremeC(HuberMeanExtremeCTestCase, metaclass=DataBasedParametrizer):
+    """Test huber limiting."""
+
     testing_data = HuberMeanExtremeCTestData()
 
 
@@ -108,6 +115,8 @@ class TestHuberMeanExtremeC(HuberMeanExtremeCTestCase, metaclass=DataBasedParame
     ],
 )
 def estimators_autograd(request):
+    """Test autograd quality inputs."""
+
     space, m_estimator = request.param
     request.cls.estimator = RiemannianRobustMestimator(space, method='autograd', m_estimator=m_estimator, critical_value=1)
 
@@ -115,6 +124,8 @@ def estimators_autograd(request):
 @autograd_and_torch_only
 @pytest.mark.usefixtures("estimators_autograd")
 class TestAutoGradientDescent(AutoGradientDescentTestCase, metaclass=DataBasedParametrizer):
+    """Test autograd quality."""
+    
     testing_data = AutoGradientDescentTestData()
 
 
@@ -127,16 +138,22 @@ class TestAutoGradientDescent(AutoGradientDescentTestCase, metaclass=DataBasedPa
     ],
 )
 def variance_estimators(request):
+    """Test Variance quality."""
+
     request.cls.space = request.param
 
 
 @pytest.mark.usefixtures("variance_estimators")
 class TestVariance(VarianceTestCase, metaclass=DataBasedParametrizer):
+    """Test Variance quality."""
+
     testing_data = VarianceTestData()
 
 
 @pytest.mark.smoke
 class TestVarianceEuclidean(VarianceTestCase, metaclass=DataBasedParametrizer):
+    """Test Euclidean Variance quality."""
+
     space = Euclidean(dim=2)
     testing_data = VarianceEuclideanTestData()
 
@@ -167,6 +184,8 @@ class TestVarianceEuclidean(VarianceTestCase, metaclass=DataBasedParametrizer):
     ],
 )
 def estimators_starting_point(request):
+    """Test starting point invariance inputs."""
+
     request.cls.space, m_estimator = request.param
 
     cutoff = 3 if m_estimator == 'biweight' else 1.5
@@ -187,11 +206,15 @@ def estimators_starting_point(request):
 
 @pytest.mark.usefixtures("estimators_starting_point")
 class TestDiffStartingPointSameResult(DiffStartingPointSameResultTestCase, metaclass=DataBasedParametrizer):
+    """Test starting point invariance."""
+
     testing_data = DiffStartingPointSameResultTestData()
     
 
 @np_only
 class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
+    """Test autograd not working on numpy."""
+
     space = Hypersphere(dim=3)
     estimator = RiemannianRobustMestimator(
         space, 
@@ -203,6 +226,7 @@ class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metacl
     testing_data = AutoGradientNotImplementedOnNumpyBackendTestData()
 
     def test_auto_gradient_not_implemented_on_numpy_backend(self):
+        """Test autograd not working on numpy."""
         with pytest.raises(NotImplementedError):
             RiemannianAutoGradientDescent(self.space)
 
@@ -218,6 +242,8 @@ class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metacl
     ],
 )
 def estimators_custom_and_explicit(request):
+    """Test custom function working inputs"""
+
     request.cls.space = request.param
     
     request.cls.estimator = RiemannianRobustMestimator(
@@ -230,4 +256,6 @@ def estimators_custom_and_explicit(request):
 
 @pytest.mark.usefixtures("estimators_custom_and_explicit")
 class TestSameMestimatorFunctionGivenByCustomAndExplicit(SameMestimatorFunctionGivenByCustomAndExplicitTestCase, metaclass=DataBasedParametrizer):
+    """Test custom function working"""
+
     testing_data = SameMestimatorFunctionGivenByCustomAndExplicitTestData()

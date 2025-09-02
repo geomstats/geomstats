@@ -68,7 +68,7 @@ class AutoGradientDescentTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTest
         k_multiply = (grad_auto / grad_explicit).reshape(-1)
         print(k_multiply)
         result = gs.unique(
-            gs.array([gs.floor(k * 1e5 + 0.5) / 1e5 \
+            gs.array([gs.floor(k * 1e5 + 0.5) / 1e5
                       for k in k_multiply if str(k) not in ["nan", "inf"]])
         )
         assert len(result) == 1
@@ -97,8 +97,9 @@ class VarianceTestCase(TestCase):
 
 
 class DiffStartingPointSameResultTestCase(
-    MeanEstimatorMixinsTestCase, 
-    BaseEstimatorTestCase):
+    MeanEstimatorMixinsTestCase,
+    BaseEstimatorTestCase
+):
     """Test starting point invariance case"""
 
     @pytest.mark.random
@@ -117,8 +118,9 @@ class DiffStartingPointSameResultTestCase(
 
 
 class SameMestimatorFunctionGivenByCustomAndExplicitTestCase(
-    MeanEstimatorMixinsTestCase, 
-    BaseEstimatorTestCase):
+    MeanEstimatorMixinsTestCase,
+    BaseEstimatorTestCase
+):
     """Test custom function working case"""
 
     @pytest.mark.random
@@ -148,12 +150,13 @@ def cauchy_m_estimator(logs, distances, weights, c):
 
 
 def custom_riemannian_cauchy_loss_grad_cw(
-        space, 
-        points, 
-        base, 
-        critical_value=2.3849, 
-        weights=None, 
-        loss_and_grad=False):
+        space,
+        points,
+        base,
+        critical_value=2.3849,
+        weights=None,
+        loss_and_grad=False
+):
     """Compute Riemannian Cauchy loss/gradient."""
     c = critical_value
     weights = gs.ones(points.shape[0])
