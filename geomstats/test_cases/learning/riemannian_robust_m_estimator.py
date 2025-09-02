@@ -17,8 +17,11 @@ from geomstats.vectorization import repeat_point
 
 
 class HuberMeanExtremeCTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
+    """Test huber limiting case"""
+
     @pytest.mark.random
     def test_huber_extreme_c(self, atol):
+        """Test huber limiting case"""
         X = self.data_generator.random_point(n_points=30)
 
         huber_mean_0 = self.estimator.fit(X).estimate_.x
@@ -30,12 +33,16 @@ class HuberMeanExtremeCTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCa
         gm_close = gs.abs(huber_mean_0 - geometric_median)
         fm_close = gs.abs(huber_mean_inf - frechet_mean)
 
-        assert gs.mean(gm_close) + gs.mean(fm_close) < 0.0005
+        res = gs.mean(gm_close) + gs.mean(fm_close)
+        assert res < 0.0005
 
 
 class AutoGradientDescentTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
+    """Test autograd quality case"""
+
     @pytest.mark.random
     def test_auto_grad_descent_same_as_explicit_grad_descent(self, atol):
+        """Test autograd quality case"""
         X = self.data_generator.random_point(n_points=10)
 
         GD = GradientDescent()
@@ -68,16 +75,21 @@ class AutoGradientDescentTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTest
 
 
 class VarianceTestCase(TestCase):
+    """Test Variance quality case"""
+
     def setup_method(self):
+        """Regenerate Random generator"""
         if not hasattr(self, "data_generator"):
             self.data_generator = RandomDataGenerator(self.space)
 
     def test_variance(self, points, base_point, expected, atol, weights=None):
+        """Test Variance quality case"""
         res = riemannian_variance(self.space, points, base_point, weights=weights)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.random
     def test_variance_repeated_is_zero(self, n_samples, atol):
+        """Test Variance 0 quality case"""
         base_point = point = self.data_generator.random_point(n_points=1)
         points = repeat_point(point, n_samples)
 
@@ -87,8 +99,11 @@ class VarianceTestCase(TestCase):
 class DiffStartingPointSameResultTestCase(
     MeanEstimatorMixinsTestCase, 
     BaseEstimatorTestCase):
+    """Test starting point invariance case"""
+
     @pytest.mark.random
     def test_diff_starting_point_same_result(self, atol):
+        """Test starting point invariance case"""
         X = self.data_generator.random_point(n_points=20)
 
         mean_mp = self.estimator.fit(X).estimate_.x
@@ -104,8 +119,11 @@ class DiffStartingPointSameResultTestCase(
 class SameMestimatorFunctionGivenByCustomAndExplicitTestCase(
     MeanEstimatorMixinsTestCase, 
     BaseEstimatorTestCase):
+    """Test custom function working case"""
+
     @pytest.mark.random
     def test_same_m_estimator_function_given_by_custom_and_explicit(self, atol):
+        """Test custom function working case"""
         X = self.data_generator.random_point(n_points=20)
         self.estimator.fit(X)
         res_o = self.estimator.estimate_.x
