@@ -22,7 +22,7 @@ from geomstats.test_cases.learning._base import BaseEstimatorTestCase
 from geomstats.test_cases.learning.riemannian_robust_m_estimator import (
     AutoGradientDescentTestCase,
     DiffStartingPointSameResultTestCase,
-    ExtremeHuberMeanCTestCase,
+    LimitingCofHuberLossTestCase,
     SameMestimatorFunctionGivenByCustomAndExplicitTestCase,
     VarianceTestCase,
 )
@@ -31,7 +31,7 @@ from .data.riemannian_robust_m_estimator import (
     AutoGradientDescentTestData,
     AutoGradientNotImplementedOnNumpyBackendTestData,
     DiffStartingPointSameResultTestData,
-    ExtremeHuberMeanCTestData,
+    LimitingCofHuberLossTestData,
     RobustMestimatorSOCoincideTestData,
     SameMestimatorFunctionGivenByCustomAndExplicitTestData,
     VarianceEuclideanTestData,
@@ -98,10 +98,10 @@ def estimators_huber_extreme_c(request):
     
 
 @pytest.mark.usefixtures("estimators_huber_extreme_c")
-class TestHuberMeanExtremeC(ExtremeHuberMeanCTestCase, metaclass=DataBasedParametrizer):
+class TestLimitingCofHuberLoss(LimitingCofHuberLossTestCase, metaclass=DataBasedParametrizer):
     """Test huber limiting."""
 
-    testing_data = ExtremeHuberMeanCTestData()
+    testing_data = LimitingCofHuberLossTestData()
 
 
 @pytest.fixture(

@@ -411,7 +411,6 @@ else:
                     _rounding_array(current_loss, 6),
                     _rounding_array(gs.sqrt(var), 6)
                 )
-                
 
             return OptimizeResult(
                 x=current_base,
@@ -533,7 +532,6 @@ class GradientDescent(BaseGradientDescent):
                 "Maximum number of iterations %d reached. The mean may be inaccurate",
                 self.max_iter
             )
-            
 
         if self.verbose:
             logging.info(
@@ -624,7 +622,7 @@ class AdaptiveGradientDescent(BaseGradientDescent):
         bases = []
         tic = time.time()
         while (
-            sq_norm_current_gradient_value > self.epsilon**2 and \
+            sq_norm_current_gradient_value > self.epsilon**2 and
             current_iter < self.max_iter
         ):
             current_iter += 1
@@ -1472,7 +1470,6 @@ class RiemannianRobustMestimator(BaseEstimator):
             "default": GradientDescent,
             "adaptive": AdaptiveGradientDescent,
             "autograd": RiemannianAutoGradientDescent,
-            #"batch": BatchGradientDescent,
         }
         self.optimizer = MAP_OPTIMIZER[value]()
         if value in ['autograd']:
@@ -1503,7 +1500,8 @@ class RiemannianRobustMestimator(BaseEstimator):
                 "cannot utilize auto gradient on numpy backend. "
                 "use autograd, pytorch backend."
             )
-        elif (not numpy_backend) and self.is_autograd:
+        
+        if (not numpy_backend) and self.is_autograd:
             self._set_loss()
             self.estimate_ = self.optimizer.minimize(
                 space=self.space,
