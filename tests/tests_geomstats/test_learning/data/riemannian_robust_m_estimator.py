@@ -12,10 +12,10 @@ class RobustMestimatorSOCoincideTestData(BaseEstimatorTestData):
         return self.generate_random_data()
 
 
-class HuberMeanExtremeCTestData(BaseEstimatorTestData):
+class ExtremeHuberMeanCTestData(BaseEstimatorTestData):
     """Test huber limiting data"""
 
-    def huber_extreme_c_test_data(self):
+    def extreme_huber_c_test_data(self):
         """Test huber limiting data"""
         return self.generate_random_data()
 

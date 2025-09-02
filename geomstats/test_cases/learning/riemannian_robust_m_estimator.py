@@ -53,11 +53,11 @@ class AutoGradientDescentTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTest
         assert len(result) == 1
 
 
-class HuberMeanExtremeCTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
+class ExtremeHuberMeanCTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
     """Test huber limiting case"""
 
     @pytest.mark.random
-    def test_huber_extreme_c(self, atol):
+    def test_extreme_huber_c(self, atol):
         """Test huber limiting case"""
         X = self.data_generator.random_point(n_points=30)
 
@@ -73,7 +73,7 @@ class HuberMeanExtremeCTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCa
         res = gs.mean(gm_close) + gs.mean(fm_close)
         assert res < 0.0005
 
-        
+
 class VarianceTestCase(TestCase):
     """Test Variance quality case"""
 
