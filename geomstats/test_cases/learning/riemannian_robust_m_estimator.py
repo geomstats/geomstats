@@ -72,7 +72,7 @@ class LimitingCofHuberLossTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTes
 
         res = gs.mean(gm_close) + gs.mean(fm_close)
 
-        assert res <= 0.0005
+        self.assertAllClose(res, gs.zeros(res.shape), atol=0.0005)
 
 
 class VarianceTestCase(TestCase):
