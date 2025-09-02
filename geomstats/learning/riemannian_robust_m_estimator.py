@@ -18,6 +18,8 @@ from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.geometric_median import GeometricMedian
 
 numpy_backend = ('numpy' in gs.__name__)
+
+
 def _scalarmul(scalar, array):
     return gs.einsum("n,n...->n...", scalar, array)
 
@@ -39,6 +41,7 @@ def _gs_argsort(sorted_target):
     
 
 def _rounding_array(array, decimal):
+    """Round long floating number."""
     c = 10**decimal
     return gs.floor(array * c + 0.5) / c
     
@@ -61,7 +64,7 @@ def _set_midpoint(points):
     return points[_gs_argsort(sorted_target)[medpoint]]
 
 
-def _set_mean_projection(space,points):
+def _set_mean_projection(space, points):
     """Generate mean-projection as initial point for Riemannian gradient descent based on dataset.
     
     Parameters
@@ -73,7 +76,7 @@ def _set_mean_projection(space,points):
     -------
     Projected value of Euclidean average point to given manifold.
     """
-    mean_points = gs.mean(points,axis=0)
+    mean_points = gs.mean(points, axis=0)
     mean_projection = space.projection(mean_points)
     return mean_projection
 
@@ -112,7 +115,7 @@ def riemannian_variance(space, points, base=None, weights=None, robust=False, ge
     sum_weights = gs.sum(weights)
 
     if base is None:
-        center = GeometricMedian(space,max_iter=1024) if robust else FrechetMean(space)
+        center = GeometricMedian(space, max_iter=1024) if robust else FrechetMean(space)
         center.fit(points)
         base = center.estimate_
             
@@ -124,7 +127,7 @@ def riemannian_variance(space, points, base=None, weights=None, robust=False, ge
 
     mean_estimate = base
     if get_centroid:
-        return var,mean_estimate
+        return var, mean_estimate
     return var
     
     
@@ -196,18 +199,20 @@ class BaseGradientDescent(abc.ABC):
         return lambda base: fun(self.points, base, self.weights)
 
     def _set_init_point(self, space, points, init_point_method):
+        """Set initial starting point of algorithm."""
         if self.init_point is not None:
             current_mean = self.init_point
         else:
             if init_point_method == 'midpoint':
                 current_mean = _set_midpoint(points)
             elif init_point_method == 'mean-projection':
-                current_mean = _set_mean_projection(space,points)
+                current_mean = _set_mean_projection(space, points)
             else:
                 current_mean = points[0]
         return current_mean
 
     def _handle_jac(self, fun, point_ndim):
+        """Define function for auto gradient."""
         if self.autograd:
             def fun_(x):
                 value, grad = gs.autodiff.value_and_grad(fun, point_ndims=point_ndim)(x)
@@ -219,6 +224,7 @@ class BaseGradientDescent(abc.ABC):
         return fun_
 
     def _handle_hess(self, fun, fun_hess):
+        """Define Hessian for auto gradient(not used)."""
         if fun_hess is not None or (not self.autograd):
             fun_hess_ = fun_hess
             if callable(fun_hess):
@@ -227,20 +233,6 @@ class BaseGradientDescent(abc.ABC):
             return fun_hess_
 
         return lambda x: gs.autodiff.hessian(fun)(gs.from_numpy(x))
-
-    @staticmethod
-    def _get_vector_transport(space):
-        if hasattr(space.metric, "parallel_transport"):
-
-            def vector_transport(tan_a, tan_b, base_point, _):
-                return space.metric.parallel_transport(tan_a, base_point, tan_b)
-
-        else:
-
-            def vector_transport(tan_a, _, __, point):
-                return space.to_tangent(tan_a, point)
-
-        return vector_transport
        
     @abc.abstractmethod
     def minimize(self, space, points, critical_value, loss_grad_fun=False, weights=None, init_point_method=False):
@@ -300,7 +292,7 @@ else:
             current_iter = i = 0
             local_minima_gate = 0
 
-            var = gs.sum(space.metric.squared_dist(points,current_base))/(n_points-1)
+            var = gs.sum(space.metric.squared_dist(points, current_base))/(n_points - 1)
             
             fun = self._handle_jac(fun, point_ndim=space.point_ndim)        
         
@@ -309,7 +301,7 @@ else:
             tic = time.time()
             for i in range(self.max_iter):
                 loss, grad = fun(current_base)
-                grad = space.to_tangent(grad,current_base)
+                grad = space.to_tangent(grad, current_base)
                 
                 if gs.any(gs.isnan(grad)):
                     logging.warning(f"NaN encountered in gradient at iter {current_iter}")
@@ -332,7 +324,7 @@ else:
                     local_minima_gate = 0
                     current_iter += 1
 
-                if abs(space.metric.norm(grad,current_base)) < self.epsilon:
+                if abs(space.metric.norm(grad, current_base)) < self.epsilon:
                     if self.verbose:
                         logging.info(f"Tolerance threshold reached at iter {current_iter}")
                     break
@@ -347,12 +339,12 @@ else:
                         raise
                 if self.verbose and (i%50==0):
                     print(f'{i}th iteration processing...  [{time.time()-tic:.2f} seconds]')
-                    print(f'base:{[_rounding_array(ee,3) for ee in current_base]}, gradient:{[_rounding_array(ee,3) for ee in grad]}, step size: {lr}, current loss: {_rounding_array(loss,7)}]')
+                    print(f'base:{[_rounding_array(ee, 3) for ee in current_base]}, gradient:{[_rounding_array(ee, 3) for ee in grad]}, step size: {lr}, current loss: {_rounding_array(loss, 7)}]')
                 current_base = self._perturbation_for_zero_distance(space, points, current_base)
                 current_loss = loss
                 losses.append(current_loss)
                 bases.append(current_base)
-                var = gs.sum(space.metric.squared_dist(points,current_base))/(n_points-1)
+                var = gs.sum(space.metric.squared_dist(points, current_base))/(n_points - 1)
             
             if current_iter == self.max_iter:
                 logging.warning(
@@ -363,8 +355,8 @@ else:
                 logging.info(
                     f"Number of gradient evaluations: {i}, "
                     f"Number of gradient iterations: {current_iter}, "
-                    f" loss at termination: {_rounding_array(current_loss,6)}, "
-                    f" standard deviation at termination: {_rounding_array(gs.sqrt(var),6)}, "
+                    f" loss at termination: {_rounding_array(current_loss, 6)}, "
+                    f" standard deviation at termination: {_rounding_array(gs.sqrt(var), 6)}, "
                 )
             
             return OptimizeResult(x=current_base, losses=losses, bases=bases, n_iter=current_iter, time=time.time()-tic)
@@ -405,7 +397,7 @@ class GradientDescent(BaseGradientDescent):
         sq_dist = 0.0
         var = 0.0
 
-        tangent_norm_old = gs.sum(space.metric.norm(space.metric.log(points,mean), mean))
+        tangent_norm_old = gs.sum(space.metric.norm(space.metric.log(points, mean), mean))
         loss_v = tangent_norm_old
         step_size = self.init_step_size
         local_minima_gate = 0
@@ -425,7 +417,7 @@ class GradientDescent(BaseGradientDescent):
 
             if self.verbose and (current_iter%50==0):
                 print(f'{current_iter}th iteration processing...  [{time.time()-tic:.2f} seconds] ')
-                print(f'base:{[_rounding_array(ee,3) for ee in mean]}, gradient:{[_rounding_array(ee,3) for ee in gradient_value]}, step size: {step_size:.5f}, current loss(grad norm): {tangent_norm:.2f}(loss:{loss_v:.5f}]')
+                print(f'base:{[_rounding_array(ee, 3) for ee in mean]}, gradient:{[_rounding_array(ee, 3) for ee in gradient_value]}, step size: {step_size:.5f}, current loss(grad norm): {tangent_norm:.2f}(loss:{loss_v:.5f}]')
 
             continuing_condition = gs.less_equal(self.epsilon * space.dim, tangent_norm)
             if not (continuing_condition or current_iter == 0):
@@ -456,7 +448,7 @@ class GradientDescent(BaseGradientDescent):
         if current_iter == self.max_iter:
             logging.warning(
                 "Maximum number of iterations {} reached. The mean may be inaccurate".format(
-                self.max_iter
+                    self.max_iter
                 )
             )
 
@@ -549,11 +541,11 @@ class AdaptiveGradientDescent(BaseGradientDescent):
             else:
                 tau = max(tau_min, tau_mul_down * tau)
             
-            if self.verbose and (current_iter%50==0):
+            if self.verbose and (current_iter%50 == 0):
                 print(f'{current_iter}th iteration processing...  [{time.time()-tic:.2f} seconds]')
-                print(f'base:{[_rounding_array(ee,3) for ee in current_mean]}, gradient:{[_rounding_array(ee,3) for ee in current_gradient_value]}, step size: {tau:.5f}, current loss(grad norm): {sq_norm_current_gradient_value:.2f}(loss:{loss_v:.5f}]')
+                print(f'base:{[_rounding_array(ee, 3) for ee in current_mean]}, gradient:{[_rounding_array(ee, 3) for ee in current_gradient_value]}, step size: {tau:.5f}, current loss(grad norm): {sq_norm_current_gradient_value:.2f}(loss:{loss_v:.5f}]')
 
-            var = gs.sum(space.metric.squared_dist(points,current_mean))/(n_points-1)
+            var = gs.sum(space.metric.squared_dist(points, current_mean))/(n_points-1)
 
         if current_iter == self.max_iter:
             logging.warning(
@@ -574,6 +566,7 @@ class AdaptiveGradientDescent(BaseGradientDescent):
 
 
 def _set_weights(n, weights=None):
+    """Set weight of each point."""
     if weights is None:
         weights = gs.ones(n)
     else:
@@ -629,14 +622,16 @@ class RiemannianRobustMestimator(BaseEstimator):
         return super().__new__(cls)
 
     def __init__(self, space, critical_value=None, m_estimator='default', init_point_method='first', method="default"):
+        """Set for initiate the estimator class."""
         self.space = space
-        self.valid_m_estimators = ['default','huber','pseudo_huber','cauchy','biweight','fair','hampel','welsch','logistic','lorentzian','correntropy']
-        #assert m_estimator.lower() in self.valid_m_estimators,\
-        #        f"m_estimator must be in {','.join(self.valid_m_estimators)}"
+        self.valid_m_estimators = [
+            'default', 'huber', 'pseudo_huber', 'cauchy', 'biweight', 'fair', 'hampel', 'welsch', 'logistic', 'lorentzian', 'correntropy'
+            ]
+        if m_estimator.lower() not in self.valid_m_estimators:
+            raise ValueError(f"m_estimator must be in {', '.join(self.valid_m_estimators)}")
         self.m_estimator = m_estimator.lower()
         self.critical_value = self._set_critical_value(critical_value)
        
-        #assert init_point_method in ['first','midpoint','mean-projection']
         self.init_point_method = init_point_method
        
         self._method = None
@@ -647,20 +642,21 @@ class RiemannianRobustMestimator(BaseEstimator):
         self.fun = None
         self.fun_provided = False
     
-    def _set_critical_value(self,critical_value):
+    def _set_critical_value(self, critical_value):
+        """Set critical value for each m-estimator by 95% ARE."""
         critical_value_for_95p_ARE = {
-            'default':1.345,
-            'huber':1.345,
-            'pseudo_huber':1.345,
-            'cauchy':2.3849,
-            'biweight':4.6851,
-            'fair':1.3998,
-            'hampel':1.35,
-            'welsch':2.9846,
-            'logistic':1.205,
-            'lorentzian':2.678,
-            'correntropy':2.1105}
-        if (critical_value is None) & (self.m_estimator in critical_value_for_95p_ARE.keys()):
+            'default': 1.345,
+            'huber': 1.345,
+            'pseudo_huber': 1.345,
+            'cauchy': 2.3849,
+            'biweight': 4.6851,
+            'fair': 1.3998,
+            'hampel': 1.35,
+            'welsch': 2.9846,
+            'logistic': 1.205,
+            'lorentzian': 2.678,
+            'correntropy': 2.1105}
+        if (critical_value is None) & (self.m_estimator in critical_value_for_95p_ARE):
             return critical_value_for_95p_ARE[self.m_estimator]
         return critical_value
         
@@ -676,7 +672,7 @@ class RiemannianRobustMestimator(BaseEstimator):
             setattr(self.optimizer, param_name, value)
         return self
 
-    def _set_loss(self,fun=None):
+    def _set_loss(self, fun=None):
         """Set loss function.
 
         Provide customized loss function to this instance by this method.
@@ -735,13 +731,12 @@ class RiemannianRobustMestimator(BaseEstimator):
                 self.loss_with_base = lambda base: self.fun(
                     space=self.space, points=self.points, base=base)
         elif (self.fun_provided) and (not self.is_autograd):
-            self.loss_with_base = lambda points,base,critical_value,weights,loss_and_grad: self.fun(
+            self.loss_with_base = lambda points, base, critical_value, weights, loss_and_grad: self.fun(
                 space=self.space, points=points, base=base, critical_value=critical_value, weights=weights, loss_and_grad=loss_and_grad)
         else:
             self.loss_with_base = self.fun
         
         return self.loss_with_base
-
 
     def _set_m_estimator_loss(self):
         """Return Loss_grad function based on given M-estimator name dynamically."""
@@ -760,8 +755,8 @@ class RiemannianRobustMestimator(BaseEstimator):
                 f"Not Supported M-estimator type : {self.m_estimator}, must be in {{{valid_estimators}}}"
             )
            
-    
     def _set_inputs_of_loss_function(self, points, base, critical_value, weights):
+        """Return arguments needed to compute loss, gradient."""
         n = points.shape[0]
         weights, sum_weights = _set_weights(n, weights)
         self.critical_value = critical_value
@@ -770,7 +765,6 @@ class RiemannianRobustMestimator(BaseEstimator):
         logs = self.space.metric.log(point=points, base_point=base)
         distances = self.space.metric.norm(logs, base)
         return weights, sum_weights, c, logs, distances
-
 
     def _riemannian_huber_loss_grad(self, points, base, critical_value=1.345, weights=None, loss_and_grad=False):
         """Huber loss.
@@ -806,7 +800,7 @@ class RiemannianRobustMestimator(BaseEstimator):
         """
         weights, sum_weights, c, logs, distances = self._set_inputs_of_loss_function(points, base, critical_value, weights)
                 
-        close_distance = gs.less_equal(distances,c)
+        close_distance = gs.less_equal(distances, c)
         loss = close_distance*(distances**2) + (~close_distance)*(2*c*(distances-c/2))
         loss = gs.sum( weights * loss ) / sum_weights
         if not loss_and_grad:
@@ -818,9 +812,8 @@ class RiemannianRobustMestimator(BaseEstimator):
        
         current_gradient_value = 2 * _scalarmulsum(weights, current_close_distance_gradient + current_far_distance_gradient) \
                                         / sum_weights
-        return loss, self.space.to_tangent(current_gradient_value,base_point=base)
+        return loss, self.space.to_tangent(current_gradient_value, base_point=base)
    
-
     def _riemannian_pseudo_huber_loss_grad(self, points, base, critical_value=1.345, weights=None, loss_and_grad=False):
         """Pseudo Huber loss.
 
@@ -864,9 +857,8 @@ class RiemannianRobustMestimator(BaseEstimator):
         else:
             pseudo_huber_gradient_value = 2 * _scalarmulsum(weights, pseudo_huber_gradient) / sum_weights
            
-        return loss, self.space.to_tangent(pseudo_huber_gradient_value,base_point=base)
+        return loss, self.space.to_tangent(pseudo_huber_gradient_value, base_point=base)
 
-   
     def _riemannian_fair_loss_grad(self, points, base, critical_value=1.3998, weights=None, loss_and_grad=False):
         """Fair loss function.
         
@@ -901,11 +893,10 @@ class RiemannianRobustMestimator(BaseEstimator):
         if not loss_and_grad:
             return loss
        
-        grad = _scalarmul(c / (c+distances) , logs)
+        grad = _scalarmul(c / (c + distances) , logs)
         grad = _scalarmulsum(weights, grad) / sum_weights
-        return loss, self.space.to_tangent(grad,base_point=base)
+        return loss, self.space.to_tangent(grad, base_point=base)
    
-
     def _riemannian_cauchy_loss_grad(self, points, base, critical_value=2.3849, weights=None, loss_and_grad=False):
         """Cauchy loss function.
         
@@ -935,15 +926,14 @@ class RiemannianRobustMestimator(BaseEstimator):
         """
         weights, sum_weights, c, logs, distances = self._set_inputs_of_loss_function(points, base, critical_value, weights)
 
-        loss = c**2 / 2 * gs.log( 1 + distances**2 / c**2 )
+        loss = c**2 / 2 * gs.log(1 + distances**2 / c**2)
         loss = gs.sum(weights * loss) / sum_weights
         if not loss_and_grad:
             return loss
         grad = _scalarmul(c**2 / (c**2 + distances**2) , logs)
         grad = _scalarmulsum(weights, grad) / sum_weights
-        return loss, self.space.to_tangent(grad,base_point=base)
+        return loss, self.space.to_tangent(grad, base_point=base)
        
-   
     def _riemannian_biweight_loss_grad(self, points, base, critical_value=4.6851, weights=None, loss_and_grad=False):
         """Tukey’s biweight loss function.
 
@@ -974,17 +964,16 @@ class RiemannianRobustMestimator(BaseEstimator):
         """
         weights, sum_weights, c, logs, distances = self._set_inputs_of_loss_function(points, base, critical_value, weights)
 
-        close_distance = gs.less_equal(distances,c)
+        close_distance = gs.less_equal(distances, c)
         loss = close_distance * ((c**2 / 6) * (1 - (1 - distances**2 / c**2)**3)) + (~close_distance) * (c**2 / 6)
         loss = gs.sum(weights * loss) / sum_weights
         if not loss_and_grad:
             return loss
-        grad =  (_scalarmul(close_distance, _scalarmul((1 - distances**2/c**2)**2 , logs )) + \
-                        _scalarmul( (~close_distance) , gs.zeros_like(logs)) )
+        grad = (_scalarmul(close_distance, _scalarmul((1 - distances**2/c**2)**2 , logs)) + \
+                    _scalarmul((~close_distance) , gs.zeros_like(logs)))
         grad = _scalarmulsum(weights, grad) / sum_weights
-        return loss, self.space.to_tangent(grad,base_point=base)
+        return loss, self.space.to_tangent(grad, base_point=base)
    
-
     def _riemannian_welsch_loss_grad(self, points, base, critical_value=2.9846, weights=None, loss_and_grad=False):
         """Welsch loss function.
           
@@ -1018,10 +1007,9 @@ class RiemannianRobustMestimator(BaseEstimator):
         loss = gs.sum(weights * loss) / sum_weights
         if not loss_and_grad:
             return loss
-        grad = _scalarmul( gs.exp(- distances**2 / c**2), logs)
+        grad = _scalarmul(gs.exp(- distances**2 / c**2), logs)
         grad = _scalarmulsum(weights, grad) / sum_weights
-        return loss, self.space.to_tangent(grad,base_point=base)
-   
+        return loss, self.space.to_tangent(grad, base_point=base)
    
     def _riemannian_hampel_loss_grad(self, points, base, critical_value=1.35, weights=None, loss_and_grad=False):
         """Hampel‐type redescending loss.
@@ -1065,25 +1053,25 @@ class RiemannianRobustMestimator(BaseEstimator):
             b = 2.0*a
             c = 4.0*a
         else:
-            # assert len(c) == 3
+            if len(c)!=3:
+                raise ValueError("'critical_value' should be float/int or 3-length array-like value")
             a, b, c = c
            
-        is_quadratic_region = gs.less_equal(distances,a) 
-        is_linear_region = (~is_quadratic_region) & gs.less_equal(distances,b) 
-        is_smooth_redescending = (~gs.less_equal(distances,b)) & gs.less_equal(distances,c) 
-        is_constant_region = ~gs.less_equal(distances,c) 
+        is_quadratic_region = gs.less_equal(distances, a) 
+        is_linear_region = (~is_quadratic_region) & gs.less_equal(distances, b) 
+        is_smooth_redescending = (~gs.less_equal(distances, b)) & gs.less_equal(distances, c) 
+        is_constant_region = ~gs.less_equal(distances, c) 
         loss = is_quadratic_region*(0.5 * distances**2) + is_linear_region*(a*distances - (a**2)/2) +\
                     is_smooth_redescending*(a*b - (a**2)/2 + a*(c-b)/2 * (1 - ((c-distances)/(c-b))**2)) +\
                     is_constant_region*(a*b - (a**2)/2 + a*(c-b)/2)
         loss = gs.sum(weights * loss) / sum_weights
         if not loss_and_grad:
             return loss
-        grad = ( _scalarmul(is_quadratic_region,logs) + _scalarmul(is_linear_region, _scalarmul(a/(distances+1e-7), logs) ) +\
-                    _scalarmul(is_smooth_redescending, _scalarmul(a*(c-distances)/(c-b) * 1/(distances+1e-7) , logs)) +\
-                    _scalarmul(is_constant_region, gs.zeros_like(logs)) )
+        grad = (_scalarmul(is_quadratic_region, logs) + _scalarmul(is_linear_region, _scalarmul(a/(distances+1e-7), logs) ) +\
+                    _scalarmul(is_smooth_redescending, _scalarmul(a*(c-distances)/(c-b) * 1/(distances+1e-7), logs)) +\
+                    _scalarmul(is_constant_region, gs.zeros_like(logs)))
         grad = _scalarmulsum(weights, grad) / sum_weights
-        return loss, self.space.to_tangent(grad,base_point=base)
-   
+        return loss, self.space.to_tangent(grad, base_point=base)
    
     def _riemannian_correntropy_loss_grad(self, points, base, critical_value=2.1105, weights=None, loss_and_grad=False):
         """Correntropy loss function.
@@ -1119,11 +1107,10 @@ class RiemannianRobustMestimator(BaseEstimator):
         if not loss_and_grad:
             return loss
         grad_const = 1/(c**3 * gs.sqrt(2 * gs.pi))
-        grad = _scalarmul( grad_const * gs.exp(- distances**2 / (2 * c**2)), logs )
+        grad = _scalarmul(grad_const * gs.exp(- distances**2 / (2 * c**2)), logs)
         grad = _scalarmulsum(weights, grad) / sum_weights
-        return loss, self.space.to_tangent(grad,base_point=base)
+        return loss, self.space.to_tangent(grad, base_point=base)
    
-
     def _riemannian_logistic_loss_grad(self, points, base, critical_value=1.205, weights=None, loss_and_grad=False):
         """Logistic loss.
                 
@@ -1154,11 +1141,10 @@ class RiemannianRobustMestimator(BaseEstimator):
         loss = gs.sum(weights * loss) / sum_weights
         if not loss_and_grad:
             return loss
-        grad = _scalarmul( (c * gs.tanh(distances / c) / (distances+1e-7)), logs)
+        grad = _scalarmul((c * gs.tanh(distances / c) / (distances+1e-7)), logs)
         grad = _scalarmulsum(weights, grad) / sum_weights
-        return loss, self.space.to_tangent(grad,base_point=base)
-       
-   
+        return loss, self.space.to_tangent(grad, base_point=base)
+        
     def _riemannian_lorentzian_loss_grad(self, points, base, critical_value=2.678, weights=None, loss_and_grad=False):
         """Lorentzian loss.
                 
@@ -1190,9 +1176,9 @@ class RiemannianRobustMestimator(BaseEstimator):
         loss = gs.sum(weights * loss) / sum_weights
         if not loss_and_grad:
             return loss
-        grad = _scalarmul( 1 / (c**2 * (1 + distances**2/(2*c**2))**2 ) , logs )
+        grad = _scalarmul(1 / (c**2 * (1 + distances**2/(2*c**2))**2) , logs )
         grad = _scalarmulsum(weights, grad) / sum_weights
-        return loss, self.space.to_tangent(grad,base_point=base)
+        return loss, self.space.to_tangent(grad, base_point=base)
 
     @property
     def method(self):
@@ -1217,7 +1203,7 @@ class RiemannianRobustMestimator(BaseEstimator):
         }
         self.optimizer = MAP_OPTIMIZER[value]()
         if value in ['autograd']:
-            self.set(autograd = True)
+            self.set(autograd=True)
 
     def fit(self, X, y=None, weights=None):
         """Compute the empirical weighted Frechet mean.
@@ -1256,7 +1242,6 @@ class RiemannianRobustMestimator(BaseEstimator):
             loss_and_grad_func = self.loss_with_base
         else:
             loss_and_grad_func = self._set_m_estimator_loss()
-            #raise NotImplementedError("Only autograd method available if Loss Function/M-estimator provided. check gs.has_autodiff() is True")
         self.estimate_ = self.optimizer.minimize(
             space=self.space,
             points=self.points,
@@ -1266,7 +1251,3 @@ class RiemannianRobustMestimator(BaseEstimator):
             init_point_method=self.init_point_method,
         )
         return self
-
-    
-
-

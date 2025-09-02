@@ -178,7 +178,7 @@ def estimators_starting_point(request):
     request.cls.estimator_f = RiemannianRobustMestimator(
         request.cls.space, m_estimator=m_estimator, method='default', init_point_method='first', critical_value=cutoff)
     
-    step_size = 5 if m_estimator == 'biweight' else 0.1
+    step_size = 5 if m_estimator == 'biweight' else 0.2
         
     request.cls.estimator.set(init_step_size=step_size, max_iter=2048, epsilon=1e-7, verbose=True)
     request.cls.estimator_md.set(init_step_size=step_size, max_iter=2048, epsilon=1e-7, verbose=True)
@@ -192,8 +192,9 @@ class TestDiffStartingPointSameResult(DiffStartingPointSameResultTestCase, metac
 
 @np_only
 class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
+    space = Hypersphere(dim=3)
     estimator = RiemannianRobustMestimator(
-        Hypersphere(dim=3), 
+        space, 
         critical_value=1,
         m_estimator='huber',
         method='adaptive',
@@ -203,7 +204,7 @@ class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metacl
 
     def test_auto_gradient_not_implemented_on_numpy_backend(self):
         with pytest.raises(NotImplementedError):
-            RiemannianAutoGradientDescent()
+            RiemannianAutoGradientDescent(self.space)
 
 
 @pytest.fixture(

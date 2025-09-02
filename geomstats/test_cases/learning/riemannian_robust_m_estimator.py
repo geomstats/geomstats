@@ -30,7 +30,7 @@ class HuberMeanExtremeCTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCa
         gm_close = gs.abs(huber_mean_0 - geometric_median)
         fm_close = gs.abs(huber_mean_inf - frechet_mean)
 
-        assert gs.mean(gm_close) + gs.mean(fm_close) < 0.0005    
+        assert gs.mean(gm_close) + gs.mean(fm_close) < 0.0005
 
 
 class AutoGradientDescentTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
@@ -113,18 +113,25 @@ class SameMestimatorFunctionGivenByCustomAndExplicitTestCase(MeanEstimatorMixins
         
         self.assertAllClose(close1, gs.zeros(res_o.shape), atol=atol)
 
-def cauchy_m_estimator(logs,distances,weights,c):
+
+def cauchy_m_estimator(logs, distances, weights, c):
+    """Define Euclidean Cauchy Loss function for comparison."""
     sum_weights = gs.sum(weights)
-    loss = c**2 / 2 * gs.log( 1 + distances**2 / c**2 )
+    loss = c**2 / 2 * gs.log(1 + distances**2 / c**2)
     loss = gs.sum(weights * loss) / sum_weights
     grad = _scalarmul(c**2 / (c**2 + distances**2) , logs)
     grad = _scalarmulsum(weights, grad) / sum_weights
     return loss, grad
 
+
 def custom_riemannian_cauchy_loss_grad_cw(space, points, base, critical_value=2.3849, weights=None, loss_and_grad=False):
+    """Compute Riemannian Cauchy loss/gradient."""
     c = critical_value
     weights = gs.ones(points.shape[0])
     logs = space.metric.log(point=points, base_point=base)
     distances = space.metric.norm(logs, base)
-    loss, grad = cauchy_m_estimator(logs,distances,weights,c)
-    return loss, space.to_tangent(grad,base_point=base)
+    loss, grad = cauchy_m_estimator(logs, distances, weights, c)
+    
+    if loss_and_grad:
+        return loss, space.to_tangent(grad, base_point=base)
+    return loss
