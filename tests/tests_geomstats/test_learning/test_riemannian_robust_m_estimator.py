@@ -20,18 +20,22 @@ from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.test_case import autograd_and_torch_only, np_only
 from geomstats.test_cases.learning._base import BaseEstimatorTestCase
 from geomstats.test_cases.learning.riemannian_robust_m_estimator import (
-    AutoGradientDescentTestCase,
+    AutoGradientDescentOneStepTestCase,
+    AutoGradientDescentResultTestCase,
     DiffStartingPointSameResultTestCase,
     LimitingCofHuberLossTestCase,
+    MestimatorCustomFunctionDifferentInputArgsTestCase,
     SameMestimatorFunctionGivenByCustomAndExplicitTestCase,
     VarianceTestCase,
 )
 
 from .data.riemannian_robust_m_estimator import (
-    AutoGradientDescentTestData,
+    AutoGradientDescentOneStepTestData,
+    AutoGradientDescentResultTestData,
     AutoGradientNotImplementedOnNumpyBackendTestData,
     DiffStartingPointSameResultTestData,
     LimitingCofHuberLossTestData,
+    MestimatorCustomFunctionDifferentInputArgsTestData,
     RobustMestimatorSOCoincideTestData,
     SameMestimatorFunctionGivenByCustomAndExplicitTestData,
     VarianceEuclideanTestData,
@@ -82,7 +86,7 @@ class TestRobustMestimatorSOCoincide(BaseEstimatorTestCase, metaclass=DataBasedP
         (SpecialEuclidean(n=random.randint(3, 4))),
     ],
 )
-def estimators_huber_extreme_c(request):
+def estimators_huber_extreme_c(request: pytest.FixtureRequest):
     """Test huber limiting data inputs."""
 
     space = request.param
@@ -114,19 +118,47 @@ class TestLimitingCofHuberLoss(LimitingCofHuberLossTestCase, metaclass=DataBased
         (SpecialEuclidean(n=random.randint(3, 4)), "cauchy"),
     ],
 )
-def estimators_autograd(request):
+def estimators_one_autograd(request: pytest.FixtureRequest):
+    """Test onestep autograd quality inputs."""
+
+    space, m_estimator = request.param
+    c = [1,2,4] if m_estimator == 'hampel' else 1
+    request.cls.estimator = RiemannianRobustMestimator(space, method='autograd', m_estimator=m_estimator, critical_value=c)
+
+
+@autograd_and_torch_only
+@pytest.mark.usefixtures("estimators_one_autograd")
+class TestAutoGradientDescentOnestep(AutoGradientDescentOneStepTestCase, metaclass=DataBasedParametrizer):
+    """Test onestep autograd quality."""
+    
+    testing_data = AutoGradientDescentOneStepTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (Hypersphere(dim=random.randint(3, 4)),'huber'),
+        (PoincareHalfSpace(dim=random.randint(2, 3)), "welsch"),
+        (SpecialOrthogonal(n=random.randint(2, 3)), "hampel"),
+        (SpecialEuclidean(n=random.randint(3, 4)), "cauchy"),
+    ],
+)
+def estimators_autograd_result(request: pytest.FixtureRequest):
     """Test autograd quality inputs."""
 
     space, m_estimator = request.param
     request.cls.estimator = RiemannianRobustMestimator(space, method='autograd', m_estimator=m_estimator, critical_value=1)
+    request.cls.estimator_explicit = RiemannianRobustMestimator(space, method='adaptive', m_estimator=m_estimator, critical_value=1)
+    request.cls.estimator.set(init_step_size=0.25, max_iter=4096, epsilon=1e-7)
+    request.cls.estimator_explicit.set(init_step_size=0.25, max_iter=4096, epsilon=1e-7)
 
 
 @autograd_and_torch_only
-@pytest.mark.usefixtures("estimators_autograd")
-class TestAutoGradientDescent(AutoGradientDescentTestCase, metaclass=DataBasedParametrizer):
+@pytest.mark.usefixtures("estimators_autograd_result")
+class TestAutoGradientDescentResult(AutoGradientDescentResultTestCase, metaclass=DataBasedParametrizer):
     """Test autograd quality."""
     
-    testing_data = AutoGradientDescentTestData()
+    testing_data = AutoGradientDescentResultTestData()
 
 
 @pytest.fixture(
@@ -137,7 +169,7 @@ class TestAutoGradientDescent(AutoGradientDescentTestCase, metaclass=DataBasedPa
         SPDMatrices(n=3),
     ],
 )
-def variance_estimators(request):
+def variance_estimators(request: pytest.FixtureRequest):
     """Test Variance quality."""
 
     request.cls.space = request.param
@@ -183,12 +215,12 @@ class TestVarianceEuclidean(VarianceTestCase, metaclass=DataBasedParametrizer):
         (PoincareBall(dim=3),'correntropy'),
     ],
 )
-def estimators_starting_point(request):
+def estimators_starting_point(request: pytest.FixtureRequest):
     """Test starting point invariance inputs."""
 
     request.cls.space, m_estimator = request.param
 
-    cutoff = 3 if m_estimator == 'biweight' else 1.5
+    cutoff = 2.5 if m_estimator == 'biweight' else 1.5
     
     request.cls.estimator = RiemannianRobustMestimator(
         request.cls.space, m_estimator=m_estimator, method='default', init_point_method='mean-projection', critical_value=cutoff)
@@ -197,11 +229,11 @@ def estimators_starting_point(request):
     request.cls.estimator_f = RiemannianRobustMestimator(
         request.cls.space, m_estimator=m_estimator, method='default', init_point_method='first', critical_value=cutoff)
     
-    step_size = 5 if m_estimator == 'biweight' else 0.2
+    step_size = 5 if m_estimator == 'biweight' else 0.25
         
-    request.cls.estimator.set(init_step_size=step_size, max_iter=2048, epsilon=1e-7, verbose=True)
-    request.cls.estimator_md.set(init_step_size=step_size, max_iter=2048, epsilon=1e-7, verbose=True)
-    request.cls.estimator_f.set(init_step_size=step_size, max_iter=2048, epsilon=1e-7, verbose=True)
+    request.cls.estimator.set(init_step_size=step_size, max_iter=2048, epsilon=1e-8, verbose=True)
+    request.cls.estimator_md.set(init_step_size=step_size, max_iter=2048, epsilon=1e-8, verbose=True)
+    request.cls.estimator_f.set(init_step_size=step_size, max_iter=2048, epsilon=1e-8, verbose=True)
 
 
 @pytest.mark.usefixtures("estimators_starting_point")
@@ -222,6 +254,12 @@ class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metacl
         m_estimator='huber',
         method='adaptive',
     )
+    estimator_custom = RiemannianRobustMestimator(
+        space, 
+        critical_value=1,
+        m_estimator='custom',
+        method='adaptive',
+    )
     
     testing_data = AutoGradientNotImplementedOnNumpyBackendTestData()
 
@@ -229,6 +267,21 @@ class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metacl
         """Test autograd not working on numpy."""
         with pytest.raises(NotImplementedError):
             RiemannianAutoGradientDescent(self.space)
+
+    def test_custom_m_estimator_loss_not_provided(self):
+        X = self.space.random_point(10)
+        with pytest.raises(NotImplementedError):
+            self.estimator_custom.fit(X)
+
+    def basic_loss(space, points, base, critical_value, weights, loss_and_grad):
+        loss, grad = points * weights * critical_value, base
+        if loss_and_grad:
+            return loss, grad
+        return loss
+
+    def test_custom_m_estimator_loss_not_provided(self):
+        with pytest.raises(NotImplementedError):
+            self.estimator.set_loss(self.basic_loss)
 
 
 @pytest.fixture(
@@ -241,7 +294,7 @@ class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metacl
         (SpecialEuclidean(n=3)),
     ],
 )
-def estimators_custom_and_explicit(request):
+def estimators_custom_and_explicit(request: pytest.FixtureRequest):
     """Test custom function working inputs"""
 
     request.cls.space = request.param
@@ -250,12 +303,25 @@ def estimators_custom_and_explicit(request):
         request.cls.space, m_estimator='cauchy', method='default', init_point_method='mean-projection', critical_value=1)
     request.cls.estimator.set(init_step_size=1, max_iter=4096, epsilon=1e-7, verbose=True)
     request.cls.estimator_custom = RiemannianRobustMestimator(
-        request.cls.space, m_estimator='default', method='default', init_point_method='mean-projection', critical_value=1)
+        request.cls.space, m_estimator='custom', method='default', init_point_method='mean-projection', critical_value=1)
     request.cls.estimator_custom.set(init_step_size=1, max_iter=4096, epsilon=1e-7, verbose=True)
-      
+    try:
+        request.cls.estimator_custom2 = RiemannianRobustMestimator(
+            request.cls.space, m_estimator='custom', method='autograd', init_point_method='mean-projection', critical_value=1)
+    except NotImplementedError:
+        print('autograd test on numpy backend skipped.')
+
 
 @pytest.mark.usefixtures("estimators_custom_and_explicit")
 class TestSameMestimatorFunctionGivenByCustomAndExplicit(SameMestimatorFunctionGivenByCustomAndExplicitTestCase, metaclass=DataBasedParametrizer):
     """Test custom function working"""
 
     testing_data = SameMestimatorFunctionGivenByCustomAndExplicitTestData()
+
+
+@autograd_and_torch_only
+@pytest.mark.usefixtures("estimators_custom_and_explicit")
+class TestMestimatorCustomFunctionDifferentInputArgs(MestimatorCustomFunctionDifferentInputArgsTestCase, metaclass=DataBasedParametrizer):
+    """Test custom function working"""
+
+    testing_data = MestimatorCustomFunctionDifferentInputArgsTestData()

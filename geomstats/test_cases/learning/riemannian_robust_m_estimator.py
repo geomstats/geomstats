@@ -16,12 +16,12 @@ from geomstats.test_cases.learning._base import (
 from geomstats.vectorization import repeat_point
 
 
-class AutoGradientDescentTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
-    """Test autograd quality case"""
+class AutoGradientDescentOneStepTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
+    """Test onestep autograd quality case"""
 
     @pytest.mark.random
-    def test_auto_grad_descent_same_as_explicit_grad_descent(self, atol):
-        """Test autograd quality case"""
+    def test_onestep_auto_grad_descent_same_as_explicit_grad_descent(self, atol):
+        """Test onestep autograd quality case"""
         X = self.data_generator.random_point(n_points=10)
 
         GD = GradientDescent()
@@ -37,7 +37,7 @@ class AutoGradientDescentTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTest
         _, grad_auto = gs.autodiff.value_and_grad(
             loss_with_base, point_ndims=self.estimator.space.point_ndim
         )(base1)
-        grad_auto = -1 * self.estimator.space.to_tangent(grad_auto, base1)
+        grad_auto = self.estimator.space.to_tangent(grad_auto, base1)
 
         loss_explicit_func = self.estimator._set_m_estimator_loss()
         _, grad_explicit = loss_explicit_func(
@@ -48,9 +48,24 @@ class AutoGradientDescentTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTest
         print(k_multiply)
         result = gs.unique(
             gs.array([gs.floor(k * 1e5 + 0.5) / 1e5
-                      for k in k_multiply if str(k) not in ["nan", "inf"]])
+                      for k in k_multiply if not gs.isnan(k)])
         )
         assert len(result) == 1
+
+
+class AutoGradientDescentResultTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
+    """Test autograd quality case"""
+
+    @pytest.mark.random
+    def test_auto_grad_descent_result_same_as_explicit_grad_descent(self, atol):
+        """Test autograd quality case"""
+        X = self.data_generator.random_point(n_points=10)
+
+        res_autograd = self.estimator.fit(X).estimate_.x
+        res_explicit = self.estimator_explicit.fit(X).estimate_.x
+        res_diff = gs.abs(res_autograd - res_explicit)
+
+        self.assertAllClose(res_diff, gs.zeros(res_diff.shape), atol=atol*10)
 
 
 class LimitingCofHuberLossTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
@@ -115,7 +130,7 @@ class DiffStartingPointSameResultTestCase(
         m1_close = gs.abs(mean_mp - mean_md)
         m2_close = gs.abs(mean_md - mean_f)
 
-        self.assertAllClose(m1_close + m2_close, gs.zeros(mean_mp.shape), atol=atol*1e2)
+        self.assertAllClose(m1_close + m2_close, gs.zeros(mean_mp.shape), atol=atol*25)
 
 
 class SameMestimatorFunctionGivenByCustomAndExplicitTestCase(
@@ -131,7 +146,7 @@ class SameMestimatorFunctionGivenByCustomAndExplicitTestCase(
         self.estimator.fit(X)
         res_o = self.estimator.estimate_.x
 
-        self.estimator_custom._set_loss(custom_riemannian_cauchy_loss_grad_cw)
+        self.estimator_custom.set_loss(custom_riemannian_cauchy_loss_grad_cw)
         self.estimator_custom.fit(X)
         res_cw = self.estimator_custom.estimate_.x
 
@@ -140,13 +155,55 @@ class SameMestimatorFunctionGivenByCustomAndExplicitTestCase(
         self.assertAllClose(close1, gs.zeros(res_o.shape), atol=atol)
 
 
+class MestimatorCustomFunctionDifferentInputArgsTestCase(
+    MeanEstimatorMixinsTestCase,
+    BaseEstimatorTestCase
+):
+    """Test custom function input change case"""
+
+    def test_custom_function_different_input_arguments(self, atol):
+        """Test custom function input change case"""
+
+        try:
+            X = self.data_generator.random_point(n_points=20)
+            self.estimator.points = X
+            self.estimator.weights = None
+            self.estimator.set_loss()
+            loss_e, _ = self.estimator.loss_with_base(X[0])
+
+            self.estimator_custom2.points = X
+            self.estimator_custom2.weights = None
+            self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_cw)
+            loss_cw = self.estimator_custom2.loss_with_base(X[0])
+            self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_c)
+            loss_c = self.estimator_custom2.loss_with_base(X[0])
+            self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_w)
+            loss_w = self.estimator_custom2.loss_with_base(X[0])
+            self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_n)
+            loss_n = self.estimator_custom2.loss_with_base(X[0])
+
+            res = gs.abs(
+                gs.array([
+                    loss_e - loss_cw,
+                    loss_cw - loss_c,
+                    loss_c - loss_w,
+                    loss_w - loss_n,
+                    loss_n - loss_e
+                ])
+            )
+
+            self.assertAllClose(res, gs.zeros(res.shape), atol=atol)
+        except NotImplementedError:
+            assert True
+
+
 def cauchy_m_estimator(logs, distances, weights, c):
     """Define Euclidean Cauchy Loss function for comparison."""
     sum_weights = gs.sum(weights)
     loss = c**2 / 2 * gs.log(1 + distances**2 / c**2)
     loss = gs.sum(weights * loss) / sum_weights
     grad = _scalarmul(c**2 / (c**2 + distances**2) , logs)
-    grad = _scalarmulsum(weights, grad) / sum_weights
+    grad = -1 * _scalarmulsum(weights, grad) / sum_weights
     return loss, grad
 
 
@@ -160,6 +217,62 @@ def custom_riemannian_cauchy_loss_grad_cw(
 ):
     """Compute Riemannian Cauchy loss/gradient."""
     c = critical_value
+    weights = gs.ones(points.shape[0])
+    logs = space.metric.log(point=points, base_point=base)
+    distances = space.metric.norm(logs, base)
+    loss, grad = cauchy_m_estimator(logs, distances, weights, c)
+
+    if loss_and_grad:
+        return loss, space.to_tangent(grad, base_point=base)
+    return loss
+
+
+def custom_riemannian_cauchy_loss_grad_w(
+        space,
+        points,
+        base,
+        weights,
+        loss_and_grad=False
+):
+    """Compute Riemannian Cauchy loss/gradient."""
+    c = 1
+    weights = gs.ones(points.shape[0])
+    logs = space.metric.log(point=points, base_point=base)
+    distances = space.metric.norm(logs, base)
+    loss, grad = cauchy_m_estimator(logs, distances, weights, c)
+
+    if loss_and_grad:
+        return loss, space.to_tangent(grad, base_point=base)
+    return loss
+
+
+def custom_riemannian_cauchy_loss_grad_c(
+        space,
+        points,
+        base,
+        critical_value,
+        loss_and_grad=False
+):
+    """Compute Riemannian Cauchy loss/gradient."""
+    c = critical_value
+    weights = gs.ones(points.shape[0])
+    logs = space.metric.log(point=points, base_point=base)
+    distances = space.metric.norm(logs, base)
+    loss, grad = cauchy_m_estimator(logs, distances, weights, c)
+
+    if loss_and_grad:
+        return loss, space.to_tangent(grad, base_point=base)
+    return loss
+
+
+def custom_riemannian_cauchy_loss_grad_n(
+        space,
+        points,
+        base,
+        loss_and_grad=False
+):
+    """Compute Riemannian Cauchy loss/gradient."""
+    c = 1
     weights = gs.ones(points.shape[0])
     logs = space.metric.log(point=points, base_point=base)
     distances = space.metric.norm(logs, base)

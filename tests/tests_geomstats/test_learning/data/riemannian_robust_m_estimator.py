@@ -20,13 +20,21 @@ class LimitingCofHuberLossTestData(BaseEstimatorTestData):
         return self.generate_random_data()
 
 
-class AutoGradientDescentTestData(TestData):
+class AutoGradientDescentOneStepTestData(TestData):
     """Test autograd quality data"""
 
-    def auto_grad_descent_same_as_explicit_grad_descent_test_data(self):
+    def onestep_auto_grad_descent_same_as_explicit_grad_descent_test_data(self):
         """Test autograd quality data"""
         return self.generate_random_data()
     
+
+class AutoGradientDescentResultTestData(TestData):
+    """Test autograd quality data"""
+
+    def auto_grad_descent_result_same_as_explicit_grad_descent_test_data(self):
+        """Test autograd quality data"""
+        return self.generate_random_data()
+
 
 class VarianceTestData(BaseEstimatorTestData):
     """Test Variance quality data"""
@@ -73,4 +81,12 @@ class SameMestimatorFunctionGivenByCustomAndExplicitTestData(BaseEstimatorTestDa
 
     def same_m_estimator_function_given_by_custom_and_explicit_test_data(self):
         """Test custom function working data"""
+        return self.generate_random_data()
+
+
+class MestimatorCustomFunctionDifferentInputArgsTestData(BaseEstimatorTestData):
+    """Test custom function input change data"""
+    
+    def custom_function_different_input_arguments_test_data(self):
+        """Test custom function input change data"""
         return self.generate_random_data()
