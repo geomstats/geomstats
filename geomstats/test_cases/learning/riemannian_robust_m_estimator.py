@@ -16,7 +16,10 @@ from geomstats.test_cases.learning._base import (
 from geomstats.vectorization import repeat_point
 
 
-class AutoGradientDescentOneStepTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
+class AutoGradientDescentOneStepTestCase(
+    MeanEstimatorMixinsTestCase,
+    BaseEstimatorTestCase
+):
     """Test onestep autograd quality case"""
 
     @pytest.mark.random
@@ -53,7 +56,10 @@ class AutoGradientDescentOneStepTestCase(MeanEstimatorMixinsTestCase, BaseEstima
         assert len(result) == 1
 
 
-class AutoGradientDescentResultTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
+class AutoGradientDescentResultTestCase(
+    MeanEstimatorMixinsTestCase,
+    BaseEstimatorTestCase
+):
     """Test autograd quality case"""
 
     @pytest.mark.random
@@ -163,7 +169,6 @@ class MestimatorCustomFunctionDifferentInputArgsTestCase(
 
     def test_custom_function_different_input_arguments(self, atol):
         """Test custom function input change case"""
-
         X = self.data_generator.random_point(n_points=20)
         self.estimator.points = X
         self.estimator.weights = None

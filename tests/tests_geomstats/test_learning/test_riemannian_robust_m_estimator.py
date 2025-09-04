@@ -273,13 +273,13 @@ class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metacl
         with pytest.raises(NotImplementedError):
             self.estimator_custom.fit(X)
 
-    def basic_loss(space, points, base, critical_value, weights, loss_and_grad):
-        loss, grad = points * weights * critical_value, base
+    def basic_loss(self, space, points, base, critical_value, weights, loss_and_grad):
+        loss, grad = space.metric.log(points) * weights * critical_value, base
         if loss_and_grad:
             return loss, grad
         return loss
 
-    def test_custom_m_estimator_loss_not_provided(self):
+    def test_custom_m_estimator_loss_provided(self):
         with pytest.raises(NotImplementedError):
             self.estimator.set_loss(self.basic_loss)
 

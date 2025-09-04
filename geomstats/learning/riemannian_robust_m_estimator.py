@@ -231,6 +231,7 @@ class BaseGradientDescent(abc.ABC):
         """Define function for auto gradient."""
         if self.autograd:
             def fun_(x):
+                """Set function output with loss and gradient with autodiff pkg."""
                 value, grad = gs.autodiff.value_and_grad(fun, point_ndims=point_ndim)(x)
                 return value, grad
 
@@ -261,7 +262,6 @@ class BaseGradientDescent(abc.ABC):
         init_point_method=False
     ):
         """Perform gradient descent."""
-        pass
 
 
 class RiemannianAutoGradientDescent(BaseGradientDescent):
@@ -277,7 +277,9 @@ class RiemannianAutoGradientDescent(BaseGradientDescent):
 
     def __init__(self, *args, **kwargs):
         if numpy_backend:
-            raise NotImplementedError("This optimizer requires the autograd/pytorch backend.")
+            raise NotImplementedError(
+                "This optimizer requires the autograd/pytorch backend."
+            )
         super().__init__(*args, **kwargs)
 
     def _perturbation_for_zero_distance(self, space, X, base):
@@ -654,15 +656,15 @@ class AdaptiveGradientDescent(BaseGradientDescent):
 
             if self.verbose and (current_iter % 50 == 0):
                 print(
-                    f'{current_iter}th iteration processing...  '
+                    f'{current_iter}th iteration processing...  ' +
                     f'[{time.time()-tic:.2f} seconds]'
                 )
                 print(
-                    f'base:{[_rounding_array(ee, 3) for ee in current_mean]}, '+
-                    f'gradient:{[_rounding_array(ee, 3) \
-                                 for ee in current_gradient_value]}, '
-                    f'step size: {tau:.5f}, '+
-                    f'current loss(grad norm): {sq_norm_current_gradient_value:.2f}'+
+                    f'base:{[_rounding_array(ee, 3) for ee in current_mean]}, ' +
+                    f'gradient:{[_rounding_array(ee, 3)
+                                 for ee in current_gradient_value]}, ' +
+                    f'step size: {tau:.5f}, ' +
+                    f'current loss(grad norm): {sq_norm_current_gradient_value:.2f}' +
                     f'(loss:{loss_v:.5f}]'
                 )
 
@@ -746,7 +748,6 @@ class RiemannianRobustMestimator(BaseEstimator):
 
     def __new__(cls, space, critical_value=None, m_estimator='default', **kwargs):
         """Interface for instantiating proper algorithm."""
-
         return super().__new__(cls)
 
     def __init__(
@@ -758,7 +759,6 @@ class RiemannianRobustMestimator(BaseEstimator):
             method="default"
     ):
         """Set for initiate the estimator class."""
-
         if (numpy_backend) and (method == 'autograd'):
             raise NotImplementedError(
                 "autograd method only available on autograd, pytorch backend. " +
@@ -905,7 +905,7 @@ class RiemannianRobustMestimator(BaseEstimator):
                     space=self.space, points=self.points, base=base)
         elif (self.fun_provided) and (not self.is_autograd):
             self.loss_with_base = (
-                lambda points, base, critical_value, weights, loss_and_grad: \
+                lambda points, base, critical_value, weights, loss_and_grad:
                     self.fun(
                         space=self.space,
                         points=points,
