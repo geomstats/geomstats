@@ -164,37 +164,34 @@ class MestimatorCustomFunctionDifferentInputArgsTestCase(
     def test_custom_function_different_input_arguments(self, atol):
         """Test custom function input change case"""
 
-        try:
-            X = self.data_generator.random_point(n_points=20)
-            self.estimator.points = X
-            self.estimator.weights = None
-            self.estimator.set_loss()
-            loss_e, _ = self.estimator.loss_with_base(X[0])
+        X = self.data_generator.random_point(n_points=20)
+        self.estimator.points = X
+        self.estimator.weights = None
+        self.estimator.set_loss()
+        loss_e, _ = self.estimator.loss_with_base(X[0])
 
-            self.estimator_custom2.points = X
-            self.estimator_custom2.weights = None
-            self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_cw)
-            loss_cw = self.estimator_custom2.loss_with_base(X[0])
-            self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_c)
-            loss_c = self.estimator_custom2.loss_with_base(X[0])
-            self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_w)
-            loss_w = self.estimator_custom2.loss_with_base(X[0])
-            self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_n)
-            loss_n = self.estimator_custom2.loss_with_base(X[0])
+        self.estimator_custom2.points = X
+        self.estimator_custom2.weights = None
+        self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_cw)
+        loss_cw = self.estimator_custom2.loss_with_base(X[0])
+        self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_c)
+        loss_c = self.estimator_custom2.loss_with_base(X[0])
+        self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_w)
+        loss_w = self.estimator_custom2.loss_with_base(X[0])
+        self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_n)
+        loss_n = self.estimator_custom2.loss_with_base(X[0])
 
-            res = gs.abs(
-                gs.array([
-                    loss_e - loss_cw,
-                    loss_cw - loss_c,
-                    loss_c - loss_w,
-                    loss_w - loss_n,
-                    loss_n - loss_e
-                ])
-            )
+        res = gs.abs(
+            gs.array([
+                loss_e - loss_cw,
+                loss_cw - loss_c,
+                loss_c - loss_w,
+                loss_w - loss_n,
+                loss_n - loss_e
+            ])
+        )
 
-            self.assertAllClose(res, gs.zeros(res.shape), atol=atol)
-        except NotImplementedError:
-            assert True
+        self.assertAllClose(res, gs.zeros(res.shape), atol=atol)
 
 
 def cauchy_m_estimator(logs, distances, weights, c):
