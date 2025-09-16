@@ -71,7 +71,7 @@ class DiffStartingPointSameResultTestData(BaseEstimatorTestData):
 class AutoGradientNotImplementedOnNumpyBackendTestData(BaseEstimatorTestData):
     """Test autograd not working on numpy data"""
 
-    def auto_gradient_not_implemented_on_numpy_backend_test_data(self):
+    def numpy_backend_autograd_error_test_data(self):
         """Test autograd not working on numpy data"""
         return self.generate_tests([{}])
       

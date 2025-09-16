@@ -149,7 +149,7 @@ def estimators_autograd_result(request: pytest.FixtureRequest):
     space, m_estimator = request.param
     request.cls.estimator = RiemannianRobustMestimator(space, method='autograd', m_estimator=m_estimator, critical_value=1)
     request.cls.estimator_explicit = RiemannianRobustMestimator(space, method='adaptive', m_estimator=m_estimator, critical_value=1)
-    request.cls.estimator.set(init_step_size=0.25, max_iter=4096, epsilon=1e-7)
+    request.cls.estimator.set(init_step_size=0.25, max_iter=4096, epsilon=1e-7, verbose=True)
     request.cls.estimator_explicit.set(init_step_size=0.25, max_iter=4096, epsilon=1e-7)
 
 
@@ -260,20 +260,17 @@ class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metacl
         m_estimator='custom',
         method='adaptive',
     )
-    
-    testing_data = AutoGradientNotImplementedOnNumpyBackendTestData()
+    RGD = RiemannianAutoGradientDescent()
 
-    def test_auto_gradient_not_implemented_on_numpy_backend(self):
-        """Test autograd not working on numpy."""
-        with pytest.raises(NotImplementedError):
-            RiemannianAutoGradientDescent(self.space)
+    testing_data = AutoGradientNotImplementedOnNumpyBackendTestData()
 
     def test_custom_m_estimator_loss_not_provided(self):
         X = self.space.random_point(10)
         with pytest.raises(NotImplementedError):
             self.estimator_custom.fit(X)
 
-    def basic_loss(self, space, points, base, critical_value, weights, loss_and_grad):
+    @staticmethod
+    def basic_loss(space, points, base, critical_value, weights, loss_and_grad=True):
         loss, grad = space.metric.log(points) * weights * critical_value, base
         if loss_and_grad:
             return loss, grad
@@ -282,6 +279,17 @@ class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metacl
     def test_custom_m_estimator_loss_provided(self):
         with pytest.raises(NotImplementedError):
             self.estimator.set_loss(self.basic_loss)
+
+    def test_numpy_backend_autograd_error(self):
+        """Test autograd not working on numpy."""
+        with pytest.raises(NotImplementedError):
+            self.estimate_ = self.RGD.minimize(
+                space=self.space,
+                points=self.space.random_point(3),
+                fun=self.basic_loss,
+                weights=None,
+                init_point_method='first',
+            )
 
 
 @pytest.fixture(

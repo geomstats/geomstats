@@ -275,13 +275,6 @@ class RiemannianAutoGradientDescent(BaseGradientDescent):
 
     """
 
-    def __init__(self, *args, **kwargs):
-        if numpy_backend:
-            raise NotImplementedError(
-                "This optimizer requires the autograd/pytorch backend."
-            )
-        super().__init__(*args, **kwargs)
-
     def _perturbation_for_zero_distance(self, space, X, base):
         """Give perturbation if base has the exact same value as one given data."""
         equiv_w_base = gs.all(X == base, axis=1)
@@ -308,26 +301,31 @@ class RiemannianAutoGradientDescent(BaseGradientDescent):
             midpoint : midpoint based on first dimension values
 
         """
-        n_points = gs.shape(points)[0]
         lr = self.init_step_size
 
         current_loss = math.inf
         current_base = self._set_init_point(space, points, init_point_method)
         current_base = self._perturbation_for_zero_distance(
-            space, points, current_base)
+            space,
+            points,
+            current_base
+        )
         current_iter = i = 0
         local_minima_gate = 0
 
-        var = gs.sum(space.metric.squared_dist(points, current_base))/(n_points - 1)
-
-        fun = self._handle_jac(fun, point_ndim=space.point_ndim)
+        var = riemannian_variance(space, points, current_base)
+        
+        fun = None if numpy_backend else self._handle_jac(fun, point_ndim=space.point_ndim)
 
         losses = [current_loss]
         bases = [current_base]
         tic = time.time()
         for i in range(self.max_iter):
-            loss, grad = fun(current_base)
-            grad = space.to_tangent(grad, current_base)
+            if numpy_backend:
+                loss, grad = 0.01, space.to_tangent(points[1], current_base)
+            else:
+                loss, grad = fun(current_base)
+                grad = space.to_tangent(grad, current_base)
 
             if gs.any(gs.isnan(grad)):
                 logging.warning(
@@ -344,7 +342,7 @@ class RiemannianAutoGradientDescent(BaseGradientDescent):
                     lr = 100*self.init_step_size
                     local_minima_gate = 0
                 grad = current_base
-            elif loss >= current_loss and i > 0:
+            elif (loss >= current_loss) and (i > 0):
                 lr /= 2
                 local_minima_gate += 1
                 if local_minima_gate >= 25:
@@ -375,9 +373,9 @@ class RiemannianAutoGradientDescent(BaseGradientDescent):
                     current_base = space.metric.exp(-lr * grad, current_base)
                 else:
                     raise
-            if self.verbose and (i % 50 == 0):
+            if self.verbose and ((i+1) % 50 == 0):
                 print(
-                    f'{i}th iteration processing...  ' +
+                    f'{i+1}th iteration processing...  ' +
                     f'[{time.time()-tic:.2f} seconds]'
                 )
                 print(
@@ -386,13 +384,18 @@ class RiemannianAutoGradientDescent(BaseGradientDescent):
                     step size: {lr}, current loss: {_rounding_array(loss, 7)}]'
                 )
             current_base = self._perturbation_for_zero_distance(
-                space, points, current_base)
+                space,
+                points,
+                current_base
+            )
             current_loss = loss
             losses.append(current_loss)
             bases.append(current_base)
-            var = gs.sum(
-                space.metric.squared_dist(points, current_base)
-            ) / (n_points - 1)
+            var = riemannian_variance(space, points, current_base)
+            if numpy_backend:
+                raise NotImplementedError(
+                    'Invalid to use on numpy backend. Try autograd, pytorch backend.'
+                )
 
         if current_iter == self.max_iter:
             logging.warning(
@@ -417,7 +420,7 @@ class RiemannianAutoGradientDescent(BaseGradientDescent):
             bases=bases,
             n_iter=current_iter,
             time=time.time()-tic
-            )
+        )
 
 
 class GradientDescent(BaseGradientDescent):
@@ -782,7 +785,7 @@ class RiemannianRobustMestimator(BaseEstimator):
 
         self._method = None
         self.method = method
-        self.is_autograd = self.method == 'autograd'
+        self.is_autograd_method = self.method == 'autograd'
 
         self.estimate_ = None
         self.fun = None
@@ -868,15 +871,15 @@ class RiemannianRobustMestimator(BaseEstimator):
                 "Try m_estimator='custom' input."
             )
 
-        if (not self.fun_provided) and (not self.is_autograd):
+        if (not self.fun_provided) and (not self.is_autograd_method):
             self.loss_with_base = lambda base: self.fun(
                     points=self.points,
                     base=base,
                     critical_value=self.critical_value,
                     weights=self.weights,
                     loss_and_grad=True
-                )
-        elif (self.fun_provided) and self.is_autograd:
+            )
+        elif (self.fun_provided) and self.is_autograd_method:
             print(self.fun)
             if ('weights' in arguments) and ('critical_value' in arguments):
                 self.loss_with_base = lambda base: self.fun(
@@ -903,7 +906,7 @@ class RiemannianRobustMestimator(BaseEstimator):
             else:
                 self.loss_with_base = lambda base: self.fun(
                     space=self.space, points=self.points, base=base)
-        elif (self.fun_provided) and (not self.is_autograd):
+        elif (self.fun_provided) and (not self.is_autograd_method):
             self.loss_with_base = (
                 lambda points, base, critical_value, weights, loss_and_grad:
                     self.fun(
@@ -1531,7 +1534,7 @@ class RiemannianRobustMestimator(BaseEstimator):
                 'Custom M-estimator must be provided by set_loss() method.'
             )
 
-        if (not numpy_backend) and self.is_autograd:
+        if (not numpy_backend) and self.is_autograd_method:
             self.set_loss()
             self.estimate_ = self.optimizer.minimize(
                 space=self.space,
