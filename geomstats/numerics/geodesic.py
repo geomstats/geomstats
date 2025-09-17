@@ -648,7 +648,7 @@ class LogODESolver(_LogBatchMixins, LogSolver):
             if not is_batch:
                 return self._simplify_result_t(result.sol(t))
 
-            return gs.array(
+            return gs.stack(
                 [self._simplify_result_t(result.sol(t)) for result in results]
             )
 
