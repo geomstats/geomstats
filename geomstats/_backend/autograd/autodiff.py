@@ -115,7 +115,7 @@ def custom_gradient(*grad_funcs):
             )
         else:
             raise NotImplementedError(
-                "custom_gradient is not yet implemented " "for more than 3 gradients."
+                "custom_gradient is not yet implemented for more than 3 gradients."
             )
 
         return wrapped_function

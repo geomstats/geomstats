@@ -54,8 +54,7 @@ def plot_gaussian_mixture_distribution(
         z_axis_samples[z_index] = mesh_probabilities.sum(-1)
 
     fig = plt.figure(
-        "Learned Gaussian Mixture Model "
-        "via Expectation Maximization on Poincaré Disc"
+        "Learned Gaussian Mixture Model via Expectation Maximization on Poincaré Disc"
     )
 
     ax = fig.add_subplot(projection="3d")
