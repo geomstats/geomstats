@@ -39,7 +39,7 @@ def _sphere_immersion(point):
     x = gs.sin(theta) * gs.cos(phi)
     y = gs.sin(theta) * gs.sin(phi)
     z = gs.cos(theta)
-    return gs.array([radius * x, radius * y, radius * z])
+    return gs.stack([radius * x, radius * y, radius * z])
 
 
 def _first_component_of_sphere_immersion(point):
