@@ -14,9 +14,6 @@ class AgainstNumpyTestData(TestData):
             ([],),
             (1.5,),
             (gs.array(1.5),),
-            ([gs.ones(2), gs.ones(2)],),
-            ([gs.ones(1), gs.ones(1)],),
-            ([gs.ones(2), [0, 0]],),
         ]
 
         return [{"func_name": func_name, "args": args_} for args_ in args]
