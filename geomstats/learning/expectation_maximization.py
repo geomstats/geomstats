@@ -95,9 +95,9 @@ class GaussianMixtureModel:
             variances = variances[0:limit_nf]
             normalization_factor_var = normalization_factor_var[0:limit_nf]
             if cond_1:
-                logging.warning("\t Nan value " "in processing normalization factor")
+                logging.warning("\t Nan value in processing normalization factor")
             if cond_2 or cond_3:
-                raise ValueError("\t +-inf value in " "processing normalization factor")
+                raise ValueError("\t +-inf value in processing normalization factor")
 
             logging.warning("\t Max variance is now : %s", str(variances[-1]))
             logging.warning(
@@ -428,12 +428,11 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             >= gs.mean(gs.sum(posterior_probabilities, 1))
             >= 1 + SUM_CHECK_PDF
         ):
-            logging.warning("EXPECTATION : posterior probabilities " "do not sum to 1.")
+            logging.warning("EXPECTATION : posterior probabilities do not sum to 1.")
 
         if gs.any(gs.sum(posterior_probabilities, 0) < PDF_TOL):
             logging.warning(
-                "EXPECTATION : Gaussian got no elements "
-                "(precision error) reinitialize"
+                "EXPECTATION : Gaussian got no elements (precision error) reinitialize"
             )
             posterior_probabilities[posterior_probabilities == 0] = PDF_TOL
 

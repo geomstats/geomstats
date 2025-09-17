@@ -93,6 +93,9 @@ extend-include = ["*.ipynb"]
 extend-select = ["I", "D"]
 ignore = ["E731"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["geomstats"]
+
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 

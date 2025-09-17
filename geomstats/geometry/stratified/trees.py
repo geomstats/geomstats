@@ -481,7 +481,7 @@ class ForestTopology:
     def _check_init(self, partition, split_sets):
         if len(split_sets) != len(partition):
             raise ValueError(
-                "Number of split sets is not equal to number of " "components."
+                "Number of split sets is not equal to number of components."
             )
         for _part, _splits in zip(partition, split_sets):
             for _sp in _splits:

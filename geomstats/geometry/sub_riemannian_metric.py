@@ -339,7 +339,7 @@ class SubRiemannianMetric:
         """
         if initial_cotangent_vec is None:
             raise ValueError(
-                "Specify an initial cotangent " "vector to define the geodesic."
+                "Specify an initial cotangent vector to define the geodesic."
             )
 
         initial_point = gs.to_ndarray(initial_point, to_ndim=2)

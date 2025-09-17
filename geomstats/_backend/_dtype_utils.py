@@ -321,7 +321,7 @@ def _pre_cast_out_to_input_dtype(cast, is_floating, is_complex, as_dtype, dtype_
                         cmp_dtype = x.dtype
                     else:
                         float_name = dtype_as_str(x.dtype)
-                        cmp_dtype = as_dtype(f"complex{int((float_name[-2:]))*2}")
+                        cmp_dtype = as_dtype(f"complex{int((float_name[-2:])) * 2}")
 
                     if out.dtype != cmp_dtype:
                         return cast(out, cmp_dtype)

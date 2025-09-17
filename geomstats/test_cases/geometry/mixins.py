@@ -132,7 +132,7 @@ class DistTestCaseMixins:
 
         lhs = dist_ab + dist_bc
         res = gs.all(lhs + atol >= rhs)
-        self.assertTrue(res, f"lhs: {lhs}, rhs: {dist_ac}, diff: {lhs-rhs}")
+        self.assertTrue(res, f"lhs: {lhs}, rhs: {dist_ac}, diff: {lhs - rhs}")
 
 
 class GeodesicBVPTestCaseMixins:
