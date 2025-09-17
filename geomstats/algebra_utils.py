@@ -164,7 +164,7 @@ def taylor_exp_even_func(point, taylor_function, order=5, tol=EPSILON):
     approx = gs.einsum(
         "k,k...->...",
         gs.array(taylor_function["coefficients"][:order]),
-        gs.array([point**k for k in range(order)]),
+        gs.stack([point**k for k in range(order)]),
     )
     point_ = gs.where(gs.abs(point) <= tol, tol, point)
     exact = taylor_function["function"](gs.sqrt(point_))

@@ -96,7 +96,7 @@ def create_data(kalman, true_init, true_inputs, obs_freq):
     ]
     inputs = [gs.cast(incr, input_dtype) for incr in inputs]
 
-    return gs.array(true_traj), inputs, observations
+    return gs.stack(true_traj), inputs, observations
 
 
 def estimation(kalman, initial_state, inputs, observations, obs_freq):
@@ -132,8 +132,9 @@ def estimation(kalman, initial_state, inputs, observations, obs_freq):
             kalman.update(observations[(i // obs_freq)])
         traj.append(1 * kalman.state)
         uncertainty.append(1 * gs.diagonal(kalman.covariance))
-    traj = gs.array(traj)
-    uncertainty = gs.array(uncertainty)
+
+    traj = gs.stack(traj)
+    uncertainty = gs.stack(uncertainty)
     three_sigmas = 3 * gs.sqrt(uncertainty)
 
     return traj, three_sigmas
@@ -168,7 +169,7 @@ def main():
         kalman, true_state, true_inputs, obs_freq
     )
 
-    initial_state = np.random.multivariate_normal(true_state, init_cov)
+    initial_state = gs.random.multivariate_normal(true_state, init_cov, size=1)[0]
     estimate, uncertainty = estimation(
         kalman, initial_state, inputs, observations, obs_freq
     )
