@@ -22,7 +22,7 @@ class NFoldManifoldSOTestData(TestData):
                 expected=gs.array(False),
             ),
             dict(
-                point=gs.array([gs.eye(3), gs.eye(3)]),
+                point=gs.stack([gs.eye(3), gs.eye(3)]),
                 expected=gs.array(True),
             ),
         ]

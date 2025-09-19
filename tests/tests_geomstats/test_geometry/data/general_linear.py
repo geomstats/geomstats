@@ -50,7 +50,7 @@ class GeneralLinear2TestData(TestData):
                 point=point,
                 base_point=identity,
                 time=time,
-                expected=gs.array([identity, sqrt, point]),
+                expected=gs.stack([identity, sqrt, point]),
             ),
             dict(
                 point=gs.stack([point, point]),
@@ -58,8 +58,8 @@ class GeneralLinear2TestData(TestData):
                 time=time,
                 expected=gs.stack(
                     [
-                        gs.array([identity, sqrt, point]),
-                        gs.array([identity, sqrt, point]),
+                        gs.stack([identity, sqrt, point]),
+                        gs.stack([identity, sqrt, point]),
                     ]
                 ),
             ),

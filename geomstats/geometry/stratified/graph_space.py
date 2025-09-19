@@ -467,7 +467,9 @@ class _GeodesicToPointAligner(PointToGeodesicAlignerBase):
 
         min_sdists = gs.array(min_sdists)
         if return_perm:
-            return min_sdists, gs.array(perms)
+            if isinstance(perms, list):
+                perms = gs.stack(perms)
+            return min_sdists, perms
 
         return min_sdists
 

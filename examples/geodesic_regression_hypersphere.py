@@ -107,7 +107,9 @@ def main():
 
     size = 10
     marker = "o"
-    sphere_visu.draw_points(ax, gs.array([intercept_hat]), marker=marker, c="r", s=size)
+    sphere_visu.draw_points(
+        ax, gs.expand_dims(intercept_hat, axis=0), marker=marker, c="r", s=size
+    )
     sphere_visu.draw_points(ax, y, marker=marker, c="b", s=size)
     sphere_visu.draw_points(ax, fitted_data, marker=marker, c="g", s=size)
 

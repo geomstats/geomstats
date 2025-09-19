@@ -468,8 +468,11 @@ class ForestTopology:
                 for split in path:
                     _support[self.where[split]][u][v] = True
                     _support[self.where[split]][v][u] = True
+
         self.support = gs.reshape(
-            gs.array([m for m in self._flatten(_support)]),
+            gs.stack([m for m in self._flatten(_support)])
+            if _support
+            else gs.array([]),
             (-1, self.n_labels, self.n_labels),
         )
         self._chart_gradient = None

@@ -178,12 +178,12 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
                 for j in range(self.n_clusters)
             )
 
-            new_centers = gs.array(out)
+            new_centers = gs.stack(out)
 
             displacements = [self.space.metric.dist(centers, new_centers)]
             centers = new_centers
 
-            if (gs.array(displacements) < self.tol).all():
+            if (gs.stack(displacements) < self.tol).all():
                 break
 
         self.cluster_centers_ = centers

@@ -143,7 +143,7 @@ def load_poses(only_rotations=True):
             data.append(pose_vec)
             img_paths.append(row["img"])
 
-    data = gs.array(data)
+    data = gs.stack(data)
     return data, img_paths
 
 
