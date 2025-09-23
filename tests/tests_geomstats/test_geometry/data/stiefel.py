@@ -1,3 +1,5 @@
+import random
+
 import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
@@ -55,3 +57,19 @@ class StiefelCanonicalMetricTestData(RiemannianMetricTestData):
 class StiefelCanonicalMetricSquareTestData(TestData):
     def two_sheets_error_test_data(self):
         return self.generate_random_data()
+
+
+class StiefelConnectednessTestData(TestData):
+    def is_connected_test_data(self):
+        n = random.randint(2, 8)
+        n_gt_3 = random.randint(3, 8)
+        n_gt_5 = random.randint(5, 8)
+        p = random.randint(2, n_gt_5 - 2)
+
+        data = [
+            dict(n=n, p=1, expected=True),
+            dict(n=n, p=n, expected=False),
+            dict(n=n_gt_3, p=n_gt_3 - 1, expected=True),
+            dict(n=n_gt_5, p=p, expected=True),
+        ]
+        return self.generate_tests(data)

@@ -1,6 +1,7 @@
 import pytest
 
 import geomstats.backend as gs
+from geomstats.test.test_case import TestCase
 from geomstats.test_cases.geometry.base import VectorSpaceTestCase
 from geomstats.test_cases.geometry.mixins import GroupExpTestCaseMixins
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
@@ -55,3 +56,15 @@ class CanonicalEuclideanMetricTestCase(EuclideanMetricTestCase):
             gs.eye(self.space.dim), batch_shape + 2 * (self.space.dim,)
         )
         self.assertAllClose(res, expected, atol=atol)
+
+
+class EuclideanConnectednessTestCase(TestCase):
+    def test_is_connected(self):
+        msg = "All Euclidean spaces are connected"
+        self.assertTrue(self.space.is_connected, msg=msg)
+
+
+class EuclideanCompactnessTestCase(TestCase):
+    def test_is_compact(self):
+        msg = "Euclidean spaces are not compact."
+        self.assertTrue(not self.space.is_compact, msg=msg)
