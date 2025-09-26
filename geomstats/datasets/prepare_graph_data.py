@@ -76,7 +76,7 @@ class Graph:
         for index in range(len(self.edges)):
             for i in range(n_walks_per_node):
                 paths[index * n_walks_per_node + i] = self._walk(index, walk_length)
-        return gs.array(paths)
+        return gs.stack(paths)
 
     def _walk(self, index, walk_length):
         """Generate a single random walk."""

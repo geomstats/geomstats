@@ -373,7 +373,7 @@ class SasakiMetric(RiemannianMetric):
                 delayed(_geodesic_discrete_single)(i_pt, e_pt)
                 for i_pt, e_pt in zip(initial_point, end_point)
             )
-        return gs.array(rslt)
+        return gs.stack(rslt)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Inner product between two tangent vectors at a base point.

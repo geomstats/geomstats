@@ -52,7 +52,7 @@ class ClusterMixinsTestCase:
             X.extend(
                 repeat_point(self.data_generator.random_point(n_points=1), n_samples)
             )
-        X = gs.array(X)
+        X = gs.stack(X)
 
         cluster_centers = self.estimator.fit(X).cluster_centers_
         labels = self.estimator.predict(X)

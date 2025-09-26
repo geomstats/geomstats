@@ -33,7 +33,7 @@ class UniformlySampledPathEnergy:
         return self.energy(path)
 
     def energy_per_time(self, path):
-        """Compute Riemannian path enery per time.
+        """Compute Riemannian path energy per time.
 
         Parameters
         ----------

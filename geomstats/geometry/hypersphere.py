@@ -238,13 +238,14 @@ class _Hypersphere(LevelSet):
 
         zeros = gs.zeros_like(theta)
 
-        jac = gs.array(
+        jac = gs.stack(
             [
-                [gs.cos(theta) * gs.cos(phi), -gs.sin(theta) * gs.sin(phi)],
-                [gs.cos(theta) * gs.sin(phi), gs.sin(theta) * gs.cos(phi)],
-                [-gs.sin(theta), zeros],
+                gs.stack([gs.cos(theta) * gs.cos(phi), -gs.sin(theta) * gs.sin(phi)]),
+                gs.stack([gs.cos(theta) * gs.sin(phi), gs.sin(theta) * gs.cos(phi)]),
+                gs.stack([-gs.sin(theta), zeros]),
             ]
         )
+
         jac = gs.transpose(jac, axes)
 
         return gs.einsum("...ij,...j->...i", jac, tangent_vec_spherical)
@@ -324,22 +325,29 @@ class _Hypersphere(LevelSet):
 
         theta_safe = gs.where(gs.abs(theta) < gs.atol, gs.atol, theta)
         zeros = gs.zeros_like(theta)
-        jac_close_0 = gs.array(
-            [[gs.ones_like(theta), zeros, zeros], [zeros, gs.ones_like(theta), zeros]]
+        jac_close_0 = gs.stack(
+            [
+                gs.stack([gs.ones_like(theta), zeros, zeros]),
+                gs.stack([zeros, gs.ones_like(theta), zeros]),
+            ]
         )
 
-        jac = gs.array(
+        jac = gs.stack(
             [
-                [
-                    gs.cos(theta) * gs.cos(phi),
-                    gs.cos(theta) * gs.sin(phi),
-                    -gs.sin(theta),
-                ],
-                [
-                    -gs.sin(phi) / gs.sin(theta_safe),
-                    gs.cos(phi) / gs.sin(theta_safe),
-                    zeros,
-                ],
+                gs.stack(
+                    [
+                        gs.cos(theta) * gs.cos(phi),
+                        gs.cos(theta) * gs.sin(phi),
+                        -gs.sin(theta),
+                    ]
+                ),
+                gs.stack(
+                    [
+                        -gs.sin(phi) / gs.sin(theta_safe),
+                        gs.cos(phi) / gs.sin(theta_safe),
+                        zeros,
+                    ]
+                ),
             ]
         )
 

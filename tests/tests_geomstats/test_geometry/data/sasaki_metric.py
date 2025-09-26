@@ -33,12 +33,12 @@ class SasakiMetricSphereTestData(TestData):
         tangent_vec = gs.array(
             [[[gs.pi / 2, 0, 0], [0, 0, 0]], [[0, -gs.pi / 2, 0], [0, 0, 0]]]
         )
-        expected = gs.array([self.pu1, self.pu0])
+        expected = gs.stack([self.pu1, self.pu0])
 
         data = [
             dict(
                 tangent_vec=tangent_vec,
-                base_point=gs.array([self.pu0, self.pu1]),
+                base_point=gs.stack([self.pu0, self.pu1]),
                 expected=expected,
             )
         ]
@@ -52,8 +52,8 @@ class SasakiMetricSphereTestData(TestData):
 
         data = [
             dict(
-                point=gs.array([self.pu1, self.pu0]),
-                base_point=gs.array([self.pu0, self.pu1]),
+                point=gs.stack([self.pu1, self.pu0]),
+                base_point=gs.stack([self.pu0, self.pu1]),
                 expected=expected,
             )
         ]

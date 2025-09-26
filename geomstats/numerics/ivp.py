@@ -179,7 +179,7 @@ class GSIVPIntegrator(ODEIVPIntegrator):
         ts = gs.linspace(0.0, end_time, self.n_steps + 1)
         nfev = self._get_n_fevals(self.n_steps)
 
-        result = OdeResult(t=ts, y=gs.array(states), nfev=nfev, njev=0, sucess=True)
+        result = OdeResult(t=ts, y=gs.stack(states), nfev=nfev, njev=0, sucess=True)
 
         if self.save_result:
             self.result_ = result
