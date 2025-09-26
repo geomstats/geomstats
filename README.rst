@@ -52,10 +52,6 @@ Citing Geomstats
 
 If you find ``geomstats`` useful, please kindly cite:
 
-- our research `papers <https://jmlr.org/papers/v21/19-027.html>`__ :
-
-If you find ``geomstats`` useful, please kindly cite:
-
 - `Geomstats: A Python Package for Riemannian Geometry in Machine Learning (JMLR 2020) <http://jmlr.org/papers/v21/19-027.html>`__
 
 - `Introduction to Riemannian Geometry and Geometric Statistics: from Basic Theory to Implementation with Geomstats (FnT ML 2023) <https://www.nowpublishers.com/article/Details/MAL-098>`__
