@@ -664,8 +664,7 @@ class AdaptiveGradientDescent(BaseGradientDescent):
                 )
                 print(
                     f'base:{[_rounding_array(ee, 3) for ee in current_mean]}, ' +
-                    f'gradient:{[_rounding_array(ee, 3)
-                                 for ee in current_gradient_value]}, ' +
+                    f'gradient:{[_rounding_array(ee, 3) for ee in current_gradient_value]}, ' +
                     f'step size: {tau:.5f}, ' +
                     f'current loss(grad norm): {sq_norm_current_gradient_value:.2f}' +
                     f'(loss:{loss_v:.5f}]'
