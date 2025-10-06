@@ -272,9 +272,9 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
     def __init__(self, factors, point_ndim=None, equip=True):
         factors = tuple(factors)
 
-        factor_dims = [factor.dim for factor in factors]
+        factor_flatten_shapes = [math.prod(factor.shape) for factor in factors]
 
-        dim = sum(factor_dims)
+        dim = sum([factor.dim for factor in factors])
 
         shape = _find_product_shape(factors, point_ndim)
 
@@ -295,7 +295,7 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
             )
 
         cum_index = (
-            gs.cumsum(factor_dims)[:-1]
+            gs.cumsum(factor_flatten_shapes)[:-1]
             if intrinsic
             else self.embedding_space._cum_index
         )
