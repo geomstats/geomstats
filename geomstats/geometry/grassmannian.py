@@ -237,6 +237,40 @@ class Grassmannian(LevelSet):
         p_d = gs.einsum("...ij,...j->...ij", eigvecs, diagonal)
         return Matrices.mul(p_d, Matrices.transpose(eigvecs))
 
+    @property
+    def is_connected(self):
+        """Indicates whether the geometric object is connected.
+
+        Grassmannians are connected. See [FV1984]_.
+
+        Returns
+        -------
+        is_connected: bool
+
+        References
+        ----------
+        .. [FR1984] Fuks, D. B., and V. A. Rokhlin. "Beginner's Course in Topology."
+           1st ed. Universitext. Springer, August 1984. Berlin, Germany.
+        """
+        return True
+
+    @property
+    def is_compact(self):
+        """Indicates whether the geometric object is compact.
+
+        All Grassmannians are compact. See [FR1984]_.
+
+        Returns
+        -------
+        is_compact: bool
+
+        References
+        ----------
+        .. [FR1984] Fuks, D. B., and V. A. Rokhlin. "Beginner's Course in Topology."
+           1st ed. Universitext. Springer, August 1984. Berlin, Germany.
+        """
+        return True
+
 
 class GrassmannianCanonicalMetric(RiemannianMetric):
     """Canonical metric of the Grassmann manifold."""

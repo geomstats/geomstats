@@ -7,6 +7,8 @@ from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import HypersphereIntrinsicRandomDataGenerator
 from geomstats.test_cases.geometry.hypersphere import (
+    HypersphereCompactnessTestCase,
+    HypersphereConnectednessTestCase,
     HypersphereCoordsTransformTestCase,
     HypersphereExtrinsicTestCase,
     HypersphereIntrinsicTestCase,
@@ -56,6 +58,21 @@ class TestHypersphereCoordsTransform(
 def extrinsic_spaces(request):
     dim = request.param
     request.cls.space = Hypersphere(dim, intrinsic=False, equip=True)
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (
+            random.randint(1, 5),
+            random.choice([True, False]),
+            random.choice([True, False]),
+        )
+    ],
+)
+def random_space(request):
+    dim, intrinsic, equip = request.param
+    request.cls.space = Hypersphere(dim, intrinsic=intrinsic, equip=equip)
 
 
 @pytest.mark.usefixtures("extrinsic_spaces")
@@ -182,3 +199,13 @@ class TestHypersphere4ExtrinsicMetric(
         result = self.space.metric.dist(base_point, exp)
         expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
         self.assertAllClose(result, expected)
+
+
+@pytest.mark.usefixtures("random_space")
+class TestHypersphereConnectedness(HypersphereConnectednessTestCase):
+    pass
+
+
+@pytest.mark.usefixtures("random_space")
+class TestHypersphereCompactness(HypersphereCompactnessTestCase):
+    pass
