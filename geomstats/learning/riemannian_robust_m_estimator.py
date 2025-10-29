@@ -193,27 +193,6 @@ class BaseGradientDescent(abc.ABC):
         self.autograd = autograd
         self.perturbation_epsilon = perturbation_epsilon
 
-    def fun__(self, fun, base):
-        """Set given function as the function with one base point input.
-
-        Parameters
-        ----------
-        function : method
-            An M-estimator like method for gradient descent algorithm.
-            The given method must must have variables (space, points, base)
-              - space : geomstats geometry class, the manifold which data are on.
-              - points : dataset.
-              - base : points for the tangent space where gradient is computed.
-            and optional variables (critical_value, weight)
-              - critical_value : float or array-like,
-                  parameter to manage the impact of outliers.
-              - weight : weight for each data, shape=[points.shape[0],...],
-                  default None.
-        base : Not valid
-
-        """
-        return lambda base: fun(self.points, base, self.weights)
-
     def _set_init_point(self, space, points, init_point_method):
         """Set initial starting point of algorithm."""
         if self.init_point is not None:
@@ -239,17 +218,6 @@ class BaseGradientDescent(abc.ABC):
             raise NotImplementedError("For now only working with autodiff.")
 
         return fun_
-
-    def _handle_hess(self, fun, fun_hess):
-        """Define Hessian for auto gradient(not used)."""
-        if fun_hess is not None or (not self.autograd):
-            fun_hess_ = fun_hess
-            if callable(fun_hess):
-                fun_hess_ = lambda x: fun_hess(gs.from_numpy(x))
-
-            return fun_hess_
-
-        return lambda x: gs.autodiff.hessian(fun)(gs.from_numpy(x))
 
     @abc.abstractmethod
     def minimize(
@@ -457,10 +425,10 @@ class GradientDescent(BaseGradientDescent):
         if weights is None:
             weights = gs.ones((n_points,))
 
+        mean = self._set_init_point(space, points, init_point_method)
+
         if n_points == 1:
             return n_points[0]
-
-        mean = self._set_init_point(space, points, init_point_method)
 
         current_iter = 0
         sq_dist = 0.0
@@ -595,11 +563,11 @@ class AdaptiveGradientDescent(BaseGradientDescent):
         tau_min = 1e-6
         tau_mul_down = 0.1
 
-        if n_points == 1:
-            return points[0]
-
         current_mean = self._set_init_point(space, points, init_point_method)
         var = 0
+
+        if n_points == 1:
+            return points[0]
 
         if weights is None:
             weights = gs.ones((n_points,))
@@ -936,14 +904,7 @@ class RiemannianRobustMestimator(BaseEstimator):
 
         method_name = f"_riemannian_{estimator_name}_loss_grad"
 
-        try:
-            return getattr(self, method_name)
-        except AttributeError:
-            valid_estimators = ', '.join(self.valid_m_estimators)
-            raise ValueError(
-                f"Not Supported M-estimator type : {self.m_estimator}, "
-                f"must be in {{{valid_estimators}}}"
-            )
+        return getattr(self, method_name)
 
     def _set_inputs_of_loss_function(self, points, base, critical_value, weights):
         """Return arguments needed to compute loss, gradient."""

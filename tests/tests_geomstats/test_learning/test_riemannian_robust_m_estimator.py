@@ -36,6 +36,7 @@ from .data.riemannian_robust_m_estimator import (
     DiffStartingPointSameResultTestData,
     LimitingCofHuberLossTestData,
     MestimatorCustomFunctionDifferentInputArgsTestData,
+    NotImplementedBlockingsTestData,
     RobustMestimatorSOCoincideTestData,
     SameMestimatorFunctionGivenByCustomAndExplicitTestData,
     VarianceEuclideanTestData,
@@ -137,7 +138,11 @@ class TestAutoGradientDescentOnestep(AutoGradientDescentOneStepTestCase, metacla
 @pytest.fixture(
     scope="class",
     params=[
-        (Hypersphere(dim=random.randint(3, 4)),'huber'),
+        (Hypersphere(dim=2),'pseudo_huber'),
+        (Hypersphere(dim=2),'correntropy'),
+        (Hypersphere(dim=2),'logistic'),
+        (Hypersphere(dim=2),'lorentzian'),
+        (Hypersphere(dim=random.randint(3, 4)),'pseudo_huber'),
         (PoincareHalfSpace(dim=random.randint(2, 3)), "welsch"),
         (SpecialOrthogonal(n=random.randint(2, 3)), "hampel"),
         (SpecialEuclidean(n=random.randint(3, 4)), "cauchy"),
@@ -150,7 +155,7 @@ def estimators_autograd_result(request: pytest.FixtureRequest):
     request.cls.estimator = RiemannianRobustMestimator(space, method='autograd', m_estimator=m_estimator, critical_value=1)
     request.cls.estimator_explicit = RiemannianRobustMestimator(space, method='adaptive', m_estimator=m_estimator, critical_value=1)
     request.cls.estimator.set(init_step_size=0.25, max_iter=4096, epsilon=1e-7, verbose=True)
-    request.cls.estimator_explicit.set(init_step_size=0.25, max_iter=4096, epsilon=1e-7)
+    request.cls.estimator_explicit.set(init_step_size=0.25, max_iter=4096, epsilon=1e-7, verbose=True)
 
 
 @autograd_and_torch_only
@@ -241,7 +246,7 @@ class TestDiffStartingPointSameResult(DiffStartingPointSameResultTestCase, metac
     """Test starting point invariance."""
 
     testing_data = DiffStartingPointSameResultTestData()
-    
+
 
 @np_only
 class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
@@ -250,13 +255,13 @@ class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metacl
     space = Hypersphere(dim=3)
     estimator = RiemannianRobustMestimator(
         space, 
-        critical_value=1,
+        critical_value=None,
         m_estimator='huber',
         method='adaptive',
     )
     estimator_custom = RiemannianRobustMestimator(
         space, 
-        critical_value=1,
+        critical_value=None,
         m_estimator='custom',
         method='adaptive',
     )
@@ -292,6 +297,60 @@ class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metacl
             )
 
 
+class TestNotImplementedBlockings(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
+    space = Hypersphere(dim=3)
+    estimator = RiemannianRobustMestimator(
+        space,
+        critical_value=[1,3],
+        m_estimator='hampel',
+        method='adaptive',
+    )
+
+    testing_data = NotImplementedBlockingsTestData()
+
+    def test_hampel_loss_with_fault_critical_value(self):
+        """Test hampel loss invalid critical value given(length 1/3 float/int)."""
+        X = self.space.random_point(10)
+        with pytest.raises(ValueError):
+            self.estimator.fit(X)
+
+    def test_invalid_m_estimator(self):
+        """Test invalid m_estimator."""
+        with pytest.raises(ValueError):
+            RiemannianRobustMestimator(
+                Hypersphere(2),
+                critical_value=1,
+                m_estimator='fault_loss',
+                method='adaptive',
+            )
+
+    def test_one_point_fit(self):
+        """Test hampel loss invalid critical value given(length 1/3 float/int)."""
+        X = self.space.random_point(1)
+        with pytest.raises(ValueError):
+            estimator_one = RiemannianRobustMestimator(
+                self.space,
+                critical_value=None,
+                m_estimator='default',
+                method='adaptive',
+            )
+            estimator_one.set(init_point=X[0])
+            estimator_one.fit(X)
+
+    def test_one_point_fit_d(self):
+        """Test hampel loss invalid critical value given(length 1/3 float/int)."""
+        X = self.space.random_point(1)
+        with pytest.raises(ValueError):
+            estimator_one_d = RiemannianRobustMestimator(
+                self.space,
+                critical_value=None,
+                m_estimator='default',
+                method='default',
+            )
+            estimator_one_d.set(init_point=X[0])
+            estimator_one_d.fit(X)
+
+
 @pytest.fixture(
     scope="class",
     params=[
@@ -312,7 +371,7 @@ def estimators_custom_and_explicit(request: pytest.FixtureRequest):
     request.cls.estimator.set(init_step_size=1, max_iter=4096, epsilon=1e-7, verbose=True)
     request.cls.estimator_custom = RiemannianRobustMestimator(
         request.cls.space, m_estimator='custom', method='default', init_point_method='mean-projection', critical_value=1)
-    request.cls.estimator_custom.set(init_step_size=1, max_iter=4096, epsilon=1e-7, verbose=True)
+    request.cls.estimator_custom.set(init_step_size=1, max_iter=4096, epsilon=1e-7)
     try:
         request.cls.estimator_custom2 = RiemannianRobustMestimator(
             request.cls.space, m_estimator='custom', method='autograd', init_point_method='mean-projection', critical_value=1)

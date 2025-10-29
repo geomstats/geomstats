@@ -55,6 +55,12 @@ class VarianceEuclideanTestData(TestData):
                 base_point=gs.zeros(2),
                 weights=gs.array([1.0, 2.0, 1.0, 2.0]),
                 expected=gs.array((1 * 5.0 + 2 * 13.0 + 1 * 25.0 + 2 * 41.0) / 6.0),
+            ),
+            dict(
+                points=gs.array([[1.0, 1.0], [2.0, 2.0], [3.0, 3.0], [4.0, 4.0], [5.0, 5.0]]),
+                base_point=None,
+                weights=gs.array([1.0, 1.0, 1.0, 1.0, 1.0]),
+                expected=gs.array((1 * 8.0 + 1 * 2.0 + 1 * 0.0 + 1 * 2.0 + 1 * 8.0) / 5.0),
             )
         ]
         return self.generate_tests(data)
@@ -74,7 +80,30 @@ class AutoGradientNotImplementedOnNumpyBackendTestData(BaseEstimatorTestData):
     def numpy_backend_autograd_error_test_data(self):
         """Test autograd not working on numpy data"""
         return self.generate_tests([{}])
-      
+
+    def custom_m_estimator_loss_provided_test_data(self):
+        return self.generate_tests([{}])
+
+    def custom_m_estimator_loss_not_provided_test_data(self):
+        return self.generate_tests([{}])
+
+
+class NotImplementedBlockingsTestData(BaseEstimatorTestData):
+    """Test autograd not working on numpy data"""
+
+    def hampel_loss_with_fault_critical_value_test_data(self):
+        """Test autograd not working on numpy data"""
+        return self.generate_tests([{}])
+
+    def invalid_m_estimator_test_data(self):
+        return self.generate_tests([{}])
+
+    def one_point_fit_test_data(self):
+        return self.generate_tests([{}])
+
+    def one_point_fit_d_test_data(self):
+        return self.generate_tests([{}])
+
 
 class SameMestimatorFunctionGivenByCustomAndExplicitTestData(BaseEstimatorTestData):
     """Test custom function working data"""
