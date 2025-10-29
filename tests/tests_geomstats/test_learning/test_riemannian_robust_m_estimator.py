@@ -318,7 +318,7 @@ class TestNotImplementedBlockings(BaseEstimatorTestCase, metaclass=DataBasedPara
         """Test invalid m_estimator."""
         with pytest.raises(ValueError):
             RiemannianRobustMestimator(
-                Hypersphere(2),
+                space=self.space,
                 critical_value=1,
                 m_estimator='fault_loss',
                 method='adaptive',
@@ -329,7 +329,7 @@ class TestNotImplementedBlockings(BaseEstimatorTestCase, metaclass=DataBasedPara
         X = self.space.random_point(1)
         with pytest.raises(ValueError):
             estimator_one = RiemannianRobustMestimator(
-                self.space,
+                space=self.space,
                 critical_value=None,
                 m_estimator='default',
                 method='adaptive',
@@ -342,7 +342,7 @@ class TestNotImplementedBlockings(BaseEstimatorTestCase, metaclass=DataBasedPara
         X = self.space.random_point(1)
         with pytest.raises(ValueError):
             estimator_one_d = RiemannianRobustMestimator(
-                self.space,
+                space=self.space,
                 critical_value=None,
                 m_estimator='default',
                 method='default',

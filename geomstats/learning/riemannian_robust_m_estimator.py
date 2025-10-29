@@ -282,7 +282,7 @@ class RiemannianAutoGradientDescent(BaseGradientDescent):
         local_minima_gate = 0
 
         var = riemannian_variance(space, points, current_base)
-        
+
         fun = None if numpy_backend else self._handle_jac(fun, point_ndim=space.point_ndim)
 
         losses = [current_loss]
