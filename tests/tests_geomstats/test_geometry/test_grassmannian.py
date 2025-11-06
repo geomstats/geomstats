@@ -5,6 +5,10 @@ import pytest
 from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.base import LevelSetTestCase
+from geomstats.test_cases.geometry.grassmannian import (
+    GrassmannianCompactnessTestCase,
+    GrassmannianConnectednessTestCase,
+)
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.base import LevelSetTestData
@@ -78,3 +82,13 @@ class TestGrassmannianCanonicalMetric32(
 ):
     space = Grassmannian(3, 2)
     testing_data = GrassmannianCanonicalMetric32TestData()
+
+
+@pytest.mark.usefixtures("spaces")
+class TestGrassmannianConnectedness(GrassmannianConnectednessTestCase):
+    pass
+
+
+@pytest.mark.usefixtures("spaces")
+class TestGrassmannianCompactness(GrassmannianCompactnessTestCase):
+    pass

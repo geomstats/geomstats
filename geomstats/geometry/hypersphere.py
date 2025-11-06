@@ -666,6 +666,40 @@ class _Hypersphere(LevelSet):
         sample = self.metric.exp(tangent_sample_at_pt, mean)
         return sample[0] if (n_samples == 1) else sample
 
+    @property
+    def is_connected(self):
+        """Indicates whether the geometric object is connected.
+
+        Only the 0-dimensional Hypersphere is not connected.
+        See [M2000]_ page 155.
+
+        Returns
+        -------
+        is_connected: bool
+
+        References
+        ----------
+        .. [M2000] James R. Munkres. "Topology." 2nd edition. Prentice Hall, 2000.
+        """
+        return self.dim > 0
+
+    @property
+    def is_compact(self):
+        """Indicates whether the geometric object is compact.
+
+        All Hyperspheres are compact.
+        See [M2000]_ Theorem 27.3 on page 173
+
+        Returns
+        -------
+        is_compact: bool
+
+        References
+        ----------
+        .. [M2000] James R. Munkres. "Topology." 2nd edition. Prentice Hall, 2000.
+        """
+        return True
+
 
 class HypersphereMetric(RiemannianMetric):
     """Class for the Hypersphere Metric."""

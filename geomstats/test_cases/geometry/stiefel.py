@@ -122,3 +122,17 @@ class StiefelCanonicalMetricTestCase(RiemannianMetricTestCase):
 
         with pytest.raises(ValueError):
             self.space.metric.log(point, base_point)
+
+
+class StiefelConnectednessTestCase(TestCase):
+    def test_is_connected(self, n, p, expected):
+        connectedness = self.Space(n=n, p=p, equip=False).is_connected
+        expected_connected = " " if expected else " not "
+        msg = f"St({n}, {p}) is{expected_connected}connected."
+        self.assertTrue(connectedness == expected, msg=msg)
+
+
+class StiefelCompactnessTestCase(TestCase):
+    def test_is_compact(self):
+        msg = "All real Stiefel manifolds are compact."
+        self.assertTrue(self.space.is_compact, msg=msg)

@@ -7,6 +7,8 @@ from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.euclidean import (
     CanonicalEuclideanMetricTestCase,
+    EuclideanCompactnessTestCase,
+    EuclideanConnectednessTestCase,
     EuclideanMetricTestCase,
     EuclideanTestCase,
 )
@@ -46,3 +48,11 @@ class TestCanonicalEuclideanMetric2(
 ):
     space = Euclidean(dim=2)
     testing_data = CanonicalEuclideanMetric2TestData()
+
+
+class TestEuclideanConnectedness(EuclideanConnectednessTestCase):
+    space = Euclidean(dim=random.randint(2, 5))
+
+
+class TestEuclideanCompactness(EuclideanCompactnessTestCase):
+    space = Euclidean(dim=random.randint(2, 5))
