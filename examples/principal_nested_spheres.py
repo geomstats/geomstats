@@ -76,7 +76,6 @@ def main():
 
         # Reduced data on S^1
         ax2 = fig.add_subplot(132)
-        angles = gs.arctan2(X_reduced[:, 1], X_reduced[:, 0])
         circle = plt.Circle(
             (0, 0), 1, fill=False, color="gray", linestyle="--", linewidth=2
         )

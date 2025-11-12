@@ -19,7 +19,7 @@ import geomstats.backend as gs
 
 
 def _quad_safe(func, a, b):
-    """Wrapper around scipy.integrate.quad with graceful fallback."""
+    """Wrap scipy.integrate.quad with graceful fallback."""
     try:
         return quad(func, a, b)[0]
     except Exception:
@@ -27,7 +27,7 @@ def _quad_safe(func, a, b):
 
 
 def _normalization(rho, sigma, dim, euclidean=False):
-    """Normalizing constant for the folded normal likelihood."""
+    """Compute normalizing constant for the folded normal likelihood."""
 
     def density(r):
         scaled = r / sigma
@@ -518,6 +518,7 @@ class PrincipalNestedSpheres(BaseEstimator, TransformerMixin):
 
     def _small_sphere_objective(self, direction, points):
         """Objective function with norm constraint from RNA repository.
+
         Direction with norm constraint.
         """
         norm_direction = gs.linalg.norm(direction)
