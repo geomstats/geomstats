@@ -95,7 +95,10 @@ def _compare_likelihoods(radii, dim, verbose=False, euclidean=False):
             likelihood,
             gs.array([initial_rho, initial_sigma]),
             method="L-BFGS-B",
-            bounds=((0.0, gs.pi * 1e3), (max(1e-3, 0.25 * initial_sigma), max(10 * initial_sigma, 1e-2))),
+            bounds=(
+                (0.0, gs.pi * 1e3),
+                (max(1e-3, 0.25 * initial_sigma), max(10 * initial_sigma, 1e-2)),
+            ),
         ).x
     except Exception as err:
         if verbose:
@@ -134,14 +137,15 @@ def _compare_likelihoods(radii, dim, verbose=False, euclidean=False):
 
     return chi2 > 0.05
 
+
 def gram_schmidt(matrix):
     """Gram-Schmidt orthonormalization of matrix rows.
-    
+
     Parameters
     ----------
     matrix : array-like, shape=[n_vectors, dim]
         Input matrix rows to orthonormalize.
-        
+
     Returns
     -------
     orthonormal_matrix : array-like, shape=[n_orthonormal, dim]
@@ -150,20 +154,20 @@ def gram_schmidt(matrix):
     matrix = gs.array(matrix)
     n_vectors, dim = matrix.shape
     orthonormal_vectors = []
-    
+
     for i in range(n_vectors):
         vector = matrix[i]
-        
+
         # Subtract projections onto previous orthonormal vectors
         for ortho_vector in orthonormal_vectors:
             vector = vector - gs.sum(vector * ortho_vector) * ortho_vector
-            
+
         # Check if vector is linearly independent
         norm = gs.linalg.norm(vector)
         if norm > gs.atol:
             vector = vector / norm
             orthonormal_vectors.append(vector)
-    
+
     if orthonormal_vectors:
         return gs.stack(orthonormal_vectors)
     else:
@@ -201,12 +205,12 @@ class PrincipalNestedSpheres(BaseEstimator, TransformerMixin):
         Residual distances for each nested subsphere fit.
     mean_ : array-like, shape=[2]
         Final nested mean on S^1 after reduction.
-    
+
     Notes
     -----
     The algorithm recursively fits codimension-1 subspheres to project data
     onto successively lower-dimensional spheres until reaching S^1.
-    
+
     References
     ----------
     Original implementation: https://github.com/dauletbeck/RNA-Classification
@@ -378,53 +382,53 @@ class PrincipalNestedSpheres(BaseEstimator, TransformerMixin):
         best_normal = None
         best_score = float("inf")
         old_directions = []
-        
+
         for _ in range(self.n_init):
             try:
                 normal = self._fit_single_great_sphere(points, old_directions)
                 score = self._calculate_sphere_score(points, normal, 0.0)
-                
+
                 if score < best_score:
                     best_score = score
                     best_normal = normal
-                    
+
                 old_directions.append(normal)
-                    
+
             except Exception:
                 continue
-        
+
         if best_normal is None:
             # Fallback to mean direction
             mean_direction = gs.mean(points, axis=0)
             best_normal = mean_direction / gs.linalg.norm(mean_direction)
-        
+
         return best_normal, 0.0
 
     def _fit_single_great_sphere(self, points, old_directions=None):
         """Fit a single great sphere using least squares optimization."""
         # Generate initial direction
         normal = self._generate_seed(points.shape[1], old_directions)
-        
+
         def objective(direction):
             return self._great_sphere_objective(direction, points)
-        
+
         result = leastsq(
             objective, normal, xtol=self.tol, ftol=self.tol, maxfev=self.max_iter
         )
-        
+
         if len(result) < 2:
             raise RuntimeError("Great sphere optimization failed")
-            
+
         fitted_normal = result[0]
         fitted_normal = fitted_normal / gs.linalg.norm(fitted_normal)
         return fitted_normal
-    
+
     def _great_sphere_objective(self, direction, points):
         """Objective function for great sphere fitting."""
         norm_direction = gs.linalg.norm(direction)
         if norm_direction < gs.atol:
             return gs.ones(len(points)) * 1e6
-            
+
         normal = direction / norm_direction
         return self._compute_signed_distances(points, normal, 0.0)
 
@@ -434,33 +438,33 @@ class PrincipalNestedSpheres(BaseEstimator, TransformerMixin):
         best_height = 0.0
         best_score = float("inf")
         old_directions = []
-        
+
         for _ in range(self.n_init):
             try:
                 normal, height = self._fit_single_small_sphere(points, old_directions)
                 score = self._calculate_sphere_score(points, normal, height)
-                
+
                 if score < best_score:
                     best_score = score
                     best_normal = normal
                     best_height = height
-                
+
                 old_directions.append(normal)
-                
+
             except Exception:
                 continue
-        
+
         if best_normal is None:
             # Fallback to great sphere
             return self._fit_great_sphere(points)
-        
+
         return best_normal, best_height
 
     def _fit_single_small_sphere(self, points, old_directions=None):
         """Fit a single small sphere using the RNA repository approach."""
         # Generate initial direction
         normal = self._generate_seed(points.shape[1], old_directions)
-        
+
         result = leastsq(
             self._small_sphere_objective,
             normal,
@@ -469,39 +473,39 @@ class PrincipalNestedSpheres(BaseEstimator, TransformerMixin):
             ftol=self.tol,
             maxfev=self.max_iter,
         )
-        
+
         if len(result) < 2:
             raise RuntimeError("Small sphere optimization failed")
-            
+
         fitted_normal = result[0]
         fitted_normal = fitted_normal / gs.linalg.norm(fitted_normal)
-        
+
         # Calculate height from projections
         projections = gs.matvec(points, fitted_normal)
         height = gs.mean(projections)
-        
+
         return fitted_normal, height
 
     def _generate_seed(self, dim, old_directions=None):
         """Generate random unit vector with angular separation from existing directions.
-        
+
         Based on the RNA repository implementation.
         """
         if old_directions is None or len(old_directions) == 0:
             normal = 2 * gs.random.uniform(size=(dim,)) - 1
             return normal / gs.linalg.norm(normal)
-        
+
         out = old_directions[0].copy()
         max_attempts = 100
         attempts = 0
-        
+
         # Ensure angular separation (cosine < 0.7)
         while attempts < max_attempts:
             old_array = gs.stack(old_directions)
             cosines = gs.abs(gs.matvec(old_array, out))
             if not gs.any(cosines > 0.7):
                 break
-                
+
             out = 2 * gs.random.uniform(size=(dim,)) - 1
             norm = gs.linalg.norm(out)
             if norm < gs.atol:
@@ -509,7 +513,7 @@ class PrincipalNestedSpheres(BaseEstimator, TransformerMixin):
             else:
                 out = out / norm
             attempts += 1
-        
+
         return out
 
     def _small_sphere_objective(self, direction, points):
@@ -523,7 +527,7 @@ class PrincipalNestedSpheres(BaseEstimator, TransformerMixin):
             normalized_direction = direction / norm_direction
             dot_products = gs.matvec(points, normalized_direction)
             angles = gs.arcsin(gs.clip(dot_products, -1, 1))
-        
+
         residuals = angles - gs.mean(angles)
         norm_constraint = norm_direction - 1
         return gs.concatenate([residuals, [norm_constraint]])
@@ -533,7 +537,7 @@ class PrincipalNestedSpheres(BaseEstimator, TransformerMixin):
         # Calculate angular distances using geomstats sphere distance
         cos_angles = gs.matvec(points, normal)
         angles = gs.arccos(gs.clip(cos_angles, -1, 1))
-        
+
         # For great sphere (height=0), target angle is π/2
         if gs.abs(height) < gs.atol:
             return angles - gs.pi / 2
@@ -579,7 +583,7 @@ class PrincipalNestedSpheres(BaseEstimator, TransformerMixin):
         points_minus = points - gs.outer(gs.matvec(points, normal), normal)
         norms = gs.linalg.norm(points_minus, axis=1, keepdims=True)
         norms = gs.where(norms < gs.atol, 1.0, norms)  # Avoid division by zero
-        
+
         projected_points = projection_center + flat_radius * (points_minus / norms)
 
         if not return_reduced:
@@ -591,27 +595,25 @@ class PrincipalNestedSpheres(BaseEstimator, TransformerMixin):
         sign = 1.0 if normal[0] >= 0 else -1.0
         householder_vector = gs.array(householder_vector)
         householder_vector = gs.assignment(
-            householder_vector,
-            sign * gs.linalg.norm(normal) + normal[0],
-            0
+            householder_vector, sign * gs.linalg.norm(normal) + normal[0], 0
         )
         vector_norm = gs.linalg.norm(householder_vector)
-        
+
         if vector_norm < gs.atol:
             # Handle degenerate case
             householder_matrix = gs.eye(dim)
         else:
             householder_vector = householder_vector / vector_norm
-            householder_matrix = (
-                gs.eye(dim) - 2.0 * gs.outer(householder_vector, householder_vector)
+            householder_matrix = gs.eye(dim) - 2.0 * gs.outer(
+                householder_vector, householder_vector
             )
-        
+
         orthogonal_basis = householder_matrix[:, 1:]
 
-        reduced_points = (projected_points - projection_center)
+        reduced_points = projected_points - projection_center
         if flat_radius > gs.atol:
             reduced_points = reduced_points / flat_radius
-            
+
         reduced_points = gs.matmul(reduced_points, orthogonal_basis)
         return reduced_points
 

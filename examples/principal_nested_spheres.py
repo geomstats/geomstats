@@ -47,8 +47,8 @@ def main():
     print(f"  Number of nested subspheres: {len(pns.nested_spheres_)}")
 
     for i, (normal, height) in enumerate(pns.nested_spheres_):
-        sphere_type = 'great' if abs(height) < 1e-6 else 'small'
-        print(f"  Subsphere {i+1}: {sphere_type} sphere (height={height:.6f})")
+        sphere_type = "great" if abs(height) < 1e-6 else "small"
+        print(f"  Subsphere {i + 1}: {sphere_type} sphere (height={height:.6f})")
 
     print(f"\nMean on S^1: {pns.mean_}")
 
@@ -67,39 +67,51 @@ def main():
         fig = plt.figure(figsize=(15, 5))
 
         # Original data on S^2
-        ax1 = fig.add_subplot(131, projection='3d')
-        ax1.scatter(X[:, 0], X[:, 1], X[:, 2], c='blue', alpha=0.6, s=50)
-        ax1.set_title('Original Data on S^2', fontsize=14, fontweight='bold')
-        ax1.set_xlabel('X')
-        ax1.set_ylabel('Y')
-        ax1.set_zlabel('Z')
+        ax1 = fig.add_subplot(131, projection="3d")
+        ax1.scatter(X[:, 0], X[:, 1], X[:, 2], c="blue", alpha=0.6, s=50)
+        ax1.set_title("Original Data on S^2", fontsize=14, fontweight="bold")
+        ax1.set_xlabel("X")
+        ax1.set_ylabel("Y")
+        ax1.set_zlabel("Z")
 
         # Reduced data on S^1
         ax2 = fig.add_subplot(132)
         angles = gs.arctan2(X_reduced[:, 1], X_reduced[:, 0])
-        circle = plt.Circle((0, 0), 1, fill=False, color='gray', linestyle='--', linewidth=2)
+        circle = plt.Circle(
+            (0, 0), 1, fill=False, color="gray", linestyle="--", linewidth=2
+        )
         ax2.add_patch(circle)
-        ax2.scatter(X_reduced[:, 0], X_reduced[:, 1], c='red', alpha=0.6, s=50)
-        ax2.scatter(pns.mean_[0], pns.mean_[1], c='green', s=300, marker='*',
-                   label='Mean', edgecolors='black', linewidth=2)
+        ax2.scatter(X_reduced[:, 0], X_reduced[:, 1], c="red", alpha=0.6, s=50)
+        ax2.scatter(
+            pns.mean_[0],
+            pns.mean_[1],
+            c="green",
+            s=300,
+            marker="*",
+            label="Mean",
+            edgecolors="black",
+            linewidth=2,
+        )
         ax2.set_xlim(-1.5, 1.5)
         ax2.set_ylim(-1.5, 1.5)
-        ax2.set_aspect('equal')
-        ax2.set_title('Reduced Data on S^1', fontsize=14, fontweight='bold')
+        ax2.set_aspect("equal")
+        ax2.set_title("Reduced Data on S^1", fontsize=14, fontweight="bold")
         ax2.legend()
         ax2.grid(True, alpha=0.3)
 
         # Residuals histogram
         ax3 = fig.add_subplot(133)
         residuals_np = gs.to_numpy(residuals)
-        ax3.hist(residuals_np, bins=20, alpha=0.7, edgecolor='black')
-        ax3.set_title('Residuals Distribution', fontsize=14, fontweight='bold')
-        ax3.set_xlabel('Signed Distance')
-        ax3.set_ylabel('Frequency')
+        ax3.hist(residuals_np, bins=20, alpha=0.7, edgecolor="black")
+        ax3.set_title("Residuals Distribution", fontsize=14, fontweight="bold")
+        ax3.set_xlabel("Signed Distance")
+        ax3.set_ylabel("Frequency")
         ax3.grid(True, alpha=0.3)
 
         plt.tight_layout()
-        plt.savefig('principal_nested_spheres_example.png', dpi=100, bbox_inches='tight')
+        plt.savefig(
+            "principal_nested_spheres_example.png", dpi=100, bbox_inches="tight"
+        )
         print("  Saved visualization to 'principal_nested_spheres_example.png'")
 
         # Optionally show the plot

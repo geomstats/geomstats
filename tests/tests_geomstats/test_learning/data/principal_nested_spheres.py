@@ -3,7 +3,7 @@ from ._base import BaseEstimatorTestData
 
 class PrincipalNestedSpheresTestData(BaseEstimatorTestData):
     """Test data for Principal Nested Spheres."""
-    
+
     MIN_RANDOM = 5
     MAX_RANDOM = 20
 

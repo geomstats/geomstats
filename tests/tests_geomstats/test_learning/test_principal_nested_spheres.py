@@ -38,5 +38,5 @@ class TestPrincipalNestedSpheres(
     metaclass=DataBasedParametrizer,
 ):
     """Test class for Principal Nested Spheres using parametrized test data."""
-    
+
     testing_data = PrincipalNestedSpheresTestData()
