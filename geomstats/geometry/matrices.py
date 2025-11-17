@@ -791,7 +791,7 @@ class Matrices(MatrixVectorSpace):
         return gs.reshape(vec, shape)
 
     @classmethod
-    def align_matrices(cls, point, base_point):
+    def align_matrices(cls, point, base_point, flip=True):
         """Align matrices.
 
         Find the optimal rotation R in SO(m) such that the base point and
@@ -803,6 +803,8 @@ class Matrices(MatrixVectorSpace):
             Point on the manifold.
         base_point : array-like, shape=[..., m, n]
             Point on the manifold.
+        flip : bool
+            Whether to flip determinant if negative.
 
         Returns
         -------
@@ -823,7 +825,11 @@ class Matrices(MatrixVectorSpace):
             )
         if gs.any(gs.isclose(conditioning, 0.0)):
             logging.warning("Alignment matrix is not unique.")
-        flipped = flip_determinant(cls.transpose(right), det)
+
+        if flip:
+            flipped = flip_determinant(cls.transpose(right), det)
+        else:
+            flipped = cls.transpose(right)
         return Matrices.mul(point, left, cls.transpose(flipped))
 
 
