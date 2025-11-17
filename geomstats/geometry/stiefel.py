@@ -58,11 +58,11 @@ class Stiefel(LevelSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, p]
 
         Returns
         -------
-        submersed_point : array-like, shape=[..., n, n]
+        submersed_point : array-like, shape=[..., n, p]
         """
         return Matrices.mul(Matrices.transpose(point), point) - self._value
 
@@ -71,12 +71,12 @@ class Stiefel(LevelSet):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., n, n]
-        point : array-like, shape=[..., n, n]
+        vector : array-like, shape=[..., n, p]
+        point : array-like, shape=[..., n, p]
 
         Returns
         -------
-        submersed_vector : array-like, shape=[..., n, n]
+        submersed_vector : array-like, shape=[..., n, p]
         """
         return 2 * Matrices.to_symmetric(
             Matrices.mul(Matrices.transpose(point), vector)

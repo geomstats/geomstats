@@ -38,9 +38,12 @@ References
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.base import LevelSet
+from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.manifold import register_quotient
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.vectorization import repeat_out
 
@@ -498,3 +501,115 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         """
         norm = gs.linalg.norm(vector, axis=(-2, -1))
         return repeat_out(self._space.point_ndim, norm, vector, base_point)
+
+
+class GrassmannianBundle(FiberBundle):
+    """Fiber bundle representing the Grassmannian quotient structure."""
+
+    def riemannian_submersion(self, point):
+        """Project a point to base manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, p]
+            Point of the total space.
+
+        Returns
+        -------
+        projection : array-like, shape=[..., n, n]
+            Point of the base manifold.
+        """
+        return gs.matmul(point, Matrices.transpose(point))
+
+    def tangent_riemannian_submersion(self, tangent_vec, base_point):
+        """Project a tangent vector to base manifold.
+
+        Parameters
+        ----------
+        tangent_vec :  array-like, shape=[..., n, p]
+            Tangent vector to the total space at ``base_point``.
+        base_point: array-like, shape=[..., n, p]
+            Point of the total space.
+
+        Returns
+        -------
+        projection: array-like, shape=[..., n, n]
+            Tangent vector to the base manifold.
+        """
+        return gs.matmul(base_point, Matrices.transpose(tangent_vec)) + gs.matmul(
+            tangent_vec, Matrices.transpose(base_point)
+        )
+
+    def lift(self, point):
+        """Lift a point to total space.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point of the base manifold.
+
+        Returns
+        -------
+        lift : array-like, shape=[..., n, p]
+            Point of the total space.
+        """
+        rank = self._total_space.p
+        _, vecs = gs.linalg.eigh(point)
+        return vecs[..., :, -rank:]
+
+    def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
+        """Lift a tangent vector to a horizontal vector in the total space.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+        fiber_point : array-like, shape=[..., n, p]
+            Point of the total space.
+            Optional, default : None. The `lift` method is used to compute a
+            point at which to compute a tangent vector.
+        base_point : array-like, shape=[..., n, n]
+            Point of the base space.
+            Optional, default : None. In this case, point must be given,
+            and `submersion` is used to compute the base_point if needed.
+
+        Returns
+        -------
+        horizontal_lift : array-like, shape=[..., n, p]
+            Horizontal tangent vector to the total space at point.
+        """
+        if base_point is None and fiber_point is None:
+            raise ValueError(
+                "Either a point (of the total space) or a "
+                "base point (of the base manifold) must be "
+                "given."
+            )
+
+        if fiber_point is None:
+            fiber_point = self.lift(base_point)
+
+        return gs.matmul(tangent_vec, fiber_point)
+
+    def align(self, point, base_point):
+        """Align point to base point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, p]
+            Point to align.
+        base_point : array-like, shape=[..., n, p]
+            Base point.
+
+        Returns
+        -------
+        aligned_point : array-like, shape=[...,  n, p]
+            Aligned point.
+        """
+        return Matrices.align_matrices(point, base_point, flip=False)
+
+
+register_quotient(
+    Space=Stiefel,
+    Metric=StiefelCanonicalMetric,
+    GroupAction="right_orthogonal_action",
+    FiberBundle=GrassmannianBundle,
+)
