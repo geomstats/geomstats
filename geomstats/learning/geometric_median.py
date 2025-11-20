@@ -130,11 +130,10 @@ class GeometricMedian(BaseEstimator):
             median = new_median
 
             if self.print_every and (iteration + 1) % self.print_every == 0:
-                logging.info(f"median at iteration {iteration+1}:\n{median}")
+                logging.info(f"median at iteration {iteration + 1}:\n{median}")
         else:
             logging.warning(
-                "Maximum number of iterations %s reached. "
-                "The median may be inaccurate",
+                "Maximum number of iterations %s reached. The median may be inaccurate",
                 self.max_iter,
             )
 

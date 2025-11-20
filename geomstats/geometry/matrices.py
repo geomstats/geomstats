@@ -1,16 +1,163 @@
 """Module exposing the `Matrices` and `MatricesMetric` class."""
+
 import logging
+import math
 from functools import reduce
 
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import flip_determinant, from_vector_to_diagonal_matrix
-from geomstats.geometry.base import VectorSpace
+from geomstats.geometry.base import MatrixVectorSpace
+from geomstats.geometry.diffeo import VectorSpaceDiffeo
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.vectorization import repeat_out
 
 
-class Matrices(VectorSpace):
+def matrix_matrix_transpose(point):
+    r"""Matrix multiplication with transpose.
+
+    .. math::
+
+        f(A) = A A^{\top}
+
+    Parameters
+    ----------
+    point : array-like, shape=[n, n]
+        Matrix.
+
+    Returns
+    -------
+    mat : array-like, shape=[n, n]
+        Matrix resulting from operation.
+    """
+    return Matrices.mul(point, Matrices.transpose(point))
+
+
+def tangent_matrix_matrix_transpose(tangent_vec, base_point):
+    r"""Tangent matrix multiplication with transpose.
+
+    .. math::
+
+        d_A f (X) = X A^\top + A X^\top
+
+
+    Parameters
+    ----------
+    tangent_vec : array-like, shape=[..., n, n]
+        Tangent vector.
+    base_point : array-like, shape=[..., n, n]
+        Base point.
+
+    Returns
+    -------
+    image_tangent_vec : array-like, shape=[n, n]
+        Matrix resulting from operation.
+    """
+    return Matrices.mul(tangent_vec, Matrices.transpose(base_point)) + Matrices.mul(
+        base_point, Matrices.transpose(tangent_vec)
+    )
+
+
+class FlattenDiffeo(VectorSpaceDiffeo):
+    """A diffeo from matrices to Euclidean by flattening.
+
+    Parameters
+    ----------
+    m, n : int
+        Integers representing the shapes of the matrices: m x n.
+    """
+
+    def __init__(self, m, n=None):
+        super().__init__(space_ndim=2, image_space_ndim=1)
+        self.m, self.n = m, n or m
+
+    def __call__(self, base_point=None):
+        """Diffeomorphism at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., m*n]
+            Image point.
+        """
+        if base_point is None:
+            return None
+        return Matrices.flatten(base_point)
+
+    def inverse(self, image_point=None):
+        r"""Inverse diffeomorphism at image point.
+
+        :math:`f^{-1}: N \rightarrow M`
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., m*n]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+        """
+        if image_point is None:
+            return None
+        return gs.reshape(image_point, image_point.shape[:-1] + (self.m, self.n))
+
+
+class BasisRepresentationDiffeo(VectorSpaceDiffeo):
+    """A diffeo from matrices to Euclidean through basis representation.
+
+    Parameters
+    ----------
+    space : MatrixVectorSpace
+    """
+
+    def __init__(self, space):
+        super().__init__(space_ndim=2, image_space_ndim=1)
+        self._space = space
+
+    def __call__(self, base_point=None):
+        """Diffeomorphism at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., dim]
+            Image point.
+        """
+        if base_point is None:
+            return None
+        return self._space.basis_representation(base_point)
+
+    def inverse(self, image_point=None):
+        r"""Inverse diffeomorphism at image point.
+
+        :math:`f^{-1}: N \rightarrow M`
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., dim]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+        """
+        if image_point is None:
+            return None
+        return self._space.matrix_representation(image_point)
+
+
+class Matrices(MatrixVectorSpace):
     """Class for the space of matrices (m, n).
 
     Parameters
@@ -36,6 +183,23 @@ class Matrices(VectorSpace):
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return MatricesMetric
+
+    def basis_representation(self, matrix_representation):
+        """Compute the coefficient in the usual matrix basis.
+
+        This simply flattens the input.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., dim]
+            Representation in the basis.
+        """
+        return self.flatten(matrix_representation)
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
@@ -147,13 +311,15 @@ class Matrices(VectorSpace):
         is_square : array-like, shape=[...,]
             Boolean evaluating if the matrix is square.
         """
-        n = mat.shape[-1]
-        m = mat.shape[-2]
-        return m == n
+        shape = mat.shape[:-2]
+        if mat.shape[-1] == mat.shape[-2]:
+            return gs.ones(shape, dtype=bool)
+
+        return gs.zeros(shape, dtype=bool)
 
     @classmethod
     def is_diagonal(cls, mat, atol=gs.atol):
-        """Check if a matrix is square and diagonal.
+        """Check if a square matrix is diagonal.
 
         Parameters
         ----------
@@ -168,16 +334,13 @@ class Matrices(VectorSpace):
         is_diagonal : array-like, shape=[...,]
             Boolean evaluating if the matrix is square and diagonal.
         """
-        is_square = cls.is_square(mat)
-        if not gs.all(is_square):
-            return False
         diagonal_mat = from_vector_to_diagonal_matrix(cls.diagonal(mat))
         is_diagonal = gs.all(gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
         return is_diagonal
 
     @classmethod
     def is_lower_triangular(cls, mat, atol=gs.atol):
-        """Check if a matrix is lower triangular.
+        """Check if a square matrix is lower triangular.
 
         Parameters
         ----------
@@ -192,15 +355,11 @@ class Matrices(VectorSpace):
         is_tril : array-like, shape=[...,]
             Boolean evaluating if the matrix is lower triangular
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, gs.tril(mat), atol)
 
     @classmethod
     def is_upper_triangular(cls, mat, atol=gs.atol):
-        """Check if a matrix is upper triangular.
+        """Check if a square matrix is upper triangular.
 
         Parameters
         ----------
@@ -215,15 +374,11 @@ class Matrices(VectorSpace):
         is_triu : array-like, shape=[...,]
             Boolean evaluating if the matrix is upper triangular.
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, gs.triu(mat), atol)
 
     @classmethod
     def is_strictly_lower_triangular(cls, mat, atol=gs.atol):
-        """Check if a matrix is strictly lower triangular.
+        """Check if a square matrix is strictly lower triangular.
 
         Parameters
         ----------
@@ -238,15 +393,11 @@ class Matrices(VectorSpace):
         is_strictly_tril : array-like, shape=[...,]
             Boolean evaluating if the matrix is strictly lower triangular
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(mat) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, gs.tril(mat, k=-1), atol)
 
     @classmethod
     def is_strictly_upper_triangular(cls, mat, atol=gs.atol):
-        """Check if a matrix is strictly upper triangular.
+        """Check if a square matrix is strictly upper triangular.
 
         Parameters
         ----------
@@ -261,15 +412,11 @@ class Matrices(VectorSpace):
         is_strictly_triu : array-like, shape=[...,]
             Boolean evaluating if the matrix is strictly upper triangular
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, gs.triu(mat, k=1))
 
     @classmethod
     def is_symmetric(cls, mat, atol=gs.atol):
-        """Check if a matrix is symmetric.
+        """Check if a square matrix is symmetric.
 
         Parameters
         ----------
@@ -284,10 +431,6 @@ class Matrices(VectorSpace):
         is_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric.
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, cls.transpose(mat), atol)
 
     @classmethod
@@ -331,12 +474,11 @@ class Matrices(VectorSpace):
         is_spd : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric positive definite.
         """
-        is_spd = gs.logical_and(cls.is_symmetric(mat, atol), cls.is_pd(mat))
-        return is_spd
+        return gs.logical_and(cls.is_symmetric(mat, atol), cls.is_pd(mat))
 
     @classmethod
     def is_skew_symmetric(cls, mat, atol=gs.atol):
-        """Check if a matrix is skew symmetric.
+        """Check if a square matrix is skew symmetric.
 
         Parameters
         ----------
@@ -351,10 +493,6 @@ class Matrices(VectorSpace):
         is_skew_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is skew-symmetric.
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, -cls.transpose(mat), atol)
 
     @classmethod
@@ -592,7 +730,8 @@ class Matrices(VectorSpace):
         """
         return gs.einsum("...ij,...ji->...", mat_1, mat_2)
 
-    def flatten(self, mat):
+    @staticmethod
+    def flatten(mat):
         """Return a flattened form of the matrix.
 
         Flatten a matrix (compatible with vectorization on data axis 0).
@@ -612,13 +751,9 @@ class Matrices(VectorSpace):
         vec : array-like, shape=[..., m * n]
             Flatten copy of mat.
         """
-        is_data_vectorized = gs.ndim(gs.array(mat)) == 3
-        shape = (
-            (mat.shape[0], self.m * self.n)
-            if is_data_vectorized
-            else (self.m * self.n,)
-        )
-        return gs.reshape(mat, shape)
+        batch_shape = mat.shape[:-2]
+        mat_shape = mat.shape[-2:]
+        return gs.reshape(mat, batch_shape + (math.prod(mat_shape),))
 
     def reshape(self, vec):
         """Return a matricized form of the vector.
@@ -656,7 +791,7 @@ class Matrices(VectorSpace):
         return gs.reshape(vec, shape)
 
     @classmethod
-    def align_matrices(cls, point, base_point):
+    def align_matrices(cls, point, base_point, flip=True):
         """Align matrices.
 
         Find the optimal rotation R in SO(m) such that the base point and
@@ -668,6 +803,8 @@ class Matrices(VectorSpace):
             Point on the manifold.
         base_point : array-like, shape=[..., m, n]
             Point on the manifold.
+        flip : bool
+            Whether to flip determinant if negative.
 
         Returns
         -------
@@ -688,7 +825,11 @@ class Matrices(VectorSpace):
             )
         if gs.any(gs.isclose(conditioning, 0.0)):
             logging.warning("Alignment matrix is not unique.")
-        flipped = flip_determinant(cls.transpose(right), det)
+
+        if flip:
+            flipped = flip_determinant(cls.transpose(right), det)
+        else:
+            flipped = cls.transpose(right)
         return Matrices.mul(point, left, cls.transpose(flipped))
 
 
@@ -715,8 +856,32 @@ class MatricesMetric(EuclideanMetric):
         """
         inner_prod = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
         return repeat_out(
-            self._space, inner_prod, tangent_vec_a, tangent_vec_b, base_point
+            self._space.point_ndim, inner_prod, tangent_vec_a, tangent_vec_b, base_point
         )
+
+    def squared_norm(self, vector, base_point=None):
+        """Compute the square of the norm of a vector.
+
+        Squared norm of a vector associated to the inner product
+        at the tangent space at a base point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        sq_norm : array-like, shape=[...,]
+            Squared norm.
+        """
+        init_axis = len(vector.shape[:-2])
+        axis = (init_axis, init_axis + 1)
+        sq_norm = gs.linalg.norm(vector, axis=axis) ** 2
+        return repeat_out(self._space.point_ndim, sq_norm, vector, base_point)
 
     def norm(self, vector, base_point=None):
         """Compute norm of a matrix.
@@ -737,4 +902,67 @@ class MatricesMetric(EuclideanMetric):
             Norm.
         """
         norm = gs.linalg.norm(vector, axis=(-2, -1))
-        return repeat_out(self._space, norm, vector, base_point)
+        return repeat_out(self._space.point_ndim, norm, vector, base_point)
+
+
+class MatricesDiagMetric(EuclideanMetric):
+    """Flat metric on matrices given by a diagonal metric matrix.
+
+    Parameters
+    ----------
+    space : MatrixVectorSpace
+    metric_coeffs: array-like, shape=[m,n]
+    """
+
+    def __init__(self, space, metric_coeffs=None):
+        super().__init__(space)
+        self._check_metric_coeffs(space, metric_coeffs)
+        if metric_coeffs is None:
+            n = space.n
+            m = space.m if hasattr(space, "m") else n
+            metric_coeffs = gs.ones((m, n))
+        self.metric_coeffs = metric_coeffs
+
+    @staticmethod
+    def _check_metric_coeffs(space, metric_coeffs):
+        """Check shape of metric coefficients."""
+        if metric_coeffs is None:
+            return
+
+        n = space.n
+        m = space.m if hasattr(space, "m") else n
+        expected_shape = (m, n)
+        if metric_coeffs.shape != expected_shape:
+            raise ValueError(
+                f"metric_coeffs shape is {metric_coeffs.shape};"
+                f"expected: {expected_shape}"
+            )
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute Frobenius inner-product of two tangent vectors.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., m, n]
+            Tangent vector.
+        tangent_vec_b : array-like, shape=[..., m, n]
+            Tangent vector.
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[...,]
+            Frobenius inner-product of tangent_vec_a and tangent_vec_b.
+
+        Notes
+        -----
+        - Implementation relies on fact that the metric_matrix is diagonal, i.e.
+        we just need to multiply each element of the tangent vector by the corresponding
+        diagonal coefficient. (Avoids unnecessary reshapings.)
+        """
+        inner_prod = Matrices.frobenius_product(
+            tangent_vec_a, self.metric_coeffs * tangent_vec_b
+        )
+        return repeat_out(2, inner_prod, tangent_vec_a, tangent_vec_b, base_point)

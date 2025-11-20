@@ -202,9 +202,11 @@ def _pre_cast_out_from_dtype(cast, is_floating, is_complex):
                     else:
                         dtype = kwargs.get(
                             "dtype",
-                            _config.DEFAULT_DTYPE
-                            if is_floating(out)
-                            else _config.DEFAULT_COMPLEX_DTYPE,
+                            (
+                                _config.DEFAULT_DTYPE
+                                if is_floating(out)
+                                else _config.DEFAULT_COMPLEX_DTYPE
+                            ),
                         )
 
                     if out.dtype != dtype:
@@ -319,7 +321,7 @@ def _pre_cast_out_to_input_dtype(cast, is_floating, is_complex, as_dtype, dtype_
                         cmp_dtype = x.dtype
                     else:
                         float_name = dtype_as_str(x.dtype)
-                        cmp_dtype = as_dtype(f"complex{int((float_name[-2:]))*2}")
+                        cmp_dtype = as_dtype(f"complex{int((float_name[-2:])) * 2}")
 
                     if out.dtype != cmp_dtype:
                         return cast(out, cmp_dtype)
@@ -381,7 +383,7 @@ def _np_box_unary_scalar(target=None):
     def _decorator(func):
         @functools.wraps(func)
         def _wrapped(x, *args, **kwargs):
-            if type(x) is float:
+            if isinstance(x, float):
                 return func(x, *args, dtype=_config.DEFAULT_DTYPE, **kwargs)
 
             return func(x, *args, **kwargs)
@@ -405,7 +407,7 @@ def _np_box_binary_scalar(target=None):
     def _decorator(func):
         @functools.wraps(func)
         def _wrapped(x1, x2, *args, **kwargs):
-            if type(x1) is float:
+            if isinstance(x1, float):
                 return func(x1, x2, *args, dtype=_config.DEFAULT_DTYPE, **kwargs)
 
             return func(x1, x2, *args, **kwargs)

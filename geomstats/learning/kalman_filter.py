@@ -268,7 +268,8 @@ class Localization:
         From a given state (orientation, position) pair :math:`(\theta, x)`,
         a new one is obtained as :math:`(\theta + dt * \omega,
         x + dt * R(\theta) u)`, where the time step, the linear and angular
-        velocities u and :math:\omega are given some sensor (e.g., odometers).
+        velocities :math:`u` and :math:`\omega` are given some sensor
+        (e.g., odometers).
 
         Parameters
         ----------

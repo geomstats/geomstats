@@ -9,8 +9,8 @@ Thank you for opening this pull request!
 - [ ] I added appropriate unit tests.
 - [ ] I made sure the code passes all unit tests. (refer to comment below)
 - [ ] My PR follows [PEP8](https://peps.python.org/pep-0008/) guidelines. (refer to comment below)
-- [ ] My PR follows [geomstats coding style](https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst#coding-style-guidelines) and API.
-- [ ] My code is properly documented and I made sure the documentation renders properly. ([Link](https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst#documentation))
+- [ ] My PR follows [geomstats coding style](https://github.com/geomstats/geomstats/blob/main/docs/contributing.rst#coding-style-guidelines) and API.
+- [ ] My code is properly documented and I made sure the documentation renders properly. ([Link](https://github.com/geomstats/geomstats/blob/main/docs/contributing.rst#documentation))
 - [ ] I linked to issues and PRs that are relevant to this PR.
 
 
@@ -21,24 +21,15 @@ $ pytest tests/tests_geomstats/test_spd_matrices.py
 and then run the tests of the whole codebase to check that your feature is not breaking any of them:
 $ pytest tests/
 
-This way, further modifications on the code base are guaranteed to be consistent with the desired behavior. Merging your PR should not break any test in any backend (numpy, tensorflow or pytorch)."
+This way, further modifications on the code base are guaranteed to be consistent with the desired behavior. Merging your PR should not break any test in any backend (numpy, autograd or pytorch)."
 
-For testing in alternative backends such as `numpy`, `pytorch`, `autograd`, `tensorflow` set the environment variable using:
+For testing in alternative backends such as `numpy`, `pytorch`, `autograd`, set the environment variable using:
 $ export GEOMSTATS_BACKEND=<backend_name>
 
 Next, import the `backend` module using:
 import geomstats.backend as gs
 -->
 
-
-<!-- For flake8 tests
-Install dependencies
-$ pip3 install -r dev-requirements.txt
-
-Then run the following commands:
-$ flake8 --ignore=D,W503,W504 geomstats examples tests   #shadows .flake8
-$ flake8 geomstats/geometry geomstats/learning           #passed two subfolders
--->
 
 ## Description
 

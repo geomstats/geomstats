@@ -14,16 +14,17 @@ References
 
 """
 
-from sklearn.base import BaseEstimator, MultiOutputMixin, RegressorMixin
+from sklearn.base import BaseEstimator, MultiOutputMixin
 from sklearn.gaussian_process import GaussianProcessRegressor
 
 import geomstats.backend as gs
+from geomstats.learning._sklearn import RegressorMixin
 
 
 class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
     r"""Wrapped Gaussian Process.
 
-    The implementation is based on the algorithm 4 of [1].
+    The implementation is based on the algorithm 4 of [1]_.
 
     Parameters
     ----------
@@ -34,9 +35,9 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
 
     References
     ----------
-    [1] Mallasto, A. and Feragen, A. Wrapped gaussian process
-    regression on riemannian manifolds. In 2018 IEEE/CVF
-    Conference on Computer Vision and Pattern Recognition
+    .. [1] Mallasto, A. and Feragen, A. Wrapped gaussian process
+        regression on riemannian manifolds. In 2018 IEEE/CVF
+        Conference on Computer Vision and Pattern Recognition
     """
 
     def __init__(self, space, prior):
@@ -165,11 +166,11 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         )
 
         return_multiple = return_tangent_std or return_tangent_cov
-        tangent_means = euc_result[0] if return_multiple else euc_result
+        tangent_means = gs.from_numpy(euc_result[0] if return_multiple else euc_result)
 
         base_points = self.prior(X)
         tangent_means = gs.reshape(
-            gs.from_numpy(tangent_means),
+            tangent_means,
             (X.shape[0], *self.space.shape),
         )
         y_mean = self.space.metric.exp(tangent_means, base_point=base_points)

@@ -15,30 +15,97 @@ change of variable, either for a point or a vector.
 
 Lead author: Jules Deschamps.
 """
+
 from scipy.stats import gamma
 
 import geomstats.backend as gs
-import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
+from geomstats.geometry.diffeo import InvolutionDiffeomorphism
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.information_geometry.base import InformationManifoldMixin
+from geomstats.information_geometry.base import (
+    InformationManifoldMixin,
+    ScipyUnivariateRandomVariable,
+)
 from geomstats.numerics.bvp import ScipySolveBVP
 from geomstats.numerics.geodesic import ExpODESolver, LogODESolver
 from geomstats.numerics.ivp import ScipySolveIVP
-from geomstats.vectorization import check_is_batch
+from geomstats.vectorization import get_batch_shape
 
 
-class GammaDistributions(InformationManifoldMixin, OpenSet):
+class NaturalToStandardDiffeo(InvolutionDiffeomorphism):
+    """Diffeomorphism between natural and standard coordinates."""
+
+    def __call__(self, point):
+        """Convert point from natural coordinates to standard coordinates.
+
+        The change of variable is symmetric.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 2]
+            Point of the Gamma manifold, given in natural coordinates.
+
+        Returns
+        -------
+        point : array-like, shape=[..., 2]
+            Point of the Gamma manifold, given in standard coordinates.
+        """
+        return gs.stack([point[..., 0], point[..., 0] / point[..., 1]], axis=-1)
+
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
+        """Convert tangent vector from natural coordinates to standard coordinates.
+
+        The change of variable is symmetric.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 2]
+            Tangent vector at base_point, given in natural coordinates.
+        base_point : array-like, shape=[..., 2]
+            Point of the Gamma manifold, given in natural coordinates.
+        image_point : array-like, shape=[..., 2]
+            Point of the Gamma manifold, given in standard coordinates.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., 2]
+            Tangent vector at base_point, given in standard coordinates.
+        """
+        if base_point is None:
+            base_point = self(image_point)
+
+        kappa, scale = base_point[..., 0], base_point[..., 1]
+
+        jac_row_1 = gs.array([1.0, 0.0])
+        jac_row_2 = gs.stack([1 / scale, -kappa / scale**2], axis=-1)
+
+        point_batch_shape = get_batch_shape(1, base_point)
+        if point_batch_shape:
+            jac_row_1 = gs.broadcast_to(jac_row_1, point_batch_shape + (2,))
+
+        jac = gs.stack([jac_row_1, jac_row_2], axis=-2)
+
+        return gs.einsum("...jk,...k->...j", jac, tangent_vec)
+
+
+class GammaDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
     """Class for the manifold of Gamma distributions.
 
-    This is :math: Gamma = `(R_+^*)^2`, the positive quadrant of the
+    This is :math:`Gamma = (R_+^*)^2`, the positive quadrant of the
     2-dimensional Euclidean space.
     """
 
     def __init__(self, equip=True):
-        super().__init__(dim=2, embedding_space=Euclidean(2, equip=False), equip=equip)
+        super().__init__(
+            dim=2,
+            embedding_space=Euclidean(2, equip=False),
+            support_shape=(),
+            equip=equip,
+        )
+
+        self._scp_rv = GammaDistributionsRandomVariable(self)
 
     @staticmethod
     def default_metric():
@@ -67,8 +134,7 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
         """
         point_dim = point.shape[-1]
         belongs = point_dim == 2
-        belongs = gs.logical_and(belongs, gs.all(point >= atol, axis=-1))
-        return belongs
+        return gs.logical_and(belongs, gs.all(point >= -atol, axis=-1))
 
     def random_point(self, n_samples=1, upper_bound=5.0, lower_bound=0.0):
         """Sample parameters of Gamma distributions.
@@ -89,9 +155,8 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
         samples : array-like, shape=[..., 2]
             Sample of points representing Gamma distributions.
         """
-        upper_bound, lower_bound = gs.array(upper_bound) * gs.ones(2), gs.array(
-            lower_bound
-        ) * gs.ones(2)
+        upper_bound = upper_bound * gs.ones(2)
+        lower_bound = lower_bound * gs.ones(2)
 
         if gs.any((upper_bound - lower_bound) < 0):
             raise ValueError("upper_bound cannot be greater than lower_bound.")
@@ -137,15 +202,7 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
         samples : array-like, shape=[..., n_samples]
             Sample from the Gamma distributions.
         """
-        geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=2)
-        samples = []
-        for param in point:
-            sample = gs.array(
-                gamma.rvs(param[0], loc=0, scale=param[1] / param[0], size=n_samples)
-            )
-            samples.append(sample)
-        return gs.squeeze(samples[0]) if len(point) == 1 else gs.stack(samples)
+        return self._scp_rv.rvs(point, n_samples)
 
     def point_to_pdf(self, point):
         """Compute pdf associated to point.
@@ -229,92 +286,6 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
             parameters.append(gs.array([kappa, kappa / nu]))
         return parameters[0] if len(data) == 1 else gs.stack(parameters)
 
-    def natural_to_standard(self, point):
-        """Convert point from natural coordinates to standard coordinates.
-
-        The change of variable is symmetric.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., 2]
-            Point of the Gamma manifold, given in natural coordinates.
-
-        Returns
-        -------
-        point : array-like, shape=[..., 2]
-            Point of the Gamma manifold, given in standard coordinates.
-        """
-        return gs.stack([point[..., 0], point[..., 0] / point[..., 1]], axis=-1)
-
-    def standard_to_natural(self, point):
-        """Convert point from standard coordinates to natural coordinates.
-
-        The change of variable is symmetric.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., 2]
-            Point of the Gamma manifold, given in standard coordinates.
-
-        Returns
-        -------
-        point : array-like, shape=[..., 2]
-            Point of the Gamma manifold, given in natural coordinates.
-        """
-        return self.natural_to_standard(point)
-
-    def tangent_natural_to_standard(self, vec, base_point):
-        """Convert tangent vector from natural coordinates to standard coordinates.
-
-        The change of variable is symmetric.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., 2]
-            Point of the Gamma manifold, given in natural coordinates.
-        vec : array-like, shape=[..., 2]
-            Tangent vector at base_point, given in natural coordinates.
-
-        Returns
-        -------
-        vec : array-like, shape=[..., 2]
-            Tangent vector at base_point, given in standard coordinates.
-        """
-        base_point = gs.broadcast_to(base_point, vec.shape)
-
-        kappa, scale = base_point[..., 0], base_point[..., 1]
-
-        jac_row_1 = gs.array([1, 0])
-        jac_row_2 = gs.stack([1 / scale, -kappa / scale**2], axis=-1)
-
-        if check_is_batch(self, base_point):
-            jac_row_1 = gs.repeat(
-                gs.expand_dims(jac_row_1, axis=0), base_point.shape[0], axis=0
-            )
-
-        jac = gs.stack([jac_row_1, jac_row_2], axis=-2)
-
-        return gs.einsum("...jk,...k->...j", jac, vec)
-
-    def tangent_standard_to_natural(self, vec, base_point):
-        """Convert tangent vector from standard coordinates to natural coordinates.
-
-        The change of variable is symmetric.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., 2]
-            Point of the Gamma manifold, given in standard coordinates.
-        vec : array-like, shape=[..., 2]
-            Tangent vector at base_point, given in standard coordinates.
-
-        Returns
-        -------
-        vec : array-like, shape=[..., 2]
-            Tangent vector at base_point, given in natural coordinates.
-        """
-        return self.tangent_natural_to_standard(vec, base_point)
-
 
 class GammaMetric(RiemannianMetric):
     """Class for the Fisher information metric on Gamma distributions.
@@ -329,9 +300,9 @@ class GammaMetric(RiemannianMetric):
         super().__init__(space=space)
 
         self.log_solver = LogODESolver(
-            n_nodes=1000, integrator=ScipySolveBVP(max_nodes=1000)
+            space, n_nodes=1000, integrator=ScipySolveBVP(max_nodes=1000)
         )
-        self.exp_solver = ExpODESolver(integrator=ScipySolveIVP(method="LSODA"))
+        self.exp_solver = ExpODESolver(space, integrator=ScipySolveIVP(method="LSODA"))
 
     def metric_matrix(self, base_point):
         """Compute the inner-product matrix.
@@ -361,16 +332,7 @@ class GammaMetric(RiemannianMetric):
         Compute the Christoffel symbols of the Fisher information metric.
         For computation purposes, we replace the value of
         (gs.polygamma(1, x) - 1/x) by an equivalent (close lower-bound) when it becomes
-        too difficult to compute, as per in the second reference.
-
-        References
-        ----------
-        .. [AD2008] Arwini, K. A., & Dodson, C. T. (2008).
-            Information geometry (pp. 31-54). Springer Berlin Heidelberg.
-
-        .. [GQ2015] Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015).
-            Sharp inequalities for polygamma functions.
-            Mathematica Slovaca, 65(1), 103-120.
+        too difficult to compute, as per in [GQ2015]_.
 
         Parameters
         ----------
@@ -382,19 +344,23 @@ class GammaMetric(RiemannianMetric):
         christoffels : array-like, shape=[..., 2, 2, 2]
             Christoffel symbols, with the contravariant index on
             the first dimension.
-            :math: 'christoffels[..., i, j, k] = Gamma^i_{jk}'
-        """
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
+            :math:`christoffels[..., i, j, k] = Gamma^i_{jk}`
 
-        kappa, gamma = base_point[:, 0], base_point[:, 1]
+        References
+        ----------
+        .. [AD2008] Arwini, K. A., & Dodson, C. T. (2008).
+            Information geometry (pp. 31-54). Springer Berlin Heidelberg.
+        .. [GQ2015] Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015).
+            Sharp inequalities for polygamma functions.
+            Mathematica Slovaca, 65(1), 103-120.
+        """
+        kappa, gamma = base_point[..., 0], base_point[..., 1]
 
         if gs.any(kappa > 4e15):
             raise ValueError(
                 "Christoffels computation overflows with values of kappa. "
                 "All values of kappa < 4e15 work."
             )
-
-        shape = kappa.shape
 
         c111 = gs.where(
             gs.polygamma(1, kappa) - 1 / kappa > gs.atol,
@@ -409,24 +375,16 @@ class GammaMetric(RiemannianMetric):
             -(kappa**2) / (4 * gamma**2),
         )
 
-        c1 = gs.squeeze(
-            from_vector_to_diagonal_matrix(gs.transpose(gs.array([c111, c122])))
+        c1 = from_vector_to_diagonal_matrix(gs.stack([c111, c122], axis=-1))
+        c2 = gs.stack(
+            [
+                gs.stack([gs.zeros_like(kappa), 1 / (2 * kappa)], axis=-1),
+                gs.stack([1 / (2 * kappa), -1 / gamma], axis=-1),
+            ],
+            axis=-1,
         )
 
-        c2 = gs.squeeze(
-            gs.transpose(
-                gs.array(
-                    [[gs.zeros(shape), 1 / (2 * kappa)], [1 / (2 * kappa), -1 / gamma]]
-                )
-            )
-        )
-
-        christoffels = gs.array([c1, c2])
-
-        if len(christoffels.shape) == 4:
-            christoffels = gs.transpose(christoffels, [1, 0, 2, 3])
-
-        return gs.squeeze(christoffels)
+        return gs.stack([c1, c2], axis=-3)
 
     def jacobian_christoffels(self, base_point):
         """Compute the Jacobian of the Christoffel symbols.
@@ -438,12 +396,6 @@ class GammaMetric(RiemannianMetric):
         (gs.polygamma(1, x) - 1/x) and (gs.polygamma(2,x) + 1/x**2) by an equivalent
         (close bounds) when they become too difficult to compute.
 
-        References
-        ----------
-        ..[GQ2015] Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015).
-            Sharp inequalities for polygamma functions.
-            Mathematica Slovaca, 65(1), 103-120.
-
         Parameters
         ----------
         base_point : array-like, shape=[..., 2]
@@ -453,15 +405,19 @@ class GammaMetric(RiemannianMetric):
         -------
         jac : array-like, shape=[..., 2, 2, 2, 2]
             Jacobian of the Christoffel symbols.
-            :math: 'jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l'
+            :math:`jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l`
+
+        References
+        ----------
+        .. [GQ2015] Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015).
+            Sharp inequalities for polygamma functions.
+            Mathematica Slovaca, 65(1), 103-120.
         """
-        base_point = gs.to_ndarray(base_point, 2)
+        batch_shape = base_point.shape[:-1]
 
-        n_points = base_point.shape[0]
+        kappa, gamma = base_point[..., 0], base_point[..., 1]
 
-        kappa, gamma = base_point[:, 0], base_point[:, 1]
-
-        term_0 = gs.zeros((n_points))
+        term_0 = gs.zeros(batch_shape)
         term_1 = 1 / gamma**2
         term_2 = gs.where(
             gs.polygamma(1, kappa) - 1 / kappa > gs.atol,
@@ -516,7 +472,23 @@ class GammaMetric(RiemannianMetric):
             ]
         )
 
-        if n_points > 1:
-            jac = gs.transpose(jac, [4, 0, 1, 2, 3])
+        if batch_shape:
+            jac = gs.moveaxis(jac, -1, 0)
 
-        return gs.squeeze(jac)
+        return jac
+
+
+class GammaDistributionsRandomVariable(ScipyUnivariateRandomVariable):
+    """A gamma random variable."""
+
+    def __init__(self, space):
+        super().__init__(space, gamma.rvs, gamma.pdf)
+
+    @staticmethod
+    def _flatten_params(point, pre_flat_shape):
+        param_a = gs.expand_dims(point[..., 0], axis=-1)
+        scale = gs.expand_dims(point[..., 1] / point[..., 0], axis=-1)
+
+        flat_param_a = gs.reshape(gs.broadcast_to(param_a, pre_flat_shape), (-1,))
+        flat_scale = gs.reshape(gs.broadcast_to(scale, pre_flat_shape), (-1,))
+        return {"a": flat_param_a, "scale": flat_scale}

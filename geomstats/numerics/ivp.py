@@ -19,8 +19,8 @@ def _merge_scipy_results(results, same_t=False):
             value.append(result[key])
 
     if same_t:
-        merged_results["t"] = gs.moveaxis(gs.stack(merged_results["t"]), 0, 1)
-        merged_results["y"] = gs.moveaxis(gs.stack(merged_results["y"]), 0, 1)
+        merged_results["t"] = merged_results["t"][0]
+        merged_results["y"] = gs.stack(merged_results["y"])
 
     return merged_results
 
@@ -45,25 +45,21 @@ class OdeResult(scipy.optimize.OptimizeResult):
         return self.y[-1]
 
 
-class ODEIVPSolver(ABC):
+class ODEIVPIntegrator(ABC):
     """Abstract class for ode ivp solvers.
 
     Parameters
     ----------
     save_result : bool
         If True, result is stored after calling `integrate` or `integrate_t`.
-    state_is_raveled : bool
-        If True, state is represented by a 1d array.
-        Else, it is represented by `(n_vars, dim)`.
-    tfirst : bool
-        Declares function signature.
-        If True `f(t, y)`, else `f(y, t)`.
+    tchosen : bool
+        Informs about ability to solve at chosen times.
+        If False, then does not implement `integrate_t`.
     """
 
-    def __init__(self, save_result=False, state_is_raveled=False, tfirst=False):
-        self.state_is_raveled = state_is_raveled
-        self.tfirst = tfirst
+    def __init__(self, save_result=False, tchosen=False):
         self.save_result = save_result
+        self.tchosen = tchosen
 
         self.result_ = None
 
@@ -74,8 +70,8 @@ class ODEIVPSolver(ABC):
         Parameters
         ----------
         force : callable
-            Function to integrate.
-        initial_state : array-like
+            Function to integrate: `f(state, t)`.
+        initial_state : array-like, shape=[..., n_vars, *point_shape]
             Initial state.
         end_time : float or None
             Integration end time.
@@ -85,15 +81,14 @@ class ODEIVPSolver(ABC):
         result : OdeResult
         """
 
-    @abstractmethod
     def integrate_t(self, force, initial_state, t_eval):
         """Integrate force while choosing evaluating points.
 
         Parameters
         ----------
         force : callable
-            Function to integrate.
-        initial_state : array-like
+            Function to integrate: `f(state, t)`.
+        initial_state : array-like, shape=[..., n_vars, *point_shape]
             Initial state.
         t_eval : array-like
             Times at which to store the computed solution.
@@ -102,9 +97,10 @@ class ODEIVPSolver(ABC):
         -------
         result : OdeResult
         """
+        raise NotImplementedError("Can't solve for chosen evaluating points.")
 
 
-class GSIVPIntegrator(ODEIVPSolver):
+class GSIVPIntegrator(ODEIVPIntegrator):
     """In-house ODE integrator.
 
     Parameters
@@ -119,7 +115,7 @@ class GSIVPIntegrator(ODEIVPSolver):
     """
 
     def __init__(self, n_steps=10, step_type="euler", save_result=False):
-        super().__init__(save_result=save_result, state_is_raveled=False, tfirst=False)
+        super().__init__(save_result=save_result, tchosen=False)
         self.step_type = step_type
         self.n_steps = n_steps
 
@@ -168,8 +164,8 @@ class GSIVPIntegrator(ODEIVPSolver):
         Parameters
         ----------
         force : callable
-            Function to integrate.
-        initial_state : array-like
+            Function to integrate: `f(state, t)`.
+        initial_state : array-like, shape=[..., n_vars, *point_shape]
             Initial state.
         end_time : float or None
             Integration end time.
@@ -183,46 +179,7 @@ class GSIVPIntegrator(ODEIVPSolver):
         ts = gs.linspace(0.0, end_time, self.n_steps + 1)
         nfev = self._get_n_fevals(self.n_steps)
 
-        result = OdeResult(t=ts, y=gs.array(states), nfev=nfev, njev=0, sucess=True)
-
-        if self.save_result:
-            self.result_ = result
-
-        return result
-
-    def integrate_t(self, force, initial_state, t_eval):
-        """Integrate force at `t_eval` points.
-
-        Parameters
-        ----------
-        force : callable
-            Function to integrate.
-        initial_state : array-like
-            Initial state.
-        t_eval : array-like
-            Times at which to store the computed solution.
-
-        Returns
-        -------
-        result : OdeResult
-        """
-        # TODO: this is a very naive implementation
-        # based on previous generic implementation in geomstats
-        # resolution gets worst for larger t
-
-        states = []
-        initial_states = [
-            gs.stack([initial_state[0], t * initial_state[1]]) for t in t_eval
-        ]
-        for initial_state_ in initial_states:
-            states_t = self._integrate(force, initial_state_, end_time=1.0)
-            states.append(states_t[-1])
-
-        nfev = self._get_n_fevals(self.n_steps)
-        n_t = len(t_eval)
-        result = OdeResult(
-            t=t_eval, y=gs.stack(states), nfev=n_t * nfev, njev=0, sucess=True
-        )
+        result = OdeResult(t=ts, y=gs.stack(states), nfev=nfev, njev=0, sucess=True)
 
         if self.save_result:
             self.result_ = result
@@ -230,8 +187,12 @@ class GSIVPIntegrator(ODEIVPSolver):
         return result
 
 
-class ScipySolveIVP(ODEIVPSolver):
+class ScipySolveIVP(ODEIVPIntegrator):
     """Wrapper for scipy.integrate.solve_ivp.
+
+    Check
+    https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html
+    for additional options.
 
     Parameters
     ----------
@@ -239,15 +200,18 @@ class ScipySolveIVP(ODEIVPSolver):
         Integration method.
     save_result : bool
         If True, result is stored after calling `integrate` or `integrate_t`.
+    point_ndim = int
+        Dimension of array representing a point in the space.
     """
 
-    def __init__(self, method="RK45", save_result=False, **options):
-        super().__init__(save_result=save_result, state_is_raveled=True, tfirst=True)
+    def __init__(self, method="RK45", save_result=False, point_ndim=1, **options):
+        super().__init__(save_result=save_result, tchosen=True)
         self.method = method
+        self.point_ndim = point_ndim
         self.options = options
 
     def _integrate(self, force, initial_state, end_time=1.0, t_eval=None):
-        if initial_state.ndim > 1:
+        if initial_state.ndim > (self.point_ndim + 1):
             results = []
             for initial_state_ in initial_state:
                 results.append(
@@ -273,8 +237,8 @@ class ScipySolveIVP(ODEIVPSolver):
         Parameters
         ----------
         force : callable
-            Function to integrate.
-        initial_state : array-like
+            Function to integrate: `f(state, t)`.
+        initial_state : array-like, shape=[..., n_vars, *point_shape]
             Initial state.
         end_time : float or None
             Integration end time.
@@ -291,8 +255,8 @@ class ScipySolveIVP(ODEIVPSolver):
         Parameters
         ----------
         force : callable
-            Function to integrate.
-        initial_state : array-like
+            Function to integrate: `f(state, t)`.
+        initial_state : array-like, shape=[..., n_vars, *point_shape]
             Initial state.
         t_eval : array-like
             Times at which to store the computed solution.
@@ -306,17 +270,27 @@ class ScipySolveIVP(ODEIVPSolver):
     def _integrate_single(self, force, initial_state, end_time=1.0, t_eval=None):
         def force_(t, state):
             state = gs.from_numpy(state)
-            return force(t, state)
+            unraveled_state = gs.reshape(state, initial_state.shape)
+
+            return gs.reshape(
+                force(unraveled_state, t),
+                state.shape,
+            )
+
+        raveled_initial_state = gs.reshape(initial_state, (-1,))
 
         result = scipy.integrate.solve_ivp(
             force_,
             (0.0, end_time),
-            initial_state,
+            raveled_initial_state,
             method=self.method,
             t_eval=t_eval,
             **self.options,
         )
         result = result_to_backend_type(result)
-        result.y = gs.moveaxis(result.y, 0, -1)
+        result.y = gs.reshape(
+            gs.moveaxis(result.y, 0, -1),
+            (-1,) + initial_state.shape,
+        )
 
         return result

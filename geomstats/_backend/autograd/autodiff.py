@@ -5,6 +5,56 @@ import autograd.numpy as _np
 from autograd import jacobian
 
 
+def _get_max_ndim_point(*points):
+    """Identify point with higher dimension.
+
+    Same as `geomstats.vectorization._get_max_ndim_point`.
+
+    Parameters
+    ----------
+    points : array-like
+
+    Returns
+    -------
+    max_ndim_point : array-like
+        Point with higher dimension.
+    """
+    max_ndim_point = points[0]
+    for point in points[1:]:
+        if point.ndim > max_ndim_point.ndim:
+            max_ndim_point = point
+
+    return max_ndim_point
+
+
+def _get_batch_shape(*points, point_ndims=1):
+    """Get batch shape.
+
+    Similar to `geomstats.vectorization.get_batch_shape`.
+
+    Parameters
+    ----------
+    points : array-like or None
+        Point belonging to the space.
+    point_ndims : int or tuple[int]
+        Point number of array dimensions.
+
+    Returns
+    -------
+    batch_shape : tuple
+        Returns the shape related with batch. () if only one point.
+    """
+    if isinstance(point_ndims, int):
+        point_max_ndim = _get_max_ndim_point(*points)
+        return point_max_ndim.shape[:-point_ndims]
+
+    for point, point_ndim in zip(points, point_ndims):
+        if point.ndim > point_ndim:
+            return point.shape[:-point_ndim]
+
+    return ()
+
+
 def custom_gradient(*grad_funcs):
     """Create a decorator that allows a function to define its custom gradient(s).
 
@@ -65,7 +115,7 @@ def custom_gradient(*grad_funcs):
             )
         else:
             raise NotImplementedError(
-                "custom_gradient is not yet implemented " "for more than 3 gradients."
+                "custom_gradient is not yet implemented for more than 3 gradients."
             )
 
         return wrapped_function
@@ -93,16 +143,20 @@ def _elementwise_value_and_grad(fun, x):
     return ans, vjp(_autograd.differential_operators.vspace(ans).ones())
 
 
-def value_and_grad(func, argnums=0, to_numpy=False):
+def value_and_grad(func, argnums=0, point_ndims=1):
     """Wrap autograd value_and_grad function.
+
+    Suitable for use in scipy.optimize.
 
     Parameters
     ----------
     func : callable
         Function whose value and gradient values
         will be computed.
-    to_numpy : bool
-        Unused. Here for API consistency.
+    argnums: int or tuple[int]
+        Specifies arguments to compute gradients with respect to.
+    point_ndims: int or tuple[int]
+        Specifies arguments ndim.
 
     Returns
     -------
@@ -111,10 +165,27 @@ def value_and_grad(func, argnums=0, to_numpy=False):
         func's gradients' values at its inputs args.
     """
 
-    def _value_and_grad(*x, **kwargs):
-        if not hasattr(x[0], "ndim") or x[0].ndim < 2:
-            return _autograd.value_and_grad(func, argnum=argnums)(*x, **kwargs)
-        return _elementwise_value_and_grad(func, argnum=argnums)(*x, **kwargs)
+    def _value_and_grad(*inputs, **kwargs):
+        batch_shape = _get_batch_shape(*inputs, point_ndims=point_ndims)
+        if len(batch_shape) == 0:
+            return _autograd.value_and_grad(func, argnum=argnums)(*inputs, **kwargs)
+
+        if len(inputs) > 1:
+            point_ndims_ = (
+                (point_ndims,) * len(inputs)
+                if isinstance(point_ndims, int)
+                else point_ndims
+            )
+            inputs_ = []
+            for point, point_ndim in zip(inputs, point_ndims_):
+                if point.shape[:-point_ndim] != batch_shape:
+                    point = _autograd.numpy.broadcast_to(
+                        point, batch_shape + point.shape
+                    )
+                inputs_.append(point)
+            inputs = inputs_
+
+        return _elementwise_value_and_grad(func, argnum=argnums)(*inputs, **kwargs)
 
     return _value_and_grad
 
@@ -129,7 +200,7 @@ def _value_and_jacobian_op(fun, x):
     return ans, _np.reshape(_np.stack(grads), jacobian_shape)
 
 
-def _value_and_jacobian(fun, point_ndim=1):
+def value_and_jacobian(fun, point_ndim=1):
     def _value_and_jacobian_vec(x):
         if x.ndim == point_ndim:
             return _value_and_jacobian_op(fun)(x)
@@ -264,7 +335,7 @@ def jacobian_and_hessian(func, func_out_ndim=None):
         Function that returns func's jacobian and
         func's hessian values at its inputs args.
     """
-    return _value_and_jacobian(jacobian_vec(func))
+    return value_and_jacobian(jacobian_vec(func))
 
 
 def value_jacobian_and_hessian(func, func_out_ndim=None):
@@ -284,7 +355,7 @@ def value_jacobian_and_hessian(func, func_out_ndim=None):
 
     def _cached_value_and_jacobian(fun, return_cached=False):
         def _jac(x):
-            ans, jac = _value_and_jacobian(fun)(x)
+            ans, jac = value_and_jacobian(fun)(x)
             if not return_cached:
                 cache.append(ans)
                 return jac

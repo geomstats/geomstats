@@ -2,10 +2,59 @@
 
 import functools
 
-import numpy as _np
 import torch as _torch
 from torch.autograd.functional import hessian as _torch_hessian
 from torch.autograd.functional import jacobian as _torch_jacobian
+
+
+def _get_max_ndim_point(*points):
+    """Identify point with higher dimension.
+
+    Same as `geomstats.vectorization._get_max_ndim_point`.
+
+    Parameters
+    ----------
+    points : array-like
+
+    Returns
+    -------
+    max_ndim_point : array-like
+        Point with higher dimension.
+    """
+    max_ndim_point = points[0]
+    for point in points[1:]:
+        if point.ndim > max_ndim_point.ndim:
+            max_ndim_point = point
+
+    return max_ndim_point
+
+
+def _get_batch_shape(*points, point_ndims=1):
+    """Get batch shape.
+
+    Similar to `geomstats.vectorization.get_batch_shape`.
+
+    Parameters
+    ----------
+    points : array-like or None
+        Point belonging to the space.
+    point_ndims : int or tuple[int]
+        Point number of array dimensions.
+
+    Returns
+    -------
+    batch_shape : tuple
+        Returns the shape related with batch. () if only one point.
+    """
+    if isinstance(point_ndims, int):
+        point_max_ndim = _get_max_ndim_point(*points)
+        return point_max_ndim.shape[:-point_ndims]
+
+    for point, point_ndim in zip(points, point_ndims):
+        if point.ndim > point_ndim:
+            return point.shape[:-point_ndim]
+
+    return ()
 
 
 def custom_gradient(*grad_funcs):
@@ -37,29 +86,37 @@ def custom_gradient(*grad_funcs):
             Function func with gradients specified by grad_funcs.
         """
 
-        class func_with_grad(_torch.autograd.Function):
+        class FuncWithGrad(_torch.autograd.Function):
             """Wrapper class for a function with custom grad."""
 
             @staticmethod
-            def forward(ctx, *args):
+            def forward(ctx, *args, **kwargs):
                 ctx.save_for_backward(*args)
-                return func(*args)
+                return func(*args, **kwargs)
 
             @staticmethod
             def backward(ctx, grad_output):
                 inputs = ctx.saved_tensors
 
-                grads = ()
-                for custom_grad in grad_funcs:
-                    grads = (*grads, grad_output * custom_grad(*inputs))
+                if grad_output.ndim > 0:
+                    return tuple(
+                        (
+                            _torch.einsum(
+                                "n,n...->n...", grad_output, custom_grad(*inputs)
+                            )
+                            if input_.requires_grad
+                            else None
+                        )
+                        for input_, custom_grad in zip(inputs, grad_funcs)
+                    )
 
-                if len(grads) == 1:
-                    return grads[0]
-                return grads
+                return tuple(
+                    grad_output * custom_grad(*inputs) if input_.requires_grad else None
+                    for input_, custom_grad in zip(inputs, grad_funcs)
+                )
 
         def wrapped_function(*args, **kwargs):
-            new_inputs = args + tuple(kwargs.values())
-            return func_with_grad.apply(*new_inputs)
+            return FuncWithGrad.apply(*args, **kwargs)
 
         return wrapped_function
 
@@ -243,20 +300,20 @@ def jacobian_and_hessian(func, func_out_ndim=0):
     return _jacobian_and_hessian
 
 
-def value_and_grad(func, argnums=0, to_numpy=False):
+def value_and_grad(func, argnums=0, point_ndims=1):
     """Return a function that returns func's value and gradients' values.
 
-    Suitable for use in scipy.optimize with to_numpy=True.
+    Suitable for use in scipy.optimize.
 
     Parameters
     ----------
     func : callable
         Function whose value and gradient values
         will be computed. It must be real-valued.
-    to_numpy : bool
-        Determines if the outputs value and grad will be cast
-        to numpy arrays. Set to "True" when using scipy.optimize.
-        Optional, default: False.
+    argnums: int or tuple[int]
+        Specifies arguments to compute gradients with respect to.
+    point_ndims: int or tuple[int]
+        Specifies arguments ndim.
 
     Returns
     -------
@@ -264,11 +321,78 @@ def value_and_grad(func, argnums=0, to_numpy=False):
         Function that returns func's value and
         func's gradients' values at its inputs args.
     """
-    if isinstance(argnums, int):
-        argnums = (argnums,)
+    argnums_ = (argnums,) if isinstance(argnums, int) else argnums
 
-    def func_with_grad(*args, **kwargs):
+    def func_with_grad(*inputs, **kwargs):
         """Return func's value and func's gradients' values at args.
+
+        Parameters
+        ----------
+        inputs : array-like, shape=[..., *point_shape]
+        kwargs : dict
+            Keyword arguments to function func and its gradients.
+
+        Returns
+        -------
+        value : array-like, shape=[...,]
+            Image of func at point.
+        grad : array-like or tuple[array-like], shape=[..., *point_shape]
+            Gradient of func at required points.
+        """
+        batch_shape = _get_batch_shape(*inputs, point_ndims=point_ndims)
+
+        if len(inputs) > 1:
+            point_ndims_ = (
+                (point_ndims,) * len(inputs)
+                if isinstance(point_ndims, int)
+                else point_ndims
+            )
+            inputs_ = []
+            for point, point_ndim in zip(inputs, point_ndims_):
+                if point.shape[:-point_ndim] != batch_shape:
+                    point = _torch.broadcast_to(point, batch_shape + point.shape)
+                inputs_.append(point)
+            inputs = inputs_
+
+        inputs_ = []
+        for index, point in enumerate(inputs):
+            if index in argnums_ and not point.requires_grad:
+                point = point.detach().requires_grad_(True)
+            inputs_.append(point)
+        inputs = inputs_
+        value = func(*inputs, **kwargs).requires_grad_(True)
+
+        if value.ndim > 0:
+            sum_value = value.sum(axis=-1)
+            sum_value.backward()
+        else:
+            value.backward()
+
+        grads = tuple(
+            point.grad.detach()
+            for index, point in enumerate(inputs)
+            if point.requires_grad and index in argnums_
+        )
+        if isinstance(argnums, int):
+            grads = grads[0]
+        return value.detach(), grads
+
+    return func_with_grad
+
+
+def value_and_jacobian(func):
+    """Compute value and jacobian.
+
+    NB: this is a naive implementation for consistency with autograd.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose jacobian values will be computed.
+    """
+
+    def _value_and_jacobian(*args, **kwargs):
+        """Return func's jacobian at args.
 
         Parameters
         ----------
@@ -279,47 +403,17 @@ def value_and_grad(func, argnums=0, to_numpy=False):
 
         Returns
         -------
-        value : any
+        value : array-like
             Value of func at input arguments args.
-        all_grads : list or any
-            Values of func's gradients at input arguments args.
+        jacobian : array-like
+            Value of func's jacobian at input arguments args.
         """
-        new_args = []
-        for i_arg, one_arg in enumerate(args):
-            if isinstance(one_arg, float):
-                one_arg = _torch.from_numpy(_np.array(one_arg))
-            if isinstance(one_arg, _np.ndarray):
-                one_arg = _torch.from_numpy(one_arg)
+        return (
+            func(*args, **kwargs),
+            jacobian_vec(func)(*args, **kwargs),
+        )
 
-            requires_grad = i_arg in argnums
-            one_arg = one_arg.detach().requires_grad_(requires_grad)
-            new_args.append(one_arg)
-
-        value = func(*new_args, **kwargs)
-        value = value.requires_grad_(True)
-
-        if value.ndim > 0:
-            sum_value = value.sum()
-            sum_value.backward()
-        else:
-            value.backward()
-
-        all_grads = []
-        for i_arg, one_arg in enumerate(new_args):
-            if i_arg in argnums:
-                all_grads.append(
-                    one_arg.grad,
-                )
-
-        if to_numpy:
-            value = value.detach().numpy()
-            all_grads = [one_grad.detach().numpy() for one_grad in all_grads]
-
-        if len(new_args) == 1:
-            return value, all_grads[0]
-        return value, tuple(all_grads)
-
-    return func_with_grad
+    return _value_and_jacobian
 
 
 def value_jacobian_and_hessian(func, func_out_ndim=0):

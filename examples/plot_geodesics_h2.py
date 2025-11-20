@@ -15,7 +15,6 @@ def plot_geodesic_between_two_points(
     space, initial_point, end_point, n_steps=10, ax=None
 ):
     """Plot the geodesic between two points."""
-
     if not space.belongs(initial_point):
         raise ValueError("The initial point of the geodesic is not in H2.")
     if not space.belongs(end_point):

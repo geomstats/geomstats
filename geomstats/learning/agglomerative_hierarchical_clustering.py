@@ -82,9 +82,9 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
 
     References
     ----------
-        This algorithm uses the scikit-learn library:
-        https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/
-        cluster/_agglomerative.py#L656
+    This algorithm uses the scikit-learn library:
+    https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/cluster
+    /_agglomerative.py#L656
     """
 
     def __init__(
@@ -106,7 +106,7 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
                 affinity_matrix[i_sample, :i_sample] = self.space.metric.dist(
                     data[i_sample, ...], data[:i_sample, ...]
                 ).reshape(i_sample)
-            affinity_matrix += affinity_matrix.T
+            affinity_matrix = affinity_matrix + affinity_matrix.T
             return affinity_matrix
 
         self.space = space

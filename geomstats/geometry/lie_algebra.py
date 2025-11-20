@@ -13,13 +13,13 @@ import abc
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.base import VectorSpace
+from geomstats.geometry.base import MatrixVectorSpace
 from geomstats.geometry.matrices import Matrices
 
 from ._bch_coefficients import BCH_COEFFICIENTS
 
 
-class MatrixLieAlgebra(VectorSpace, abc.ABC):
+class MatrixLieAlgebra(MatrixVectorSpace, abc.ABC):
     """Class implementing matrix Lie algebra related functions.
 
     Parameters
@@ -28,6 +28,8 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
         Amount of rows and columns in the matrix representation of the
         Lie algebra.
     """
+
+    # TODO: check again need for representation_dim
 
     def __init__(self, representation_dim, **kwargs):
         geomstats.errors.check_integer(representation_dim, "representation_dim")
@@ -85,40 +87,3 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
                 float(BCH_COEFFICIENTS[i, 3]) / float(BCH_COEFFICIENTS[i, 4]) * el[i]
             )
         return result
-
-    @abc.abstractmethod
-    def basis_representation(self, matrix_representation):
-        """Compute the coefficients of matrices in the given basis.
-
-        Parameters
-        ----------
-        matrix_representation : array-like, shape=[..., *point_shape]
-            Matrix.
-
-        Returns
-        -------
-        basis_representation : array-like, shape=[..., dim]
-            Coefficients in the basis.
-        """
-        raise NotImplementedError("basis_representation not implemented.")
-
-    def matrix_representation(self, basis_representation):
-        """Compute the matrix representation for the given basis coefficients.
-
-        Sums the basis elements according to the coefficients given in
-        basis_representation.
-
-        Parameters
-        ----------
-        basis_representation : array-like, shape=[..., dim]
-            Coefficients in the basis.
-
-        Returns
-        -------
-        matrix_representation : array-like, shape=[..., *point_shape]
-            Matrix.
-        """
-        if self.basis is None:
-            raise NotImplementedError("basis not implemented")
-
-        return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)

@@ -4,9 +4,10 @@ from collections.abc import Iterable as _Iterable
 
 import numpy as _np
 import torch as _torch
-from torch import arange, argmin
-from torch import broadcast_tensors as broadcast_arrays
 from torch import (
+    arange,
+    argmin,
+    asarray,
     clip,
     complex64,
     complex128,
@@ -33,26 +34,27 @@ from torch import (
     ones_like,
     polygamma,
     quantile,
-)
-from torch import repeat_interleave as repeat
-from torch import (
     reshape,
     scatter_add,
+    searchsorted,
     stack,
-    trapz,
+    trapezoid,
     uint8,
-    unique,
     vstack,
     zeros,
     zeros_like,
 )
+from torch import broadcast_tensors as broadcast_arrays
+from torch import repeat_interleave as repeat
 from torch.special import gammaln as _gammaln
 
 from .._backend_config import pytorch_atol as atol
 from .._backend_config import pytorch_rtol as rtol
-from . import autodiff  # NOQA
-from . import linalg  # NOQA
-from . import random  # NOQA
+from . import (
+    autodiff,  # NOQA
+    linalg,  # NOQA
+    random,  # NOQA
+)
 from ._common import array, cast, from_numpy
 from ._dtype import (
     _add_default_dtype_by_casting,
@@ -78,13 +80,6 @@ _DTYPES = {
 }
 
 
-def _raise_not_implemented_error(*args, **kwargs):
-    raise NotImplementedError
-
-
-searchsorted = _raise_not_implemented_error
-
-
 abs = _box_unary_scalar(target=_torch.abs)
 angle = _box_unary_scalar(target=_torch.angle)
 arccos = _box_unary_scalar(target=_torch.arccos)
@@ -107,11 +102,21 @@ tanh = _box_unary_scalar(target=_torch.tanh)
 
 
 arctan2 = _box_binary_scalar(target=_torch.atan2)
-mod = _box_binary_scalar(target=_torch.fmod, box_x2=False)
+mod = _box_binary_scalar(target=_torch.remainder, box_x2=False)
 power = _box_binary_scalar(target=_torch.pow, box_x2=False)
 
 
 std = _preserve_input_dtype(_add_default_dtype_by_casting(target=_torch.std))
+
+
+def has_autodiff():
+    """If allows for automatic differentiation.
+
+    Returns
+    -------
+    has_autodiff : bool
+    """
+    return True
 
 
 def matmul(x, y, out=None):
@@ -164,7 +169,7 @@ def split(x, indices_or_sections, axis=0):
     if isinstance(indices_or_sections, int):
         indices_or_sections = x.shape[axis] // indices_or_sections
         return _torch.split(x, indices_or_sections, dim=axis)
-    indices_or_sections = _np.array(indices_or_sections)
+    indices_or_sections = _np.asarray(indices_or_sections)
     intervals_length = indices_or_sections[1:] - indices_or_sections[:-1]
     last_interval_length = x.shape[axis] - indices_or_sections[-1]
     if last_interval_length > 0:
@@ -259,17 +264,7 @@ def allclose(a, b, atol=atol, rtol=rtol):
         a = _torch.tensor(a)
     if not isinstance(b, _torch.Tensor):
         b = _torch.tensor(b)
-    a = to_ndarray(a.float(), to_ndim=1)
-    b = to_ndarray(b.float(), to_ndim=1)
-    n_a = a.shape[0]
-    n_b = b.shape[0]
-    nb_dim = a.dim()
-    if n_a > n_b:
-        reps = (int(n_a / n_b),) + (nb_dim - 1) * (1,)
-        b = tile(b, reps)
-    elif n_a < n_b:
-        reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
-        a = tile(a, reps)
+    a, b = _torch.broadcast_tensors(a, b)
     return _torch.allclose(a, b, atol=atol, rtol=rtol)
 
 
@@ -293,12 +288,15 @@ def minimum(a, b):
     return _torch.min(array(a), array(b))
 
 
-def to_ndarray(x, to_ndim, axis=0):
-    if not _torch.is_tensor(x):
-        x = array(x)
+def to_ndarray(x, to_ndim, axis=0, dtype=None):
+    x = _torch.as_tensor(x, dtype=dtype)
 
-    if x.dim() == to_ndim - 1:
+    if x.dim() > to_ndim:
+        raise ValueError("The ndim cannot be adapted properly.")
+
+    while x.dim() < to_ndim:
         x = _torch.unsqueeze(x, dim=axis)
+
     return x
 
 
@@ -358,11 +356,11 @@ def trace(x):
     return _torch.einsum("...ii", x)
 
 
-def linspace(start, stop, num=50, dtype=None):
+def linspace(start, stop, num=50, endpoint=True, dtype=None):
     start_is_array = _torch.is_tensor(start)
     stop_is_array = _torch.is_tensor(stop)
 
-    if not (start_is_array or stop_is_array):
+    if not (start_is_array or stop_is_array) and endpoint:
         return _torch.linspace(start=start, end=stop, steps=num, dtype=dtype)
 
     if not start_is_array:
@@ -374,15 +372,27 @@ def linspace(start, stop, num=50, dtype=None):
     start = _torch.flatten(start)
     stop = _torch.flatten(stop)
 
-    return _torch.reshape(
-        _torch.vstack(
+    if endpoint:
+        result = _torch.vstack(
             [
                 _torch.linspace(start=start[i], end=stop[i], steps=num, dtype=dtype)
                 for i in range(start.shape[0])
             ]
-        ).T,
-        result_shape,
-    )
+        ).T
+    else:
+        result = _torch.vstack(
+            [
+                _torch.arange(
+                    start=start[i],
+                    end=stop[i],
+                    step=(stop[i] - start[i]) / num,
+                    dtype=dtype,
+                )
+                for i in range(start.shape[0])
+            ]
+        ).T
+
+    return _torch.reshape(result, result_shape)
 
 
 def equal(a, b, **kwargs):
@@ -640,7 +650,7 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    return _torch.sparse.FloatTensor(
+    return _torch.sparse_coo_tensor(
         _torch.LongTensor(indices).t(),
         array(data),
         _torch.Size(target_shape),
@@ -741,9 +751,9 @@ def _unnest_iterable(ls):
     return out
 
 
-def pad(a, pad_width, constant_value=0.0):
+def pad(a, pad_width, mode="constant", constant_values=0.0):
     return _torch.nn.functional.pad(
-        a, _unnest_iterable(reversed(pad_width)), value=constant_value
+        a, _unnest_iterable(reversed(pad_width)), mode=mode, value=constant_values
     )
 
 
@@ -787,9 +797,9 @@ def dot(a, b):
 
 
 def cross(a, b):
-    if a.ndim + b.ndim == 3 or a.ndim == b.ndim == 2 and a.shape[0] != b.shape[0]:
+    if a.shape != b.shape:
         a, b = broadcast_arrays(a, b)
-    return _torch.cross(*convert_to_wider_dtype([a, b]))
+    return _torch.cross(*convert_to_wider_dtype([a, b]), dim=-1)
 
 
 def gamma(a):
@@ -802,3 +812,7 @@ def imag(a):
     if is_complex(a):
         return _torch.imag(a)
     return _torch.zeros(a.shape, dtype=a.dtype)
+
+
+def unique(ar, axis=None):
+    return _torch.unique(ar, dim=axis)

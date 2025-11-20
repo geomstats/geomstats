@@ -21,8 +21,8 @@ class HeisenbergVectors(LieGroup, VectorSpace):
     ----------
     No parameters
 
-    Reference
-    ---------
+    References
+    ----------
     https://en.wikipedia.org/wiki/Heisenberg_group
     """
 
@@ -91,7 +91,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         """Compute the Jacobian matrix of left/right translation by a point.
 
         This calculates the differential of the left translation L_(point)
-        evaluated at 'point'. Note that it only depends on the point we are
+        evaluated at `point`. Note that it only depends on the point we are
         left-translating by, not on the point where the differential is
         evaluated.
 
@@ -161,7 +161,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
 
         The 3D Heisenberg group can also be represented as 3x3 upper triangular
         matrices. This function computes this representation of the vector
-        'point'.
+        `point`.
 
         Parameters
         ----------
@@ -191,7 +191,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
                 axis=-1,
             )
 
-        return gs.triu(SymmetricMatrices.from_vector(modified_point))
+        return gs.triu(SymmetricMatrices.matrix_representation(modified_point))
 
     @staticmethod
     def vector_from_upper_triangular_matrix(matrix):
@@ -214,3 +214,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         return gs.stack(
             [modified_point[..., 0], modified_point[..., 2], corrected_elem], axis=-1
         )
+
+    def lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute the lie bracket of two tangent vectors."""
+        raise NotImplementedError("The lie bracket is not implemented.")

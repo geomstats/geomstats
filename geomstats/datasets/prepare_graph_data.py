@@ -66,9 +66,8 @@ class Graph:
 
         Returns
         -------
-        self : array-like,
-            Shape=[n_walks_per_node*self.n_edges), walk_length]
-            array containing random walks.
+        self : array-like, shape=[n_walks_per_node*self.n_edges, walk_length]
+            Array containing random walks.
         """
         paths = [
             [0] * (walk_length + 1) for i in range(self.n_nodes * n_walks_per_node)
@@ -77,7 +76,7 @@ class Graph:
         for index in range(len(self.edges)):
             for i in range(n_walks_per_node):
                 paths[index * n_walks_per_node + i] = self._walk(index, walk_length)
-        return gs.array(paths)
+        return gs.stack(paths)
 
     def _walk(self, index, walk_length):
         """Generate a single random walk."""
@@ -224,8 +223,7 @@ class HyperbolicEmbedding:
         negative_distance_grad = self.grad_squared_distance(
             reshaped_example_embedding, negative_embedding
         )
-
-        negative_distance = gs.to_ndarray(negative_distance, to_ndim=2, axis=-1)
+        negative_distance = gs.expand_dims(negative_distance, axis=-1)
         negative_log_sigmoid_grad = self.grad_log_sigmoid(negative_distance)
 
         negative_grad = negative_log_sigmoid_grad * negative_distance_grad
@@ -302,10 +300,10 @@ class HyperbolicEmbedding:
                             gs.squeeze(gs.cast(one_negative_i, dtype=gs.int64)),
                         )
 
-                        l, g_ex = self.loss(
+                        total_loss_, g_ex = self.loss(
                             example_embedding, context_embedding, negative_embedding
                         )
-                        total_loss.append(l)
+                        total_loss.append(total_loss_)
 
                         example_to_update = embeddings[one_path]
 
@@ -316,7 +314,7 @@ class HyperbolicEmbedding:
                         embeddings = gs.assignment(
                             embeddings,
                             valeur,
-                            gs.to_ndarray(one_path, to_ndim=1),
+                            gs.expand_dims(one_path, axis=-1),
                             axis=1,
                         )
 

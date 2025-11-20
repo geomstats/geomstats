@@ -40,7 +40,7 @@ def check_positive(param, param_name):
         raise ValueError(f"{param_name} must be positive.")
 
 
-def check_belongs(point, manifold, **kwargs):
+def check_belongs(point, manifold, atol=gs.atol):
     """Raise an error if point does not belong to the input manifold.
 
     Parameters
@@ -52,7 +52,7 @@ def check_belongs(point, manifold, **kwargs):
     manifold_name : string
         Name of the manifold for the error message.
     """
-    if not gs.all(manifold.belongs(point, **kwargs)):
+    if not gs.all(manifold.belongs(point, atol=atol)):
         raise RuntimeError(
             f"Some points do not belong to manifold '{type(manifold).__name__}'"
             f" of dimension {manifold.dim}."

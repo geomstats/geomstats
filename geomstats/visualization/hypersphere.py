@@ -56,7 +56,7 @@ class Circle:
         """Plot points."""
         if points is None:
             points = self.points
-        points = gs.array(points)
+        points = gs.stack(points)
         ax.plot(points[:, 0], points[:, 1], marker="o", linestyle="None", **plot_kwargs)
 
     def plot(self, points, ax=None, **point_draw_kwargs):

@@ -52,7 +52,7 @@ class SubRiemannianMetric:
                 "Either 'cometric_matrix' or 'frame' must be passed, and not both."
             )
 
-        if space.default_point_type != "vector":
+        if space.point_ndim != 1:
             raise ValueError("Can only handle 'vector' point types.")
 
         self.cometric_matrix = cometric_matrix
@@ -182,21 +182,14 @@ class SubRiemannianMetric:
         vector : array-like, shape=[, 2*dim]
             The symplectic gradient of the Hamiltonian.
         """
-
-        def H_sum(state):
-            """Sum each value of the Hamiltonian (relevant for vectorized input)."""
-            # TODO: nice trick to vectorize the gradient
-            return gs.sum(hamiltonian(state))
-
-        # TODO: vectorized grad
-        value_and_grad = gs.autodiff.value_and_grad(H_sum)
+        value_and_grad = gs.autodiff.value_and_grad(
+            hamiltonian,
+            point_ndims=2,
+        )
 
         def vector(x):
             """Compute symplectic gradient at x."""
-            # TODO: update after add vectorized grad to backend
-            _, grad = value_and_grad(x)
-            h_q = grad[0]
-            h_p = grad[1]
+            _, (h_q, h_p) = value_and_grad(x)
             return gs.array([h_p, -h_q])
 
         return vector
@@ -289,7 +282,7 @@ class SubRiemannianMetric:
         step_size = end_time / n_steps
         return self.iterate(step(hamiltonian, step_size), n_steps)
 
-    def exp(self, cotangent_vec, base_point, n_steps=20, **kwargs):
+    def exp(self, cotangent_vec, base_point, n_steps=20):
         """Exponential map associated to the cometric.
 
         Exponential map at base_point of cotangent_vec computed by integration
@@ -306,9 +299,6 @@ class SubRiemannianMetric:
         n_steps : int
             Number of discrete time steps to take in the integration.
             Optional, default: N_STEPS.
-        point_type : str, {'vector', 'matrix'}
-            Type of representation used for points.
-            Optional, default: None.
 
         Returns
         -------
@@ -336,7 +326,7 @@ class SubRiemannianMetric:
         ----------
         initial_point : array-like, shape=[..., dim]
             Point on the manifold, initial point of the geodesic.
-        initial_cotangent_vec : array-like, shape=[..., dim],
+        initial_cotangent_vec : array-like, shape=[..., dim]
             Cotangent vector at base point, the initial speed of the geodesics.
 
         Returns
@@ -349,7 +339,7 @@ class SubRiemannianMetric:
         """
         if initial_cotangent_vec is None:
             raise ValueError(
-                "Specify an initial cotangent " "vector to define the geodesic."
+                "Specify an initial cotangent vector to define the geodesic."
             )
 
         initial_point = gs.to_ndarray(initial_point, to_ndim=2)
@@ -368,9 +358,7 @@ class SubRiemannianMetric:
             t : array-like, shape=[n_points,]
                 Times at which to compute points of the geodesics.
             """
-            t = gs.array(t)
-            t = gs.cast(t, initial_cotangent_vec.dtype)
-            t = gs.to_ndarray(t, to_ndim=1)
+            t = gs.to_ndarray(t, to_ndim=1, dtype=initial_cotangent_vec.dtype)
 
             cotangent_vecs = gs.einsum("i,...k->...ik", t, initial_cotangent_vec)
 

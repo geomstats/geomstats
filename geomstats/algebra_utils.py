@@ -1,4 +1,5 @@
 """Utility module of reusable algebra routines."""
+
 import math
 
 import geomstats.backend as gs
@@ -114,23 +115,26 @@ def from_vector_to_diagonal_matrix(vector, num_diag=0):
         is a diagonal matrix containing the `i`-th row of `vector`.
     """
     num_columns = gs.shape(vector)[-1]
-    identity = gs.eye(num_columns)
-    identity = gs.cast(identity, vector.dtype)
+    identity = gs.eye(num_columns, dtype=vector.dtype)
     diagonals = gs.einsum("...i,ij->...ij", vector, identity)
-    diagonals = gs.to_ndarray(diagonals, to_ndim=3)
-    num_lines = diagonals.shape[0]
+    batch_shape = diagonals.shape[:-2]
+
+    diag_index = abs(num_diag)
+
+    left_or_right_zeros = gs.zeros(batch_shape + (num_columns, diag_index))
+    upper_or_lower_zeros = gs.zeros(
+        batch_shape + (diag_index, num_columns + diag_index)
+    )
+
     if num_diag > 0:
-        left_zeros = gs.zeros((num_lines, num_columns, num_diag))
-        lower_zeros = gs.zeros((num_lines, num_diag, num_columns + num_diag))
-        diagonals = gs.concatenate((left_zeros, diagonals), axis=2)
-        diagonals = gs.concatenate((diagonals, lower_zeros), axis=1)
+        diagonals = gs.concatenate((left_or_right_zeros, diagonals), axis=-1)
+        diagonals = gs.concatenate((diagonals, upper_or_lower_zeros), axis=-2)
+
     elif num_diag < 0:
-        num_diag = gs.abs(num_diag)
-        right_zeros = gs.zeros((num_lines, num_columns, num_diag))
-        upper_zeros = gs.zeros((num_lines, num_diag, num_columns + num_diag))
-        diagonals = gs.concatenate((diagonals, right_zeros), axis=2)
-        diagonals = gs.concatenate((upper_zeros, diagonals), axis=1)
-    return gs.squeeze(diagonals) if gs.ndim(vector) == 1 else diagonals
+        diagonals = gs.concatenate((diagonals, left_or_right_zeros), axis=-1)
+        diagonals = gs.concatenate((upper_or_lower_zeros, diagonals), axis=-2)
+
+    return diagonals
 
 
 def taylor_exp_even_func(point, taylor_function, order=5, tol=EPSILON):
@@ -154,7 +158,7 @@ def taylor_exp_even_func(point, taylor_function, order=5, tol=EPSILON):
 
     Returns
     -------
-    function_value: array-like
+    function_value : array-like
         Value of the function at point.
     """
     approx = gs.einsum(
@@ -172,12 +176,12 @@ def flip_determinant(matrix, det):
     """Change sign of the determinant if it is negative.
 
     For a batch of matrices, multiply the matrices which have negative
-    determinant by a diagonal matrix :math:`diag(1,...,1,-1) from the right.
+    determinant by a diagonal matrix :math:`diag(1,...,1,-1)` from the right.
     This changes the sign of the last column of the matrix.
 
     Parameters
     ----------
-    matrix : array-like, shape=[...,n ,m]
+    matrix : array-like, shape=[..., n , m]
         Matrix to transform.
 
     det : array-like, shape=[...]
@@ -226,3 +230,43 @@ def rotate_points(points, end_point):
     if not gs.allclose(gs.matmul(q, base_point[:, None])[:, 0], end_point):
         new_points = -new_points
     return new_points[0]
+
+
+def columnwise_scaling(vec, mat):
+    r"""Column-wise scaling.
+
+    Equivalent to :math:`AD`, where :math:`D` is a
+    diagonal matrix.
+
+    Parameters
+    ----------
+    vec : array-like, shape=[..., k]
+        Vector of scalings.
+    mat : array-like, shape=[..., n, k]
+        Matrix.
+
+    Returns
+    -------
+    column_scaled_mat : array-like, shape=[..., n, k]
+    """
+    return vec[..., None, :] * mat
+
+
+def rowwise_scaling(vec, mat):
+    r"""Row-wise scaling.
+
+    Equivalent to :math:`DA`, where :math:`D` is a
+    diagonal matrix.
+
+    Parameters
+    ----------
+    vec : array-like, shape=[..., n]
+        Vector of scalings.
+    mat : array-like, shape=[..., n, k]
+        Matrix.
+
+    Returns
+    -------
+    row_scaled_mat : array-like, shape=[..., n, k]
+    """
+    return vec[..., :, None] * mat

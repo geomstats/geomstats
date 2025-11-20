@@ -10,12 +10,12 @@ from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
-from geomstats.learning._sklearn_wrapper import WrappedLinearRegression, WrappedPCA
+from geomstats.learning._sklearn import PCA, LinearRegression
 from geomstats.learning.frechet_mean import FrechetMean
 
 
 def _warn_max_iterations(iteration, max_iter):
-    if iteration == max_iter:
+    if iteration + 1 == max_iter:
         logging.warning(
             f"Maximum number of iterations {max_iter} reached. "
             "The estimate may be inaccurate"
@@ -38,8 +38,8 @@ class _AACFrechetMean(BaseEstimator):
 
     Parameters
     ----------
-    metric : GraphSpaceMetric
-        Metric Class on Graph Space.
+    space : GraphSpace
+        Graph space total space with a quotient structure.
     epsilon: float, default=1e-6
         Stopping criterion for the estimation step, i.e., the distance between two
         consecutive estimators.
@@ -74,15 +74,15 @@ class _AACFrechetMean(BaseEstimator):
 
     def __init__(
         self,
-        metric,
+        space,
         *,
-        epsilon=1e-6,
+        epsilon=1e-3,
         max_iter=20,
         init_point=None,
         total_space_estimator_kwargs=None,
         save_last_X=True,
     ):
-        self.metric = metric
+        self.space = space
         self.epsilon = epsilon
         self.max_iter = max_iter
         self.init_point = init_point
@@ -90,7 +90,7 @@ class _AACFrechetMean(BaseEstimator):
 
         self.total_space_estimator_kwargs = total_space_estimator_kwargs or {}
         self.total_space_estimator = FrechetMean(
-            self.metric._space.total_space, **self.total_space_estimator_kwargs
+            self.space, **self.total_space_estimator_kwargs
         )
 
         self.estimate_ = None
@@ -102,7 +102,7 @@ class _AACFrechetMean(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint.
+        X : array-like, shape=[n_samples, n_nodes, n_nodes].
             Dataset to estimate the FM.
         y : Ignored
             Ignored.
@@ -116,18 +116,19 @@ class _AACFrechetMean(BaseEstimator):
             random.choice(X) if self.init_point is None else self.init_point
         )
         aligned_X = X
-        error = self.epsilon + 1
-        iteration = 0
-        while error > self.epsilon and iteration < self.max_iter:
-            iteration += 1
 
-            aligned_X = self.metric.align_point_to_point(previous_estimate, aligned_X)
+        for iteration in range(self.max_iter):
+            aligned_X = self.space.aligner.align(aligned_X, previous_estimate)
             new_estimate = self.total_space_estimator.fit(aligned_X).estimate_
-            error = self.metric.total_space_metric.dist(previous_estimate, new_estimate)
+
+            error = self.space.metric.dist(previous_estimate, new_estimate)
+            if error < self.epsilon:
+                break
 
             previous_estimate = new_estimate
+        else:
+            _warn_max_iterations(iteration, self.max_iter)
 
-        _warn_max_iterations(iteration, self.max_iter)
         if self.save_last_X:
             self.aligned_X_ = aligned_X
         self.estimate_ = new_estimate
@@ -152,8 +153,8 @@ class _AACGGPCA(BaseEstimator):
 
     Parameters
     ----------
-    metric : GraphSpaceMetric
-        Metric Class on Graph Space.
+    space : GraphSpace
+        Graph space total space with a quotient structure.
     epsilon: float, default=1e-6
         Stopping criterion for the estimation step, i.e., the distance between two
         consecutive estimators.
@@ -189,23 +190,24 @@ class _AACGGPCA(BaseEstimator):
 
     def __init__(
         self,
-        metric,
+        space,
         *,
         n_components=2,
-        epsilon=1e-6,
+        epsilon=1e-3,
         max_iter=20,
         init_point=None,
         save_last_X=True,
     ):
-        self.metric = metric
+        self.space = space
         self.epsilon = epsilon
         self.max_iter = max_iter
         self.init_point = init_point
         self.n_components = n_components
         self.save_last_X = save_last_X
 
-        self.total_space_estimator = WrappedPCA(n_components=self.n_components)
+        self.total_space_estimator = PCA(n_components=self.n_components)
         self.n_iter_ = None
+        self.aligned_X_ = None
 
     @property
     def components_(self):
@@ -249,33 +251,33 @@ class _AACGGPCA(BaseEstimator):
         the input data are centered but not scaled for each feature.
         """
         x = random.choice(X) if self.init_point is None else self.init_point
-        aligned_X = self.metric.align_point_to_point(x, X)
+        aligned_X = self.space.aligner.align(X, x)
 
         self.total_space_estimator.fit(aligned_X)
         previous_expl = self.total_space_estimator.explained_variance_ratio_[0]
 
-        error = self.epsilon + 1
-        iteration = 0
-        while error > self.epsilon and iteration < self.max_iter:
-            iteration += 1
+        for iteration in range(self.max_iter):
             mean = self.total_space_estimator.reshaped_mean_
             direc = self.total_space_estimator.reshaped_components_[0]
 
-            geodesic = self.metric.total_space_metric.geodesic(
+            geodesic = self.space.metric.geodesic(
                 initial_point=mean, initial_tangent_vec=direc
             )
 
-            aligned_X = self.metric.align_point_to_geodesic(geodesic, aligned_X)
+            aligned_X = self.space.aligner.align_point_to_geodesic(geodesic, aligned_X)
             self.total_space_estimator.fit(aligned_X)
             expl_ = self.total_space_estimator.explained_variance_ratio_[0]
 
-            error = expl_ - previous_expl
+            error = gs.abs(expl_ - previous_expl)
+            if error < self.epsilon:
+                break
             previous_expl = expl_
+        else:
+            _warn_max_iterations(iteration, self.max_iter)
 
         if self.save_last_X:
             self.aligned_X_ = aligned_X
         self.n_iter_ = iteration
-        _warn_max_iterations(iteration, self.max_iter)
 
         return self
 
@@ -299,8 +301,8 @@ class _AACRegression(BaseEstimator):
 
     Parameters
     ----------
-    metric : GraphSpaceMetric
-        Metric Class on Graph Space.
+    space : GraphSpace
+        Graph space total space with a quotient structure.
     epsilon: float, default=1e-6
         Stopping criterion for the estimation step, i.e., the distance between loss
         function in two consecutive estimation steps.
@@ -334,31 +336,26 @@ class _AACRegression(BaseEstimator):
 
     def __init__(
         self,
-        metric,
+        space,
         *,
-        epsilon=1e-6,
+        epsilon=1e-3,
         max_iter=20,
         init_point=None,
         total_space_estimator_kwargs=None,
         save_last_y=True,
     ):
-        self.metric = metric
+        self.space = space
         self.epsilon = epsilon
         self.max_iter = max_iter
         self.init_point = init_point
         self.save_last_y = save_last_y
 
         self.total_space_estimator_kwargs = total_space_estimator_kwargs or {}
-        self.total_space_estimator = WrappedLinearRegression(
+        self.total_space_estimator = LinearRegression(
             **self.total_space_estimator_kwargs
         )
         self.n_iter_ = None
         self.aligned_y_ = None
-
-    def _compute_pred_error(self, y_pred, y):
-        """Compute the prediction error."""
-        # order matters for reuse of perm_
-        return gs.sum(self.metric.dist(y_pred, y))
 
     def fit(self, X, y):
         """Fit the Generalized Geodesic Regression.
@@ -376,33 +373,27 @@ class _AACRegression(BaseEstimator):
             Returns self.
         """
         y_ = random.choice(y) if self.init_point is None else self.init_point
-        aligned_y = self.metric.align_point_to_point(y_, y)
+        aligned_y = self.space.aligner.align(y, y_)
 
-        self.total_space_estimator.fit(X, aligned_y)
-        previous_y_pred = self.total_space_estimator.predict(X)
-        previous_pred_dist = self._compute_pred_error(previous_y_pred, aligned_y)
-
-        error = self.epsilon + 1
-        iteration = 0
-        while (error < 0.0 or error > self.epsilon) and iteration < self.max_iter:
-            iteration += 1
-
-            # align point to point using previous computed alignment
-            aligned_y = self.metric._space.permute(aligned_y, self.metric.perm_)
-
+        previous_pred_dist = 1e6
+        for iteration in range(self.max_iter):
             self.total_space_estimator.fit(X, aligned_y)
             y_pred = self.total_space_estimator.predict(X)
 
-            pred_dist = self._compute_pred_error(y_pred, aligned_y)
-            error = previous_pred_dist - pred_dist
+            aligned_y = self.space.aligner.align(aligned_y, y_pred)
+            pred_dist = gs.sum(self.space.metric.dist(y_pred, aligned_y))
 
-            previous_y_pred = y_pred
+            dist_diff = gs.abs(previous_pred_dist - pred_dist)
+            if dist_diff < self.epsilon:
+                break
+
             previous_pred_dist = pred_dist
+        else:
+            _warn_max_iterations(iteration, self.max_iter)
 
         if self.save_last_y:
             self.aligned_y_ = aligned_y
         self.n_iter_ = iteration
-        _warn_max_iterations(iteration, self.max_iter)
 
         return self
 
@@ -440,10 +431,11 @@ class AAC:
 
     Parameters
     ----------
-    metric : GraphSpaceMetric
-        Metric Class on Graph Space.
+    space : GraphSpace
+        Graph space total space with a quotient structure.
     estimate : str
         Desired estimator. One of the following:
+
         - "frechet_mean": Frechet Mean estimation [Calissano2020]_
         - "ggpca": Generalized Geodesic Principal Components [Calissano2020]_
         - "regression": Graph-on-vector regression model [Calissano2022]_
@@ -474,10 +466,10 @@ class AAC:
         "regression": _AACRegression,
     }
 
-    def __new__(cls, metric, *args, estimate="frechet", **kwargs):
+    def __new__(cls, space, *, estimate="frechet_mean", **kwargs):
         """Class for Align all and Compute algorithm on Graph Space."""
         check_parameter_accepted_values(
             estimate, "estimate", list(cls.MAP_ESTIMATE.keys())
         )
 
-        return cls.MAP_ESTIMATE[estimate](metric, *args, **kwargs)
+        return cls.MAP_ESTIMATE[estimate](space, **kwargs)

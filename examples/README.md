@@ -6,4 +6,4 @@ This folder contains scripts and notebooks to get started with geomstats. For ex
 python3 gradient_descent_s2.py
 ```
 
-<img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/gradient_descent.gif" width=350 height=350>
+<img src="https://raw.githubusercontent.com/ninamiolane/geomstats/main/examples/imgs/gradient_descent.gif" width=350 height=350>

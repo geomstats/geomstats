@@ -1,4 +1,5 @@
 """Visualization for Geometric Statistics."""
+
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
@@ -8,14 +9,14 @@ from geomstats.geometry.pre_shape import PreShapeSpace
 
 M32 = Matrices(m=3, n=2)
 
-S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)
+S32 = PreShapeSpace(k_landmarks=3, ambient_dim=2)
 S32.equip_with_group_action("rotations")
-S32.equip_with_quotient_structure()
+S32.equip_with_quotient()
 
 M33 = Matrices(m=3, n=3)
-S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
+S33 = PreShapeSpace(k_landmarks=3, ambient_dim=3)
 S33.equip_with_group_action("rotations")
-S33.equip_with_quotient_structure()
+S33.equip_with_quotient()
 
 
 class KendallSphere:
@@ -37,9 +38,9 @@ class KendallSphere:
     pole : array-like, shape=[3,2]
         Equilateral triangle (north pole).
     ua : array-like, shape=[3,2]
-        Tangent vector toward isocele triangle at vertex A.
+        Tangent vector toward isosceles triangle at vertex A.
     ub : array-like, shape=[3,2]
-        Tangent vector toward isocele triangle at vertex B.
+        Tangent vector toward isosceles triangle at vertex B.
     na : array-like, shape=[3,2]
         Tangent vector such that (ua,na) is a positively oriented
         orthonormal basis of the horizontal space at north pole.
@@ -285,9 +286,9 @@ class KendallDisk:
     centre : array-like, shape=[3,3]
         Equilateral triangle in 3D (centre).
     ua : array-like, shape=[3,2]
-        Tangent vector at north pole toward isocele triangle at vertex A.
+        Tangent vector at north pole toward isosceles triangle at vertex A.
     ub : array-like, shape=[3,2]
-        Tangent vector at north pole toward isocele triangle at vertex B.
+        Tangent vector at north pole toward isosceles triangle at vertex B.
     na : array-like, shape=[3,2]
         Tangent vector such that (ua,na) is a positively oriented
         orthonormal basis of the horizontal space at north pole.

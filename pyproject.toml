@@ -5,12 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "geomstats"
 dynamic = ["version"]
-authors = [
-    {name = "Nina Miolane", email = "nmiolane@gmail.com"}
-]
+authors = [{ name = "Nina Miolane", email = "nmiolane@gmail.com" }]
 readme = "README.rst"
 description = "Geometric statistics on manifolds"
-license = {file = "LICENSE.md"}
+license = { file = "LICENSE.md" }
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Development Status :: 5 - Production/Stable",
@@ -19,13 +17,15 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Mathematics",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11"
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+
 ]
-requires-python = ">= 3.8"
-dependencies=[
+requires-python = ">= 3.9"
+dependencies = [
     "joblib >= 0.17.0",
     "matplotlib >= 3.3.4",
     "numpy >= 1.18.1",
@@ -41,43 +41,33 @@ doc = [
     "nbsphinx_link",
     "sphinx",
     "sphinx_gallery",
-    "pydata-sphinx-theme"
+    "pydata-sphinx-theme",
 ]
-lint = [
-    "black",
-    "flake8",
-    "flake8-docstrings",
-    "Flake8-pyproject",
-    "isort",
-    "pre-commit"
-]
-test = [
-    "pytest",
-    "pytest-cov",
-    "coverage",
-    "jupyter"
-]
+lint = ["ruff", "pre-commit"]
+test = ["pytest", "pytest-cov", "coverage", "jupyter", "ipython"]
+ci = ["pytest-github-actions-annotate-failures"]
+test-scripts = []
+test-scripts-all = ["geomstats[test-scripts]", "scikeras", "tensorflow"]
 graph = ["networkx"]
+pykeops = ["pykeops"]
 autograd = ["autograd >= 1.3"]
 pytorch = ["torch >= 1.9.1"]
 backends = ["geomstats[autograd, pytorch]"]
-opt = ["geomstats[graph]"]
-dev = ["geomstats[test, lint, doc]"]
+optim-pytorch = ["geomstats[pytorch]", "pytorch-minimize"]
+opt = ["geomstats[graph, pykeops, optim-pytorch]"]
+dev = ["geomstats[test, test-scripts, lint, doc]"]
 all = ["geomstats[dev, opt, backends]"]
 
 [project.urls]
-homepage="http://github.com/geomstats/geomstats"
-documentation="https://geomstats.github.io/"
-repository="http://github.com/geomstats/geomstats"
+homepage = "http://github.com/geomstats/geomstats"
+documentation = "https://geomstats.github.io/"
+repository = "http://github.com/geomstats/geomstats"
 
 [tool.setuptools.dynamic]
-version = {attr = "geomstats.__version__"}
+version = { attr = "geomstats.__version__" }
 
 [tool.setuptools.packages.find]
-include = [
-    "geomstats",
-    "geomstats.*"
-]
+include = ["geomstats", "geomstats.*"]
 
 [tool.setuptools.package-data]
 "*" = ["datasets/data/**/*"]
@@ -85,28 +75,36 @@ include = [
 [tool.pytest.ini_options]
 markers = [
     "smoke: simple and basic numerical tests.",
-    "random: tests that use randomized data."
+    "random: tests that use randomized data.",
+    "validation: not smoke, neither random.",
+    "ignore: deselect tests.",
+    "vec: vectorization tests.",
+    "shape: array shape tests.",
+    "type: checks output types.",
+    "mathprop: mathematical properties tests.",
+    "slow: for slow tests.",
+    "redundant: redundant test.",
 ]
 
-[tool.flake8]
-application_import_names = "geomstats"
-docstring-convention = "numpy"
-exclude = "examples/*.ipynb"
-ignore = [
-    "W503",
-    "W504"
-]
-import_order_style = "smarkets"
-max-line-length = 88
-extend-ignore = "E203"
-per-file-ignores = [
-    "geomstats/learning/_sklearn_wrapper.py: D101, D102, D105",
-    "geomstats/learning/*: E731",
-    "geomstats/_backend/*:F401, D103",
-    "geomstats/numerics/*:D104,E731",
-    "geomstats/visualization/*: D101, D102",
-    "geomstats/visualization/__init__.py: F401",
-    "geomstats/tests.py : D101, D102",
-    "tests/*: D100, D101, D102, D103, D106, D200, D201, D205, D400, D404, I100, I101, I201, I202",
-    "*/__init__.py: D104"
-]
+[tool.ruff]
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint]
+extend-select = ["I", "D"]
+ignore = ["E731"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["geomstats"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+"*/__init__.py" = ["F401", "D104"]
+"geomstats/_backend/*" = ["F401"]
+"geomstats/test_cases/*" = ["D"]
+"geomstats/test/*" = ["D"]
+"geomstats/visualization/*" = ["D101", "D102"]
+"tests/conftest.py" = ["F401"]
+"tests/*" = ["D"]
+"examples/*" = ["D102"]

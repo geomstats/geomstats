@@ -201,7 +201,5 @@ class TemplateTransformer(BaseEstimator, TransformerMixin):
         # Check that the input is of the same shape as the one passed
         # during fit.
         if X.shape[1] != self.n_features_:
-            raise ValueError(
-                "Shape of input is different from what was seen" "in `fit`"
-            )
+            raise ValueError("Shape of input is different from what was seen in `fit`")
         return gs.sqrt(X)

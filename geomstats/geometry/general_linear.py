@@ -2,13 +2,13 @@
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import MatrixLieGroup
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
-class GeneralLinear(MatrixLieGroup, OpenSet):
+class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
     """Class for the general linear group GL(n) and its identity component.
 
     If `positive_det=True`, this is the connected component of the identity,
@@ -28,17 +28,18 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         self.n = n
         super().__init__(
             dim=n**2,
-            embedding_space=Matrices(n, n),
+            embedding_space=Matrices(n, n, equip=False),
             representation_dim=n,
-            lie_algebra=SquareMatrices(n),
+            lie_algebra=SquareMatrices(n, equip=False),
             equip=equip,
         )
 
         self.positive_det = positive_det
 
-    def default_metric(self):
+    @staticmethod
+    def default_metric():
         """Metric to equip the space with if equip is True."""
-        return type(self.embedding_space.metric)
+        return MatricesMetric
 
     def projection(self, point):
         r"""Project a matrix to the general linear group.
@@ -197,10 +198,15 @@ class SquareMatrices(MatrixLieAlgebra):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, equip=True):
         self.n = n
-        super().__init__(dim=n**2, representation_dim=n, equip=False)
-        self._mat_space = Matrices(n, n)
+        super().__init__(dim=n**2, representation_dim=n, equip=equip)
+        self._mat_space = Matrices(n, n, equip=False)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return MatricesMetric
 
     def _create_basis(self):
         """Create the canonical basis of the space of matrices."""

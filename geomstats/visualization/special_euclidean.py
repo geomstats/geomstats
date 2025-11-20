@@ -1,4 +1,5 @@
 """Visualization for Geometric Statistics."""
+
 import logging
 
 import matplotlib.pyplot as plt
@@ -41,7 +42,7 @@ class SpecialEuclidean2:
 
     def draw_points(self, ax, points=None, **kwargs):
         if points is None:
-            points = gs.array(self.points)
+            points = gs.stack(self.points)
         translation = points[..., :2, 2]
         frame_1 = points[:, :2, 0]
         frame_2 = points[:, :2, 1]

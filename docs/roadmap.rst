@@ -76,7 +76,7 @@ bottom of each goal. We try to keep the document up to date as we work on these 
 
 5. Information Geometry
 
-   * Complete manifolds of exponential families in `information_geometry  <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_.
+   * Complete manifolds of exponential families in `information_geometry  <https://github.com/geomstats/geomstats/tree/main/geomstats/information_geometry>`_.
 
 6. Stratified Geometry
 

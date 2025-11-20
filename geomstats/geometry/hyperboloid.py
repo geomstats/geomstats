@@ -10,16 +10,23 @@ import math
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-from geomstats.geometry._hyperbolic import HyperbolicMetric, _Hyperbolic
+from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.minkowski import Minkowski
+from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import repeat_out
 
 
 class Hyperboloid(_Hyperbolic, LevelSet):
     """Class for the n-dimensional hyperboloid space.
 
     Class for the n-dimensional hyperboloid space as embedded in (n+1)-dimensional
-    Minkowski space as the set of points with squared norm equal to -1. For other
+    Minkowski space as the set of points with squared norm equal to -1, i.e.
+
+    .. math::
+        - x_0^2 + x_1^2 + ... + x_n^2 = - 1.
+
+    For other
     representations of hyperbolic spaces see the `Hyperbolic` class.
 
     Parameters
@@ -29,8 +36,9 @@ class Hyperboloid(_Hyperbolic, LevelSet):
     """
 
     def __init__(self, dim, equip=True):
+        self.coords_type = "extrinsic"
         self.dim = dim
-        super().__init__(dim=dim, default_coords_type="extrinsic", equip=equip)
+        super().__init__(dim=dim, intrinsic=False, equip=equip)
 
     @staticmethod
     def default_metric():
@@ -113,9 +121,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
                 "Minkowski space to the hyperboloid"
             )
         real_norm = gs.sqrt(gs.abs(sq_norm))
-        projected_point = gs.einsum("...i,...->...i", point, 1.0 / real_norm)
-
-        return projected_point
+        return gs.einsum("...i,...->...i", point, 1.0 / real_norm)
 
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the hyperbolic space.
@@ -156,16 +162,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         point_extrinsic : array-like, shape=[..., dim + 1]
             Point in the embedded manifold in extrinsic coordinates.
         """
-        if self.dim != point_intrinsic.shape[-1]:
-            raise NameError(
-                "Wrong intrinsic dimension: "
-                + str(point_intrinsic.shape[-1])
-                + " instead of "
-                + str(self.dim)
-            )
-        return _Hyperbolic.change_coordinates_system(
-            point_intrinsic, "intrinsic", "extrinsic"
-        )
+        return self.change_coordinates_system(point_intrinsic, "intrinsic", "extrinsic")
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """Convert from extrinsic to intrinsic coordinates.
@@ -181,15 +178,51 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         point_intrinsic : array-like, shape=[..., dim]
             Point in intrinsic coordinates.
         """
-        belong_point = self.belongs(point_extrinsic)
-        if not gs.all(belong_point):
-            raise ValueError("Point that does not belong to the hyperboloid " "found")
-        return _Hyperbolic.change_coordinates_system(
-            point_extrinsic, "extrinsic", "intrinsic"
+        return self.change_coordinates_system(point_extrinsic, "extrinsic", "intrinsic")
+
+    def project_on_geodesic(self, point, base_point, tangent_vec):
+        """Project on geodesic in extrinsic coordinates.
+
+        Project point onto geodesic going through base point in direction
+        of tangent vector. See reference below.
+
+        Parameters
+        ----------
+        point: array-like, shape=[..., dim + 1]
+            Point in hyperbolic space.
+        base_point: array-like, shape=[..., dim + 1]
+            Point through which the geodesic passes.
+        tangent_vec : array-like, shape=[..., dim + 1]
+            Tangent vector in Minkowski space, direction of the geodesic.
+
+        Returns
+        -------
+        proj : array-like, shape=[..., dim + 1]
+            Projected point on the geodesic.
+
+        References
+        ----------
+        .. [CSV2016] R. Chakraborty, D. Seo, and B. C. Vemuri,
+            "An efficient exact-pga algorithm for constant curvature manifolds."
+            Proceedings of the IEEE conference on computer vision and pattern
+            recognition. 2016.
+        """
+        inner_prod_1 = self.metric.inner_product(point, tangent_vec)
+        inner_prod_2 = self.metric.inner_product(point, base_point)
+        norm_v = self.metric.norm(tangent_vec, base_point)
+        dist_to_proj = gs.arctanh(-inner_prod_1 / inner_prod_2 / norm_v)
+        gs.einsum("...,...i->...i", gs.cosh(dist_to_proj), base_point)
+        proj = gs.einsum(
+            "...,...i->...i", gs.cosh(dist_to_proj), base_point
+        ) + gs.einsum(
+            "...,...i->...i",
+            gs.sinh(dist_to_proj),
+            gs.einsum("..., ...i ->...i", 1 / norm_v, tangent_vec),
         )
+        return proj
 
 
-class HyperboloidMetric(HyperbolicMetric):
+class HyperboloidMetric(RiemannianMetric):
     """Class that defines operations using a hyperbolic metric."""
 
     def metric_matrix(self, base_point=None):
@@ -286,7 +319,7 @@ class HyperboloidMetric(HyperbolicMetric):
     def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
 
-        If `default_coords_type` is 'poincare' then base_point belongs
+        If `coords_type` is `poincare` then base_point belongs
         to the Poincare ball and point is a vector in the Euclidean
         space of the same dimension as the ball.
 
@@ -305,16 +338,29 @@ class HyperboloidMetric(HyperbolicMetric):
         """
         angle = self.dist(base_point, point)
 
-        coef_1_ = utils.taylor_exp_even_func(
-            angle**2, utils.inv_sinch_close_0, order=4
-        )
-        coef_2_ = utils.taylor_exp_even_func(
-            angle**2, utils.inv_tanh_close_0, order=4
-        )
+        coef_1_ = utils.taylor_exp_even_func(angle**2, utils.inv_sinch_close_0, order=4)
+        coef_2_ = utils.taylor_exp_even_func(angle**2, utils.inv_tanh_close_0, order=4)
 
         log_term_1 = gs.einsum("...,...j->...j", coef_1_, point)
         log_term_2 = -gs.einsum("...,...j->...j", coef_2_, base_point)
         return log_term_1 + log_term_2
+
+    def squared_dist(self, point_a, point_b):
+        """Squared geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        sq_dist : array-like, shape=[...,]
+            Squared distance.
+        """
+        return self.dist(point_a, point_b) ** 2
 
     def dist(self, point_a, point_b):
         """Compute the geodesic distance between two points.
@@ -391,7 +437,7 @@ class HyperboloidMetric(HyperbolicMetric):
         )
         return transported
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
@@ -407,7 +453,8 @@ class HyperboloidMetric(HyperbolicMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
-        return math.inf
+        radius = gs.array(math.inf)
+        return repeat_out(self._space.point_ndim, radius, base_point)

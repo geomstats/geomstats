@@ -38,87 +38,14 @@ References
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.base import LevelSet
+from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.manifold import register_quotient
+from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.vectorization import repeat_out
-
-
-def _squared_dist_grad_point_a(point_a, point_b, metric):
-    """Compute gradient of squared_dist wrt point_a.
-
-    Compute the Riemannian gradient of the squared geodesic
-    distance with respect to the first point point_a.
-
-    Parameters
-    ----------
-    point_a : array-like, shape=[..., dim]
-        Point.
-    point_b : array-like, shape=[..., dim]
-        Point.
-    metric : SpecialEuclideanMatrixCanonicalLeftMetric
-        Metric defining the distance.
-
-    Returns
-    -------
-    _ : array-like, shape=[..., dim]
-        Riemannian gradient, in the form of a tangent
-        vector at base point : point_a.
-    """
-    return -2 * metric.log(point_b, point_a)
-
-
-def _squared_dist_grad_point_b(point_a, point_b, metric):
-    """Compute gradient of squared_dist wrt point_b.
-
-    Compute the Riemannian gradient of the squared geodesic
-    distance with respect to the second point point_b.
-
-    Parameters
-    ----------
-    point_a : array-like, shape=[..., dim]
-        Point.
-    point_b : array-like, shape=[..., dim]
-        Point.
-    metric : SpecialEuclideanMatrixCanonicalLeftMetric
-        Metric defining the distance.
-
-    Returns
-    -------
-    _ : array-like, shape=[..., dim]
-        Riemannian gradient, in the form of a tangent
-        vector at base point : point_b.
-    """
-    return -2 * metric.log(point_a, point_b)
-
-
-@gs.autodiff.custom_gradient(_squared_dist_grad_point_a, _squared_dist_grad_point_b)
-def _squared_dist(point_a, point_b, metric):
-    """Compute geodesic distance between two points.
-
-    Compute the squared geodesic distance between point_a
-    and point_b, as defined by the metric.
-
-    This is an auxiliary private function that:
-
-    - is called by the method `squared_dist` of the class
-      SpecialEuclideanMatrixCanonicalLeftMetric,
-
-    Parameters
-    ----------
-    point_a : array-like, shape=[..., dim]
-        Point.
-    point_b : array-like, shape=[..., dim]
-        Point.
-    metric : SpecialEuclideanMatrixCanonicalLeftMetric
-        Metric defining the distance.
-
-    Returns
-    -------
-    _ : array-like, shape=[...,]
-        Geodesic distance between point_a and point_b.
-    """
-    return metric._squared_dist(point_a, point_b)
 
 
 class Grassmannian(LevelSet):
@@ -314,17 +241,14 @@ class Grassmannian(LevelSet):
         return Matrices.mul(p_d, Matrices.transpose(eigvecs))
 
 
-class GrassmannianCanonicalMetric(MatricesMetric):
-    """Canonical metric of the Grassmann manifold.
-
-    Coincides with the Frobenius metric.
-    """
+class GrassmannianCanonicalMetric(RiemannianMetric):
+    """Canonical metric of the Grassmann manifold."""
 
     def __init__(self, space):
         super().__init__(space=space, signature=(space.dim, 0, 0))
         self._general_linear = GeneralLinear(space.n, equip=False)
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Exponentiate the invariant vector field v from base point p.
 
         Parameters
@@ -346,7 +270,7 @@ class GrassmannianCanonicalMetric(MatricesMetric):
         rot = Matrices.bracket(base_point, -tangent_vec)
         return mul(expm(rot), base_point, expm(-rot))
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         r"""Compute the Riemannian logarithm of point w.r.t. base_point.
 
         Given :math:`P, P'` in :math:`Gr(n, p)` the logarithm from :math:`P`
@@ -434,32 +358,7 @@ class GrassmannianCanonicalMetric(MatricesMetric):
         rot = -Matrices.bracket(base_point, direction)
         return mul(expm(rot), tangent_vec, expm(-rot))
 
-    def _squared_dist(self, point_a, point_b):
-        """Compute geodesic distance between two points.
-
-        Compute the squared geodesic distance between point_a
-        and point_b, as defined by the metric.
-
-        This is an auxiliary private function that:
-
-        - is called by the method `squared_dist` of the class
-          GrassmannianCanonicalMetric,
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[..., dim]
-            Point.
-        point_b : array-like, shape=[..., dim]
-            Point.
-
-        Returns
-        -------
-        _ : array-like, shape=[...,]
-            Geodesic distance between point_a and point_b.
-        """
-        return super().squared_dist(point_a, point_b)
-
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Squared geodesic distance between two points.
 
         Parameters
@@ -474,9 +373,39 @@ class GrassmannianCanonicalMetric(MatricesMetric):
         sq_dist : array-like, shape=[...,]
             Squared distance.
         """
-        return _squared_dist(point_a, point_b, metric=self)
+        sdist_func = super().squared_dist
 
-    def injectivity_radius(self, base_point):
+        def _squared_dist_grad_point_a(point_a, point_b):
+            """Compute gradient of squared_dist wrt point_a."""
+            return -2 * self.log(point_b, point_a)
+
+        def _squared_dist_grad_point_b(point_a, point_b):
+            """Compute gradient of squared_dist wrt point_b."""
+            return -2 * self.log(point_a, point_b)
+
+        @gs.autodiff.custom_gradient(
+            _squared_dist_grad_point_a, _squared_dist_grad_point_b
+        )
+        def _squared_dist(point_a, point_b):
+            """Compute geodesic distance between two points.
+
+            Parameters
+            ----------
+            point_a : array-like, shape=[..., dim]
+                Point.
+            point_b : array-like, shape=[..., dim]
+                Point.
+
+            Returns
+            -------
+            _ : array-like, shape=[...,]
+                Geodesic distance between point_a and point_b.
+            """
+            return sdist_func(point_a, point_b)
+
+        return _squared_dist(point_a, point_b)
+
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
@@ -503,4 +432,184 @@ class GrassmannianCanonicalMetric(MatricesMetric):
             https://arxiv.org/abs/2011.13699.
         """
         radius = gs.array(gs.pi / 2)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute Frobenius inner-product of two tangent vectors.
+
+        Coincides with the Frobenius metric.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., m, n]
+            Tangent vector.
+        tangent_vec_b : array-like, shape=[..., m, n]
+            Tangent vector.
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[...,]
+            Frobenius inner-product of tangent_vec_a and tangent_vec_b.
+        """
+        inner_prod = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        return repeat_out(
+            self._space.point_ndim, inner_prod, tangent_vec_a, tangent_vec_b, base_point
+        )
+
+    def squared_norm(self, vector, base_point=None):
+        """Compute the square of the norm of a vector.
+
+        Squared norm of a vector associated to the inner product
+        at the tangent space at a base point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        sq_norm : array-like, shape=[...,]
+            Squared norm.
+        """
+        sq_norm = gs.linalg.norm(vector, axis=(-2, -1)) ** 2
+        return repeat_out(self._space.point_ndim, sq_norm, vector, base_point)
+
+    def norm(self, vector, base_point=None):
+        """Compute norm of a matrix.
+
+        Norm of a matrix associated to the Frobenius inner product.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        norm : array-like, shape=[...,]
+            Norm.
+        """
+        norm = gs.linalg.norm(vector, axis=(-2, -1))
+        return repeat_out(self._space.point_ndim, norm, vector, base_point)
+
+
+class GrassmannianBundle(FiberBundle):
+    """Fiber bundle representing the Grassmannian quotient structure."""
+
+    def riemannian_submersion(self, point):
+        """Project a point to base manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, p]
+            Point of the total space.
+
+        Returns
+        -------
+        projection : array-like, shape=[..., n, n]
+            Point of the base manifold.
+        """
+        return gs.matmul(point, Matrices.transpose(point))
+
+    def tangent_riemannian_submersion(self, tangent_vec, base_point):
+        """Project a tangent vector to base manifold.
+
+        Parameters
+        ----------
+        tangent_vec :  array-like, shape=[..., n, p]
+            Tangent vector to the total space at ``base_point``.
+        base_point: array-like, shape=[..., n, p]
+            Point of the total space.
+
+        Returns
+        -------
+        projection: array-like, shape=[..., n, n]
+            Tangent vector to the base manifold.
+        """
+        return gs.matmul(base_point, Matrices.transpose(tangent_vec)) + gs.matmul(
+            tangent_vec, Matrices.transpose(base_point)
+        )
+
+    def lift(self, point):
+        """Lift a point to total space.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point of the base manifold.
+
+        Returns
+        -------
+        lift : array-like, shape=[..., n, p]
+            Point of the total space.
+        """
+        rank = self._total_space.p
+        _, vecs = gs.linalg.eigh(point)
+        return vecs[..., :, -rank:]
+
+    def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
+        """Lift a tangent vector to a horizontal vector in the total space.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+        fiber_point : array-like, shape=[..., n, p]
+            Point of the total space.
+            Optional, default : None. The `lift` method is used to compute a
+            point at which to compute a tangent vector.
+        base_point : array-like, shape=[..., n, n]
+            Point of the base space.
+            Optional, default : None. In this case, point must be given,
+            and `submersion` is used to compute the base_point if needed.
+
+        Returns
+        -------
+        horizontal_lift : array-like, shape=[..., n, p]
+            Horizontal tangent vector to the total space at point.
+        """
+        if base_point is None and fiber_point is None:
+            raise ValueError(
+                "Either a point (of the total space) or a "
+                "base point (of the base manifold) must be "
+                "given."
+            )
+
+        if fiber_point is None:
+            fiber_point = self.lift(base_point)
+
+        return gs.matmul(tangent_vec, fiber_point)
+
+    def align(self, point, base_point):
+        """Align point to base point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, p]
+            Point to align.
+        base_point : array-like, shape=[..., n, p]
+            Base point.
+
+        Returns
+        -------
+        aligned_point : array-like, shape=[...,  n, p]
+            Aligned point.
+        """
+        return Matrices.align_matrices(point, base_point, flip=False)
+
+
+register_quotient(
+    Space=Stiefel,
+    Metric=StiefelCanonicalMetric,
+    GroupAction="right_orthogonal_action",
+    FiberBundle=GrassmannianBundle,
+)

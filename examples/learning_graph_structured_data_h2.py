@@ -167,13 +167,13 @@ def main():
                 for one_context_i, one_negative_i in zip(context_index, negative_index):
                     context_embedding = embeddings[one_context_i]
                     negative_embedding = embeddings[one_negative_i]
-                    l, g_ex = loss(
+                    total_loss_, g_ex = loss(
                         example_embedding,
                         context_embedding,
                         negative_embedding,
                         hyperbolic_manifold,
                     )
-                    total_loss.append(l)
+                    total_loss.append(total_loss_)
 
                     example_to_update = embeddings[one_path]
                     embeddings[one_path] = hyperbolic_manifold.metric.exp(

@@ -11,9 +11,10 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats import algebra_utils
 from geomstats.geometry.base import LevelSet
+from geomstats.geometry.hermitian_matrices import powermh
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from geomstats.numerics.geodesic import LogSolver
 from geomstats.vectorization import repeat_out
 
 
@@ -57,11 +58,11 @@ class Stiefel(LevelSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, p]
 
         Returns
         -------
-        submersed_point : array-like, shape=[..., n, n]
+        submersed_point : array-like, shape=[..., n, p]
         """
         return Matrices.mul(Matrices.transpose(point), point) - self._value
 
@@ -70,12 +71,12 @@ class Stiefel(LevelSet):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., n, n]
-        point : array-like, shape=[..., n, n]
+        vector : array-like, shape=[..., n, p]
+        point : array-like, shape=[..., n, p]
 
         Returns
         -------
-        submersed_vector : array-like, shape=[..., n, n]
+        submersed_vector : array-like, shape=[..., n, p]
         """
         return 2 * Matrices.to_symmetric(
             Matrices.mul(Matrices.transpose(point), vector)
@@ -126,7 +127,7 @@ class Stiefel(LevelSet):
         std_normal = gs.random.normal(size=size)
         std_normal_transpose = Matrices.transpose(std_normal)
         aux = Matrices.mul(std_normal_transpose, std_normal)
-        inv_sqrt_aux = SymmetricMatrices.powerm(aux, -1.0 / 2)
+        inv_sqrt_aux = powermh(aux, -1.0 / 2)
         samples = Matrices.mul(std_normal, inv_sqrt_aux)
 
         return samples
@@ -205,7 +206,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
     def __init__(self, space):
         super().__init__(space=space, signature=(space.dim, 0, 0))
-        self._log_solver = _StiefelLogSolver()
+        self.log_solver = _StiefelLogSolver(space)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the inner-product of two tangent vectors at a base point.
@@ -220,13 +221,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
             \left(\Delta^{T}\left(I-\frac{1}{2} U U^{T}\right)
             \tilde{\Delta}\right)
 
-        References
-        ----------
-        .. [RLSMRZ2017] R Zimmermann. A matrix-algebraic algorithm for the
-            Riemannian logarithm on the Stiefel manifold under the canonical
-            metric. SIAM Journal on Matrix Analysis and Applications 38 (2),
-            322-342, 2017. https://epubs.siam.org/doi/pdf/10.1137/16M1074485
-
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., n, p]
@@ -240,6 +234,14 @@ class StiefelCanonicalMetric(RiemannianMetric):
         -------
         inner_prod : array-like, shape=[..., 1]
             Inner-product of the two tangent vectors.
+
+        References
+        ----------
+        .. [RLSMRZ2017] R Zimmermann. A matrix-algebraic algorithm for the
+            Riemannian logarithm on the Stiefel manifold under the canonical
+            metric. SIAM Journal on Matrix Analysis and Applications 38 (2),
+            322-342, 2017. https://epubs.siam.org/doi/pdf/10.1137/16M1074485
+
         """
         base_point_transpose = Matrices.transpose(base_point)
 
@@ -282,24 +284,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
             matrix_q, matrix_mn_e[..., p:, :p]
         )
         return exp
-
-    def log(self, point, base_point):
-        """Compute the Riemannian logarithm of a point.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, p]
-            Point in the Stiefel manifold.
-        base_point : array-like, shape=[..., n, p]
-            Point in the Stiefel manifold.
-
-        Returns
-        -------
-        log : array-like, shape=[..., n, p]
-            Tangent vector at the base point equal to the Riemannian logarithm
-            of point at the base point.
-        """
-        return self._log_solver.log(self._space, point, base_point)
 
     @staticmethod
     def retraction(tangent_vec, base_point):
@@ -400,7 +384,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         return gs.matmul(point, matrix_r) - base_point
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
@@ -427,11 +411,28 @@ class StiefelCanonicalMetric(RiemannianMetric):
             https://dial.uclouvain.be/pr/boreal/object/boreal:132587.
         """
         radius = gs.array(0.89 * gs.pi)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)
 
 
-class _StiefelLogSolver:
-    def __init__(self, max_iter=500, tol=1e-8, imag_tol=1e-6):
+class _StiefelLogSolver(LogSolver):
+    """Stiefel log solver.
+
+    Parameters
+    ----------
+    space : Stiefel.
+        Stiefel manifold.
+    max_iter : int
+        Maximum iterations.
+    tol : float
+        Tolerance.
+    imag_tol : float
+        Tolerance for image sum.
+    """
+
+    def __init__(self, space, max_iter=500, tol=1e-8, imag_tol=1e-6):
+        super().__init__()
+        self._space = space
+
         self.max_iter = max_iter
         self.tol = tol
         self.imag_tol = imag_tol
@@ -509,20 +510,13 @@ class _StiefelLogSolver:
 
         return matrix_v_final
 
-    def log(self, space, point, base_point):
+    def log(self, point, base_point):
         """Compute the Riemannian logarithm of a point.
 
         When p=n, the space St(n,n)~O(n) has two non connected sheets: the
         log is only defined for data from the same sheet.
         For p<n, the space St(n,p)~O(n)/O(n-p)~SO(n)/SO(n-p) is connected.
         Based on [ZR2017]_.
-
-        References
-        ----------
-        .. [ZR2017] Zimmermann, Ralf. "A Matrix-Algebraic Algorithm for the
-            Riemannian Logarithm on the Stiefel Manifold under the Canonical
-            Metric" SIAM J. Matrix Anal. & Appl., 38(2), 322–342, 2017.
-            https://arxiv.org/pdf/1604.05054.pdf
 
         Parameters
         ----------
@@ -543,8 +537,15 @@ class _StiefelLogSolver:
         log : array-like, shape=[..., n, p]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
+
+        References
+        ----------
+        .. [ZR2017] Zimmermann, Ralf. "A Matrix-Algebraic Algorithm for the
+            Riemannian Logarithm on the Stiefel Manifold under the Canonical
+            Metric" SIAM J. Matrix Anal. & Appl., 38(2), 322–342, 2017.
+            https://arxiv.org/pdf/1604.05054.pdf
         """
-        n, p = space.n, space.p
+        n, p = self._space.n, self._space.p
         if p == n:
             det_point = gs.linalg.det(point)
             det_base_point = gs.linalg.det(base_point)

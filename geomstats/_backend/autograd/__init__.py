@@ -9,6 +9,7 @@ from autograd.numpy import (
     any,
     argmax,
     argmin,
+    asarray,
     broadcast_arrays,
     broadcast_to,
     clip,
@@ -61,7 +62,6 @@ from autograd.numpy import (
     take,
     tile,
     transpose,
-    trapz,
     tril,
     tril_indices,
     triu,
@@ -72,6 +72,12 @@ from autograd.numpy import (
     where,
     zeros_like,
 )
+
+try:
+    from autograd.numpy import trapezoid
+except ImportError:
+    from autograd.numpy import trapz as trapezoid
+
 from autograd.scipy.special import erf, gamma, polygamma  # NOQA
 
 from .._shared_numpy import (
@@ -122,9 +128,11 @@ from .._shared_numpy import (
     vec_to_diag,
     vectorize,
 )
-from . import autodiff  # NOQA
-from . import linalg  # NOQA
-from . import random  # NOQA
+from . import (
+    autodiff,  # NOQA
+    linalg,  # NOQA
+    random,  # NOQA
+)
 from ._common import (
     _box_binary_scalar,
     _box_unary_scalar,
@@ -152,6 +160,16 @@ linspace = _dyn_update_dtype(target=_np.linspace)
 empty = _dyn_update_dtype(target=_np.empty)
 
 
+def has_autodiff():
+    """If allows for automatic differentiation.
+
+    Returns
+    -------
+    has_autodiff : bool
+    """
+    return True
+
+
 def imag(x):
     out = _np.imag(x)
     if is_array(x):
@@ -165,11 +183,11 @@ def copy(x):
 
 
 def outer(a, b):
-    if a.ndim == 2 and b.ndim == 2:
+    if a.ndim > 1 and b.ndim > 1:
         return _np.einsum("...i,...j->...ij", a, b)
 
     out = _np.outer(a, b).reshape(a.shape + b.shape)
-    if b.ndim == 2:
-        out = out.swapaxes(-3, -2)
+    if b.ndim > 1:
+        out = out.swapaxes(0, -2)
 
     return out

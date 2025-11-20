@@ -40,13 +40,13 @@ Design
 
 Geomstats is organized into two main modules: `geometry` and `learning`.
 
-The module `geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/geometry>`_ implements concepts from differential geometry,
-such as manifolds and Riemannian metrics. The module `learning <https://github.com/geomstats/geomstats/tree/master/geomstats/learning>`_ implements statistics and learning algorithms for data
+The module `geometry <https://github.com/geomstats/geomstats/tree/main/geomstats/geometry>`_ implements concepts from differential geometry,
+such as manifolds and Riemannian metrics. The module `learning <https://github.com/geomstats/geomstats/tree/main/geomstats/learning>`_ implements statistics and learning algorithms for data
 on manifolds, such as supervised and unsupervised learning techniques.
 
 .. figure:: conn_parallel_vector_field.jpeg
    :alt: parallel vector field
-   :target: https://github.com/geomstats/geomstats/blob/master/notebooks/01_foundations__manifolds.ipynb
+   :target: https://github.com/geomstats/geomstats/blob/main/notebooks/01_foundations__manifolds.ipynb
    :class: with-shadow
    :width: 1000px
 

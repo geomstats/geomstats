@@ -7,11 +7,11 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.hermitian_matrices import powermh
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
-from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 ATOL = 1e-5
 
@@ -42,8 +42,8 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         super().__init__(
             dim=int((n * (n - 1)) / 2),
             representation_dim=n,
-            lie_algebra=SkewSymmetricMatrices(n=n),
-            default_coords_type="extrinsic",
+            lie_algebra=SkewSymmetricMatrices(n=n, equip=False),
+            intrinsic=False,
             equip=equip,
         )
 
@@ -53,7 +53,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         return BiInvariantMetric
 
     def _define_embedding_space(self):
-        return GeneralLinear(self.n, positive_det=True)
+        return GeneralLinear(self.n, positive_det=True, equip=False)
 
     def _aux_submersion(self, point):
         return Matrices.mul(Matrices.transpose(point), point)
@@ -117,7 +117,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             Rotation matrix.
         """
         aux_mat = self._aux_submersion(point)
-        inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, -1 / 2)
+        inv_sqrt_mat = powermh(aux_mat, -1 / 2)
         rotation_mat = Matrices.mul(point, inv_sqrt_mat)
         det = gs.linalg.det(rotation_mat)
         return utils.flip_determinant(rotation_mat, det)
@@ -163,41 +163,6 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         rotation_mat, _ = gs.linalg.qr(random_mat)
         det = gs.linalg.det(rotation_mat)
         return utils.flip_determinant(rotation_mat, det)
-
-    def skew_matrix_from_vector(self, vec):
-        """Get the skew-symmetric matrix derived from the vector.
-
-        In nD, fill a skew-symmetric matrix with the values of the vector.
-
-        Parameters
-        ----------
-        vec : array-like, shape=[..., dim]
-            Vector.
-
-        Returns
-        -------
-        skew_mat : array-like, shape=[..., n, n]
-            Skew-symmetric matrix.
-        """
-        return self.lie_algebra.matrix_representation(vec)
-
-    def vector_from_skew_matrix(self, skew_mat):
-        """Derive a vector from the skew-symmetric matrix.
-
-        In 3D, compute the vector defining the cross product
-        associated to the skew-symmetric matrix skew mat.
-
-        Parameters
-        ----------
-        skew_mat : array-like, shape=[..., n, n]
-            Skew-symmetric matrix.
-
-        Returns
-        -------
-        vec : array-like, shape=[..., dim]
-            Vector.
-        """
-        return self.lie_algebra.basis_representation(skew_mat)
 
     def rotation_vector_from_matrix(self, rot_mat):
         r"""Convert rotation matrix (in 2D or 3D) to rotation vector.
@@ -345,7 +310,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         self.n = n
         self.epsilon = epsilon
 
-        self._skew_sym_mat = SkewSymmetricMatrices(self.n)
+        self.skew = SkewSymmetricMatrices(self.n, equip=False)
 
     @property
     def identity(self):
@@ -478,42 +443,6 @@ class _SpecialOrthogonalVectors(LieGroup):
             Group logarithm.
         """
         return self.regularize(point)
-
-    def skew_matrix_from_vector(self, vec):
-        """Get the skew-symmetric matrix derived from the vector.
-
-        In 3D, compute the skew-symmetric matrix, known as the cross-product of
-        a vector, associated to the vector `vec`.
-
-        Parameters
-        ----------
-        vec : array-like, shape=[..., dim]
-            Vector.
-
-        Returns
-        -------
-        skew_mat : array-like, shape=[..., n, n]
-            Skew-symmetric matrix.
-        """
-        return self._skew_sym_mat.matrix_representation(vec)
-
-    def vector_from_skew_matrix(self, skew_mat):
-        """Derive a vector from the skew-symmetric matrix.
-
-        In 3D, compute the vector defining the cross product
-        associated to the skew-symmetric matrix skew mat.
-
-        Parameters
-        ----------
-        skew_mat : array-like, shape=[..., n, n]
-            Skew-symmetric matrix.
-
-        Returns
-        -------
-        vec : array-like, shape=[..., dim]
-            Vector.
-        """
-        return self._skew_sym_mat.basis_representation(skew_mat)
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector onto the tangent space at a base point.
@@ -661,7 +590,7 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         cos_term = gs.cos(rot_vec)
         cos_matrix = gs.einsum("...l,ij->...ij", cos_term, gs.eye(2))
         sin_term = gs.sin(rot_vec)
-        sin_matrix = self.skew_matrix_from_vector(sin_term)
+        sin_matrix = self.skew.matrix_representation(sin_term)
         return cos_matrix + sin_matrix
 
     def compose(self, point_a, point_b):
@@ -757,6 +686,10 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
             Group logarithm.
         """
         return self.regularize(point - base_point)
+
+    def lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute the lie bracket of two tangent vectors."""
+        raise NotImplementedError("The lie bracket is not implemented.")
 
 
 class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
@@ -923,7 +856,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         angle = gs.arccos(0.5 * (trace_num - 1))
 
         rot_mat_transpose = Matrices.transpose(rot_mat)
-        rot_vec_not_pi = self.vector_from_skew_matrix(rot_mat - rot_mat_transpose)
+        rot_vec_not_pi = self.skew.basis_representation(rot_mat - rot_mat_transpose)
 
         mask_0 = gs.cast(gs.isclose(angle, 0.0), angle.dtype)
         mask_pi = gs.cast(gs.isclose(angle, gs.pi, atol=1e-2), angle.dtype)
@@ -975,7 +908,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         rot_vec = self.regularize(rot_vec)
 
         squared_angle = gs.sum(rot_vec**2, axis=-1)
-        skew_rot_vec = self.skew_matrix_from_vector(rot_vec)
+        skew_rot_vec = self.skew.matrix_representation(rot_vec)
 
         coef_1 = utils.taylor_exp_even_func(squared_angle, utils.sinc_close_0)
         coef_2 = utils.taylor_exp_even_func(squared_angle, utils.cosc_close_0)
@@ -1068,14 +1001,12 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         Returns
         -------
-        rot_mat : array-like, shape=[..., 3]
+        rot_mat : array-like, shape=[..., 3, 3]
             Rotation matrix.
         """
-        is_vec = quaternion.ndim > 1
-
         w, x, y, z = gs.hsplit(quaternion, 4)
 
-        column_1 = gs.array(
+        column_1 = gs.hstack(
             [
                 w**2 + x**2 - y**2 - z**2,
                 2 * x * y - 2 * w * z,
@@ -1083,7 +1014,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             ]
         )
 
-        column_2 = gs.array(
+        column_2 = gs.hstack(
             [
                 2 * x * y + 2 * w * z,
                 w**2 - x**2 + y**2 - z**2,
@@ -1091,7 +1022,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             ]
         )
 
-        column_3 = gs.array(
+        column_3 = gs.hstack(
             [
                 2 * x * z - 2 * w * y,
                 2 * y * z + 2 * w * x,
@@ -1099,22 +1030,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             ]
         )
 
-        if is_vec:
-            column_1 = gs.moveaxis(column_1, 0, 1)
-            column_2 = gs.moveaxis(column_2, 0, 1)
-            column_3 = gs.moveaxis(column_3, 0, 1)
-
-            rot_mat = gs.stack(
-                [
-                    gs.transpose(gs.hstack(columns))
-                    for columns in zip(column_1, column_2, column_3)
-                ]
-            )
-
-        else:
-            rot_mat = gs.transpose(gs.hstack([column_1, column_2, column_3]))
-
-        return rot_mat
+        return gs.stack([column_1, column_2, column_3], axis=-2)
 
     @staticmethod
     def _matrix_from_tait_bryan_angles_extrinsic_xyz(tait_bryan_angles):
@@ -1139,8 +1055,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         -------
         rot_mat : array-like, shape=[..., 3, 3]
         """
-        is_vec = tait_bryan_angles.ndim > 1
-
         angle_1 = tait_bryan_angles[..., 0]
         angle_2 = tait_bryan_angles[..., 1]
         angle_3 = tait_bryan_angles[..., 2]
@@ -1152,41 +1066,32 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         cos_angle_3 = gs.cos(angle_3)
         sin_angle_3 = gs.sin(angle_3)
 
-        column_1 = gs.array(
+        column_1 = gs.stack(
             [
-                [cos_angle_1 * cos_angle_2],
-                [cos_angle_2 * sin_angle_1],
-                [-sin_angle_2],
-            ]
+                cos_angle_1 * cos_angle_2,
+                cos_angle_2 * sin_angle_1,
+                -sin_angle_2,
+            ],
+            axis=-1,
         )
-        column_2 = gs.array(
+        column_2 = gs.stack(
             [
-                [(cos_angle_1 * sin_angle_2 * sin_angle_3 - cos_angle_3 * sin_angle_1)],
-                [(cos_angle_1 * cos_angle_3 + sin_angle_1 * sin_angle_2 * sin_angle_3)],
-                [cos_angle_2 * sin_angle_3],
-            ]
+                cos_angle_1 * sin_angle_2 * sin_angle_3 - cos_angle_3 * sin_angle_1,
+                cos_angle_1 * cos_angle_3 + sin_angle_1 * sin_angle_2 * sin_angle_3,
+                cos_angle_2 * sin_angle_3,
+            ],
+            axis=-1,
         )
-        column_3 = gs.array(
+        column_3 = gs.stack(
             [
-                [(sin_angle_1 * sin_angle_3 + cos_angle_1 * cos_angle_3 * sin_angle_2)],
-                [(cos_angle_3 * sin_angle_1 * sin_angle_2 - cos_angle_1 * sin_angle_3)],
-                [cos_angle_2 * cos_angle_3],
-            ]
+                sin_angle_1 * sin_angle_3 + cos_angle_1 * cos_angle_3 * sin_angle_2,
+                cos_angle_3 * sin_angle_1 * sin_angle_2 - cos_angle_1 * sin_angle_3,
+                cos_angle_2 * cos_angle_3,
+            ],
+            axis=-1,
         )
 
-        if is_vec:
-            column_1 = gs.moveaxis(column_1, 2, 0)
-            column_2 = gs.moveaxis(column_2, 2, 0)
-            column_3 = gs.moveaxis(column_3, 2, 0)
-
-            rot_mat = gs.stack(
-                [gs.hstack(columns) for columns in zip(column_1, column_2, column_3)]
-            )
-
-        else:
-            rot_mat = gs.hstack([column_1, column_2, column_3])
-
-        return rot_mat
+        return gs.stack([column_1, column_2, column_3], axis=-1)
 
     @staticmethod
     def _matrix_from_tait_bryan_angles_extrinsic_zyx(tait_bryan_angles):
@@ -1211,8 +1116,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         -------
         rot_mat : array-like, shape=[..., n, n]
         """
-        is_vec = tait_bryan_angles.ndim > 1
-
         angle_1 = tait_bryan_angles[..., 0]
         angle_2 = tait_bryan_angles[..., 1]
         angle_3 = tait_bryan_angles[..., 2]
@@ -1224,43 +1127,34 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         cos_angle_3 = gs.cos(angle_3)
         sin_angle_3 = gs.sin(angle_3)
 
-        column_1 = gs.array(
+        column_1 = gs.stack(
             [
-                [cos_angle_2 * cos_angle_3],
-                [(cos_angle_1 * sin_angle_3 + cos_angle_3 * sin_angle_1 * sin_angle_2)],
-                [(sin_angle_1 * sin_angle_3 - cos_angle_1 * cos_angle_3 * sin_angle_2)],
-            ]
+                cos_angle_2 * cos_angle_3,
+                cos_angle_1 * sin_angle_3 + cos_angle_3 * sin_angle_1 * sin_angle_2,
+                sin_angle_1 * sin_angle_3 - cos_angle_1 * cos_angle_3 * sin_angle_2,
+            ],
+            axis=-1,
         )
 
-        column_2 = gs.array(
+        column_2 = gs.stack(
             [
-                [-cos_angle_2 * sin_angle_3],
-                [(cos_angle_1 * cos_angle_3 - sin_angle_1 * sin_angle_2 * sin_angle_3)],
-                [(cos_angle_3 * sin_angle_1 + cos_angle_1 * sin_angle_2 * sin_angle_3)],
-            ]
+                -cos_angle_2 * sin_angle_3,
+                cos_angle_1 * cos_angle_3 - sin_angle_1 * sin_angle_2 * sin_angle_3,
+                cos_angle_3 * sin_angle_1 + cos_angle_1 * sin_angle_2 * sin_angle_3,
+            ],
+            axis=-1,
         )
 
-        column_3 = gs.array(
+        column_3 = gs.stack(
             [
-                [sin_angle_2],
-                [-cos_angle_2 * sin_angle_1],
-                [cos_angle_1 * cos_angle_2],
-            ]
+                sin_angle_2,
+                -cos_angle_2 * sin_angle_1,
+                cos_angle_1 * cos_angle_2,
+            ],
+            axis=-1,
         )
 
-        if is_vec:
-            column_1 = gs.moveaxis(column_1, 2, 0)
-            column_2 = gs.moveaxis(column_2, 2, 0)
-            column_3 = gs.moveaxis(column_3, 2, 0)
-
-            rot_mat = gs.stack(
-                [gs.hstack(columns) for columns in zip(column_1, column_2, column_3)]
-            )
-
-        else:
-            rot_mat = gs.hstack([column_1, column_2, column_3])
-
-        return rot_mat
+        return gs.stack([column_1, column_2, column_3], axis=-1)
 
     def matrix_from_tait_bryan_angles(
         self,
@@ -1582,7 +1476,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         angle = gs.sqrt(squared_angle)
         delta_angle = angle - gs.pi
         approx_at_pi = gs.sum(
-            gs.array([TAYLOR_COEFFS_1_AT_PI[k] * delta_angle**k for k in range(1, 7)])
+            gs.stack([TAYLOR_COEFFS_1_AT_PI[k] * delta_angle**k for k in range(1, 7)])
         )
         coef_1 = utils.taylor_exp_even_func(squared_angle / 4, utils.inv_tanc_close_0)
         coef_1 = gs.where(-delta_angle < utils.EPSILON, approx_at_pi, coef_1)
@@ -1603,7 +1497,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         return (
             gs.einsum("...,...ij->...ij", coef_1, gs.eye(self.dim))
             + gs.einsum("...,...ij->...ij", coef_2, outer_)
-            + sign * self.skew_matrix_from_vector(point) / 2.0
+            + sign * self.skew.matrix_representation(point) / 2.0
         )
 
     def random_uniform(self, n_samples=1):
@@ -1628,7 +1522,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         return random_point
 
-    def lie_bracket(self, tangent_vector_a, tangent_vector_b, base_point=None):
+    def lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the lie bracket of two tangent vectors.
 
         For matrix Lie groups with tangent vectors A,B at the same base point P
@@ -1637,24 +1531,24 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         Parameters
         ----------
-        tangent_vector_a : shape=[..., n, n]
+        tangent_vec_a : shape=[..., 3]
             Tangent vector at base point.
-        tangent_vector_b : shape=[..., n, n]
+        tangent_vec_b : shape=[..., 3]
             Tangent vector at base point.
-        base_point : array-like, shape=[..., n, n]
+        base_point : array-like, shape=[..., 3]
             Base point.
             Optional, default: None.
 
         Returns
         -------
-        bracket : array-like, shape=[..., n, n]
+        bracket : array-like, shape=[..., 3]
             Lie bracket.
         """
-        out = gs.cross(tangent_vector_a, tangent_vector_b)
+        out = gs.cross(tangent_vec_a, tangent_vec_b)
         if (
             base_point is not None
-            and base_point.ndim > tangent_vector_a.ndim
-            and base_point.ndim > tangent_vector_b.ndim
+            and base_point.ndim > tangent_vec_a.ndim
+            and base_point.ndim > tangent_vec_b.ndim
         ):
             return gs.broadcast_to(out, base_point.shape)
         return out

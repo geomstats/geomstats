@@ -1,4 +1,5 @@
 """Incremental frechet mean estimator."""
+
 from sklearn.base import BaseEstimator
 
 
@@ -12,9 +13,10 @@ class IncrementalFrechetMean(BaseEstimator):
     .. math::
         \text{Initialization}: m_{1} := X_{1}
 
-     \text{Update}:  \text{Let } $\gamma_k$ \text{ be geodesic joining }
-      m_{k-1}\text{ and } X_{k} \text{ then }
-      m_{k} := \gamma(1/k) \,\, \forall  2 \leq k \leq N
+    .. math::
+        \text{Update}: \text{Let } \gamma_k \text{ be geodesic joining }
+        m_{k-1}\text{ and } X_{k} \text{ then }
+        m_{k} := \gamma(1/k) \,\, \forall  2 \leq k \leq N
 
     Asymptotic convergence to population frechet mean is guranteed for
     simply connected, complete and non-positively curved Riemannian manifolds.
@@ -94,11 +96,11 @@ class IncrementalFrechetMean(BaseEstimator):
 
         for i in idxs:
             geod_func = self.space.metric.geodesic(m_curr, X[i])
-            m_curr = geod_func(1 / (self.iter + 1))
+            m_curr = geod_func(1 / (self.iter + 1))[0]
             self.iter += 1
 
         if self.clean_state:
             self.iter = 0
 
-        self.estimate_ = m_curr[0]
+        self.estimate_ = m_curr
         return self

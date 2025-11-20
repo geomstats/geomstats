@@ -7,11 +7,11 @@ import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
+from geomstats.geometry.manifold import Manifold, register_quotient
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDEuclideanMetric, SPDMatrices
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
@@ -36,7 +36,7 @@ class RankKPSDMatrices(Manifold):
             dim=int(k * n - k * (k + 1) / 2),
             shape=(n, n),
             equip=equip,
-            default_coords_type="extrinsic",
+            intrinsic=False,
         )
         self.n = n
         self.rank = k
@@ -71,7 +71,8 @@ class RankKPSDMatrices(Manifold):
         is_symmetric = self.sym.belongs(point, atol)
         eigvalues = gs.linalg.eigvalsh(point)
         is_semipositive = gs.all(eigvalues > -atol, axis=-1)
-        is_rankk = gs.sum(gs.where(eigvalues < atol, 0, 1), axis=-1) == self.rank
+        sum_eig = gs.sum(gs.where(eigvalues < atol, 0, 1), axis=-1)
+        is_rankk = gs.isclose(sum_eig, self.rank, atol=atol)
         return gs.logical_and(gs.logical_and(is_symmetric, is_semipositive), is_rankk)
 
     def projection(self, point):
@@ -227,10 +228,7 @@ class BuresWassersteinBundle(FiberBundle):
     """Class for the quotient structure on PSD matrices."""
 
     def __init__(self, total_space):
-        super().__init__(
-            total_space=total_space,
-            group=SpecialOrthogonal(total_space.k, equip=False),
-        )
+        super().__init__(total_space=total_space, aligner=True)
 
     @staticmethod
     def riemannian_submersion(point):
@@ -244,7 +242,7 @@ class BuresWassersteinBundle(FiberBundle):
 
     def lift(self, point):
         """Find a representer in top space."""
-        k = self.total_space.k
+        k = self._total_space.k
         eigvals, eigvecs = gs.linalg.eigh(point)
         return gs.einsum(
             "...ij,...j->...ij", eigvecs[..., -k:], eigvals[..., -k:] ** 0.5
@@ -252,7 +250,7 @@ class BuresWassersteinBundle(FiberBundle):
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
         """Horizontal lift of a tangent vector."""
-        n = self.total_space.n
+        n = self._total_space.n
         if fiber_point is None:
             fiber_point = self.lift(base_point)
         transposed_point = Matrices.transpose(fiber_point)
@@ -302,7 +300,7 @@ class BuresWassersteinBundle(FiberBundle):
         vertical = -gs.matmul(base_point, skew)
         return (vertical, skew) if return_skew else vertical
 
-    def align(self, point, base_point, **kwargs):
+    def align(self, point, base_point):
         """Align point to base_point.
 
         Find the optimal rotation R in SO(m) such that the base point and
@@ -332,4 +330,20 @@ class PSDBuresWassersteinMetric(QuotientMetric):
             total_space = FullRankMatrices(space.n, k, equip=False)
             total_space.equip_with_metric(MatricesMetric)
 
-        super().__init__(space=space, fiber_bundle=BuresWassersteinBundle(total_space))
+        if not hasattr(total_space, "group_action"):
+            total_space.equip_with_group_action(
+                SpecialOrthogonalComposeAction(total_space.k)
+            )
+
+        if not hasattr(total_space, "quotient"):
+            total_space.equip_with_quotient()
+
+        super().__init__(space=space, total_space=total_space)
+
+
+register_quotient(
+    Space=FullRankMatrices,
+    Metric=MatricesMetric,
+    GroupAction=SpecialOrthogonalComposeAction,
+    FiberBundle=BuresWassersteinBundle,
+)

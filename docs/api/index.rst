@@ -21,8 +21,4 @@ The module `backend` implements the operations needed to use Geomstats seamlessl
    :maxdepth: 3
    :caption: Packages & Modules
 
-   geometry
-   learning
-   datasets
-   backend
-   visualization
+   modules

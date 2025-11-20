@@ -10,7 +10,7 @@ import math
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 from geomstats.geometry._hyperbolic import _Hyperbolic
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import repeat_out
@@ -20,10 +20,8 @@ NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
 PI_2_3 = gs.power(gs.array([2.0 * gs.pi]), gs.array([2 / 3]))
 SQRT_2 = gs.sqrt(2.0)
 
-_COORDS_TYPE = "ball"
 
-
-class PoincareBall(_Hyperbolic, OpenSet):
+class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
     """Class for the n-dimensional Poincare ball.
 
     Class for the n-dimensional Poincaré ball model. For other
@@ -36,10 +34,11 @@ class PoincareBall(_Hyperbolic, OpenSet):
     """
 
     def __init__(self, dim, equip=True):
+        self.coords_type = "ball"
         super().__init__(
             dim=dim,
             embedding_space=Euclidean(dim),
-            default_coords_type=_COORDS_TYPE,
+            intrinsic=True,
             equip=equip,
         )
 
@@ -87,9 +86,6 @@ class PoincareBall(_Hyperbolic, OpenSet):
         projected_point : array-like, shape=[..., dim]
             Point projected on the ball.
         """
-        if point.shape[-1] != self.dim:
-            raise NameError("Wrong dimension, expected ", self.dim)
-
         l2_norm = gs.linalg.norm(point, axis=-1)
         if gs.any(l2_norm >= 1 - gs.atol):
             projected_point = gs.einsum(
@@ -103,7 +99,7 @@ class PoincareBall(_Hyperbolic, OpenSet):
 class PoincareBallMetric(RiemannianMetric):
     """Class that defines operations using a Poincare ball."""
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -133,7 +129,7 @@ class PoincareBallMetric(RiemannianMetric):
             base_point, gs.einsum("...,...i->...i", factor, direction)
         )
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
 
         Parameters
@@ -203,6 +199,23 @@ class PoincareBallMetric(RiemannianMetric):
             num_1 + num_2,
         )
         return self._space.projection(result)
+
+    def squared_dist(self, point_a, point_b):
+        """Squared geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        sq_dist : array-like, shape=[...,]
+            Squared distance.
+        """
+        return self.dist(point_a, point_b) ** 2
 
     def dist(self, point_a, point_b):
         """Compute the geodesic distance between two points.
@@ -413,7 +426,7 @@ class PoincareBallMetric(RiemannianMetric):
 
         return gs.squeeze(norm_factor), gs.squeeze(norm_factor_gradient)
 
-    def injectivity_radius(self, base_point):
+    def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
@@ -429,8 +442,8 @@ class PoincareBallMetric(RiemannianMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
         radius = gs.array(math.inf)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)

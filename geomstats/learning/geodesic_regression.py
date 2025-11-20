@@ -29,7 +29,7 @@ from sklearn.base import BaseEstimator
 import geomstats.backend as gs
 import geomstats.errors as error
 from geomstats.learning.frechet_mean import FrechetMean
-from geomstats.numerics.optimizers import ScipyMinimize
+from geomstats.numerics.optimization import ScipyMinimize
 
 
 class RiemannianGradientDescent:
@@ -42,11 +42,11 @@ class RiemannianGradientDescent:
         self.tol = tol
         self.jac = "autodiff"
 
-    def _handle_jac(self, fun):
+    def _handle_jac(self, fun, point_ndim):
         if self.jac == "autodiff":
 
             def fun_(x):
-                value, grad = gs.autodiff.value_and_grad(fun, to_numpy=False)(x)
+                value, grad = gs.autodiff.value_and_grad(fun, point_ndims=point_ndim)(x)
                 return value, grad
 
         else:
@@ -69,7 +69,7 @@ class RiemannianGradientDescent:
 
     def minimize(self, space, fun, x0):
         """Perform gradient descent."""
-        fun = self._handle_jac(fun)
+        fun = self._handle_jac(fun, point_ndim=space.point_ndim)
         vector_transport = self._get_vector_transport(space)
 
         lr = self.init_step_size

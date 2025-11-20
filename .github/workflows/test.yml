@@ -2,7 +2,7 @@ name: "Testing"
 
 on:
   push:
-    branches: [master, github-actions-test]
+    branches: [main, github-actions-test]
     paths-ignore:
       - "docs/**"
       - "README.rst"
@@ -12,7 +12,7 @@ on:
       - ".gitignore"
 
   pull_request:
-    branches: [master]
+    branches: [main]
     paths-ignore:
       - "docs/**"
       - "README.rst"
@@ -27,44 +27,55 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.11]
+        python-version: [3.13]
         geomstats-backend: ["autograd", "numpy", "pytorch"]
         test-folder: ["tests/tests_geomstats/", "tests/tests_scripts"]
       fail-fast: false
     env:
       GEOMSTATS_BACKEND: ${{matrix.geomstats-backend}}
+      JUPYTER_PLATFORM_DIRS: 1
 
-    steps:         
-      - uses: actions/checkout@v3
+    steps:
+      - uses: actions/checkout@v4
       - name: Build using Python ${{matrix.python-version}} and Backend ${{matrix.geomstats-backend}}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{matrix.python-version}}
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{matrix.geomstats-backend}}-${{matrix.os}}-${{matrix.python-version}}-${{ hashFiles('pyproject.toml') }}
+          key: ${{matrix.geomstats-backend}}-${{matrix.os}}-${{matrix.python-version}}-${{matrix.test-folder}}-${{ hashFiles('pyproject.toml') }}
 
       - name: install dependencies [pip]
         run: |
           pip install --upgrade pip setuptools wheel
-          pip install -e .[opt,test,${{ matrix.geomstats-backend }}]
+          pip install -e .[opt,test,ci,${{ matrix.geomstats-backend }}]
 
-      - name: Add annotations [pytest]
-        run: pip install pytest-github-actions-annotate-failures
+      - name: install (extra) dependencies [pip]
+        if: ${{matrix.test-folder == 'tests/tests_scripts'}}
+        run: |
+          pip install -e .[test-scripts]
 
       - name: unit testing for geomstats [pytest]
-        if : ${{matrix.test-folder == 'tests/tests_geomstats/'}}
+        if: ${{matrix.test-folder == 'tests/tests_geomstats/'}}
         run: |
-          pytest --cov-report term --cov=geomstats ${{matrix.test-folder}}
+          pytest --cov-report term -m "not (slow or redundant)" --cov=geomstats ${{matrix.test-folder}}
 
-      - name: unit testing for scripts [pytest]       
-        if : ${{matrix.test-folder == 'tests/tests_scripts'}}
+      - name: unit testing for geomstats (slow) [pytest]
+        if: ${{matrix.test-folder == 'tests/tests_geomstats/'}}
+        run: |
+          pytest --cov-report term -m "slow and (not redundant)" --cov-append --cov=geomstats ${{matrix.test-folder}}
+
+      - name: unit testing for scripts [pytest]
+        if: ${{matrix.test-folder == 'tests/tests_scripts'}}
         run: |
           pytest ${{matrix.test-folder}}
 
       - name: uploading code coverage [codecov]
-        if: ${{matrix.python-version == 3.11 && matrix.test-folder == 'tests/tests_geomstats/'}}
-        run: |
-          bash <(curl -s https://codecov.io/bash) -c -F ${{matrix.geomstats-backend}}
+        if: ${{ matrix.test-folder == 'tests/tests_geomstats/' }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: ${{ matrix.geomstats-backend }}
+          fail_ci_if_error: true
