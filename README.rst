@@ -77,6 +77,15 @@ If you find ``geomstats`` useful, please kindly cite:
       url     = {http://jmlr.org/papers/v21/19-027.html}
     }
 
+    @article{miolane2020introduction,
+      title={Introduction to geometric learning in python with geomstats},
+      author    = {Miolane, Nina and Guigui, Nicolas and Zaatiti, Hadi and Shewmake, Christian and Hajri, Hatem and Brooks, Daniel and Le Brigant, Alice and Mathe, Johan and Hou, Benjamin and Thanwerdas, Yann and others},
+      journal = {SciPy 2020-19th Python in Science Conference},
+      pages     = {48--57},
+      year      = {2020},
+      url       = {https://proceedings.scipy.org/articles/Majora-342d178e-007.pdf}
+    }
+
     @article{guigui2023introduction,
       author  = {Guigui, Nicolas and Miolane, Nina and Pennec, Xavier and others},
       title   = {Introduction to riemannian geometry and geometric statistics: from basic theory to implementation with geomstats},
