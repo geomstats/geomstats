@@ -7,6 +7,7 @@ import abc
 import logging
 import math
 
+import numpy as np
 from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
@@ -14,6 +15,7 @@ import geomstats.errors as error
 from geomstats.geometry.discrete_curves import ElasticMetric, SRVMetric
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.hypersphere import HypersphereMetric
+from geomstats.geometry.stratified.bhv_space import BHVMetric
 
 ELASTIC_METRICS = [SRVMetric, ElasticMetric]
 
@@ -24,6 +26,10 @@ def _is_linear_metric(metric):
 
 def _is_elastic_metric(metric):
     return isinstance(metric, tuple(ELASTIC_METRICS))
+
+
+def _is_bhv_metric(metric):
+    return isinstance(metric, BHVMetric)
 
 
 def _scalarmul(scalar, array):
@@ -601,6 +607,106 @@ class CircleMean(BaseEstimator):
         return self
 
 
+class SturmsMean(BaseEstimator):
+    """Frechet mean using Sturm's algorithm.
+
+    Some geodesic metric spaces (like BHV) do not have an exp, and can
+    therefore not use gradient-descent-like optimisation. Sturm's Algorithm
+    works by iteratively computing geodesics between data points and an
+    updated estimate on the previous geodesic, without log or exp.
+
+    Parameters
+    ----------
+    space : Manifold
+        Equipped manifold.
+    max_iter : int, optional
+        Maximum number of iterations.
+    epsilon : float, optional
+        Tolerance for stopping iterative computation.
+
+    Attributes
+    ----------
+    estimate_ : array-like, shape=[*space.shape]
+        If fit, Frechet mean.
+    """
+
+    def __init__(self, space, max_iter=32, epsilon=1e-4):
+        self.max_iter = max_iter
+        self.epsilon = epsilon
+
+        self.space = space
+        self.estimate_ = None
+
+    def fit(self, X, y=None, weights=None):
+        """Compute the weighted mean for geodesic metric spaces.
+
+        https://www.iam.uni-bonn.de/fileadmin/WT/Inhalt/people/Karl-Theodor_Sturm/papers/paper41.pdf
+        https://pmc.ncbi.nlm.nih.gov/articles/PMC5793493/
+
+        The computation of the mean goes as follows:
+            - Initialise mean estimate, i
+            - Sample point
+            - Compute geodesic between mean estimate and sampled point
+            - Compute new mean estimate 1/(i+2) of the way down geodesic
+            - Rinse, repeat
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_samples, *metric.shape]
+            Training input samples.
+        y : None
+            Target values. Ignored.
+        weights : array-like, shape=[n_samples,]
+            Weights associated to the samples.
+            Optional, default: None, in which case it is equally weighted.
+
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
+        # need weights to sum to 1 for sampling
+        # Frechet mean is invariant under positive scaling of weights
+        if weights is None:
+            p_weights = np.array([1 / X.shape[0]] * X.shape[0])
+        else:
+            p_weights = weights / np.sum(weights)
+
+        # set initial estimate
+        mean_estimate, i = X[0], 0
+
+        convergence = np.inf
+        while convergence > self.epsilon and i < self.max_iter:
+            # sample from datapoints
+            sampled_point = np.random.choice(X, 1, p=p_weights)[0]
+
+            # construct geodesic
+            geodesic = self.space.metric.geodesic(mean_estimate, sampled_point)
+
+            # new estimate is point 1/(i+2) of the way across the geodesic
+            mean_estimate = geodesic(1 / (i + 2))
+            i += 1
+
+            # test for convergence lol not done yet
+            convergence = 4
+
+        if i == self.max_iter:
+            logging.warning(
+                f"Maximum number of iterations {self.max_iter} reached. The mean may be inaccurate."
+            )
+
+        self.estimate_ = mean_estimate
+        return self
+
+    def minimize(self, X, y=None, weights=None):
+        r"""Empirical Frechet mean.
+
+        Cheating but to ensure compatibility with gradient-descent-based methods.
+
+        """
+        return self.fit(X, y, weights)
+
+
 class FrechetMean(BaseEstimator):
     r"""Empirical Frechet mean.
 
@@ -608,8 +714,8 @@ class FrechetMean(BaseEstimator):
     ----------
     space : Manifold
         Equipped manifold.
-    method : str, {\'default\', \'adaptive\', \'batch\'}
-        Gradient descent method.
+    method : str, {\'default\', \'adaptive\', \'batch\', \'sturms\'}
+        Gradient descent method or iterative approach.
         The `adaptive` method uses a Levenberg-Marquardt style adaptation of
         the learning rate. The `batch` method is similar to the default
         method but for batches of equal length of samples. In this case,
@@ -625,6 +731,8 @@ class FrechetMean(BaseEstimator):
     -----
     * Required metric methods for general case:
         * `log`, `exp`, `squared_norm` (for convergence criteria)
+    * Required metric methods for Sturm's algorithm:
+        * `geodesic`
     """
 
     def __new__(cls, space, **kwargs):
@@ -637,6 +745,9 @@ class FrechetMean(BaseEstimator):
 
         elif _is_elastic_metric(space.metric):
             return ElasticMean(space, **kwargs)
+
+        elif _is_bhv_metric(space.metric):
+            return SturmsMean(space, **kwargs)
 
         return super().__new__(cls)
 
@@ -669,7 +780,7 @@ class FrechetMean(BaseEstimator):
     def method(self, value):
         """Gradient descent method."""
         error.check_parameter_accepted_values(
-            value, "method", ["default", "adaptive", "batch"]
+            value, "method", ["default", "adaptive", "batch", "sturms"]
         )
         if value == self._method:
             return
@@ -679,6 +790,7 @@ class FrechetMean(BaseEstimator):
             "default": GradientDescent,
             "adaptive": AdaptiveGradientDescent,
             "batch": BatchGradientDescent,
+            "sturms": SturmsMean,
         }
         self.optimizer = MAP_OPTIMIZER[value]()
 
