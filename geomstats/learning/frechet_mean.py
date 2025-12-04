@@ -637,7 +637,7 @@ class SturmsMean(BaseEstimator):
         self.space = space
         self.estimate_ = None
 
-    def fit(self, X, y=None, weights=None):
+    def fit(self, X, y=None, weights=None, use_frechet_convergence=True, verbose=False):
         """Compute the weighted mean for geodesic metric spaces.
 
         https://www.iam.uni-bonn.de/fileadmin/WT/Inhalt/people/Karl-Theodor_Sturm/papers/paper41.pdf
@@ -649,6 +649,8 @@ class SturmsMean(BaseEstimator):
             - Compute geodesic between mean estimate and sampled point
             - Compute new mean estimate 1/(i+2) of the way down geodesic
             - Rinse, repeat
+
+        Converges to the true mean under Law of Large Numbers, provided underlying space has non-positive curvature.
 
         Parameters
         ----------
@@ -675,8 +677,8 @@ class SturmsMean(BaseEstimator):
         # set initial estimate
         mean_estimate, i = X[0], 0
 
-        convergence = np.inf
-        while convergence > self.epsilon and i < self.max_iter:
+        prev_mean_estimate, convergence, frechet_convergence, frechet_objective, prev_frechet_objective = X[0], np.inf, np.inf, np.inf, np.inf
+        while ((not use_frechet_convergence and (convergence > self.epsilon)) or (use_frechet_convergence and (frechet_convergence > self.epsilon))) and i < self.max_iter:
             # sample from datapoints
             sampled_point = np.random.choice(X, 1, p=p_weights)[0]
 
@@ -688,7 +690,15 @@ class SturmsMean(BaseEstimator):
             i += 1
 
             # test for convergence lol not done yet
-            convergence = 4
+            convergence = self.space.metric.dist(prev_mean_estimate, mean_estimate)
+            prev_mean_estimate = mean_estimate
+
+            # other convergence is Frechet objective fn
+            prev_frechet_objective = frechet_objective
+            frechet_objective = np.sum([w* self.space.metric.dist(x, mean_estimate) for x, w in zip(X, p_weights)])
+            frechet_convergence = np.abs(frechet_objective-prev_frechet_objective)
+
+            if verbose: print(convergence, frechet_convergence, mean_estimate)
 
         if i == self.max_iter:
             logging.warning(
