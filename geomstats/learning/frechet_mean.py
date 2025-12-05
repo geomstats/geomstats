@@ -630,14 +630,15 @@ class SturmsMean(BaseEstimator):
         If fit, Frechet mean.
     """
 
-    def __init__(self, space, max_iter=32, epsilon=1e-4):
+    def __init__(self, space, max_iter=100, epsilon=1e-4, window_length=10):
         self.max_iter = max_iter
         self.epsilon = epsilon
+        self.window_length = window_length
 
         self.space = space
         self.estimate_ = None
 
-    def fit(self, X, y=None, weights=None, use_frechet_convergence=True, verbose=False):
+    def fit(self, X, y=None, weights=None, verbose=False):
         """Compute the weighted mean for geodesic metric spaces.
 
         https://www.iam.uni-bonn.de/fileadmin/WT/Inhalt/people/Karl-Theodor_Sturm/papers/paper41.pdf
@@ -675,34 +676,48 @@ class SturmsMean(BaseEstimator):
             p_weights = weights / np.sum(weights)
 
         # set initial estimate
-        mean_estimate, i = X[0], 0
+        mean_estimate = X[0]
+        prev_mean_estimate = X[0]
 
-        prev_mean_estimate, convergence, frechet_convergence, frechet_objective, prev_frechet_objective = X[0], np.inf, np.inf, np.inf, np.inf
-        while ((not use_frechet_convergence and (convergence > self.epsilon)) or (use_frechet_convergence and (frechet_convergence > self.epsilon))) and i < self.max_iter:
+        prev_mean_movements = [np.inf for _ in range(self.window_length)]
+        convergence = np.inf
+
+        for i in range(self.max_iter):
             # sample from datapoints
-            sampled_point = np.random.choice(X, 1, p=p_weights)[0]
+            sampled_point = gs.random.choice(X, 1, p=p_weights)[0]
 
             # construct geodesic
             geodesic = self.space.metric.geodesic(mean_estimate, sampled_point)
 
             # new estimate is point 1/(i+2) of the way across the geodesic
             mean_estimate = geodesic(1 / (i + 2))
-            i += 1
 
-            # test for convergence lol not done yet
-            convergence = self.space.metric.dist(prev_mean_estimate, mean_estimate)
+            # sliding window convergence
+            # test mean d(x_i-1, x_i) is < epsilon for i in silding window
+            prev_mean_movements.pop(0)
+            prev_mean_movements.append(
+                self.space.metric.dist(prev_mean_estimate, mean_estimate)
+            )
+            convergence = gs.mean(prev_mean_movements)
+
             prev_mean_estimate = mean_estimate
 
-            # other convergence is Frechet objective fn
-            prev_frechet_objective = frechet_objective
-            frechet_objective = np.sum([w* self.space.metric.dist(x, mean_estimate) for x, w in zip(X, p_weights)])
-            frechet_convergence = np.abs(frechet_objective-prev_frechet_objective)
+            if verbose:
+                print(convergence, prev_mean_movements)
 
-            if verbose: print(convergence, frechet_convergence, mean_estimate)
-
-        if i == self.max_iter:
+            # test for convergence lol not done yet
+            # use distance; frechet objective is control?
+            if convergence < self.epsilon:
+                # converged! break; this then won't go into else
+                break
+        else:
             logging.warning(
                 f"Maximum number of iterations {self.max_iter} reached. The mean may be inaccurate."
+            )
+
+        if i < 2 * len(X):
+            logging.warning(
+                f"Sampled <2*sample_size={2 * len(X)}. Due to stochastic nature, not guaranteed to have sampled all points. The mean may be inaccurate."
             )
 
         self.estimate_ = mean_estimate
