@@ -645,7 +645,7 @@ class SturmsMean(BaseEstimator):
         https://pmc.ncbi.nlm.nih.gov/articles/PMC5793493/
 
         The computation of the mean goes as follows:
-            - Initialise mean estimate, i
+            - Initialise mean estimate, i=0
             - Sample point
             - Compute geodesic between mean estimate and sampled point
             - Compute new mean estimate 1/(i+2) of the way down geodesic
@@ -692,8 +692,7 @@ class SturmsMean(BaseEstimator):
             # new estimate is point 1/(i+2) of the way across the geodesic
             mean_estimate = geodesic(1 / (i + 2))
 
-            # sliding window convergence
-            # test mean d(x_i-1, x_i) is < epsilon for i in silding window
+            # test for convergence (sliding window)
             prev_mean_movements.pop(0)
             prev_mean_movements.append(
                 self.space.metric.dist(prev_mean_estimate, mean_estimate)
@@ -705,10 +704,7 @@ class SturmsMean(BaseEstimator):
             if verbose:
                 print(convergence, prev_mean_movements)
 
-            # test for convergence lol not done yet
-            # use distance; frechet objective is control?
             if convergence < self.epsilon:
-                # converged! break; this then won't go into else
                 break
         else:
             logging.warning(
