@@ -46,8 +46,8 @@ def generate_random_tree(n_labels, only_internal_edges=False, p_keep=0.9, btol=1
         Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
     only_internal_edges : bool
         Phylogenetic trees have two additional constraints:
-        - They only have interior edges (ie, no singleton splits; only_internal_edges=True)
-        - There is a root node. (ignoring this for now...)
+        - They do not have external edges (i.e., no singleton splits; only_internal_edges=True)
+        - (optional) There is a root node.
     p_keep : float between 0 and 1
         The probability that a sampled edge is kept and not deleted randomly.
         To be precise, it is not exactly the probability, as some edges cannot be
@@ -61,10 +61,8 @@ def generate_random_tree(n_labels, only_internal_edges=False, p_keep=0.9, btol=1
 
     initial_splits = generate_splits(labels)
     splits = delete_splits(initial_splits, labels, p_keep, check=False)
-
+    print(splits)
     if only_internal_edges:
-        # for most phylogenetic purposes in literature,
-        # we don't care about external edges (ie, those directly touching leaf)
         splits[:] = [
             split
             for split in splits
@@ -74,6 +72,8 @@ def generate_random_tree(n_labels, only_internal_edges=False, p_keep=0.9, btol=1
     x = gs.random.uniform(size=(len(splits),), low=0, high=1)
     x = gs.minimum(gs.maximum(btol, x), 1 - btol)
     lengths = gs.maximum(btol, gs.abs(gs.log(1 - x)))
+
+    print(splits)
 
     return Tree(splits, lengths)
 
@@ -319,13 +319,19 @@ class TreeSpace(PointSet):
         """
         return gs.array([self._belongs_single(point_, atol) for point_ in point])
 
-    def random_point(self, n_samples=1, p_keep=0.9, btol=1e-8):
+    def random_point(
+        self, n_samples=1, only_internal_edges=False, p_keep=0.9, btol=1e-8
+    ):
         """Sample a random point in Tree space.
 
         Parameters
         ----------
         n_samples : int
             Number of samples. Defaults to 1.
+        only_internal_edges : bool
+            Phylogenetic trees have two additional constraints:
+            - They do not have external edges (i.e., no singleton splits; only_internal_edges=True)
+            - (optional) There is a root node.
         p_keep : float between 0 and 1
             The probability that a sampled edge is kept and not deleted randomly.
             To be precise, it is not exactly the probability, as some edges cannot be
@@ -341,7 +347,13 @@ class TreeSpace(PointSet):
             Points sampled in Tree space.
         """
         trees = [
-            generate_random_tree(self.n_labels, p_keep, btol) for _ in range(n_samples)
+            generate_random_tree(
+                self.n_labels,
+                only_internal_edges=only_internal_edges,
+                p_keep=p_keep,
+                btol=btol,
+            )
+            for _ in range(n_samples)
         ]
 
         if n_samples == 1:
