@@ -471,14 +471,9 @@ class GTPSolver:
         squared_dist : array-like, shape=[...]
             The squared distance between the two points.
         """
-        sp_a = {
-            split: length
-            for split, length in zip(point_a.topology.splits, point_a.lengths)
-        }
-        sp_b = {
-            split: length
-            for split, length in zip(point_b.topology.splits, point_b.lengths)
-        }
+        sp_a = dict(zip(point_a.topology.splits, point_a.lengths))
+        sp_b = dict(zip(point_b.topology.splits, point_b.lengths))
+
         common_a, common_b, supports = self._trees_with_common_support(
             sp_a,
             sp_b,
