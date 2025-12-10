@@ -704,13 +704,13 @@ class SturmsMean(BaseEstimator):
         """
         # need weights to sum to 1 for sampling
         # Frechet mean is invariant under positive scaling of weights
+        n_points = gs.shape(X)[0]
         if weights is None:
-            p_weights = np.array([1 / X.shape[0]] * X.shape[0])
-        else:
-            p_weights = weights / np.sum(weights)
+            weights = gs.ones((n_points,))
+        weights = weights / gs.sum(weights)
 
         # set initial estimate
-        mean_estimate = self._sample_next(X, p_weights, 0)
+        mean_estimate = self._sample_next(X, weights, 0)
         prev_mean_estimate = mean_estimate
 
         prev_mean_movements = [np.inf for _ in range(self.window_length)]
@@ -718,13 +718,13 @@ class SturmsMean(BaseEstimator):
 
         for i in range(1, self.max_iter):
             # sample from datapoints
-            sampled_point = self._sample_next(X, p_weights, i)
+            sampled_point = self._sample_next(X, weights, i)
 
             # construct geodesic
             geodesic = self.space.metric.geodesic(mean_estimate, sampled_point)
 
             # new estimate is point 1/(i+1) of the way across the geodesic
-            step_length = self._step_length(p_weights, i)
+            step_length = self._step_length(weights, i)
             mean_estimate = geodesic(step_length)
 
             # test for convergence (sliding window)
