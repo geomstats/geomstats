@@ -642,7 +642,15 @@ class SturmsMean(BaseEstimator):
         epsilon=1e-4,
         window_length=10,
     ):
-        self.sample_method = sample_method
+        if sample_method == "cyclic":
+            self._sample_next = self._sample_next_cyclic
+            self._step_length = self._step_length_cyclic
+        elif sample_method == "stochastic":
+            self._sample_next = self._sample_next_stochastic
+            self._step_length = self._step_length_stochastic
+        else:
+            raise ValueError(f"Sample method {self.sample_method} is not supported.")
+
         self.max_iter = max_iter
         self.epsilon = epsilon
         self.window_length = window_length
@@ -650,23 +658,21 @@ class SturmsMean(BaseEstimator):
         self.space = space
         self.estimate_ = None
 
-    def _sample_next(self, X, weights, k):
-        if self.sample_method == "cyclic":
-            return X[k % len(X)]
-        elif self.sample_method == "stochastic":
-            return gs.random.choice(X, 1, p=weights)[0]
-        logging.warning(f"Sample method {self.sample_method} is not supported.")
+    def _sample_next_cyclic(self, X, weights, k):
+        return X[k % len(X)]
 
-    def _step_length(self, weights, k):
-        # these should be the same if uniform weights?
-        if self.sample_method == "cyclic":
-            # can store this somewhere to avoid doing the sum every time
-            return weights[k % len(weights)] / gs.sum(
-                [weights[i % len(weights)] for i in range(k)]
-            )
-        elif self.sample_method == "stochastic":
-            return 1 / (k + 1)
-        logging.warning(f"Sample method {self.sample_method} is not supported.")
+    def _sample_next_stochastic(self, X, weights, k):
+        return gs.random.choice(X, 1, p=weights)[0]
+
+    def _step_length_cyclic(self, weights, k):
+        # these should be the same as stochastic if uniform weights?
+        # can store this somewhere to avoid doing the sum every time
+        return weights[k % len(weights)] / gs.sum(
+            [weights[i % len(weights)] for i in range(k)]
+        )
+
+    def _step_length_stochastic(self, weights, k):
+        return 1 / (k + 1)
 
     def fit(self, X, y=None, weights=None, verbose=False):
         """Compute the weighted mean for geodesic metric spaces.
