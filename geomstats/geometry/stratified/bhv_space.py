@@ -61,7 +61,7 @@ def generate_random_tree(n_labels, only_internal_edges=False, p_keep=0.9, btol=1
 
     initial_splits = generate_splits(labels)
     splits = delete_splits(initial_splits, labels, p_keep, check=False)
-    print(splits)
+
     if only_internal_edges:
         splits[:] = [
             split
@@ -72,8 +72,6 @@ def generate_random_tree(n_labels, only_internal_edges=False, p_keep=0.9, btol=1
     x = gs.random.uniform(size=(len(splits),), low=0, high=1)
     x = gs.minimum(gs.maximum(btol, x), 1 - btol)
     lengths = gs.maximum(btol, gs.abs(gs.log(1 - x)))
-
-    print(splits)
 
     return Tree(splits, lengths)
 
