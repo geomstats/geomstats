@@ -619,10 +619,14 @@ class SturmsMean(BaseEstimator):
     ----------
     space : Manifold
         Equipped manifold.
+    sample_method: str, {cyclic | stochastic}
+        Algorithm type for sequence creation.
     max_iter : int, optional
         Maximum number of iterations.
     epsilon : float, optional
         Tolerance for stopping iterative computation.
+    window_length : int, optional
+        Sliding window size for convergence computation.
 
     Attributes
     ----------
@@ -630,7 +634,15 @@ class SturmsMean(BaseEstimator):
         If fit, Frechet mean.
     """
 
-    def __init__(self, space, max_iter=100, epsilon=1e-4, window_length=10):
+    def __init__(
+        self,
+        space,
+        sample_method="cyclic",
+        max_iter=100,
+        epsilon=1e-4,
+        window_length=10,
+    ):
+        self.sample_method = sample_method
         self.max_iter = max_iter
         self.epsilon = epsilon
         self.window_length = window_length
@@ -638,11 +650,33 @@ class SturmsMean(BaseEstimator):
         self.space = space
         self.estimate_ = None
 
+    def _sample_next(self, X, weights, k):
+        if self.sample_method == "cyclic":
+            return X[k % len(X)]
+        elif self.sample_method == "stochastic":
+            return gs.random.choice(X, 1, p=weights)[0]
+        logging.warning(f"Sample method {self.sample_method} is not supported.")
+
+    def _step_length(self, weights, k):
+        # these should be the same if uniform weights?
+        if self.sample_method == "cyclic":
+            # can store this somewhere to avoid doing the sum every time
+            return weights[k % len(weights)] / gs.sum(
+                [weights[i % len(weights)] for i in range(k)]
+            )
+        elif self.sample_method == "stochastic":
+            return 1 / (k + 1)
+        logging.warning(f"Sample method {self.sample_method} is not supported.")
+
     def fit(self, X, y=None, weights=None, verbose=False):
         """Compute the weighted mean for geodesic metric spaces.
 
-        https://www.iam.uni-bonn.de/fileadmin/WT/Inhalt/people/Karl-Theodor_Sturm/papers/paper41.pdf
-        https://pmc.ncbi.nlm.nih.gov/articles/PMC5793493/
+        For stochastic algorithm see: Sturm (2003), Definition 4.6: https://www.iam.uni-bonn.de/fileadmin/WT/Inhalt/people/Karl-Theodor_Sturm/papers/paper41.pdf
+        For cyclic algorithm in Hadamard spaces see: Bačák (2014), Definition 3.3/3.5 https://epubs.siam.org/doi/abs/10.1137/140953393
+        For simpler explanation of both see: https://pmc.ncbi.nlm.nih.gov/articles/PMC5793493/
+
+        Weighted deterministic walks Karcher mean in Hadamard spaces: https://londmathsoc.onlinelibrary.wiley.com/doi/full/10.1112/blms/bdu008
+        Extended the cyclic order version of Bačák (2014) to other classes of geodesic spaces: https://arxiv.org/pdf/1402.1629
 
         The computation of the mean goes as follows:
             - Initialise mean estimate, i=0
@@ -676,21 +710,22 @@ class SturmsMean(BaseEstimator):
             p_weights = weights / np.sum(weights)
 
         # set initial estimate
-        mean_estimate = X[0]
-        prev_mean_estimate = X[0]
+        mean_estimate = self._sample_next(X, p_weights, 0)
+        prev_mean_estimate = mean_estimate
 
         prev_mean_movements = [np.inf for _ in range(self.window_length)]
         convergence = np.inf
 
-        for i in range(self.max_iter):
+        for i in range(1, self.max_iter):
             # sample from datapoints
-            sampled_point = gs.random.choice(X, 1, p=p_weights)[0]
+            sampled_point = self._sample_next(X, p_weights, i)
 
             # construct geodesic
             geodesic = self.space.metric.geodesic(mean_estimate, sampled_point)
 
-            # new estimate is point 1/(i+2) of the way across the geodesic
-            mean_estimate = geodesic(1 / (i + 2))
+            # new estimate is point 1/(i+1) of the way across the geodesic
+            step_length = self._step_length(p_weights, i)
+            mean_estimate = geodesic(step_length)
 
             # test for convergence (sliding window)
             prev_mean_movements.pop(0)
