@@ -106,6 +106,28 @@ def check_if_separated(labels, splits):
     )
 
 
+def delete_singleton_splits(splits):
+    """Delete splits corresponding to external edges from a set of splits.
+
+    External edges correspond to splits with one side having length one.
+
+    Parameters
+    ----------
+    splits : list[Split]
+        A list of splits of the set of labels.
+
+    Returns
+    -------
+    left_over_splits : list[Split]
+        The list of splits that are not deleted.
+    """
+    return [
+        split
+        for split in splits
+        if not (len(split.part1) == 1 or len(split.part2) == 1)
+    ]
+
+
 def delete_splits(splits, labels, p_keep, check=True):
     """Delete splits randomly from a set of splits.
 
@@ -482,6 +504,11 @@ class ForestTopology:
         )
 
     def _check_init(self, partition, split_sets):
+        for split_set in split_sets:
+            for split in split_set:
+                if not split:
+                    raise ValueError(f"Empty splits like {split} are not allowed.")
+
         if len(split_sets) != len(partition):
             raise ValueError(
                 "Number of split sets is not equal to number of components."
