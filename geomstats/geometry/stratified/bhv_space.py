@@ -40,12 +40,14 @@ from geomstats.geometry.stratified.vectorization import broadcast_lists, vectori
 def generate_random_tree(n_labels, only_internal_edges=False, p_keep=0.9, btol=1e-8):
     r"""Generate a random instance of ``Tree``.
 
+    For more information on phylogenetic trees see Lueg, 2023 chapter 5 (https://ediss.uni-goettingen.de/handle/11858/14443)
+
     Parameters
     ----------
     n_labels : int
         Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
     only_internal_edges : bool
-        Phylogenetic trees have two additional constraints:
+        Phylogenetic trees are usually constructed with two additional constraints:
         - They only have interior edges (ie, no singleton splits; only_internal_edges=True)
         - There is a root node. (ignoring this for now...)
     p_keep : float between 0 and 1
