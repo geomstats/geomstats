@@ -31,6 +31,7 @@ from geomstats.geometry.stratified.point_set import (
 from geomstats.geometry.stratified.trees import (
     ForestTopology,
     Split,
+    delete_singleton_splits,
     delete_splits,
     generate_splits,
 )
@@ -45,9 +46,10 @@ def generate_random_tree(n_labels, only_internal_edges=False, p_keep=0.9, btol=1
     n_labels : int
         Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
     only_internal_edges : bool
-        Phylogenetic trees have two additional constraints:
-        - They do not have external edges (i.e., no singleton splits; only_internal_edges=True)
-        - (optional) There is a root node.
+        Phylogenetic trees do not usually have external (pendant) edges.
+        This means there will be no singleton splits; only_internal_edges=True.
+        TODO: There should be no nodes (beside the optional root) with degree two.
+        This will require non-trivial logic to identify and remove degree-2 nodes from the splits.
     p_keep : float between 0 and 1
         The probability that a sampled edge is kept and not deleted randomly.
         To be precise, it is not exactly the probability, as some edges cannot be
@@ -60,14 +62,9 @@ def generate_random_tree(n_labels, only_internal_edges=False, p_keep=0.9, btol=1
     labels = list(range(n_labels))
 
     initial_splits = generate_splits(labels)
-    splits = delete_splits(initial_splits, labels, p_keep, check=False)
-
     if only_internal_edges:
-        splits[:] = [
-            split
-            for split in splits
-            if not (len(split.part1) == 1 or len(split.part2) == 1)
-        ]
+        initial_splits = delete_singleton_splits(initial_splits)
+    splits = delete_splits(initial_splits, labels, p_keep, check=False)
 
     x = gs.random.uniform(size=(len(splits),), low=0, high=1)
     x = gs.minimum(gs.maximum(btol, x), 1 - btol)
