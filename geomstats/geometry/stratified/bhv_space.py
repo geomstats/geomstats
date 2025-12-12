@@ -46,8 +46,8 @@ def generate_random_tree(n_labels, exclude_pendant_edges=False, p_keep=0.9, btol
     n_labels : int
         Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
     exclude_pendant_edges : bool
-        Phylogenetic trees do not usually have external (pendant) edges.
-        TODO: For phylogenetic trees there should be no nodes (beside the optional root) with degree two.
+        Phylogenetic trees do not usually have lengths on pendant (external) edges (ie, those touching a leaf).
+        Those edges are implicit.
     p_keep : float between 0 and 1
         The probability that a sampled edge is kept and not deleted randomly.
         To be precise, it is not exactly the probability, as some edges cannot be
