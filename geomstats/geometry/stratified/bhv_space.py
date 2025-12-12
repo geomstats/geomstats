@@ -313,7 +313,7 @@ class TreeSpace(PointSet):
         return gs.array([self._belongs_single(point_, atol) for point_ in point])
 
     def random_point(
-        self, n_samples=1, only_internal_edges=False, p_keep=0.9, btol=1e-8
+        self, n_samples=1, exclude_pendant_edges=False, p_keep=0.9, btol=1e-8
     ):
         """Sample a random point in Tree space.
 
@@ -321,10 +321,8 @@ class TreeSpace(PointSet):
         ----------
         n_samples : int
             Number of samples. Defaults to 1.
-        only_internal_edges : bool
-            Phylogenetic trees have two additional constraints:
-            - They do not have external edges (i.e., no singleton splits; only_internal_edges=True)
-            - (optional) There is a root node.
+        exclude_pendant_edges : bool
+            Phylogenetic trees do not usually have lengths on pendant (external) edges (ie, those touching a leaf).
         p_keep : float between 0 and 1
             The probability that a sampled edge is kept and not deleted randomly.
             To be precise, it is not exactly the probability, as some edges cannot be
@@ -342,7 +340,7 @@ class TreeSpace(PointSet):
         trees = [
             generate_random_tree(
                 self.n_labels,
-                only_internal_edges=only_internal_edges,
+                exclude_pendant_edges=exclude_pendant_edges,
                 p_keep=p_keep,
                 btol=btol,
             )
