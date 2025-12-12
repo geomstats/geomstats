@@ -80,7 +80,7 @@ class LimitingCofHuberLossTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTes
     @pytest.mark.random
     def test_limiting_c_huber_loss(self, atol):
         """Test huber limiting case"""
-        X = self.data_generator.random_point(n_points=30)
+        X = self.data_generator.random_point(n_points=50)
 
         huber_mean_0 = self.estimator.fit(X).estimate_.x
         geometric_median = self.estimator_geometric_median.fit(X).estimate_

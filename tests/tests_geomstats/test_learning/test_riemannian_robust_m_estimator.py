@@ -92,7 +92,7 @@ def estimators_huber_extreme_c(request: pytest.FixtureRequest):
 
     space = request.param
     request.cls.estimator = RiemannianRobustMestimator(
-        space, m_estimator='huber', method='default', init_point_method='mean-projection', critical_value=1e-10)
+        space, m_estimator='huber', method='default', init_point_method='mean-projection', critical_value=1e-8)
     request.cls.estimator.set(init_step_size=1e7*5, max_iter=4096, epsilon=1e-16, verbose=True)
     request.cls.estimator_inf = RiemannianRobustMestimator(
         space, m_estimator='huber', method='adaptive', init_point_method='mean-projection', critical_value=1e10)

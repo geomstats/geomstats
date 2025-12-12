@@ -193,6 +193,27 @@ class BaseGradientDescent(abc.ABC):
         self.autograd = autograd
         self.perturbation_epsilon = perturbation_epsilon
 
+    def fun__(self, fun, base):
+        """Set given function as the function with one base point input.
+
+        Parameters
+        ----------
+        function : method
+            An M-estimator like method for gradient descent algorithm.
+            The given method must must have variables (space, points, base)
+              - space : geomstats geometry class, the manifold which data are on.
+              - points : dataset.
+              - base : points for the tangent space where gradient is computed.
+            and optional variables (critical_value, weight)
+              - critical_value : float or array-like,
+                  parameter to manage the impact of outliers.
+              - weight : weight for each data, shape=[points.shape[0],...],
+                  default None.
+        base : Not valid
+
+        """
+        return lambda base: fun(self.points, base, self.weights)
+
     def _set_init_point(self, space, points, init_point_method):
         """Set initial starting point of algorithm."""
         if self.init_point is not None:
@@ -218,6 +239,17 @@ class BaseGradientDescent(abc.ABC):
             raise NotImplementedError("For now only working with autodiff.")
 
         return fun_
+
+    def _handle_hess(self, fun, fun_hess):
+        """Define Hessian for auto gradient(not used)."""
+        if fun_hess is not None or (not self.autograd):
+            fun_hess_ = fun_hess
+            if callable(fun_hess):
+                fun_hess_ = lambda x: fun_hess(gs.from_numpy(x))
+
+            return fun_hess_
+
+        return lambda x: gs.autodiff.hessian(fun)(gs.from_numpy(x))
 
     @abc.abstractmethod
     def minimize(
@@ -282,8 +314,8 @@ class RiemannianAutoGradientDescent(BaseGradientDescent):
         local_minima_gate = 0
 
         var = riemannian_variance(space, points, current_base)
-
-        fun = None if numpy_backend else self._handle_jac(fun, point_ndim=space.point_ndim)
+        
+        fun = '' if numpy_backend else self._handle_jac(fun, point_ndim=space.point_ndim)
 
         losses = [current_loss]
         bases = [current_base]
@@ -307,7 +339,7 @@ class RiemannianAutoGradientDescent(BaseGradientDescent):
                         "NaN gradient value jumping at iteration %d...",
                         current_iter
                     )
-                    lr = 100*self.init_step_size
+                    lr = 10 * self.init_step_size
                     local_minima_gate = 0
                 grad = current_base
             elif (loss >= current_loss) and (i > 0):
@@ -318,7 +350,7 @@ class RiemannianAutoGradientDescent(BaseGradientDescent):
                         "local minima jumping at iteration %d...",
                         current_iter
                     )
-                    lr = 100*self.init_step_size
+                    lr = 10 * self.init_step_size
                     local_minima_gate = 0
             else:
                 lr = self.init_step_size
@@ -425,10 +457,10 @@ class GradientDescent(BaseGradientDescent):
         if weights is None:
             weights = gs.ones((n_points,))
 
-        mean = self._set_init_point(space, points, init_point_method)
-
         if n_points == 1:
             return n_points[0]
+
+        mean = self._set_init_point(space, points, init_point_method)
 
         current_iter = 0
         sq_dist = 0.0
@@ -468,7 +500,7 @@ class GradientDescent(BaseGradientDescent):
                     f'base:{[_rounding_array(ee, 3) for ee in mean]}, \
                     gradient:{[_rounding_array(ee, 3) for ee in gradient_value]}, \
                     step size: {step_size:.5f}, \
-                    current loss(grad norm): {tangent_norm:.2f}(loss:{loss_v:.5f}]'
+                    current loss(grad norm): {loss_v:.5f}(loss:{tangent_norm:.5f}]'
                 )
 
             continuing_condition = gs.less_equal(self.epsilon * space.dim, tangent_norm)
@@ -483,18 +515,18 @@ class GradientDescent(BaseGradientDescent):
             mean = estimate_next
             current_iter += 1
 
-            if tangent_norm < tangent_norm_old:
+            if tangent_norm <= tangent_norm_old:
                 tangent_norm_old = tangent_norm
                 step_size = self.init_step_size
                 local_minima_gate = 0
             elif tangent_norm > tangent_norm_old:
-                step_size = max(0.001, step_size / 2.0)
+                step_size = max(0.001 * self.init_step_size, step_size / 2.0)
                 local_minima_gate += 1
                 if local_minima_gate >= 25:
                     logging.warning(
                         "local minima jumping at iteration %d...", current_iter
                     )
-                    step_size = 100 * self.init_step_size
+                    step_size = 10 * self.init_step_size
                     local_minima_gate = 0
 
         if current_iter == self.max_iter:
@@ -505,10 +537,10 @@ class GradientDescent(BaseGradientDescent):
 
         if self.verbose:
             logging.info(
-                "n_iter: %d, final variance: %e, final dist: %e, gradient norm: %e",
+                "n_iter: %d, final variance: %e, final loss: %e, gradient norm: %e",
                 current_iter,
                 var,
-                gs.sqrt(sq_dist),
+                loss_v,
                 tangent_norm,
             )
 
@@ -558,24 +590,25 @@ class AdaptiveGradientDescent(BaseGradientDescent):
         """
         n_points = gs.shape(points)[0]
 
-        tau_max = 1e6
+        tau_max = 1e6 * self.init_step_size if self.init_step_size>1e3 else 1e6
         tau_mul_up = 1.6511111
-        tau_min = 1e-6
+        tau_min = 1e-6 * self.init_step_size if self.init_step_size>1e3 else 1e-6
         tau_mul_down = 0.1
-
-        current_mean = self._set_init_point(space, points, init_point_method)
-        var = 0
 
         if n_points == 1:
             return points[0]
+
+        current_mean = self._set_init_point(space, points, init_point_method)
+        var = 0
 
         if weights is None:
             weights = gs.ones((n_points,))
 
         tau = self.init_step_size
         current_iter = 0
-
-        loss_v, current_gradient_value = loss_grad_fun(
+        stop_signal = False
+        
+        current_loss_v, current_gradient_value = loss_grad_fun(
             points=points,
             base=current_mean,
             critical_value=critical_value,
@@ -592,11 +625,10 @@ class AdaptiveGradientDescent(BaseGradientDescent):
         bases = []
         tic = time.time()
         while (
-            sq_norm_current_gradient_value > self.epsilon**2 and
-            current_iter < self.max_iter
+            (not stop_signal) and (current_iter < self.max_iter)
         ):
             current_iter += 1
-            losses.append(gs.sqrt(sq_norm_current_gradient_value))
+            losses.append(current_loss_v)
             bases.append(current_mean)
 
             shooting_vector = -1 * tau * current_gradient_value
@@ -604,7 +636,7 @@ class AdaptiveGradientDescent(BaseGradientDescent):
                 tangent_vec=shooting_vector, base_point=current_mean
             )
 
-            loss_v, next_gradient_value = loss_grad_fun(
+            next_loss_v, next_gradient_value = loss_grad_fun(
                 points=points,
                 base=next_mean,
                 critical_value=critical_value,
@@ -617,11 +649,20 @@ class AdaptiveGradientDescent(BaseGradientDescent):
                 next_mean
             )
 
-            if sq_norm_next_gradient_value < sq_norm_current_gradient_value:
-                current_mean = next_mean
-                current_gradient_value = next_gradient_value
-                sq_norm_current_gradient_value = sq_norm_next_gradient_value
-                tau = min(tau_max, tau_mul_up * tau)
+            if next_loss_v <= current_loss_v:
+                if current_loss_v - next_loss_v <= self.epsilon:
+                    stop_signal = True
+                    losses.append(next_loss_v)
+                    bases.append(next_mean)
+                    break
+                else:
+                    current_mean = next_mean
+                    current_gradient_value = next_gradient_value
+                    current_loss_v = next_loss_v
+                    sq_norm_current_gradient_value = sq_norm_next_gradient_value
+                    tau = min(tau_max, tau_mul_up * tau)
+            elif abs(next_loss_v - current_loss_v) < 10*self.epsilon:
+                tau = max(tau_min, tau_mul_down * tau)
             else:
                 tau = max(tau_min, tau_mul_down * tau)
 
@@ -635,7 +676,7 @@ class AdaptiveGradientDescent(BaseGradientDescent):
                     f'gradient:{[_rounding_array(ee, 3) for ee in current_gradient_value]}, ' +
                     f'step size: {tau:.5f}, ' +
                     f'current loss(grad norm): {sq_norm_current_gradient_value:.2f}' +
-                    f'(loss:{loss_v:.5f}]'
+                    f'(loss:{current_loss_v:.5f}]'
                 )
 
             var = gs.sum(space.metric.squared_dist(points, current_mean))/(n_points-1)
@@ -648,10 +689,10 @@ class AdaptiveGradientDescent(BaseGradientDescent):
 
         if self.verbose:
             logging.info(
-                "n_iter: %d, final variance: %e, final dist: %e, final_step_size: %e",
+                "n_iter: %d, final variance: %e, final loss: %e, final_step_size: %e",
                 current_iter,
                 var,
-                sq_norm_current_gradient_value,
+                current_loss_v,
                 tau,
             )
 
@@ -904,7 +945,14 @@ class RiemannianRobustMestimator(BaseEstimator):
 
         method_name = f"_riemannian_{estimator_name}_loss_grad"
 
-        return getattr(self, method_name)
+        try:
+            return getattr(self, method_name)
+        except AttributeError:
+            valid_estimators = ', '.join(self.valid_m_estimators)
+            raise ValueError(
+                f"Not Supported M-estimator type : {self.m_estimator}, "
+                f"must be in {{{valid_estimators}}}"
+            )
 
     def _set_inputs_of_loss_function(self, points, base, critical_value, weights):
         """Return arguments needed to compute loss, gradient."""
