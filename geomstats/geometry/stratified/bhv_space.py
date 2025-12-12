@@ -31,7 +31,7 @@ from geomstats.geometry.stratified.point_set import (
 from geomstats.geometry.stratified.trees import (
     ForestTopology,
     Split,
-    delete_singleton_splits,
+    delete_pendant_splits,
     delete_splits,
     generate_splits,
 )
@@ -61,7 +61,7 @@ def generate_random_tree(n_labels, exclude_pendant_edges=False, p_keep=0.9, btol
 
     initial_splits = generate_splits(labels)
     if exclude_pendant_edges:
-        initial_splits = delete_singleton_splits(initial_splits)
+        initial_splits = delete_pendant_splits(initial_splits)
     splits = delete_splits(initial_splits, labels, p_keep, check=False)
 
     x = gs.random.uniform(size=(len(splits),), low=0, high=1)
