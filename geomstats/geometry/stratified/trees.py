@@ -106,8 +106,8 @@ def check_if_separated(labels, splits):
     )
 
 
-def delete_singleton_splits(splits):
-    """Delete splits corresponding to external edges from a set of splits.
+def delete_pendant_splits(splits):
+    """Delete splits corresponding to pendant (external) edges from a set of splits.
 
     External edges correspond to splits with one side having length one.
 
