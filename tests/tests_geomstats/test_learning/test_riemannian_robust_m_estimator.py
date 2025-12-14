@@ -152,10 +152,21 @@ def estimators_autograd_result(request: pytest.FixtureRequest):
     """Test autograd quality inputs."""
 
     space, m_estimator = request.param
-    request.cls.estimator = RiemannianRobustMestimator(space, method='autograd', m_estimator=m_estimator, critical_value=1)
-    request.cls.estimator_explicit = RiemannianRobustMestimator(space, method='adaptive', m_estimator=m_estimator, critical_value=1)
-    request.cls.estimator.set(init_step_size=0.25, max_iter=4096, epsilon=1e-7, verbose=True)
-    request.cls.estimator_explicit.set(init_step_size=0.25, max_iter=4096, epsilon=1e-7, verbose=True)
+    request.cls.estimator = RiemannianRobustMestimator(
+        space,
+        method='autograd',
+        m_estimator=m_estimator,
+        critical_value=1,
+        init_point_method='mean-projection'
+    )
+    request.cls.estimator_explicit = RiemannianRobustMestimator(
+        space,
+        method='default',
+        m_estimator=m_estimator,
+        critical_value=1
+    )
+    request.cls.estimator.set(init_step_size=0.25, max_iter=4096, epsilon=1e-8, verbose=True)
+    request.cls.estimator_explicit.set(init_step_size=0.25, max_iter=4096, epsilon=1e-8, verbose=True)
 
 
 @autograd_and_torch_only
