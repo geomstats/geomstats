@@ -297,7 +297,7 @@ class Split:
         """
         p1, p2 = self.part1, self.part2
         o1, o2 = other.part1, other.part2
-        return sum([bool(s) for s in [p1 & o1, p1 & o2, p2 & o1, p2 & o2]]) < 4
+        return sum(bool(s) for s in [p1 & o1, p1 & o2, p2 & o1, p2 & o2]) < 4
 
     def get_part_away_from(self, other):
         """Return the part of this split that is directed away from other split.
@@ -454,8 +454,8 @@ class ForestTopology:
         partition = [tuple(sorted(x)) for x in partition]
         seq = [part[0] for part in partition]
         sort_key = sorted(range(len(seq)), key=seq.__getitem__)
-        self.partition = tuple([partition[key] for key in sort_key])
-        self.split_sets = tuple([tuple(sorted(split_sets[key])) for key in sort_key])
+        self.partition = tuple(partition[key] for key in sort_key)
+        self.split_sets = tuple(tuple(sorted(split_sets[key])) for key in sort_key)
 
         self.where = {s: i for i, s in enumerate(self._flatten(self.split_sets))}
 
