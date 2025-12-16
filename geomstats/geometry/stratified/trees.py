@@ -38,6 +38,7 @@ def generate_splits(labels):
     a label from the labels and add this as a leaf with a split to the existing
     tree by attaching it to a random split, thereby dividing this split into two
     splits and one has to update all the other splits accordingly.
+    TODO: Can we do this in a way that doesn't require delete_pendant_edges after?
 
     Parameters
     ----------
@@ -459,7 +460,7 @@ class ForestTopology:
     """
 
     def __init__(self, partition, split_sets):
-        self._check_init(partition, split_sets)
+        ForestTopology._check_init(partition, split_sets)
 
         self.n_labels = len(set.union(*[set(part) for part in partition]))
         partition = [tuple(sorted(x)) for x in partition]
@@ -503,7 +504,8 @@ class ForestTopology:
             gs.array([len(splits) for splits in self.split_sets]), dtype=int
         )
 
-    def _check_init(self, partition, split_sets):
+    @staticmethod
+    def _check_init(partition, split_sets):
         for split_set in split_sets:
             for split in split_set:
                 if not split:
