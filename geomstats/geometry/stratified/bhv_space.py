@@ -614,8 +614,7 @@ class GTPSolver:
 
             t_ratio = t / (1 - t)
             splits_t = {s: (1 - t) * common_a[s] + t * common_b[s] for s in common_a}
-            print("first splits_t", splits_t)
-            print("supports", supports)
+
             for part, (supp_a, supp_b) in supports.items():
                 index = gs.argmax([t_ratio <= _r for _r in ratios[part] + [np.inf]])
                 splits_t_a = {
@@ -630,21 +629,18 @@ class GTPSolver:
                 }
                 splits_t = {**splits_t, **splits_t_a, **splits_t_b}
 
-                print("index", index)
-                print("splits_t_a", splits_t_a)
-                print("splits_t_b", splits_t_b)
-                print("splits_t", splits_t)
-
             splits_lengths = [
                 (split, length)
                 for split, length in splits_t.items()
                 if length > self.tol
             ]
-            tree_t = Tree(
+
+            if len(splits_lengths) == 0:
+                return Tree((), [], n_labels=self.n_labels)
+            return Tree(
                 splits=[sl[0] for sl in splits_lengths],
                 lengths=[sl[1] for sl in splits_lengths],
             )
-            return tree_t
 
         def geodesic_(t):
             if isinstance(t, (float, int)):
@@ -746,8 +742,6 @@ class GTPSolver:
         common = common | easy_a | easy_b
         common_a = {s: splits_a[s] if s in sp_a else 0 for s in common}
         common_b = {s: splits_b[s] if s in sp_b else 0 for s in common}
-        print(common_a)
-        print(common_b)
         return common_a, common_b, supports
 
     def _cut_tree_at_splits(self, splits, cut_splits):
