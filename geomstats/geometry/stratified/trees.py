@@ -30,7 +30,7 @@ def _pop_random_elem(ls):
     return ls.pop(random_index)
 
 
-def generate_splits(labels):
+def generate_splits(labels, exclude_singletons=False):
     """Generate random maximal set of compatible splits of set ``labels``.
 
     This method works inductively on the number of elements in labels.
@@ -38,12 +38,15 @@ def generate_splits(labels):
     a label from the labels and add this as a leaf with a split to the existing
     tree by attaching it to a random split, thereby dividing this split into two
     splits and one has to update all the other splits accordingly.
-    TODO: Can we do this in a way that doesn't require delete_pendant_edges after?
 
     Parameters
     ----------
     labels : list[int]
         A list of integers, the set of labels that we generate splits for.
+    exclude_singletons : bool
+        If True does not generate singleton splits, which would result in pendant edges.
+        Trees do not have pendant edges. There are 2^(N-1) - N - 1 splits, but maximum N-1 compatible.
+        TODO: Can we do this in a way that doesn't require creating all then deleting?
 
     Returns
     -------
@@ -81,6 +84,13 @@ def generate_splits(labels):
 
         used_labels.append(u)
         splits = updated_splits
+
+    if exclude_singletons:
+        return [
+            split
+            for split in splits
+            if not (len(split.part1) == 1 or len(split.part2) == 1)
+        ]
     return splits
 
 
@@ -105,28 +115,6 @@ def check_if_separated(labels, splits):
             for u, v in itertools.combinations(labels, 2)
         ]
     )
-
-
-def delete_pendant_splits(splits):
-    """Delete splits corresponding to pendant (external) edges from a set of splits.
-
-    External edges correspond to splits with one side having length one.
-
-    Parameters
-    ----------
-    splits : list[Split]
-        A list of splits of the set of labels.
-
-    Returns
-    -------
-    left_over_splits : list[Split]
-        The list of splits that are not deleted.
-    """
-    return [
-        split
-        for split in splits
-        if not (len(split.part1) == 1 or len(split.part2) == 1)
-    ]
 
 
 def delete_splits(splits, labels, p_keep, check=True):
