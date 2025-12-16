@@ -607,6 +607,9 @@ class GTPSolver:
         }
 
         def geodesic_t(t):
+            if (t < 0) or (t > 1):
+                raise ValueError(f"Geodesics only exist for 0<=t<=1. You tried {t}.")
+
             if t == 0.0:
                 return initial_point
             elif t == 1.0:
