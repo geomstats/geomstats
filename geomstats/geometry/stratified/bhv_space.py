@@ -80,13 +80,14 @@ class TreeTopology(ForestTopology):
                 split_sets=(splits,),
             )
         else:
-            self.check_no_pendant_edges(splits)
+            TreeTopology._check_no_pendant_edges(splits)
             super().__init__(
                 partition=(tuple(splits[0].part1.union(splits[0].part2)),),
                 split_sets=(splits,),
             )
 
-    def check_no_pendant_edges(self, splits):
+    @staticmethod
+    def _check_no_pendant_edges(splits):
         """Verify that there are no pendant edges (i.e., singleton splits).
 
         Parameters
@@ -151,7 +152,7 @@ class Tree(Point):
     """
 
     def __init__(self, splits, lengths, n_labels=None):
-        self.check_valid_lengths(lengths, len(splits))
+        Tree._check_valid_lengths(lengths, len(splits))
 
         self.topology = TreeTopology(splits=splits, n_labels=n_labels)
         self.lengths = gs.array(
@@ -208,7 +209,8 @@ class Tree(Point):
 
         return gs.all(gs.abs(self.lengths - point.lengths) < atol)
 
-    def check_valid_lengths(self, lengths, n_splits):
+    @staticmethod
+    def _check_valid_lengths(lengths, n_splits):
         """Verify edge lengths are in (0, infinity).
 
         Parameters
