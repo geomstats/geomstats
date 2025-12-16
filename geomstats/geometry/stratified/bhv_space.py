@@ -221,7 +221,7 @@ class Tree(Point):
         """
         if len(lengths) != n_splits:
             raise ValueError(
-                f"Must have same number of edge lengths as edges. {len(lengths)} != {n_splits}"
+                f"Splits and lengths different size. {len(lengths)} != {n_splits}"
             )
 
         for length in lengths:
@@ -607,7 +607,7 @@ class GTPSolver:
 
             if t == 0.0:
                 return initial_point
-            elif t == 1.0:
+            if t == 1.0:
                 return end_point
 
             t_ratio = t / (1 - t)
@@ -823,7 +823,7 @@ class GTPSolver:
         weights_a = {split: splits_a[split] ** 2 for split in splits_a}
         weights_b = {split: splits_b[split] ** 2 for split in splits_b}
         while 1:
-            new_support_a, new_support_b = tuple(), tuple()
+            new_support_a, new_support_b = (), ()
             for pair_a, pair_b in zip(old_support_a, old_support_b):
                 pair_a_w = {s: weights_a[s] for s in pair_a}
                 pair_b_w = {s: weights_b[s] for s in pair_b}
@@ -838,8 +838,7 @@ class GTPSolver:
                     new_support_b += (d1, d2)
             if len(new_support_a) == len(old_support_a):
                 return new_support_a, new_support_b
-            else:
-                old_support_a, old_support_b = new_support_a, new_support_b
+            old_support_a, old_support_b = new_support_a, new_support_b
 
     @staticmethod
     def _solve_extension_problem(sq_splits_a, sq_splits_b):
