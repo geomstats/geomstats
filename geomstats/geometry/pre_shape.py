@@ -395,8 +395,8 @@ class PreShapeBundle(FiberBundle):
         submersion.
         The components :math:`\nabla_X (A_Y E)` and :math:`A_Y E` are
         computed here for the Kendall shape space at base-point
-        :math:`P = base\_point` for horizontal vector fields fields :math:
-        `X, Y` extending the values :math:`X|_P = horizontal\_vec\_x`,
+        :math:`P = base\_point` for horizontal vector fields :math:`X, Y`
+        extending the values :math:`X|_P = horizontal\_vec\_x`,
         :math:`Y|_P = horizontal\_vec\_y` and a general vector field
         :math:`E` extending :math:`E|_P = tangent\_vec\_e` in a neighborhood
         of the base-point P with covariant derivatives
