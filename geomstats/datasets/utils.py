@@ -196,7 +196,7 @@ def load_leaves():
     beta_param : array-like, shape=[172, 2]
         Beta parameters of the beta distributions fitted to each
         leaf orientation angle sample of 172 species of plants.
-    distrib_type: array-like, shape=[172, ]
+    distrib_type: array-like, shape=[172,]
         Leaf orientation angle distribution type for each of the 172 species.
     """
     data = pd.read_csv(LEAVES_PATH, sep=";")

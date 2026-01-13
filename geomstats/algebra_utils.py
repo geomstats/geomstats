@@ -213,7 +213,7 @@ def rotate_points(points, end_point):
     ----------
     points : array-like, shape=[..., n]
         Points to rotate.
-    end_point : array-like, shape=[n, ]
+    end_point : array-like, shape=[n,]
         Point to parametrise the rotation.
 
     Returns
