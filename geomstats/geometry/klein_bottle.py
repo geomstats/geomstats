@@ -106,7 +106,7 @@ class KleinBottle(Manifold):
         return gs.zeros(shape, dtype=bool)
 
     def belongs(self, point, atol=gs.atol):
-        """Evaluate if the point belongs to the set [0,1]^2.
+        r"""Evaluate if the point belongs to the set :math:`[0,1]^2`.
 
         Parameters
         ----------
@@ -135,11 +135,12 @@ class KleinBottle(Manifold):
 
         Parameters
         ----------
-        point_a: array-like, shape=[..., 2]
+        point_a : array-like, shape=[..., 2]
             Representation of point on Klein Bottle
-        point_b: array-like, shape=[..., 2]
+        point_b : array-like, shape=[..., 2]
             Representation of point on Klein Bottle
-        atol: Absolute tolerance to test for belonging to \mathbb Z.
+        atol : float
+            Absolute tolerance to test for belonging to :math:`\mathbb Z`.
 
         Returns
         -------
@@ -210,17 +211,19 @@ class KleinBottle(Manifold):
 
         Convert from the intrinsic coordinates in the Klein bottle (2 parameters),
         to the extrinsic coordinates in Euclidean space (4 parameters).
-        For intrinsic parameters (\theta,v) the extrinsic Euclidean parametrization is
+        For intrinsic parameters :math:`(\theta,v)` the extrinsic Euclidean
+        parametrization is
         [https://en.wikipedia.org/wiki/Klein_bottle#4-D_non-intersecting]:
 
-        x = R \left(cos(\theta/2)cos(v) - sin(\theta/2)sin(2v)\right)
-        y = R \left(sin(\theta/2)cos(v) + cos(\theta/2)sin(2v)\right)
-        z = P cos(\theta)(1+\epsilon sin(v))
-        w = P sin(\theta)(1+\epsilon sin(v))
+        .. math::
+            x = R \left(cos(\theta/2)cos(v) - sin(\theta/2)sin(2v)\right) \\
+            y = R \left(sin(\theta/2)cos(v) + cos(\theta/2)sin(2v)\right) \\
+            z = P cos(\theta)(1+\epsilon sin(v)) \\
+            w = P sin(\theta)(1+\epsilon sin(v))
 
-        for 0\leq\theta<2\pi and 0\leq v<2\pi. P and R are constants to determine
-        the aspect ratio.
-        ε is any small constant .
+        for :math:`0\leq\theta<2\pi` and :math:`0\leq v<2\pi`.
+        :math:`P` and :math:`R` are constants to determine the aspect ratio.
+        ε is any small constant.
 
         Parameters
         ----------
@@ -248,12 +251,12 @@ class KleinBottle(Manifold):
 
     @staticmethod
     def to_bottle_coords(point):
-        r"""Convert point to coordinates in R^3 parametrizing the Klein bottle.
+        r"""Convert point to coordinates in :math:`R^3` parametrizing the Klein bottle.
 
         Convert from the intrinsic coordinates in the Klein bottle (2 parameters),
         to the coordinates of the Klein bottle parametrization in 3d Euclidean space
         (3 parameters).
-        For intrinsic parameters (\theta,v) the Klein bottle parametrization is
+        For intrinsic parameters :math:`(\theta,v)` the Klein bottle parametrization is
         [https://en.wikipedia.org/wiki/Klein_bottle#Bottle_shape]
 
         Parameters
@@ -319,20 +322,21 @@ class KleinBottle(Manifold):
 
     @staticmethod
     def to_bagel_coords(point, radius=5.0):
-        r"""Convert point to coordinates in R^3 parametrizing the Klein bagel.
+        r"""Convert point to coordinates in :math:`R^3` parametrizing the Klein bagel.
 
         Convert from the intrinsic coordinates in the Klein bottle (2 parameters),
         to the coordinates of the Klein bagel parametrization in 3d Euclidean space
         (3 parameters).
-        For intrinsic parameters (\theta,v) the Klein bagel parametrization is
+        For intrinsic parameters :math:`(\theta,v)` the Klein bagel parametrization is
         [https://en.wikipedia.org/wiki/Klein_bottle#The_figure_8_immersion]:
 
-        x = \left(r + cos(\theta/2)sin(v) - sin(\theta/2)sin(2v)\right)cos(theta)
-        y = \left(r + cos(\theta/2)sin(v) - sin(\theta/2)sin(2v)\right)sin(theta)
-        z = sin(\theta/2)sin(v) + cos(\theta/2)sin(2v)
+        .. math::
+            x = \left(r + cos(\theta/2)sin(v) - sin(\theta/2)sin(2v)\right)cos(theta) \\
+            y = \left(r + cos(\theta/2)sin(v) - sin(\theta/2)sin(2v)\right)sin(theta) \\
+            z = sin(\theta/2)sin(v) + cos(\theta/2)sin(2v)
 
-        for 0\leq\theta<2\pi and 0\leq v<2\pi. r is a constant to determine
-        the aspect ratio.
+        for :math:`0\leq\theta<2\pi` and :math:`0\leq v<2\pi`.
+        :math:`r` is a constant to determine the aspect ratio.
 
         Parameters
         ----------
