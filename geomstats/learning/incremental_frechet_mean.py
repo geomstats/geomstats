@@ -18,7 +18,7 @@ class IncrementalFrechetMean(BaseEstimator):
         m_{k-1}\text{ and } X_{k} \text{ then }
         m_{k} := \gamma(1/k) \,\, \forall  2 \leq k \leq N
 
-    Asymptotic convergence to population frechet mean is guranteed for
+    Asymptotic convergence to population frechet mean is guaranteed for
     simply connected, complete and non-positively curved Riemannian manifolds.
     It is important to note that estimator obtained by such iterative fashion
     need not necessarily be solution to the following optimization problem.
@@ -26,8 +26,8 @@ class IncrementalFrechetMean(BaseEstimator):
     .. math::
         \max_{q \in M} \sum_{i=1}^{N} d(q, X_{i})^2
 
-    where d is the riemannian metric. Also, Estimator is not permutation
-    invariant , i.e.,the estimate might depend on the order in which
+    where :math:`d` is the riemannian metric. Also, Estimator is not permutation
+    invariant, i.e., the estimate might depend on the order in which
     incremental updates are performed.
 
     Parameters
