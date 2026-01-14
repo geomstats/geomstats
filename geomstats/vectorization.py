@@ -5,6 +5,8 @@ This abstracts the backend type.
 
 import math
 
+import numpy as np
+
 import geomstats.backend as gs
 
 
@@ -107,7 +109,8 @@ def repeat_point(point, n_reps=2, expand=False):
     if not expand and n_reps == 1:
         return gs.copy(point)
 
-    return gs.repeat(gs.expand_dims(point, 0), n_reps, axis=0)
+    repeated_points = gs.repeat(gs.expand_dims(point, 0), n_reps, axis=0)
+    return repeated_points if isinstance(point, np.ndarray) else list(repeated_points)
 
 
 def _is_not_none(value):
