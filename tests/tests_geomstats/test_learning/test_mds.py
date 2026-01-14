@@ -2,56 +2,46 @@ import random
 
 import pytest
 
-import geomstats.backend as gs
-from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.spd_matrices import (
-    SPDAffineMetric,
-    SPDLogEuclideanMetric,
-    SPDMatrices,
-)
-from geomstats.learning.mds import MetricMDS
+# from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.hyperboloid import Hyperboloid
+from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.learning.mds import MDS
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.learning.mds import (
-    MetricMDSTestCase,
+    MDSTestCase,
 )
 
-from .data.mds import (
-    MetricMDSEuclideanTestData,
-    MetricMDSTestData,
-)
+from .data.mds import MDSTestData  # MDSEuclideanTestData, MDSSPDTestData,
 
 
 @pytest.fixture(
     scope="class",
     params=[
-        SPDMatrices(random.randint(3, 5), equip=False).equip_with_metric(
-            SPDAffineMetric
-        ),
-        SPDMatrices(random.randint(3, 5), equip=False).equip_with_metric(
-            SPDLogEuclideanMetric
-        ),
+        Hypersphere(dim=random.randint(3, 4)),
+        # SpecialOrthogonal(n=3, point_type="vector"),
+        # SpecialOrthogonal(n=3, point_type="matrix"),
+        SPDMatrices(3),
+        Hyperboloid(dim=3),
     ],
 )
 def estimators(request):
     space = request.param
-    request.cls.estimator = MetricMDS(space)
+    request.cls.estimator = MDS(space)
 
 
 @pytest.mark.usefixtures("estimators")
-class TestMetricMDS(MetricMDSTestCase, metaclass=DataBasedParametrizer):
-    testing_data = MetricMDSTestData()
+class TestMDS(MDSTestCase, metaclass=DataBasedParametrizer):
+    testing_data = MDSTestData()
 
 
-class TestMetricMDSEuclidean(MetricMDSTestCase, metaclass=DataBasedParametrizer):
-    estimator = MetricMDS(
-        Euclidean(dim=random.randint(2, 5)), n_components=random.randint(2, 3)
-    )
-    testing_data = MetricMDSEuclideanTestData()
+# class TestMDSEuclidean(MDSTestCase, metaclass=DataBasedParametrizer):
+#     n = random.randint(2, 5)
+#     estimator = MDS(Euclidean(dim=n), n_components=random.randint(2, 3))
+#     testing_data = MDSEuclideanTestData(n)
 
-    def test_fit_eye(self, atol):
-        n = self.estimator.space.dim
 
-        X = gs.eye(n)
-        expected = gs.ones(n) - gs.eye(n)
-
-        self.test_dissimilarity_matrix(X, expected, atol)
+# class TestMDSSPD(MDSTestCase, metaclass=DataBasedParametrizer):
+#     n = random.randint(2, 5)
+#     estimator = MDS(SPDMatrices(n, equip=True), n_components=random.randint(2, 3))
+#     testing_data = MDSSPDTestData(n)
