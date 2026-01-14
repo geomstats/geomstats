@@ -5,28 +5,28 @@ from sklearn.manifold import MDS as _MDS
 import geomstats.backend as gs
 
 
-def pairwise_dists(points, space):
+def pairwise_dists(space, points):
     """Compute the pairwise distance between points.
 
     Parameters
     ----------
+    space : Manifold or PointSet
     points : array-like, shape=[n_samples, dim]
         Set of points in the manifold.
-    space : Manifold or PointSet
 
     Returns
     -------
-    pairwise_dists : array-like, shape=[n_samples, n_samples]
+    pairwise_dist_matrix : array-like, shape=[n_samples, n_samples]
         Pairwise distance matrix between all the points.
     """
     n_samples = len(points)
 
-    pairwise_dists = gs.zeros((n_samples, n_samples))
-    for i in range(n_samples):
+    pairwise_dist_matrix = gs.zeros((n_samples, n_samples))
+    for i in range(n_samples - 1):
         dists = space.metric.dist(points[i], points[i + 1 :])
-        pairwise_dists[i, i + 1 :] = dists
-        pairwise_dists[i + 1 :, i] = dists
-    return pairwise_dists
+        pairwise_dist_matrix[i, i + 1 :] = dists
+        pairwise_dist_matrix[i + 1 :, i] = dists
+    return pairwise_dist_matrix
 
 
 class MDS(_MDS):
@@ -112,7 +112,7 @@ class MDS(_MDS):
         X_new : array-like, shape=[n_samples, n_components]
             X transformed in the new space.
         """
-        dissimilarity_matrix = pairwise_dists(X, self.space)
+        dissimilarity_matrix = pairwise_dists(self.space, X)
         self.embedding_ = gs.from_numpy(super().fit_transform(dissimilarity_matrix))
         self.dissimilarity_matrix_ = gs.from_numpy(dissimilarity_matrix)
         return self.embedding_

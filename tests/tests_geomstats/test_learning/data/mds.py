@@ -1,56 +1,36 @@
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 from ._base import BaseEstimatorTestData
 
 
-class MDSTestData(BaseEstimatorTestData):
-    N_SAMPLES = 4
+class PairwiseDistsTestData(BaseEstimatorTestData):
+    def dists_among_selves_test_data(self):
+        return self.generate_random_data()
 
-    def dissimilarity_against_self_test_data(self):
+    def one_point_test_data(self):
         return self.generate_random_data()
 
 
-class MDSEuclideanTestData(TestData):
-    def __init__(self, n):
+class EyePairwiseDistsTestData(BaseEstimatorTestData):
+    def __init__(self, dim, n):
+        self.dim = dim
         self.n = n
         super().__init__()
 
-    def dissimilarity_matrix_test_data(self):
+    def euclidean_eye_test_data(self):
         data = [
             dict(
-                X=gs.eye(self.n), expected=(2**0.5) * (gs.ones(self.n) - gs.eye(self.n))
-            ),
-            dict(
-                X=2 * gs.eye(self.n),
-                expected=(2**0.5) * (gs.ones(self.n) - gs.eye(self.n)),
-            ),
-        ]
-        return self.generate_tests(data)
-
-    def dissimilarity_matrix2_test_data(self):
-        data = [
-            dict(
-                X=gs.eye(self.n), expected=(2**0.5) * (gs.ones(self.n) - gs.eye(self.n))
-            ),
-            dict(
-                X=2 * gs.eye(self.n),
-                expected=(2**0.5) * (gs.ones(self.n) - gs.eye(self.n)),
-            ),
+                points=i * gs.eye(self.dim),
+                expected=((2 * (i**2)) ** 0.5) * (gs.ones(self.dim) - gs.eye(self.dim)),
+            )
+            for i in range(1, self.n + 1)
         ]
         return self.generate_tests(data)
 
 
-class MDSSPDTestData(TestData):
-    def __init__(self, n):
-        self.n = n
-        super().__init__()
+class MDSTestData(BaseEstimatorTestData):
+    def minimal_fit_test_data(self):
+        return self.generate_random_data()
 
-    def dissimilarity_matrix_test_data(self):
-        data = [
-            dict(
-                X=gs.array([gs.eye(self.n)] * self.n),
-                expected=(gs.zeros((self.n, self.n))),
-            ),
-        ]
-        return self.generate_tests(data)
+    def minimal_fit_transform_test_data(self):
+        return self.generate_random_data()
