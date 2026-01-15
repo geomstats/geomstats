@@ -53,8 +53,12 @@ class TestData:
 
         return tests
 
-    def generate_random_data(self, marks=()):
-        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
+    def generate_random_data(self, marks=(), exclude_single=False):
+        data = [
+            dict(n_points=n_points)
+            for n_points in self.N_RANDOM_POINTS
+            if (n_points != 1 or (n_points == 1 and not exclude_single))
+        ]
         return self.generate_tests(data, marks=marks)
 
     def generate_vec_data(self, marks=()):

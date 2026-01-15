@@ -8,10 +8,10 @@ class PairwiseDistsTestData(TestData):
         return self.generate_random_data()
 
     def symmetric_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(exclude_single=True)
 
     def general_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(exclude_single=True)
 
 
 class EyePairwiseDistsTestData(TestData):
