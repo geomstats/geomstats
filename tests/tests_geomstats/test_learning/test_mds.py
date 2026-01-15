@@ -2,6 +2,7 @@ import random
 
 import pytest
 
+import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
@@ -23,14 +24,18 @@ from .data.mds import (
 
 
 def _get_spaces():
-    return [
+    spaces = [
         Hypersphere(dim=random.randint(3, 4)),
         SpecialOrthogonal(n=3, point_type="vector"),
         SpecialOrthogonal(n=3, point_type="matrix"),
         SPDMatrices(3),
         Hyperboloid(dim=3),
-        TreeSpace(n_labels=random.randint(5, 8)),
     ]
+
+    if not gs.__name__.endswith("pytorch"):
+        spaces.append(TreeSpace(n_labels=random.randint(5, 8)))
+
+    return spaces
 
 
 @pytest.fixture(
