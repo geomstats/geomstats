@@ -1,7 +1,7 @@
-from ._base import BaseEstimatorTestData
+from ._base import BaseEstimatorTestData, TestData
 
 
-class PairwiseDistsTestData(BaseEstimatorTestData):
+class PairwiseDistsTestData(TestData):
     def dists_among_selves_test_data(self):
         return self.generate_random_data()
 
