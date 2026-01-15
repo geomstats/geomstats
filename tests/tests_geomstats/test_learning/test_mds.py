@@ -22,16 +22,20 @@ from .data.mds import (
 )
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
+def _get_spaces():
+    return [
         Hypersphere(dim=random.randint(3, 4)),
         SpecialOrthogonal(n=3, point_type="vector"),
         SpecialOrthogonal(n=3, point_type="matrix"),
         SPDMatrices(3),
         Hyperboloid(dim=3),
         TreeSpace(n_labels=random.randint(5, 8)),
-    ],
+    ]
+
+
+@pytest.fixture(
+    scope="class",
+    params=_get_spaces(),
 )
 def spaces(request):
     space = request.param
@@ -40,14 +44,7 @@ def spaces(request):
 
 @pytest.fixture(
     scope="class",
-    params=[
-        Hypersphere(dim=random.randint(3, 4)),
-        SpecialOrthogonal(n=3, point_type="vector"),
-        SpecialOrthogonal(n=3, point_type="matrix"),
-        SPDMatrices(3),
-        Hyperboloid(dim=3),
-        TreeSpace(n_labels=random.randint(5, 8)),
-    ],
+    params=_get_spaces(),
 )
 def estimators(request):
     space = request.param
