@@ -10,7 +10,7 @@ class PairwiseDistsTestData(TestData):
     def symmetric_test_data(self):
         return self.generate_random_data(exclude_single=True)
 
-    def general_test_data(self):
+    def matrix_indices_test_data(self):
         return self.generate_random_data(exclude_single=True)
 
 

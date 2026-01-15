@@ -31,7 +31,7 @@ class PairwiseDistsTestCase(TestCase):
         self.assertAllClose(pairwise_dist_matrix, pairwise_dist_matrix.T, atol=atol)
 
     @pytest.mark.random
-    def test_general(self, n_points, atol):
+    def test_matrix_indices(self, n_points, atol):
         points = self.space.random_point(n_samples=n_points)
         pairwise_dist_matrix = pairwise_dists(self.space, points)
 
