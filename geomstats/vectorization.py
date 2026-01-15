@@ -6,6 +6,7 @@ This abstracts the backend type.
 import math
 
 import geomstats.backend as gs
+from geomstats.geometry.stratified.point_set import Point
 
 
 def _get_max_ndim_point(*point):
@@ -104,7 +105,7 @@ def repeat_point(point, n_reps=2, expand=False):
     rep_point : array-like or list[Point]
         point repeated n_reps times.
     """
-    if not gs.is_array(point):
+    if isinstance(point, Point):
         if not expand and n_reps == 1:
             return point
 
