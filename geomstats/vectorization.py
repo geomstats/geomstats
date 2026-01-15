@@ -92,7 +92,7 @@ def repeat_point(point, n_reps=2, expand=False):
 
     Parameters
     ----------
-    point : array-like or point
+    point : array-like or Point
         Point of a space.
     n_reps : int
         Number of times the point should be repeated.
@@ -101,7 +101,7 @@ def repeat_point(point, n_reps=2, expand=False):
 
     Returns
     -------
-    rep_point : array-like or list of points
+    rep_point : array-like or list[Point]
         point repeated n_reps times.
     """
     if not gs.is_array(point):
