@@ -126,7 +126,7 @@ class GaussianMixtureModel:
 
         Returns
         -------
-        pdf : array-like, shape=[n_samples, n_gaussians,]
+        pdf : array-like, shape=[n_samples, n_gaussians]
             Probability density function computed at each data
             sample and for each component of the GMM.
         """
@@ -222,7 +222,7 @@ class GaussianMixtureModel:
 
         Returns
         -------
-        weighted_pdf : array-like, shape=[n_precision, n_gaussians,]
+        weighted_pdf : array-like, shape=[n_precision, n_gaussians]
             Probability density function computed for each point of
             the mesh data, for each component of the GMM.
         """
@@ -340,7 +340,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
         Parameters
         ----------
-        posterior_probabilities : array-like, shape=[n_samples, n_gaussians,]
+        posterior_probabilities : array-like, shape=[n_samples, n_gaussians]
             Probability of a given sample to belong to a component
             of the GMM, computed for all components.
         """
@@ -369,10 +369,10 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
         Parameters
         ----------
-        data : array-like, shape=[n_samples, n_features,]
+        data : array-like, shape=[n_samples, n_features]
             Training data, where n_samples is the number of samples and
             n_features is the number of features.
-        posterior_probabilities : array-like, shape=[n_samples, n_gaussians,]
+        posterior_probabilities : array-like, shape=[n_samples, n_gaussians]
             Probability of a given sample to belong to a component
             of the GMM, computed for all components.
         """
@@ -443,10 +443,10 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
         Parameters
         ----------
-        data : array-like, shape=[n_samples, n_features,]
+        data : array-like, shape=[n_samples, n_features]
             Training data, where n_samples is the number of samples and
             n_features is the number of features.
-        posterior_probabilities : array-like, shape=[n_samples, n_gaussians,]
+        posterior_probabilities : array-like, shape=[n_samples, n_gaussians]
             Probability of a given sample to belong to a component
             of the GMM, computed for all components.
         """

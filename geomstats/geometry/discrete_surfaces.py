@@ -626,7 +626,7 @@ class ElasticMetric(RiemannianMetric):
         ginvdgb : array-like, shape=[..., n_faces, 2, 2]
             Product of the inverse of the surface metric matrices
             with their differential at b.
-        areas_bp : array-like, shape=[..., n_faces,]
+        areas_bp : array-like, shape=[..., n_faces]
             Areas of the faces of the surface given by the base point.
 
         Returns
@@ -660,7 +660,7 @@ class ElasticMetric(RiemannianMetric):
         ginvdgb : array-like, shape=[..., n_faces, 2, 2]
             Product of the inverse of the surface metric matrices
             with their differential at b.
-        areas_bp : array-like, shape=[..., n_faces,]
+        areas_bp : array-like, shape=[..., n_faces]
             Areas of the faces of the surface given by the base point.
 
         Returns
@@ -695,7 +695,7 @@ class ElasticMetric(RiemannianMetric):
             Point b corresponding to tangent vec b.
         normals_bp : array-like, shape=[..., n_faces, 3]
             Normals of each face of the surface given by the base point.
-        areas_bp : array-like, shape=[..., n_faces,]
+        areas_bp : array-like, shape=[..., n_faces]
             Areas of the faces of the surface given by the base point.
 
         Returns
@@ -733,7 +733,7 @@ class ElasticMetric(RiemannianMetric):
             One forms at point b corresponding to tangent vec b.
         one_forms_bp : array-like, shape=[..., 2, 3]
             One forms at base point.
-        areas_bp : array-like, shape=[..., n_faces,]
+        areas_bp : array-like, shape=[..., n_faces]
             Areas of the faces of the surface given by the base point.
         ginv_bp : array-like, shape=[..., n_faces, 2, 2]
             Inverses of the surface metric matrices at each face.

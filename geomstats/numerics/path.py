@@ -42,7 +42,7 @@ class UniformlySampledPathEnergy:
 
         Returns
         -------
-        energy : array-like, shape=[..., n_times - 1,]
+        energy : array-like, shape=[..., n_times - 1]
             Stepwise path energy.
         """
         time_axis = -(self._space.point_ndim + 1)
@@ -92,7 +92,7 @@ class UniformlySampledDiscretePath:
 
         Parameters
         ----------
-        t : array-like, shape=[n_time]
+        t : array-like, shape=[n_time,]
             Interpolation time.
 
         Returns

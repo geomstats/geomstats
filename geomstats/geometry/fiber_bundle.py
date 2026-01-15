@@ -574,7 +574,7 @@ class FiberBundle:
         given in argument :math:`X|_P = horizontal\_vec\_x`,
         :math:`Y|_P = horizontal\_vec\_y` and a general vector field
         :math:`E` extending :math:`E|_x = tangent\_vec\_e`
-        in a neighborhood of x with covariant derivatives
+        in a neighborhood of :math:`x` with covariant derivatives
         :math:`\nabla_X Y |_P = nabla_x y` and
         :math:`\nabla_X E |_P = nabla_x e`.
 

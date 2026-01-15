@@ -452,7 +452,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         Returns
         -------
         inner_prod : array-like, shape=[...,]
-            Frobenius inner-product of tangent_vec_a and tangent_vec_b.
+            Frobenius inner-product of `tangent_vec_a` and `tangent_vec_b`.
         """
         inner_prod = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
         return repeat_out(
@@ -527,7 +527,7 @@ class GrassmannianBundle(FiberBundle):
         Parameters
         ----------
         tangent_vec :  array-like, shape=[..., n, p]
-            Tangent vector to the total space at ``base_point``.
+            Tangent vector to the total space at `base_point`.
         base_point: array-like, shape=[..., n, p]
             Point of the total space.
 

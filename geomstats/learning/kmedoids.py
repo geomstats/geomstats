@@ -131,7 +131,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, dim,]
+        X : array-like, shape=[n_samples, dim]
             Training data, where n_samples is the number of samples and
             dim is the number of dimensions.
 

@@ -28,11 +28,11 @@ def _sphere_immersion(point):
 
     Parameters
     ----------
-    point : array-like, shape=[2]
+    point : array-like, shape=[2,]
 
     Returns
     -------
-    immersed_point : array-like, shape=[3]
+    immersed_point : array-like, shape=[3,]
     """
     radius = 4.0
     theta, phi = point
@@ -49,7 +49,7 @@ def _first_component_of_sphere_immersion(point):
 
     Parameters
     ----------
-    point : array-like, shape=[2]
+    point : array-like, shape=[2,]
     """
     radius = 4.0
     theta, phi = point
@@ -154,6 +154,7 @@ class TestAutodiffOld(TestCase):
 
         The jacobian of a function f going from an input space A to an output
         space B is a matrix of shape (dim_B, dim_A).
+
         - The columns index the derivatives wrt. the coordinates of the input space A.
         - The rows index the coordinates of the output space B.
         """
