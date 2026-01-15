@@ -5,8 +5,6 @@ This abstracts the backend type.
 
 import math
 
-import numpy as np
-
 import geomstats.backend as gs
 
 
@@ -94,7 +92,7 @@ def repeat_point(point, n_reps=2, expand=False):
 
     Parameters
     ----------
-    point : array-like
+    point : array-like or point
         Point of a space.
     n_reps : int
         Number of times the point should be repeated.
@@ -103,14 +101,19 @@ def repeat_point(point, n_reps=2, expand=False):
 
     Returns
     -------
-    rep_point : array-like
+    rep_point : array-like or list of points
         point repeated n_reps times.
     """
+    if not gs.is_array(point):
+        if not expand and n_reps == 1:
+            return point
+
+        return [point] * n_reps
+
     if not expand and n_reps == 1:
         return gs.copy(point)
 
-    repeated_points = gs.repeat(gs.expand_dims(point, 0), n_reps, axis=0)
-    return repeated_points if isinstance(point, np.ndarray) else list(repeated_points)
+    return gs.repeat(gs.expand_dims(point, 0), n_reps, axis=0)
 
 
 def _is_not_none(value):
