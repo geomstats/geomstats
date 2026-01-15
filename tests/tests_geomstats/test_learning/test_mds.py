@@ -2,6 +2,7 @@ import random
 
 import pytest
 
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
@@ -15,6 +16,7 @@ from geomstats.test_cases.learning.mds import (
 )
 
 from .data.mds import (
+    EyePairwiseDistsTestData,
     MDSTestData,
     PairwiseDistsTestData,
 )
@@ -55,6 +57,14 @@ def estimators(request):
 @pytest.mark.usefixtures("spaces")
 class TestPairwiseDists(PairwiseDistsTestCase, metaclass=DataBasedParametrizer):
     testing_data = PairwiseDistsTestData()
+
+
+class TestEyePairwiseDists(PairwiseDistsTestCase, metaclass=DataBasedParametrizer):
+    _dim = random.randint(2, 5)
+    _point_mag = random.randint(1, 5)
+
+    space = Euclidean(dim=_dim)
+    testing_data = EyePairwiseDistsTestData(dim=_dim, n=_point_mag)
 
 
 @pytest.mark.usefixtures("estimators")

@@ -9,20 +9,20 @@ from geomstats.vectorization import repeat_point
 
 
 class PairwiseDistsTestCase(TestCase):
+    def test_dists(self, points, expected, atol):
+        pairwise_dist_matrix = pairwise_dists(self.space, points)
+        self.assertAllClose(
+            pairwise_dist_matrix,
+            expected,
+            atol=atol,
+        )
+
     @pytest.mark.random
     def test_dists_among_selves(self, n_points, atol):
         points = repeat_point(
             self.space.random_point(n_samples=1), n_points, expand=True
         )
-        print("F", n_points, points)
-        pairwise_dist_matrix = pairwise_dists(self.space, points)
-        self.assertAllClose(
-            pairwise_dist_matrix, gs.zeros((n_points, n_points)), atol=atol
-        )
-
-    @pytest.mark.random
-    def test_one_point(self, atol):
-        self.test_dists_among_selves(n_samples=1, atol=atol)
+        self.test_dists(points, gs.zeros((n_points, n_points)), atol=atol)
 
     @pytest.mark.random
     def test_symmetric(self, n_points, atol):
