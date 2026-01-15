@@ -23,11 +23,25 @@ class PairwiseDistsTestCase(TestCase):
     def test_one_point(self, atol):
         self.test_dists_among_selves(n_samples=1, atol=atol)
 
-
-class EyePairwiseDistsTestCase(TestCase):
-    def test_euclidean_eye(self, points, expected, atol):
+    @pytest.mark.random
+    def test_symmetric(self, n_samples, atol):
+        points = self.space.random_point(n_samples=n_samples)
         pairwise_dist_matrix = pairwise_dists(self.space, points)
-        self.assertAllClose(pairwise_dist_matrix, expected, atol=atol)
+        self.assertAllClose(pairwise_dist_matrix, pairwise_dist_matrix.T, atol=atol)
+
+    @pytest.mark.random
+    def test_general(self, n_samples, atol):
+        points = self.space.random_point(n_samples=n_samples)
+        pairwise_dist_matrix = pairwise_dists(self.space, points)
+
+        rand_i, rand_j = (
+            random.randint(0, n_samples - 1),
+            random.randint(0, n_samples - 1),
+        )
+        self.assertAllClose(
+            [pairwise_dist_matrix[rand_i, rand_j]],
+            [self.space.metric.dist(points[rand_i], points[rand_j])],
+        )
 
 
 class MDSTestCase(BaseEstimatorTestCase):
