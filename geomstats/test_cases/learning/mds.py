@@ -4,29 +4,29 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.learning.mds import pairwise_dists
-from geomstats.test_cases.learning._base import BaseEstimatorTestCase
+from geomstats.test_cases.learning._base import BaseEstimatorTestCase, TestCase
 from geomstats.vectorization import repeat_point
 
 
-class PairwiseDistsTestCase(BaseEstimatorTestCase):
+class PairwiseDistsTestCase(TestCase):
     @pytest.mark.random
     def test_dists_among_selves(self, n_samples, atol):
         points = repeat_point(
-            self.data_generator.random_point(n_points=1), n_samples, expand=True
+            self.space.random_point(n_samples=1), n_samples, expand=True
         )
-        pairwise_dist_matrix = pairwise_dists(self.estimator.space, points)
+        pairwise_dist_matrix = pairwise_dists(self.space, points)
         self.assertAllClose(
             pairwise_dist_matrix, gs.zeros((n_samples, n_samples)), atol=atol
         )
 
     @pytest.mark.random
-    def test_one_point(self, n_samples, atol):
+    def test_one_point(self, atol):
         self.test_dists_among_selves(n_samples=1, atol=atol)
 
 
-class EyePairwiseDistsTestCase(BaseEstimatorTestCase):
+class EyePairwiseDistsTestCase(TestCase):
     def test_euclidean_eye(self, points, expected, atol):
-        pairwise_dist_matrix = pairwise_dists(self.estimator.space, points)
+        pairwise_dist_matrix = pairwise_dists(self.space, points)
         self.assertAllClose(pairwise_dist_matrix, expected, atol=atol)
 
 

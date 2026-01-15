@@ -16,11 +16,27 @@ from geomstats.test_cases.learning.mds import (
     PairwiseDistsTestCase,
 )
 
-from .data.mds import (  # MDSEuclideanTestData, MDSSPDTestData,
+from .data.mds import (
     EyePairwiseDistsTestData,
     MDSTestData,
     PairwiseDistsTestData,
 )
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        Hypersphere(dim=random.randint(3, 4)),
+        SpecialOrthogonal(n=3, point_type="vector"),
+        SpecialOrthogonal(n=3, point_type="matrix"),
+        SPDMatrices(3),
+        Hyperboloid(dim=3),
+        TreeSpace(n_labels=random.randint(5, 8)),
+    ],
+)
+def spaces(request):
+    space = request.param
+    request.cls.space = space
 
 
 @pytest.fixture(
@@ -39,7 +55,7 @@ def estimators(request):
     request.cls.estimator = MDS(space)
 
 
-@pytest.mark.usefixtures("estimators")
+@pytest.mark.usefixtures("spaces")
 class TestPairwiseDists(PairwiseDistsTestCase, metaclass=DataBasedParametrizer):
     testing_data = PairwiseDistsTestData()
 
@@ -47,7 +63,7 @@ class TestPairwiseDists(PairwiseDistsTestCase, metaclass=DataBasedParametrizer):
 class TestEyePairwiseDists(EyePairwiseDistsTestCase, metaclass=DataBasedParametrizer):
     dim = random.randint(2, 5)
     point_mag = random.randint(1, 5)
-    estimator = MDS(Euclidean(dim=dim), n_components=random.randint(2, 3))
+    space = Euclidean(dim=dim)
     testing_data = EyePairwiseDistsTestData(dim=dim, n=point_mag)
 
 
