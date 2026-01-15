@@ -319,8 +319,6 @@ class HyperbolicEmbedding:
                         )
 
             logging.info(
-                "iteration %d loss_value %f",
-                epoch,
-                sum(total_loss, 0) / len(total_loss),
+                f"iteration {epoch} loss_value {sum(total_loss, 0) / len(total_loss)}",
             )
         return embeddings
