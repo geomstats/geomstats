@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 
 import geomstats.backend as gs
-from geomstats.datasets._base import RemoteFileMetadata, _fetch_remote
+from geomstats.datasets._base import FigshareMetadata, download_figshare_zip
 from geomstats.datasets.prepare_graph_data import Graph
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
@@ -42,9 +42,9 @@ HANDS_LABELS_PATH = os.path.join(DATA_PATH, "hands", "labels.txt")
 CELLS_PATH = os.path.join(DATA_PATH, "cells", "cells.txt")
 CELL_LINES_PATH = os.path.join(DATA_PATH, "cells", "cell_lines.txt")
 CELL_TREATMENTS_PATH = os.path.join(DATA_PATH, "cells", "treatments.txt")
-SAO_PAULO_ARCHIVE = RemoteFileMetadata(
+SAO_PAULO_ARCHIVE = FigshareMetadata(
     filename="jam.zip",
-    url="https://figshare.com/ndownloader/articles/20066159/versions/1",
+    article_id=20066159,
 )
 SAO_PAULO_TABLE = "jam_table.csv"
 SAO_PAULO_COUNT = "jam_count.csv"
@@ -196,7 +196,7 @@ def load_leaves():
     beta_param : array-like, shape=[172, 2]
         Beta parameters of the beta distributions fitted to each
         leaf orientation angle sample of 172 species of plants.
-    distrib_type: array-like, shape=[172, ]
+    distrib_type: array-like, shape=[172,]
         Leaf orientation angle distribution type for each of the 172 species.
     """
     data = pd.read_csv(LEAVES_PATH, sep=";")
@@ -391,8 +391,10 @@ def load_sao_paulo(dirname=None):
         Keys : name of the road
         Values : count of traffic jams between 2001 and 2019.
     """
-    file_path = _fetch_remote(
-        SAO_PAULO_ARCHIVE.url, SAO_PAULO_ARCHIVE.filename, dirname=dirname
+    file_path = download_figshare_zip(
+        SAO_PAULO_ARCHIVE.article_id,
+        SAO_PAULO_ARCHIVE.filename,
+        dirname=dirname,
     )
 
     with zipfile.ZipFile(file_path, "r") as folder:

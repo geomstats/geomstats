@@ -33,14 +33,9 @@ def register_scaled_method(func_name, scaling_type):
     func_name : str
         The name of a method from a RiemannianMetric object which must be
         rescaled.
-    scaling_type : str, {'sqrt',
-                         'linear',
-                         'quadratic',
-                         'inverse',
-                         'inverse_sqrt'}
+    scaling_type : str, {'sqrt', 'linear', 'quadratic', 'inverse', 'inverse_sqrt'}
         How the method should be rescaled as a function of
         ScalarProductMetric.scale.
-
     """
     _ScaledMethodsRegistry._add_scaled_method(func_name, scaling_type)
 

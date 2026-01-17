@@ -32,14 +32,14 @@ class LocalizationLinear:
 
         Parameters
         ----------
-        state : array-like, shape=[dim]
+        state : array-like, shape=[dim,]
             Vector representing a state (position, speed).
-        sensor_input : array-like, shape=[2]
+        sensor_input : array-like, shape=[2,]
             Vector representing the information from the accelerometer.
 
         Returns
         -------
-        new_state : array-like, shape=[dim]
+        new_state : array-like, shape=[dim,]
             Vector representing the propagated state.
         """
         dt, acc = sensor_input
@@ -49,7 +49,7 @@ class LocalizationLinear:
         return gs.array([pos, speed])
 
     def propagation_jacobian(self, state, sensor_input):
-        r"""Compute the Jacobian associated to the affine propagation..
+        r"""Compute the Jacobian associated to the affine propagation.
 
         The Jacobian is given by :math:`\begin{bmatrix} 1 & dt \\ & 1
         \end{bmatrix}`.
@@ -57,7 +57,7 @@ class LocalizationLinear:
         Parameters
         ----------
         state : unused
-        sensor_input : array-like, shape=[2]
+        sensor_input : array-like, shape=[2,]
             Vector representing the information from the accelerometer.
 
         Returns
@@ -82,7 +82,7 @@ class LocalizationLinear:
         Parameters
         ----------
         state : unused
-        sensor_input : array-like, shape=[2]
+        sensor_input : array-like, shape=[2,]
             Vector representing the information from the accelerometer.
 
         Returns
@@ -140,12 +140,12 @@ class LocalizationLinear:
 
         Parameters
         ----------
-        state : array-like, shape=[dim]
+        state : array-like, shape=[dim,]
             Vector representing the state.
 
         Returns
         -------
-        observation : array-like, shape=[dim_obs]
+        observation : array-like, shape=[dim_obs,]
             Expected observation of the state.
         """
         return state[:1]
@@ -155,14 +155,14 @@ class LocalizationLinear:
 
         Parameters
         ----------
-        state : array-like, shape=[dim]
+        state : array-like, shape=[dim,]
             Vector representing the state.
-        observation : array-like, shape=[dim_obs]
+        observation : array-like, shape=[dim_obs,]
             Obtained measurement.
 
         Returns
         -------
-        innovation : array-like, shape=[dim_obs]
+        innovation : array-like, shape=[dim_obs,]
             Error between the measurement and the expected value.
         """
         return observation - self.observation_model(state)
@@ -190,14 +190,14 @@ class Localization:
 
         Parameters
         ----------
-        sensor_input : array-like, shape=[4]
+        sensor_input : array-like, shape=[4,]
             Vector representing the sensor input.
 
         Returns
         -------
         dt : float
             Time step between two consecutive inputs.
-        linear_vel : array-like, shape=[2]
+        linear_vel : array-like, shape=[2,]
             2D linear velocity.
         angular_vel : array-like, shape=[dim_rot]
             Angular velocity.
@@ -234,7 +234,7 @@ class Localization:
     def adjoint_map(self, state):
         r"""Construct the matrix associated to the adjoint representation.
 
-        The inner automorphism is given by :math:`Ad_X : g |-> XgX^-1`. For a
+        The inner automorphism is given by :math:`Ad_X : g |-> XgX^{-1}`. For a
         state :math:`X = (\theta, x, y)`, the matrix associated to its tangent
         map, the adjoint representation, is
         :math:`\begin{bmatrix} 1 & \\ -J [x, y] & R(\theta) \end{bmatrix}`,
@@ -243,7 +243,7 @@ class Localization:
 
         Parameters
         ----------
-        state : array-like, shape=[dim]
+        state : array-like, shape=[dim,]
             Vector representing a state.
 
         Returns
@@ -273,14 +273,14 @@ class Localization:
 
         Parameters
         ----------
-        state : array-like, shape=[dim]
+        state : array-like, shape=[dim,]
             Vector representing a state (orientation, position).
-        sensor_input : array-like, shape=[4]
+        sensor_input : array-like, shape=[4,]
             Vector representing the information from the sensor.
 
         Returns
         -------
-        new_state : array-like, shape=[dim]
+        new_state : array-like, shape=[dim,]
             Vector representing the propagated state.
         """
         dt, linear_vel, angular_vel = self.preprocess_input(sensor_input)
@@ -294,13 +294,13 @@ class Localization:
     def propagation_jacobian(self, state, sensor_input):
         r"""Compute the Jacobian associated to the input.
 
-        Since the propagation writes f(x) = x*u, and the error is modeled on
-        the Lie algebra, the Jacobian is Ad_{u^{-1}} [BB2017].
+        Since the propagation writes :math:`f(x) = x*u`, and the error is modeled on
+        the Lie algebra, the Jacobian is :math:`Ad_{u^{-1}}` [BB2017]_.
 
         Parameters
         ----------
         state : unused
-        sensor_input : array-like, shape=[4]
+        sensor_input : array-like, shape=[4,]
             Vector representing the information from the sensor.
 
         Returns
@@ -323,7 +323,7 @@ class Localization:
         Parameters
         ----------
         state : unused
-        sensor_input : array-like, shape=[4]
+        sensor_input : array-like, shape=[4,]
             Vector representing the information from the sensor.
 
         Returns
@@ -357,12 +357,12 @@ class Localization:
         r"""Get the observation covariance.
 
         For an observation y and an orientation theta, the modified observation
-        considered for the innovation is :math:`R(\theta)^T y` [BB2017], so the
+        considered for the innovation is :math:`R(\theta)^T y` [BB2017]_, so the
         covariance N is rotated accordingly as :math:`R(\theta)^T N R(\theta)`.
 
         Parameters
         ----------
-        state : array-like, shape=[dim]
+        state : array-like, shape=[dim,]
             Vector representing a state.
         observation_cov : array-like, shape=[dim_obs, dim_obs]
             Covariance matrix associated to the sensor.
@@ -384,12 +384,12 @@ class Localization:
 
         Parameters
         ----------
-        state : array-like, shape=[dim]
+        state : array-like, shape=[dim,]
             Vector representing the state.
 
         Returns
         -------
-        observation : array-like, shape=[dim_obs]
+        observation : array-like, shape=[dim_obs,]
             Expected observation of the state.
         """
         return state[self.group.rotations.dim :]
@@ -398,18 +398,18 @@ class Localization:
         """Discrepancy between the measurement and its expected value.
 
         The linear error (observation - expected) is cast into the state's
-        frame by rotation, following [BB2017]
+        frame by rotation, following [BB2017]_
 
         Parameters
         ----------
-        state : array-like, shape=[dim]
+        state : array-like, shape=[dim,]
             Vector representing the state.
-        observation : array-like, shape=[dim_obs]
+        observation : array-like, shape=[dim_obs,]
             Obtained measurement.
 
         Returns
         -------
-        innovation : array-like, shape=[dim_obs]
+        innovation : array-like, shape=[dim_obs,]
             Error between the measurement and the expected value.
         """
         theta, _, _ = state
@@ -450,10 +450,10 @@ class KalmanFilter:
             setattr(self, attribute, value)
 
     def propagate(self, sensor_input):
-        """Propagate the estimate and its covariance.
+        r"""Propagate the estimate and its covariance.
 
-        Given the propagation Jacobian F and the noise Jacobian G, the
-        covariance P becomes F P F^T + G Q G^T.
+        Given the propagation Jacobian :math:`F` and the noise Jacobian :math:`G`,
+        the covariance :math:`P` becomes :math:`F P F^T + G Q G^T`.
 
         Parameters
         ----------
@@ -472,13 +472,13 @@ class KalmanFilter:
     def compute_gain(self, observation):
         """Compute the Kalman gain given the observation model.
 
-        Given the observation Jacobian H and covariance N (not necessarily
-        equal to that of the sensor), and the current covariance P, the Kalman
-        gain is K = P H^T(H P H^T + N)^{-1}.
+        Given the observation Jacobian :math:`H` and covariance :math:`N` (not necessarily
+        equal to that of the sensor), and the current covariance :math:`P`, the Kalman
+        gain is :math:`K = P H^T(H P H^T + N)^{-1}`.
 
         Parameters
         ----------
-        observation : array-like, shape=[dim_obs]
+        observation : array-like, shape=[dim_obs,]
             Obtained measurement.
 
         Returns
@@ -501,15 +501,15 @@ class KalmanFilter:
     def update(self, observation):
         r"""Update the current estimate given an observation.
 
-        The state is updated by the matrix-vector product of the Kalman gain K
+        The state is updated by the matrix-vector product of the Kalman gain :math:`K`
         and the innovation. The possibly non-linear update function is provided
         by the model.
-        Given the observation Jacobian H and covariance N, the current
-        covariance P is updated as (I - KH)P.
+        Given the observation Jacobian :math:`H` and covariance :math:`N`,
+        the current covariance :math:`P` is updated as :math:`(I - KH)P`.
 
         Parameters
         ----------
-        observation : array-like, shape=[dim_obs]
+        observation : array-like, shape=[dim_obs,]
             Obtained measurement.
         """
         innovation = self.model.innovation(self.state, observation)

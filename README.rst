@@ -26,6 +26,9 @@ Keep in touch with the community by joining us on our `slack workspace <https://
 
 **NEWS**:
 
+- 2025: Discover our `shape module`, and its paper `Learning from landmarks, curves, surfaces, and shapes in Geomstats
+ <https://arxiv.org/abs/2406.10437>`_ by Luis Pereira, Alice Le Brigant, Adele Myers, Emmanuel Hartman, Amil Khan, Malik Tuerkoen, Trey Dold, Mengyang Gu, Pablo Suárez-Serrato, and Nina Miolane, published in the ACM Transactions of Mathematical Software.
+
 - 2023: Discover our `information_geometry module <https://github.com/geomstats/geomstats/tree/main/geomstats/information_geometry>`_ , and its paper `Parametric information geometry with the package Geomstats <https://dl.acm.org/doi/abs/10.1145/3627538>`_ by Alice Le Brigant, Jules Deschamps, Antoine Collas, and Nina Miolane, published in the ACM Transactions of Mathematical Software.
 
 - 2023: Discover our foundational paper `Introduction to Riemannian Geometry and Geometric Statistics: From Basic Theory to Implementation with Geomstats <https://www.nowpublishers.com/article/Details/MAL-098>`_ by Nicolas Guigui, Nina Miolane and Xavier Pennec, published in Foundations and Trends in Machine Learning.
@@ -72,6 +75,15 @@ If you find ``geomstats`` useful, please kindly cite:
       number  = {223},
       pages   = {1-9},
       url     = {http://jmlr.org/papers/v21/19-027.html}
+    }
+
+    @article{miolane2020introduction,
+      title     = {Introduction to geometric learning in python with geomstats},
+      author    = {Miolane, Nina and Guigui, Nicolas and Zaatiti, Hadi and Shewmake, Christian and Hajri, Hatem and Brooks, Daniel and Le Brigant, Alice and Mathe, Johan and Hou, Benjamin and Thanwerdas, Yann and others},
+      journal   = {SciPy 2020-19th Python in Science Conference},
+      pages     = {48--57},
+      year      = {2020},
+      url       = {https://proceedings.scipy.org/articles/Majora-342d178e-007.pdf}
     }
 
     @article{guigui2023introduction,

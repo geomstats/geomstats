@@ -117,7 +117,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
     space :math:`M`, with non-vanishing derivative.
 
     .. math::
-        Imm(I, M)=\{c \in C^{\infty}(I, M) \|c'(s)\|\neq 0 \forall s \in I \},
+        Imm(I, M)=\{c \in C^{\infty}(I, M) \ \|c'(s)\|\neq 0 \ \forall s \in I \},
 
     where the interval of parameters :math:`I` is taken to be :math:`I = [0, 1]`
     without loss of generality.
@@ -259,7 +259,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
 
         Returns
         -------
-        length : array-like, shape=[..., ]
+        length : array-like, shape=[...,]
             Length of the discrete curve.
         """
         point_with_origin = self.insert_origin(point)
@@ -374,7 +374,7 @@ class SRVTransform(Diffeo):
         r"""Differential of the square root velocity transform.
 
         .. math::
-            (h, c) \rightarrow dQ_c(h) = |c'|^(-1/2) * (h' - 1/2 * <h',v>v)
+            (h, c) \rightarrow dQ_c(h) = |c'|^{(-1/2)} * (h' - 1/2 * <h',v>v)
             v = c'/|c'|
 
         Parameters
@@ -388,9 +388,9 @@ class SRVTransform(Diffeo):
 
         Returns
         -------
-        d_srv_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim,]
+        d_srv_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Differential of the square root velocity transform at curve
-            evaluated at tangent_vec.
+            evaluated at `tangent_vec`.
         """
         if base_point is None:
             base_point = self.inverse(image_point)
@@ -485,7 +485,7 @@ class FTransform(AutodiffDiffeo):
     The f_transform is given by the formula:
 
     .. math::
-        Imm(I, R^2) / R^2 \mapsto C^\infty(I, R^2\backslash\{0\})
+        Imm(I, R^2) / R^2 \mapsto C^\infty(I, R^2\backslash\{0\}) \\
         c \mapsto 2b |c'|^{1/2} (\frac{c'}{|c'|})^{a/(2b)}
 
     where the identification :math:`C = R^2` is used and
@@ -495,7 +495,7 @@ class FTransform(AutodiffDiffeo):
     .. math::
         f(c) = 2b r^{1/2}\exp(i\theta * a/(2b)) * \exp(ik\pi * a/b)
 
-    where :math:`(r, theta)` is the polar representation of :math:`c`,
+    where :math:`(r, \theta)` is the polar representation of :math:`c`,
     and for any :math:`k \in Z`.
 
     Parameters
@@ -712,7 +712,7 @@ class L2CurvesMetric(NFoldMetric):
 
         Returns
         -------
-        riemann_sum : array-like, shape=[..., ]
+        riemann_sum : array-like, shape=[...,]
             Left Riemann sum.
         """
         k_sampling_points_minus_one = func.shape[-1]

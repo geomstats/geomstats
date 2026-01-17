@@ -6,12 +6,13 @@ Note: deeply inspired by sklearn.
 import logging
 import os
 from collections import namedtuple
-from urllib.request import urlretrieve
+
+import requests
 
 DEFAULT_DATA_DIR = os.path.expanduser(os.path.join("~", ".geomstats_data"))
 
 
-RemoteFileMetadata = namedtuple("RemoteFileMetadata", ["filename", "url"])
+FigshareMetadata = namedtuple("FigshareMetadata", ["filename", "article_id"])
 
 
 def _get_data_home(data_home=None):
@@ -23,9 +24,13 @@ def _get_data_home(data_home=None):
     return data_home
 
 
-def _fetch_remote(url, filename, dirname=None):
-    dirname = _get_data_home(data_home=dirname)
+def download_figshare_zip(article_id, filename, dirname=None):
+    url = f"https://api.figshare.com/v2/articles/{article_id}/download"
 
+    if filename is None:
+        filename = f"{article_id}.zip"
+
+    dirname = _get_data_home(data_home=dirname)
     file_path = os.path.join(dirname, filename)
 
     if os.path.exists(file_path):
@@ -34,6 +39,12 @@ def _fetch_remote(url, filename, dirname=None):
         )
     else:
         logging.info(f"Downloading '{file_path}' from {url} to '{dirname}'.")
-        urlretrieve(url, file_path)
+
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status()
+
+            with open(file_path, "wb") as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
 
     return file_path

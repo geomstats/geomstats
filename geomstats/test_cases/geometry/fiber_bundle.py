@@ -454,18 +454,21 @@ class FiberBundleTestCase(TestCase):
 
     @pytest.mark.vec
     def test_integrability_tensor_derivative_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
+        base_point = self.base_data_generator.random_point()
+        fiber_point = self.total_space.fiber_bundle.lift(base_point)
         horizontal_vec_x = self.total_space.fiber_bundle.horizontal_lift(
-            self.data_generator.random_tangent_vec(base_point),
-            fiber_point=base_point,
+            self.base_data_generator.random_tangent_vec(base_point),
+            fiber_point=fiber_point,
+            base_point=base_point,
         )
         horizontal_vec_y = self.total_space.fiber_bundle.horizontal_lift(
-            self.data_generator.random_tangent_vec(base_point),
-            fiber_point=base_point,
+            self.base_data_generator.random_tangent_vec(base_point),
+            fiber_point=fiber_point,
+            base_point=base_point,
         )
-        nabla_x_y = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_e = self.data_generator.random_tangent_vec(base_point)
-        nabla_x_e = self.data_generator.random_tangent_vec(base_point)
+        nabla_x_y = self.data_generator.random_tangent_vec(fiber_point)
+        tangent_vec_e = self.data_generator.random_tangent_vec(fiber_point)
+        nabla_x_e = self.data_generator.random_tangent_vec(fiber_point)
 
         (
             nabla_x_a_y_e,
@@ -476,7 +479,7 @@ class FiberBundleTestCase(TestCase):
             nabla_x_y,
             tangent_vec_e,
             nabla_x_e,
-            base_point,
+            fiber_point,
         )
 
         vec_data = generate_vectorization_data(

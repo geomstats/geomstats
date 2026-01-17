@@ -42,7 +42,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
         Returns
         -------
         composed : array-like, shape=[..., {dim, [n, n]}]
-            Product of point_a and point_b along the first dimension.
+            Product of `point_a` and `point_b` along the first dimension.
         """
         return Matrices.mul(point_a, point_b)
 
@@ -190,7 +190,6 @@ class MatrixLieGroup(Manifold, abc.ABC):
         Lie algebra vector, then
 
         .. math::
-
             \exp(v, g) = mul(g, \exp(V))
 
         Therefore, the Lie exponential is obtained when base_point is None, or
@@ -220,8 +219,8 @@ class MatrixLieGroup(Manifold, abc.ABC):
         r"""
         Compute a left-invariant vector field bringing base_point to point.
 
-        The output is a vector of the tangent space at base_point, so not a Lie
-        algebra element if it is not the identity.
+        The output is a vector of the tangent space at `base_point`,
+        so not a Lie algebra element if it is not the identity.
 
         Parameters
         ----------
@@ -242,7 +241,6 @@ class MatrixLieGroup(Manifold, abc.ABC):
         the output satisfies:
 
         .. math::
-
             g = \exp(\log(g, h), h)
         """
         logm = gs.linalg.logm

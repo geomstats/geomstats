@@ -2,7 +2,11 @@ import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 from geomstats.test.data import TestData
 
+from .fiber_bundle import FiberBundleTestData
 from .matrices import RiemannianMetricTestData
+from .riemannian_metric import (
+    RiemannianMetricComparisonTestData,
+)
 
 
 class Grassmannian32TestData(TestData):
@@ -51,3 +55,12 @@ class GrassmannianCanonicalMetric32TestData(TestData):
             ),
         ]
         return self.generate_tests(data)
+
+
+class GrassmannianBundleTestData(FiberBundleTestData):
+    fail_for_not_implemented_errors = False
+
+
+class GrassmannianQuotientMetricCmpTestData(RiemannianMetricComparisonTestData):
+    fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False
