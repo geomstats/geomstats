@@ -30,7 +30,7 @@ def _pop_random_elem(ls):
     return ls.pop(random_index)
 
 
-def generate_splits(labels):
+def generate_splits(labels, exclude_singletons=False):
     """Generate random maximal set of compatible splits of set ``labels``.
 
     This method works inductively on the number of elements in labels.
@@ -43,6 +43,10 @@ def generate_splits(labels):
     ----------
     labels : list[int]
         A list of integers, the set of labels that we generate splits for.
+    exclude_singletons : bool
+        If True does not generate singleton splits, which would result in pendant edges.
+        Trees do not have pendant edges. There are 2^(N-1) - N - 1 splits, but maximum N-1 compatible.
+        TODO: Can we do this in a way that doesn't require creating all then deleting?
 
     Returns
     -------
@@ -80,6 +84,13 @@ def generate_splits(labels):
 
         used_labels.append(u)
         splits = updated_splits
+
+    if exclude_singletons:
+        return [
+            split
+            for split in splits
+            if not (len(split.part1) == 1 or len(split.part2) == 1)
+        ]
     return splits
 
 
@@ -286,7 +297,7 @@ class Split:
         """
         p1, p2 = self.part1, self.part2
         o1, o2 = other.part1, other.part2
-        return sum([bool(s) for s in [p1 & o1, p1 & o2, p2 & o1, p2 & o2]]) < 4
+        return sum(bool(s) for s in [p1 & o1, p1 & o2, p2 & o1, p2 & o2]) < 4
 
     def get_part_away_from(self, other):
         """Return the part of this split that is directed away from other split.
@@ -437,14 +448,14 @@ class ForestTopology:
     """
 
     def __init__(self, partition, split_sets):
-        self._check_init(partition, split_sets)
+        ForestTopology._check_init(partition, split_sets)
 
         self.n_labels = len(set.union(*[set(part) for part in partition]))
         partition = [tuple(sorted(x)) for x in partition]
         seq = [part[0] for part in partition]
         sort_key = sorted(range(len(seq)), key=seq.__getitem__)
-        self.partition = tuple([partition[key] for key in sort_key])
-        self.split_sets = tuple([tuple(sorted(split_sets[key])) for key in sort_key])
+        self.partition = tuple(partition[key] for key in sort_key)
+        self.split_sets = tuple(tuple(sorted(split_sets[key])) for key in sort_key)
 
         self.where = {s: i for i, s in enumerate(self._flatten(self.split_sets))}
 
@@ -470,9 +481,7 @@ class ForestTopology:
                     _support[self.where[split]][v][u] = True
 
         self.support = gs.reshape(
-            gs.stack([m for m in self._flatten(_support)])
-            if _support
-            else gs.array([]),
+            gs.stack(list(self._flatten(_support))) if _support else gs.array([]),
             (-1, self.n_labels, self.n_labels),
         )
         self._chart_gradient = None
@@ -481,7 +490,13 @@ class ForestTopology:
             gs.array([len(splits) for splits in self.split_sets]), dtype=int
         )
 
-    def _check_init(self, partition, split_sets):
+    @staticmethod
+    def _check_init(partition, split_sets):
+        for split_set in split_sets:
+            for split in split_set:
+                if not split:
+                    raise ValueError(f"Empty splits like {split} are not allowed.")
+
         if len(split_sets) != len(partition):
             raise ValueError(
                 "Number of split sets is not equal to number of components."
