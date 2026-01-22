@@ -717,6 +717,7 @@ class SturmsMean(BaseEstimator):
 
         # set initial estimate
         mean_estimate = self._sample_next(X, weights, 0)
+        print("MEAEN", mean_estimate)
         prev_mean_estimate = mean_estimate
 
         prev_mean_movements = [np.inf for _ in range(self.window_length)]
@@ -728,16 +729,20 @@ class SturmsMean(BaseEstimator):
 
             # construct geodesic
             geodesic = self.space.metric.geodesic(mean_estimate, sampled_point)
-
+            print(geodesic)
             # new estimate is point 1/(i+1) of the way across the geodesic
             step_length = self._step_length(weights, i)
+            print("STE", step_length)
             mean_estimate = geodesic(step_length)
+            print(mean_estimate)
 
             # test for convergence (sliding window)
             prev_mean_movements.pop(0)
             prev_mean_movements.append(
                 self.space.metric.dist(prev_mean_estimate, mean_estimate)
             )
+            print(prev_mean_estimate, mean_estimate)
+            print("HELP", prev_mean_movements)
             convergence = gs.mean(prev_mean_movements)
 
             prev_mean_estimate = mean_estimate
@@ -760,13 +765,18 @@ class SturmsMean(BaseEstimator):
         self.estimate_ = mean_estimate
         return self
 
-    def minimize(self, X, y=None, weights=None):
+    def minimize(
+        self,
+        space,
+        points,
+        weights,
+    ):
         r"""Empirical Frechet mean.
 
         Cheating but to ensure compatibility with gradient-descent-based methods.
 
         """
-        return self.fit(X, y, weights)
+        return self.fit(points, None, weights)
 
 
 class FrechetMean(BaseEstimator):
@@ -854,6 +864,9 @@ class FrechetMean(BaseEstimator):
             "batch": BatchGradientDescent,
             "sturms": SturmsMean,
         }
+        if self._method == "sturms":
+            self.optimizer = MAP_OPTIMIZER[value](self.space)
+            return
         self.optimizer = MAP_OPTIMIZER[value]()
 
     def fit(self, X, y=None, weights=None):

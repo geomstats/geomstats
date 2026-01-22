@@ -25,6 +25,7 @@ from geomstats.test_cases.learning.frechet_mean import (
     CircularMeanTestCase,
     ElasticMeanTestCase,
     FrechetMeanTestCase,
+    PointSetFrechetMeanTestCase,
     VarianceTestCase,
 )
 
@@ -34,6 +35,7 @@ from .data.frechet_mean import (
     FrechetMeanSOCoincideTestData,
     FrechetMeanTestData,
     LinearMeanEuclideaTestData,
+    PointSetFrechetMeanTestData,
     VarianceEuclideanTestData,
     VarianceTestData,
 )
@@ -50,11 +52,20 @@ from .data.frechet_mean import (
         (SpecialOrthogonal(n=3, point_type="matrix"), "adaptive"),
         (SPDMatrices(3), "default"),
         (Hyperboloid(dim=3), "default"),
+        (Hypersphere(dim=random.randint(3, 4)), "sturms"),
+        (SpecialOrthogonal(n=3, point_type="vector"), "sturms"),
     ],
 )
 def estimators(request):
     space, method = request.param
     request.cls.estimator = FrechetMean(space, method=method)
+
+
+@pytest.mark.usefixtures("estimators")
+class TestPointSetFrechetMean(
+    PointSetFrechetMeanTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = PointSetFrechetMeanTestData()
 
 
 @pytest.mark.usefixtures("estimators")
