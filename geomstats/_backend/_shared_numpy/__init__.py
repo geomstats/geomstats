@@ -1,3 +1,5 @@
+"""Shared utilities for numpy-based backends (numpy and autograd)."""
+
 from ._dispatch import BACKEND_NAME, _common
 from ._dispatch import numpy as _np
 
@@ -17,94 +19,72 @@ mod = _box_binary_scalar(target=_np.mod)
 
 
 def angle(z, deg=False):
+    """Return the angle of the complex argument."""
     out = _np.angle(z, deg=deg)
     if isinstance(z, float):
         return cast(out, get_default_dtype())
-
     return out
 
 
 def arange(start_or_stop, /, stop=None, step=1, dtype=None, **kwargs):
+    """Return evenly spaced values within a given interval."""
     if dtype is None and (
         isinstance(stop, float)
         or isinstance(step, float)
         or isinstance(start_or_stop, float)
     ):
         dtype = get_default_dtype()
-
     if stop is None:
         return _np.arange(start_or_stop, step=step, dtype=dtype)
-
     return _np.arange(start_or_stop, stop, step=step, dtype=dtype)
 
 
 def to_numpy(x):
+    """Convert to numpy array (no-op for numpy backend)."""
     return x
 
 
 def from_numpy(x):
+    """Convert from numpy array (no-op for numpy backend)."""
     return x
 
 
-def squeeze(x, axis=None):
-    if axis is None:
-        return _np.squeeze(x)
-    if x.shape[axis] != 1:
-        return x
-    return _np.squeeze(x, axis=axis)
-
-
 def flatten(x):
+    """Flatten array to 1D."""
     return x.flatten()
 
 
+def copy(x):
+    """Copy array."""
+    return x.copy()
+
+
+def ndim(x):
+    """Return number of dimensions."""
+    return x.ndim
+
+
 def one_hot(labels, num_classes):
+    """One-hot encode labels."""
     return eye(num_classes, dtype=_np.dtype("uint8"))[labels]
 
 
+def get_slice(x, indices):
+    """Return a slice of an array."""
+    return x[indices]
+
+
 def assignment(x, values, indices, axis=0):
-    """Assign values at given indices of an array.
-
-    Parameters
-    ----------
-    x: array-like, shape=[dim]
-        Initial array.
-    values: {float, list(float)}
-        Value or list of values to be assigned.
-    indices: {int, tuple, list(int), list(tuple)}
-        Single int or tuple, or list of ints or tuples of indices where value
-        is assigned.
-        If the length of the tuples is shorter than ndim(x), values are
-        assigned to each copy along axis.
-    axis: int, optional
-        Axis along which values are assigned, if vectorized.
-
-    Returns
-    -------
-    x_new : array-like, shape=[dim]
-        Copy of x with the values assigned at the given indices.
-
-    Notes
-    -----
-    If a single value is provided, it is assigned at all the indices.
-    If a list is given, it must have the same length as indices.
-    """
-    x_new = copy(x)
-
+    """Assign values at given indices of an array."""
+    x_new = x.copy()
     use_vectorization = hasattr(indices, "__len__") and len(indices) < ndim(x)
     if _is_boolean(indices):
         x_new[indices] = values
         return x_new
     zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
-    len_indices = len(indices) if _is_iterable(indices) else 1
     if zip_indices:
         indices = tuple(zip(*indices))
     if not use_vectorization:
-        if not zip_indices:
-            len_indices = len(indices) if _is_iterable(indices) else 1
-        len_values = len(values) if _is_iterable(values) else 1
-        if len_values > 1 and len_values != len_indices:
-            raise ValueError("Either one value or as many values as indices")
         x_new[indices] = values
     else:
         indices = tuple(list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
@@ -113,34 +93,8 @@ def assignment(x, values, indices, axis=0):
 
 
 def assignment_by_sum(x, values, indices, axis=0):
-    """Add values at given indices of an array.
-
-    Parameters
-    ----------
-    x : array-like, shape=[dim]
-        Initial array.
-    values : {float, list(float)}
-        Value or list of values to be assigned.
-    indices : {int, tuple, list(int), list(tuple)}
-        Single int or tuple, or list of ints or tuples of indices where value
-        is assigned.
-        If the length of the tuples is shorter than ndim(x), values are
-        assigned to each copy along axis.
-    axis: int, optional
-        Axis along which values are assigned, if vectorized.
-
-    Returns
-    -------
-    x_new : array-like, shape=[dim]
-        Copy of x with the values assigned at the given indices.
-
-    Notes
-    -----
-    If a single value is provided, it is assigned at all the indices.
-    If a list is given, it must have the same length as indices.
-    """
-    x_new = copy(x)
-
+    """Add values at given indices of an array."""
+    x_new = x.copy()
     use_vectorization = hasattr(indices, "__len__") and len(indices) < ndim(x)
     if _is_boolean(indices):
         x_new[indices] += values
@@ -149,10 +103,6 @@ def assignment_by_sum(x, values, indices, axis=0):
     if zip_indices:
         indices = tuple(zip(*indices))
     if not use_vectorization:
-        len_indices = len(indices) if _is_iterable(indices) else 1
-        len_values = len(values) if _is_iterable(values) else 1
-        if len_values > 1 and len_values != len_indices:
-            raise ValueError("Either one value or as many values as indices")
         x_new[indices] += values
     else:
         indices = tuple(list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
@@ -160,91 +110,15 @@ def assignment_by_sum(x, values, indices, axis=0):
     return x_new
 
 
-def ndim(x):
-    return x.ndim
-
-
-def get_slice(x, indices):
-    """Return a slice of an array, following Numpy's style.
-
-    Parameters
-    ----------
-    x : array-like, shape=[dim]
-        Initial array.
-    indices : iterable(iterable(int))
-        Indices which are kept along each axis, starting from 0.
-
-    Returns
-    -------
-    slice : array-like
-        Slice of x given by indices.
-
-    Notes
-    -----
-    This follows Numpy's convention: indices are grouped by axis.
-
-    Examples
-    --------
-    >>> a = np.array(range(30)).reshape(3,10)
-    >>> get_slice(a, ((0, 2), (8, 9)))
-    array([8, 29])
-    """
-    return x[indices]
-
-
-def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
-    if multiple_args:
-        return _np.vectorize(pyfunc, signature=signature)(*x)
-    return _np.vectorize(pyfunc, signature=signature)(x)
-
-
 def set_diag(x, new_diag):
-    """Set the diagonal along the last two axis.
-
-    Parameters
-    ----------
-    x : array-like, shape=[dim]
-        Initial array.
-    new_diag : array-like, shape=[dim[-2]]
-        Values to set on the diagonal.
-
-    Returns
-    -------
-    None
-
-    Notes
-    -----
-    This mimics tensorflow.linalg.set_diag(x, new_diag), when new_diag is a
-    1-D array, but modifies x instead of creating a copy.
-    """
+    """Set the diagonal along the last two axes."""
     arr_shape = x.shape
     x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
     return x
 
 
-def copy(x):
-    return x.copy()
-
-
 def array_from_sparse(indices, data, target_shape):
-    """Create an array of given shape, with values at specific indices.
-
-    The rest of the array will be filled with zeros.
-
-    Parameters
-    ----------
-    indices : iterable(tuple(int))
-        Index of each element which will be assigned a specific value.
-    data : iterable(scalar)
-        Value associated at each index.
-    target_shape : tuple(int)
-        Shape of the output array.
-
-    Returns
-    -------
-    a : array, shape=target_shape
-        Array of zeros with specified values assigned to specified indices.
-    """
+    """Create array from sparse indices and data."""
     data = array(data)
     out = zeros(target_shape, dtype=data.dtype)
     out.put(_np.ravel_multi_index(_np.array(indices).T, target_shape), data)
@@ -258,35 +132,22 @@ def vec_to_diag(vec):
 
 
 def tril_to_vec(x, k=0):
+    """Extract lower triangle as vector."""
     n = x.shape[-1]
     rows, cols = _np.tril_indices(n, k=k)
     return x[..., rows, cols]
 
 
 def triu_to_vec(x, k=0):
+    """Extract upper triangle as vector."""
     n = x.shape[-1]
     rows, cols = _np.triu_indices(n, k=k)
     return x[..., rows, cols]
 
 
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
-    """Build matrix from given components.
-
-    Forms a matrix from diagonal, strictly upper triangular and
-    strictly lower traingular parts.
-
-    Parameters
-    ----------
-    diag : array_like, shape=[..., n]
-    tri_upp : array_like, shape=[..., (n * (n - 1)) / 2]
-    tri_low : array_like, shape=[..., (n * (n - 1)) / 2]
-
-    Returns
-    -------
-    mat : array_like, shape=[..., n, n]
-    """
+    """Build matrix from diagonal, upper tri, and lower tri components."""
     diag, tri_upp, tri_low = convert_to_wider_dtype([diag, tri_upp, tri_low])
-
     n = diag.shape[-1]
     (i,) = _np.diag_indices(n, ndim=1)
     j, k = _np.triu_indices(n, k=1)
@@ -298,14 +159,15 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
 
 
 def divide(a, b, ignore_div_zero=False):
-    if ignore_div_zero is False:
+    """Division with optional zero handling."""
+    if not ignore_div_zero:
         return _np.divide(a, b)
-
     wider_dtype, _ = _get_wider_dtype([a, b])
     return _np.divide(a, b, out=zeros(a.shape, dtype=wider_dtype), where=b != 0)
 
 
 def ravel_tril_indices(n, k=0, m=None):
+    """Return raveled indices for lower triangle."""
     if m is None:
         size = (n, n)
     else:
@@ -314,25 +176,8 @@ def ravel_tril_indices(n, k=0, m=None):
     return _np.ravel_multi_index(idxs, size)
 
 
-def matmul(*args, **kwargs):
-    for arg in args:
-        if arg.ndim == 1:
-            raise ValueError("ndims must be >=2")
-    return _np.matmul(*args, **kwargs)
-
-
-def outer(a, b):
-    if a.ndim > 1 and b.ndim > 1:
-        return _np.einsum("...i,...j->...ij", a, b)
-
-    out = _np.multiply.outer(a, b)
-    if b.ndim > 1:
-        out = out.swapaxes(0, -2)
-
-    return out
-
-
 def matvec(A, b):
+    """Matrix-vector product."""
     if b.ndim == 1:
         return _np.matmul(A, b)
     if A.ndim == 2:
@@ -340,39 +185,15 @@ def matvec(A, b):
     return _np.einsum("...ij,...j->...i", A, b)
 
 
-def dot(a, b):
-    if b.ndim == 1:
-        return _np.dot(a, b)
-
-    if a.ndim == 1:
-        return _np.dot(a, b.T)
-
-    return _np.einsum("...i,...i->...", a, b)
-
-
-def trace(a):
-    return _np.trace(a, axis1=-2, axis2=-1)
+def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
+    """Vectorize a function."""
+    if multiple_args:
+        return _np.vectorize(pyfunc, signature=signature)(*x)
+    return _np.vectorize(pyfunc, signature=signature)(x)
 
 
 def scatter_add(input, dim, index, src):
-    """Add values from src into input at the indices specified in index.
-
-    Parameters
-    ----------
-    input : array-like
-        Tensor to scatter values into.
-    dim : int
-        The axis along which to index.
-    index : array-like
-        The indices of elements to scatter.
-    src : array-like
-        The source element(s) to scatter.
-
-    Returns
-    -------
-    input : array-like
-        Modified input array.
-    """
+    """Add values from src into input at specified indices."""
     if dim == 0:
         for i, val in zip(index, src):
             input[i] += val
