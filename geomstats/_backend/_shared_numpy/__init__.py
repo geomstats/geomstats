@@ -11,30 +11,9 @@ eye = _common.eye
 is_array = _common.is_array
 get_default_dtype = _common.get_default_dtype
 zeros = _common.zeros
-_box_unary_scalar = _common._box_unary_scalar
 _box_binary_scalar = _common._box_binary_scalar
 
-abs = _box_unary_scalar(target=_np.abs)
-arccos = _box_unary_scalar(target=_np.arccos)
-arccosh = _box_unary_scalar(target=_np.arccosh)
-arcsin = _box_unary_scalar(target=_np.arcsin)
-arctanh = _box_unary_scalar(target=_np.arctanh)
-ceil = _box_unary_scalar(target=_np.ceil)
-cos = _box_unary_scalar(target=_np.cos)
-cosh = _box_unary_scalar(target=_np.cosh)
-exp = _box_unary_scalar(target=_np.exp)
-floor = _box_unary_scalar(target=_np.floor)
-log = _box_unary_scalar(target=_np.log)
-sign = _box_unary_scalar(target=_np.sign)
-sin = _box_unary_scalar(target=_np.sin)
-sinh = _box_unary_scalar(target=_np.sinh)
-sqrt = _box_unary_scalar(target=_np.sqrt)
-tan = _box_unary_scalar(target=_np.tan)
-tanh = _box_unary_scalar(target=_np.tanh)
-
-arctan2 = _box_binary_scalar(target=_np.arctan2)
 mod = _box_binary_scalar(target=_np.mod)
-power = _box_binary_scalar(target=_np.power)
 
 
 def angle(z, deg=False):
@@ -43,22 +22,6 @@ def angle(z, deg=False):
         return cast(out, get_default_dtype())
 
     return out
-
-
-def imag(x):
-    out = _np.imag(x)
-    if is_array(x):
-        return out
-
-    return get_default_dtype().type(out)
-
-
-def real(x):
-    out = _np.real(x)
-    if is_array(x):
-        return out
-
-    return array(out)
 
 
 def arange(start_or_stop, /, stop=None, step=1, dtype=None, **kwargs):

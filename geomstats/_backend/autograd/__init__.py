@@ -80,47 +80,49 @@ except ImportError:
 
 from autograd.scipy.special import erf, gamma, polygamma  # NOQA
 
+from .._array_api import (
+    abs as _api_abs,
+    arccos as _api_arccos,
+    arccosh as _api_arccosh,
+    arcsin as _api_arcsin,
+    arctan2 as _api_arctan2,
+    arctanh as _api_arctanh,
+    ceil as _api_ceil,
+    cos as _api_cos,
+    cosh as _api_cosh,
+    exp as _api_exp,
+    floor as _api_floor,
+    log as _api_log,
+    power as _api_power,
+    real as _api_real,
+    sign as _api_sign,
+    sin as _api_sin,
+    sinh as _api_sinh,
+    sqrt as _api_sqrt,
+    tan as _api_tan,
+    tanh as _api_tanh,
+)
 from .._shared_numpy import (
-    abs,
     angle,
     arange,
-    arccos,
-    arccosh,
-    arcsin,
-    arctan2,
-    arctanh,
     array_from_sparse,
     assignment,
     assignment_by_sum,
-    ceil,
-    cos,
-    cosh,
     divide,
     dot,
-    exp,
     flatten,
-    floor,
     from_numpy,
     get_slice,
-    log,
     mat_from_diag_triu_tril,
     matmul,
     matvec,
     mod,
     ndim,
     one_hot,
-    power,
     ravel_tril_indices,
-    real,
     scatter_add,
     set_diag,
-    sign,
-    sin,
-    sinh,
-    sqrt,
     squeeze,
-    tan,
-    tanh,
     to_numpy,
     trace,
     tril_to_vec,
@@ -154,6 +156,63 @@ from ._common import (
     to_ndarray,
     zeros,
 )
+
+def _wrap_unary_scalar(func):
+    """Wrap _array_api function to handle scalar inputs with default dtype."""
+    import functools
+
+    @functools.wraps(func)
+    def _wrapped(x, *args, **kwargs):
+        if isinstance(x, float):
+            x = _np.asarray(x, dtype=get_default_dtype())
+        elif isinstance(x, complex):
+            x = _np.asarray(x, dtype=get_default_cdtype())
+        out = func(x, *args, **kwargs)
+        # Ensure output is an array with proper dtype
+        if not hasattr(out, "dtype"):
+            out = _np.asarray(out, dtype=get_default_dtype())
+        return out
+
+    return _wrapped
+
+
+def _wrap_binary_scalar(func):
+    """Wrap _array_api binary function to handle scalar inputs with default dtype."""
+    import functools
+
+    @functools.wraps(func)
+    def _wrapped(x1, x2, *args, **kwargs):
+        if isinstance(x1, float):
+            x1 = _np.asarray(x1, dtype=get_default_dtype())
+        if isinstance(x2, float):
+            x2 = _np.asarray(x2, dtype=get_default_dtype())
+        return func(x1, x2, *args, **kwargs)
+
+    return _wrapped
+
+
+# Wrap _array_api functions with scalar dtype handling
+abs = _wrap_unary_scalar(_api_abs)
+arccos = _wrap_unary_scalar(_api_arccos)
+arccosh = _wrap_unary_scalar(_api_arccosh)
+arcsin = _wrap_unary_scalar(_api_arcsin)
+arctanh = _wrap_unary_scalar(_api_arctanh)
+ceil = _wrap_unary_scalar(_api_ceil)
+cos = _wrap_unary_scalar(_api_cos)
+cosh = _wrap_unary_scalar(_api_cosh)
+exp = _wrap_unary_scalar(_api_exp)
+floor = _wrap_unary_scalar(_api_floor)
+log = _wrap_unary_scalar(_api_log)
+real = _wrap_unary_scalar(_api_real)
+sign = _wrap_unary_scalar(_api_sign)
+sin = _wrap_unary_scalar(_api_sin)
+sinh = _wrap_unary_scalar(_api_sinh)
+sqrt = _wrap_unary_scalar(_api_sqrt)
+tan = _wrap_unary_scalar(_api_tan)
+tanh = _wrap_unary_scalar(_api_tanh)
+
+arctan2 = _wrap_binary_scalar(_api_arctan2)
+power = _wrap_binary_scalar(_api_power)
 
 ones = _dyn_update_dtype(target=_np.ones)
 linspace = _dyn_update_dtype(target=_np.linspace)

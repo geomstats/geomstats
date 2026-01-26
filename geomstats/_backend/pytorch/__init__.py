@@ -50,6 +50,28 @@ from torch.special import gammaln as _gammaln
 
 from .._backend_config import pytorch_atol as atol
 from .._backend_config import pytorch_rtol as rtol
+from .._array_api import (
+    abs as _api_abs,
+    arccos as _api_arccos,
+    arccosh as _api_arccosh,
+    arcsin as _api_arcsin,
+    arctan2 as _api_arctan2,
+    arctanh as _api_arctanh,
+    ceil as _api_ceil,
+    cos as _api_cos,
+    cosh as _api_cosh,
+    exp as _api_exp,
+    floor as _api_floor,
+    log as _api_log,
+    power as _api_power,
+    real as _api_real,
+    sign as _api_sign,
+    sin as _api_sin,
+    sinh as _api_sinh,
+    sqrt as _api_sqrt,
+    tan as _api_tan,
+    tanh as _api_tanh,
+)
 from . import (
     autodiff,  # NOQA
     linalg,  # NOQA
@@ -58,8 +80,6 @@ from . import (
 from ._common import array, cast, from_numpy
 from ._dtype import (
     _add_default_dtype_by_casting,
-    _box_binary_scalar,
-    _box_unary_scalar,
     _preserve_input_dtype,
     as_dtype,
     get_default_cdtype,
@@ -69,6 +89,58 @@ from ._dtype import (
     is_floating,
     set_default_dtype,
 )
+
+
+def _wrap_unary_scalar(func):
+    """Wrap _array_api function to convert scalars to tensors first."""
+    import functools
+
+    @functools.wraps(func)
+    def _wrapped(x, *args, **kwargs):
+        if not _torch.is_tensor(x):
+            x = _torch.tensor(x)
+        return func(x, *args, **kwargs)
+
+    return _wrapped
+
+
+def _wrap_binary_scalar(func):
+    """Wrap _array_api binary function to convert scalars to tensors first."""
+    import functools
+
+    @functools.wraps(func)
+    def _wrapped(x1, x2, *args, **kwargs):
+        if not _torch.is_tensor(x1):
+            x1 = _torch.tensor(x1)
+        if not _torch.is_tensor(x2):
+            x2 = _torch.tensor(x2)
+        return func(x1, x2, *args, **kwargs)
+
+    return _wrapped
+
+
+# Wrap _array_api functions to convert scalars to tensors
+abs = _wrap_unary_scalar(_api_abs)
+arccos = _wrap_unary_scalar(_api_arccos)
+arccosh = _wrap_unary_scalar(_api_arccosh)
+arcsin = _wrap_unary_scalar(_api_arcsin)
+arctanh = _wrap_unary_scalar(_api_arctanh)
+ceil = _wrap_unary_scalar(_api_ceil)
+cos = _wrap_unary_scalar(_api_cos)
+cosh = _wrap_unary_scalar(_api_cosh)
+exp = _wrap_unary_scalar(_api_exp)
+floor = _wrap_unary_scalar(_api_floor)
+log = _wrap_unary_scalar(_api_log)
+real = _wrap_unary_scalar(_api_real)
+sign = _wrap_unary_scalar(_api_sign)
+sin = _wrap_unary_scalar(_api_sin)
+sinh = _wrap_unary_scalar(_api_sinh)
+sqrt = _wrap_unary_scalar(_api_sqrt)
+tan = _wrap_unary_scalar(_api_tan)
+tanh = _wrap_unary_scalar(_api_tanh)
+
+arctan2 = _wrap_binary_scalar(_api_arctan2)
+power = _wrap_binary_scalar(_api_power)
 
 _DTYPES = {
     int32: 0,
@@ -80,30 +152,18 @@ _DTYPES = {
 }
 
 
-abs = _box_unary_scalar(target=_torch.abs)
-angle = _box_unary_scalar(target=_torch.angle)
-arccos = _box_unary_scalar(target=_torch.arccos)
-arccosh = _box_unary_scalar(target=_torch.arccosh)
-arcsin = _box_unary_scalar(target=_torch.arcsin)
-arctanh = _box_unary_scalar(target=_torch.arctanh)
-ceil = _box_unary_scalar(target=_torch.ceil)
-cos = _box_unary_scalar(target=_torch.cos)
-cosh = _box_unary_scalar(target=_torch.cosh)
-exp = _box_unary_scalar(target=_torch.exp)
-floor = _box_unary_scalar(target=_torch.floor)
-log = _box_unary_scalar(target=_torch.log)
-real = _box_unary_scalar(target=_torch.real)
-sign = _box_unary_scalar(target=_torch.sign)
-sin = _box_unary_scalar(target=_torch.sin)
-sinh = _box_unary_scalar(target=_torch.sinh)
-sqrt = _box_unary_scalar(target=_torch.sqrt)
-tan = _box_unary_scalar(target=_torch.tan)
-tanh = _box_unary_scalar(target=_torch.tanh)
+def angle(x, deg=False):
+    """Return the angle of the complex argument."""
+    if not _torch.is_tensor(x):
+        x = _torch.tensor(x)
+    return _torch.angle(x)
 
 
-arctan2 = _box_binary_scalar(target=_torch.atan2)
-mod = _box_binary_scalar(target=_torch.remainder, box_x2=False)
-power = _box_binary_scalar(target=_torch.pow, box_x2=False)
+def mod(x1, x2):
+    """Element-wise remainder of division."""
+    if not _torch.is_tensor(x1):
+        x1 = _torch.tensor(x1)
+    return _torch.remainder(x1, x2)
 
 
 std = _preserve_input_dtype(_add_default_dtype_by_casting(target=_torch.std))
