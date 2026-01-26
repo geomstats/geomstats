@@ -638,9 +638,9 @@ class SturmsMean(BaseEstimator):
         self,
         space,
         sample_method="cyclic",
-        max_iter=100,
+        max_iter=1000,
         epsilon=1e-4,
-        window_length=10,
+        window_length=50,
     ):
         if sample_method == "cyclic":
             self._sample_next = self._sample_next_cyclic
@@ -649,7 +649,8 @@ class SturmsMean(BaseEstimator):
             self._sample_next = self._sample_next_stochastic
             self._step_length = self._step_length_stochastic
         else:
-            raise ValueError(f"Sample method {self.sample_method} is not supported.")
+            raise ValueError(f"Sample method {sample_method} is not supported.")
+        self.sample_method = sample_method
 
         self.max_iter = max_iter
         self.epsilon = epsilon
@@ -708,41 +709,28 @@ class SturmsMean(BaseEstimator):
         self : object
             Returns self.
         """
-        # need weights to sum to 1 for sampling
-        # Frechet mean is invariant under positive scaling of weights
         n_points = gs.shape(X)[0]
         if weights is None:
             weights = gs.ones((n_points,))
         weights = weights / gs.sum(weights)
 
-        # set initial estimate
         mean_estimate = self._sample_next(X, weights, 0)
-        print("MEAEN", mean_estimate)
         prev_mean_estimate = mean_estimate
 
         prev_mean_movements = [np.inf for _ in range(self.window_length)]
         convergence = np.inf
 
         for i in range(1, self.max_iter):
-            # sample from datapoints
             sampled_point = self._sample_next(X, weights, i)
 
-            # construct geodesic
             geodesic = self.space.metric.geodesic(mean_estimate, sampled_point)
-            print(geodesic)
-            # new estimate is point 1/(i+1) of the way across the geodesic
             step_length = self._step_length(weights, i)
-            print("STE", step_length)
-            mean_estimate = geodesic(step_length)
-            print(mean_estimate)
+            mean_estimate = geodesic(step_length)[0]
 
-            # test for convergence (sliding window)
             prev_mean_movements.pop(0)
             prev_mean_movements.append(
                 self.space.metric.dist(prev_mean_estimate, mean_estimate)
             )
-            print(prev_mean_estimate, mean_estimate)
-            print("HELP", prev_mean_movements)
             convergence = gs.mean(prev_mean_movements)
 
             prev_mean_estimate = mean_estimate
@@ -765,19 +753,6 @@ class SturmsMean(BaseEstimator):
         self.estimate_ = mean_estimate
         return self
 
-    def minimize(
-        self,
-        space,
-        points,
-        weights,
-    ):
-        r"""Empirical Frechet mean.
-
-        Cheating but to ensure compatibility with gradient-descent-based methods.
-
-        """
-        return self.fit(points, None, weights)
-
 
 class FrechetMean(BaseEstimator):
     r"""Empirical Frechet mean.
@@ -787,12 +762,17 @@ class FrechetMean(BaseEstimator):
     space : Manifold
         Equipped manifold.
     method : str, {\'default\', \'adaptive\', \'batch\', \'sturms\'}
-        Gradient descent method or iterative approach.
+        Gradient descent method.
         The `adaptive` method uses a Levenberg-Marquardt style adaptation of
         the learning rate. The `batch` method is similar to the default
         method but for batches of equal length of samples. In this case,
         samples must be of shape [n_samples, n_batch, *space.shape].
         Optional, default: \'default\'.
+    algorithm : str, {\'gradient_descent\',  \'sturms\'}
+        Gradient descent is the default algorithm. Sturm's algorithm is an
+        iterative approach to calculating the mean of points in a geodesic
+        metric space, without the use of log or exp.
+        Optional, default: \'gradient_descent\'.
 
     Attributes
     ----------
@@ -807,8 +787,11 @@ class FrechetMean(BaseEstimator):
         * `geodesic`
     """
 
-    def __new__(cls, space, **kwargs):
+    def __new__(cls, space, algorithm="gradient_descent", **kwargs):
         """Interface for instantiating proper algorithm."""
+        if algorithm == "sturms" or _is_bhv_metric(space.metric):
+            return SturmsMean(space, **kwargs)
+
         if isinstance(space.metric, HypersphereMetric) and space.dim == 1:
             return CircleMean(space, **kwargs)
 
@@ -817,9 +800,6 @@ class FrechetMean(BaseEstimator):
 
         elif _is_elastic_metric(space.metric):
             return ElasticMean(space, **kwargs)
-
-        elif _is_bhv_metric(space.metric):
-            return SturmsMean(space, **kwargs)
 
         return super().__new__(cls)
 
@@ -852,7 +832,7 @@ class FrechetMean(BaseEstimator):
     def method(self, value):
         """Gradient descent method."""
         error.check_parameter_accepted_values(
-            value, "method", ["default", "adaptive", "batch", "sturms"]
+            value, "method", ["default", "adaptive", "batch"]
         )
         if value == self._method:
             return
@@ -862,11 +842,7 @@ class FrechetMean(BaseEstimator):
             "default": GradientDescent,
             "adaptive": AdaptiveGradientDescent,
             "batch": BatchGradientDescent,
-            "sturms": SturmsMean,
         }
-        if self._method == "sturms":
-            self.optimizer = MAP_OPTIMIZER[value](self.space)
-            return
         self.optimizer = MAP_OPTIMIZER[value]()
 
     def fit(self, X, y=None, weights=None):
