@@ -89,7 +89,7 @@ class NewAutodiffTestData(TestData):
                 ),
             ),
             dict(
-                func=lambda X, y: gs.sum(gs.matvec(X, y), axis=-1),
+                func=lambda X, y: gs.sum(gs.einsum("...ij,...j->...i", X, y), axis=-1),
                 inputs=(
                     gs.array([[1.0, 2.0], [3.0, 4.0]]),
                     gs.array(
@@ -105,7 +105,7 @@ class NewAutodiffTestData(TestData):
                 ),
             ),
             dict(
-                func=lambda X, y: gs.sum(gs.matvec(X, y), axis=-1),
+                func=lambda X, y: gs.sum(gs.einsum("...ij,...j->...i", X, y), axis=-1),
                 inputs=(
                     gs.array([[1.0, 2.0], [3.0, 4.0]]),
                     gs.array(
@@ -160,14 +160,14 @@ class NewAutodiffTestData(TestData):
                 point_ndims=2,
             ),
             dict(
-                func=lambda X, y: gs.sum(gs.matvec(X, y), axis=-1),
+                func=lambda X, y: gs.sum(gs.einsum("...ij,...j->...i", X, y), axis=-1),
                 input_shape_x=(2, 2),
                 input_shape_y=(2,),
                 point_ndims=(2, 1),
                 argnums=(0, 1),
             ),
             dict(
-                func=lambda X, y: gs.sum(gs.matvec(X, y), axis=-1),
+                func=lambda X, y: gs.sum(gs.einsum("...ij,...j->...i", X, y), axis=-1),
                 input_shape_x=(2, 2),
                 input_shape_y=(2,),
                 point_ndims=(2, 1),

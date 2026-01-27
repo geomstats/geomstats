@@ -894,8 +894,8 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         Use of `abs` in the output prevents nan when calling
         `sqrt` in very small negative outputs (e.g. -1e-16).
         """
-        tr_a = gs.trace(point_a)
-        tr_b = gs.trace(point_b)
+        tr_a = gs.einsum("...ii->...", point_a)
+        tr_b = gs.einsum("...ii->...", point_b)
 
         point_a_sqrt = apply_func_to_eigvalsh(point_a, gs.sqrt)
 

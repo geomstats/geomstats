@@ -291,7 +291,7 @@ class TestSPDScalingFinder(TestCase, metaclass=DataBasedParametrizer):
         spd_mat = self.data_generator.random_point(n_points)
         diag_vec = self.algo(spd_mat)
 
-        unit_row_sum_spd = spd_mat * gs.outer(diag_vec, diag_vec)
+        unit_row_sum_spd = spd_mat * gs.einsum("...i,...j->...ij", diag_vec, diag_vec)
 
         res = gs.sum(unit_row_sum_spd, axis=-1)
 

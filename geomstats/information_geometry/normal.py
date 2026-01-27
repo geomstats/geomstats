@@ -244,7 +244,7 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
                 (x.shape[0],), batch_shape, x, inv_cov
             )
 
-            aux = gs.exp(-0.5 * gs.dot(x_, gs.matvec(inv_cov_, x_)))
+            aux = gs.exp(-0.5 * gs.einsum("...i,...i->...", x_, gs.einsum("...ij,...j->...i", inv_cov_, x_)))
             return gs.einsum("...,...i->...i", pdf_normalization, aux)
 
         return pdf
@@ -549,7 +549,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
                 (x.shape[0],), batch_shape, x, mean, inv_cov
             )
             aux_0 = x_ - mean_
-            aux_1 = gs.exp(-0.5 * gs.dot(aux_0, gs.matvec(inv_cov_, aux_0)))
+            aux_1 = gs.exp(-0.5 * gs.einsum("...i,...i->...", aux_0, gs.einsum("...ij,...j->...i", inv_cov_, aux_0)))
             return gs.einsum("...,...i->...i", pdf_normalization, aux_1)
 
         return pdf

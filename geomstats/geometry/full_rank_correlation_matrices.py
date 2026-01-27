@@ -183,7 +183,7 @@ class FullRankCorrelationMatrices(LevelSet):
             Symmetric matrix obtained by the action of `diagonal_vec` on
             `point`.
         """
-        return point * gs.outer(diagonal_vec, diagonal_vec)
+        return point * gs.einsum("...i,...j->...ij", diagonal_vec, diagonal_vec)
 
     @classmethod
     def from_covariance(cls, point):
@@ -938,9 +938,11 @@ class OffLogDiffeo(Diffeo):
             image_point=image_point, base_point=base_point
         )
         e = gs.ones(h0_mat.shape[-1])
-        vec = gs.matvec(
+        vec = gs.einsum(
+            "...ij,...j->...i",
             gs.linalg.inv(h0_mat),
-            gs.matvec(
+            gs.einsum(
+                "...ij,...j->...i",
                 Matrices.to_diagonal(
                     SymMatrixLog.inverse_tangent(
                         image_point=mat, image_tangent_vec=image_tangent_vec
@@ -949,7 +951,8 @@ class OffLogDiffeo(Diffeo):
                 e,
             ),
         )
-        return gs.vec_to_diag(-vec), mat
+        d = vec.shape[-1]
+        return gs.einsum("...i,ij->...ij", -vec, gs.eye(d, dtype=vec.dtype)), mat
 
     def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         r"""Inverse tangent diffeomorphism at image point.
@@ -1086,7 +1089,7 @@ class SPDScalingFinder:
         -------
         jacobian : array-like, shape=[..., n]
         """
-        return gs.matvec(spd_matrix, diag_vec) - 1.0 / diag_vec
+        return gs.einsum("...ij,...j->...i", spd_matrix, diag_vec) - 1.0 / diag_vec
 
     def _hessian_f(self, spd_matrix, diag_vec):
         r"""Hessian of objective function.
@@ -1105,7 +1108,8 @@ class SPDScalingFinder:
         -------
         hessian : array-like, shape=[..., n, n]
         """
-        return spd_matrix + gs.vec_to_diag(1.0 / diag_vec**2)
+        d = diag_vec.shape[-1]
+        return spd_matrix + gs.einsum("...i,ij->...ij", 1.0 / diag_vec**2, gs.eye(d, dtype=diag_vec.dtype))
 
     def _call_single(self, spd_matrix):
         """Apply root finder to find scaling.
@@ -1247,15 +1251,14 @@ class LogScalingDiffeo(Diffeo):
         delta = Matrices.diagonal(base_point_row_1) ** 0.5
         aux = FullRankCorrelationMatrices.diag_action(delta, tangent_vec)
         eye = gs.eye(base_point_row_1.shape[-1])
-        tangent_vec_row_1_0 = -2 * gs.vec_to_diag(
-            gs.sum(
-                Matrices.mul(
-                    gs.linalg.inv(eye + base_point_row_1),
-                    aux,
-                ),
-                axis=-1,
-            )
+        sum_result = gs.sum(
+            Matrices.mul(
+                gs.linalg.inv(eye + base_point_row_1),
+                aux,
+            ),
+            axis=-1,
         )
+        tangent_vec_row_1_0 = -2 * gs.einsum("...i,ij->...ij", sum_result, eye)
 
         tangent_vec_row_1 = aux + 0.5 * (
             Matrices.mul(tangent_vec_row_1_0, base_point_row_1)

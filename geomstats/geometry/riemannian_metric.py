@@ -188,7 +188,7 @@ class RiemannianMetric(Connection, ABC):
         """
         inner_prod_mat = self.metric_matrix(base_point)
         aux = gs.einsum("...j,...jk->...k", tangent_vec_a, inner_prod_mat)
-        return gs.dot(aux, tangent_vec_b)
+        return gs.einsum("...i,...i->...", aux, tangent_vec_b)
 
     def inner_coproduct(self, cotangent_vec_a, cotangent_vec_b, base_point=None):
         """Compute inner coproduct between two cotangent vectors at base point.
@@ -212,7 +212,7 @@ class RiemannianMetric(Connection, ABC):
         vector_2 = gs.einsum(
             "...ij,...j->...i", self.cometric_matrix(base_point), cotangent_vec_b
         )
-        return gs.dot(cotangent_vec_a, vector_2)
+        return gs.einsum("...i,...i->...", cotangent_vec_a, vector_2)
 
     def hamiltonian(self, state):
         r"""Compute the hamiltonian energy associated to the cometric.

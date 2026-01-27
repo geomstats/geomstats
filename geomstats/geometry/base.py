@@ -790,7 +790,7 @@ class ImmersedSet(Manifold, abc.ABC):
         tangent_vec_emb : array-like, shape=[..., dim_embedding]
         """
         jacobian_immersion = self.jacobian_immersion(base_point)
-        return gs.matvec(jacobian_immersion, tangent_vec)
+        return gs.einsum("...ij,...j->...i", jacobian_immersion, tangent_vec)
 
     def jacobian_immersion(self, base_point):
         """Evaluate the Jacobian of the immersion at a point.
