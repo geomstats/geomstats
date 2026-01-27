@@ -73,8 +73,8 @@ class PullbackMetric(RiemannianMetric):
 
         if is_vec:
             reshaped_jacobian_immersion = gs.reshape(jacobian_immersion, (-1, dim))
-            reshaped_immersed_basis_elements = gs.matvec(
-                reshaped_jacobian_immersion, basis_elements
+            reshaped_immersed_basis_elements = gs.einsum(
+                "...ij,...j->...i", reshaped_jacobian_immersion, basis_elements
             )
             immersed_basis_elements = gs.moveaxis(
                 gs.reshape(reshaped_immersed_basis_elements, (dim, -1, dim_embedding)),
@@ -83,7 +83,7 @@ class PullbackMetric(RiemannianMetric):
             )
 
         else:
-            immersed_basis_elements = gs.matvec(jacobian_immersion, basis_elements)
+            immersed_basis_elements = gs.einsum("...ij,...j->...i", jacobian_immersion, basis_elements)
 
         elems = {}
         for i in range(dim):

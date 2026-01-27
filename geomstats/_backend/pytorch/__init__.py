@@ -85,7 +85,6 @@ from .._array_api import (
     tan as _api_tan,
     tanh as _api_tanh,
     tile as _api_tile,
-    trace as _api_trace,
     transpose as _api_transpose,
     tril as _api_tril,
     triu as _api_triu,
@@ -225,7 +224,6 @@ squeeze = _api_squeeze
 stack = _api_stack
 std = _wrap_unary_scalar(_preserve_input_dtype(_add_default_dtype_by_casting(target=_torch.std)))
 tile = _api_tile
-trace = _api_trace
 transpose = _api_transpose
 tril = _api_tril
 triu = _api_triu
@@ -286,40 +284,11 @@ def matmul(x, y, out=None):
     return _torch.matmul(x, y, out=out)
 
 
-def dot(a, b):
-    """Dot product with dtype handling."""
-    a, b = convert_to_wider_dtype([a, b])
-    if a.ndim == 1 and b.ndim == 1:
-        return _torch.dot(a, b)
-    if b.ndim == 1:
-        return _torch.tensordot(a, b, dims=1)
-    if a.ndim == 1:
-        return _torch.tensordot(a, b.T, dims=1)
-    return _torch.einsum("...i,...i->...", a, b)
-
-
-def matvec(A, b):
-    """Matrix-vector product with dtype handling."""
-    A, b = convert_to_wider_dtype([A, b])
-    if A.ndim == 2 and b.ndim == 1:
-        return _torch.mv(A, b)
-    if b.ndim == 1:
-        return _torch.matmul(A, b)
-    if A.ndim == 2:
-        return _torch.matmul(A, b.T).T
-    return _torch.einsum("...ij,...j->...i", A, b)
-
-
 def cross(a, b):
     """Cross product with dtype handling."""
     if a.shape != b.shape:
         a, b = broadcast_arrays(a, b)
     return _torch.cross(*convert_to_wider_dtype([a, b]), dim=-1)
-
-
-def outer(a, b):
-    """Outer product."""
-    return _torch.einsum("...i,...j->...ij", a, b)
 
 
 def einsum(equation, *inputs):
@@ -688,11 +657,6 @@ def set_diag(x, new_diag):
     off_diag = (1 - _torch.eye(arr_shape[-1])) * x
     diag = _torch.einsum("ij,...i->...ij", _torch.eye(new_diag.shape[-1]), new_diag)
     return diag + off_diag
-
-
-def vec_to_diag(vec):
-    """Convert vector to diagonal matrix."""
-    return _torch.diag_embed(vec, offset=0)
 
 
 def tril_to_vec(x, k=0):

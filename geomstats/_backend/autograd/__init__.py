@@ -60,7 +60,6 @@ from .._array_api import (
     cumprod as _api_cumprod,
     cumsum as _api_cumsum,
     diagonal as _api_diagonal,
-    dot as _api_dot,
     einsum as _api_einsum,
     empty_like as _api_empty_like,
     equal as _api_equal,
@@ -84,7 +83,6 @@ from .._array_api import (
     minimum as _api_minimum,
     moveaxis as _api_moveaxis,
     ones_like as _api_ones_like,
-    outer as _api_outer,
     power as _api_power,
     prod as _api_prod,
     real as _api_real,
@@ -102,7 +100,6 @@ from .._array_api import (
     tan as _api_tan,
     tanh as _api_tanh,
     tile as _api_tile,
-    trace as _api_trace,
     transpose as _api_transpose,
     tril as _api_tril,
     triu as _api_triu,
@@ -123,7 +120,6 @@ from .._shared_numpy import (
     from_numpy,
     get_slice,
     mat_from_diag_triu_tril,
-    matvec,
     mod,
     ndim,
     one_hot,
@@ -133,7 +129,6 @@ from .._shared_numpy import (
     to_numpy,
     tril_to_vec,
     triu_to_vec,
-    vec_to_diag,
     vectorize,
 )
 
@@ -248,7 +243,6 @@ def cumsum(x, axis=None, dtype=None):
         result = result.astype(dtype)
     return result
 diagonal = _api_diagonal
-dot = _api_dot
 einsum = _api_einsum
 empty_like = _api_empty_like
 equal = _api_equal
@@ -269,7 +263,6 @@ mean = _api_mean
 minimum = _api_minimum
 moveaxis = _api_moveaxis
 ones_like = _api_ones_like
-outer = _api_outer
 prod = _api_prod
 repeat = _api_repeat
 reshape = _api_reshape
@@ -279,7 +272,6 @@ stack = _api_stack
 std = _api_std
 sum = _api_sum  # noqa: A001
 tile = _api_tile
-trace = _api_trace
 transpose = _api_transpose
 tril = _api_tril
 triu = _api_triu

@@ -1332,34 +1332,6 @@ def matmul(x1, x2):
     return xp.matmul(x1, x2)
 
 
-def dot(a, b):
-    """Dot product of two arrays.
-
-    For 1D arrays, returns the inner product.
-    For higher dimensions, returns element-wise dot product over last axis.
-
-    Parameters
-    ----------
-    a, b : array-like
-        Input arrays.
-
-    Returns
-    -------
-    out : array-like
-        Dot product.
-    """
-    xp = get_namespace(a, b)
-    # Use einsum for all cases - works across backends
-    if hasattr(a, "ndim") and hasattr(b, "ndim"):
-        if b.ndim == 1:
-            return xp.einsum("...i,i->...", a, b)
-        if a.ndim == 1:
-            return xp.einsum("i,...i->...", a, b)
-        # Batched dot product over last axis
-        return xp.einsum("...i,...i->...", a, b)
-    return xp.einsum("...i,...i->...", a, b)
-
-
 def einsum(subscripts, *operands):
     """Einstein summation convention.
 
@@ -1377,35 +1349,6 @@ def einsum(subscripts, *operands):
     """
     xp = get_namespace(*operands)
     return xp.einsum(subscripts, *operands)
-
-
-def trace(x, offset=0, axis1=-2, axis2=-1):
-    """Sum along diagonals.
-
-    Parameters
-    ----------
-    x : array-like
-        Input array.
-    offset : int, optional
-        Offset from main diagonal.
-    axis1, axis2 : int, optional
-        Axes to use for 2D sub-arrays.
-
-    Returns
-    -------
-    out : array-like
-        Sum along diagonals.
-    """
-    xp = get_namespace(x)
-    # Use einsum for main diagonal (offset=0) - works across backends
-    if offset == 0 and axis1 == -2 and axis2 == -1:
-        return xp.einsum("...ii->...", x)
-    # Fallback for other cases
-    if xp is torch:
-        if x.ndim == 2:
-            return torch.trace(x)
-        return torch.einsum("...ii->...", x)
-    return xp.trace(x, offset=offset, axis1=axis1, axis2=axis2)
 
 
 def cross(a, b, axis=-1):
@@ -1427,24 +1370,6 @@ def cross(a, b, axis=-1):
     if xp is torch:
         return torch.cross(a, b, dim=axis)
     return xp.cross(a, b, axis=axis)
-
-
-def outer(a, b):
-    """Outer product of two arrays.
-
-    Parameters
-    ----------
-    a, b : array-like
-        Input arrays.
-
-    Returns
-    -------
-    out : array-like
-        Outer product.
-    """
-    xp = get_namespace(a, b)
-    # Use einsum for all cases - works across backends
-    return xp.einsum("...i,...j->...ij", a, b)
 
 
 def kron(a, b):

@@ -285,7 +285,7 @@ class Localization:
         """
         dt, linear_vel, angular_vel = self.preprocess_input(sensor_input)
         theta, _, _ = state
-        local_vel = gs.matvec(self.rotation_matrix(theta), linear_vel)
+        local_vel = gs.einsum("...ij,...j->...i", self.rotation_matrix(theta), linear_vel)
         new_pos = state[1:] + dt * local_vel
         theta = theta + dt * angular_vel
         theta = self.regularize_angle(theta)
@@ -415,7 +415,7 @@ class Localization:
         theta, _, _ = state
         rot = self.rotation_matrix(theta)
         expected = self.observation_model(state)
-        return gs.matvec(Matrices.transpose(rot), observation - expected)
+        return gs.einsum("...ij,...j->...i", Matrices.transpose(rot), observation - expected)
 
 
 class KalmanFilter:
@@ -517,5 +517,5 @@ class KalmanFilter:
         obs_jac = self.model.observation_jacobian(self.state, observation)
         cov_factor = gs.eye(self.model.group.dim) - Matrices.mul(gain, obs_jac)
         self.covariance = Matrices.mul(cov_factor, self.covariance)
-        state_upd = gs.matvec(gain, innovation)
+        state_upd = gs.einsum("...ij,...j->...i", gain, innovation)
         self.state = self.model.group.exp(state_upd, self.state)

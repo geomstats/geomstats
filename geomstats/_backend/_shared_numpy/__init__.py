@@ -125,12 +125,6 @@ def array_from_sparse(indices, data, target_shape):
     return out
 
 
-def vec_to_diag(vec):
-    """Convert vector to diagonal matrix."""
-    d = vec.shape[-1]
-    return _np.squeeze(vec[..., None, :] * eye(d, dtype=vec.dtype)[None, :, :])
-
-
 def tril_to_vec(x, k=0):
     """Extract lower triangle as vector."""
     n = x.shape[-1]
@@ -174,15 +168,6 @@ def ravel_tril_indices(n, k=0, m=None):
         size = (n, m)
     idxs = _np.tril_indices(n, k, m)
     return _np.ravel_multi_index(idxs, size)
-
-
-def matvec(A, b):
-    """Matrix-vector product."""
-    if b.ndim == 1:
-        return _np.matmul(A, b)
-    if A.ndim == 2:
-        return _np.matmul(A, b.T).T
-    return _np.einsum("...ij,...j->...i", A, b)
 
 
 def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
