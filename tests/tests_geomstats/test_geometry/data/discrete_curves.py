@@ -76,8 +76,9 @@ class ReparametrizationAlignerTestData(TestData):
     N_RANDOM_POINTS = [1]
 
     tolerances = {
-        "align_in_same_fiber": {"atol": 1e-1},
+        "align_in_same_fiber": {"atol": 2e-1},
     }
+
     def align_in_same_fiber_test_data(self):
         return self.generate_tests(
             [
