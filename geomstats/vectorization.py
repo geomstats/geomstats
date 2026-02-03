@@ -198,8 +198,17 @@ def broadcast_to_multibatch(batch_shape_a, batch_shape_b, array_a, *array_b):
         Batch shape of array_a.
     batch_shape_b : tuple
         Batch shape of array_b.
-    array_a : array
-    array_b : array
+    array_a : array-like
+        First array to broadcast.
+    array_b : array-like
+        Additional arrays to broadcast.
+
+    Returns
+    -------
+    result : tuple
+        Tuple containing broadcasted arrays. If multiple array_b provided,
+        returns (array_a, array_b) where array_b is a tuple. Otherwise
+        returns (array_a, array_b[0]).
     """
     multi_b = len(array_b) > 1
 

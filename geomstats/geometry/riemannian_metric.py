@@ -14,7 +14,6 @@ from geomstats.vectorization import check_is_batch
 
 EPSILON = 1e-4
 
-
 class RiemannianMetric(Connection, ABC):
     """Class for Riemannian and pseudo-Riemannian metrics.
 
@@ -427,7 +426,7 @@ class RiemannianMetric(Connection, ABC):
             Number of jobs to run in parallel, using joblib. Note that a
             higher number of jobs may not be beneficial when one computation
             of a geodesic distance is cheap.
-            Optional. Default: 1.
+
         **joblib_kwargs : dict
             Keyword arguments to joblib.Parallel
 

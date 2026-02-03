@@ -47,9 +47,8 @@ def variance(space, points, base_point, weights=None):
         Equipped manifold.
     points : array-like, shape=[n_samples, dim]
         Points.
-    weights : array-like, shape=[n_samples,]
+    weights : array-like, shape=[n_samples]
         Weights associated to the points.
-        Optional, default: None.
 
     Returns
     -------
@@ -84,7 +83,6 @@ def linear_mean(points, weights=None):
         Points to be averaged.
     weights : array-like, shape=[n_samples,]
         Weights associated to the points.
-        Optional, default: None.
 
     Returns
     -------
@@ -107,20 +105,17 @@ class BaseGradientDescent(abc.ABC):
 
     Parameters
     ----------
-    max_iter : int, optional
+    max_iter : int
         Maximum number of iterations for the gradient descent.
-    epsilon : float, optional
+    epsilon : float
         Tolerance for stopping the gradient descent.
     init_point : array-like, shape=[*metric.shape]
         Initial point.
-        Optional, default : None. In this case the first sample of the input
-        data is used.
+        If None, the first sample of the input data is used.
     init_step_size : float
         Learning rate in the gradient descent.
-        Optional, default: 1.
     verbose : bool
         Level of verbosity to inform about convergence.
-        Optional, default: False.
     """
 
     def __init__(
@@ -284,14 +279,16 @@ class AdaptiveGradientDescent(BaseGradientDescent):
 
         Parameters
         ----------
+        space : Manifold
+            Equipped manifold.
         points : array-like, shape=[n_samples, *metric.shape]
             Points to be averaged.
-        weights : array-like, shape=[n_samples,], optional
+        weights : array-like, shape=[n_samples]
             Weights associated to the points.
 
         Returns
         -------
-        current_mean: array-like, shape=[*metric.shape]
+        current_mean : array-like, shape=[*metric.shape]
             Weighted Frechet mean of the points.
         """
         n_points = gs.shape(points)[0]
@@ -400,9 +397,9 @@ class LinearMean(BaseEstimator):
             Training input samples.
         y : None
             Target values. Ignored.
-        weights : array-like, shape=[n_samples,]
+            weights : array-like, shape=[n_samples]
             Weights associated to the samples.
-            Optional, default: None, in which case it is equally weighted.
+            If None, it is equally weighted.
 
         Returns
         -------
@@ -448,9 +445,8 @@ class ElasticMean(BaseEstimator):
         ----------
         points : array-like, shape=[n_samples, k_sampling_points, dim]
             Points on the manifold of curves (i.e. curves) to be averaged.
-        weights : array-like, shape=[n_samples,]
+        weights : array-like, shape=[n_samples]
             Weights associated to the points (i.e. curves).
-            Optional, default: None.
 
         Returns
         -------
@@ -472,9 +468,9 @@ class ElasticMean(BaseEstimator):
             Training input samples.
         y : None
             Target values. Ignored.
-        weights : array-like, shape=[n_samples,]
+            weights : array-like, shape=[n_samples]
             Weights associated to the samples.
-            Optional, default: None, in which case it is equally weighted.
+            If None, it is equally weighted.
 
         Returns
         -------
@@ -517,8 +513,13 @@ class CircleMean(BaseEstimator):
         points : array-like, shape=[n_samples, 1]
             Data set of angles (intrinsic coordinates).
 
-        Reference
-        ---------
+        Returns
+        -------
+        mean : array-like, shape=[1]
+            Mean angle.
+
+        References
+        ----------
         .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the
             circle: Uniqueness, locus and asymptotics", Annals of the Institute of
             Statistical Mathematics 67 (1), 177–193.
@@ -586,9 +587,9 @@ class CircleMean(BaseEstimator):
             Training input samples.
         y : None
             Target values. Ignored.
-        weights : array-like, shape=[n_samples,]
+            weights : array-like, shape=[n_samples]
             Weights associated to the samples.
-            Optional, default: None, in which case it is equally weighted.
+            If None, it is equally weighted.
 
         Returns
         -------
@@ -608,13 +609,12 @@ class FrechetMean(BaseEstimator):
     ----------
     space : Manifold
         Equipped manifold.
-    method : str, {\'default\', \'adaptive\', \'batch\'}
-        Gradient descent method.
+    method : str
+        Gradient descent method. One of {'default', 'adaptive', 'batch'}.
         The `adaptive` method uses a Levenberg-Marquardt style adaptation of
         the learning rate. The `batch` method is similar to the default
         method but for batches of equal length of samples. In this case,
         samples must be of shape [n_samples, n_batch, *space.shape].
-        Optional, default: \'default\'.
 
     Attributes
     ----------
@@ -691,9 +691,9 @@ class FrechetMean(BaseEstimator):
             Training input samples.
         y : None
             Target values. Ignored.
-        weights : array-like, shape=[n_samples,]
+            weights : array-like, shape=[n_samples]
             Weights associated to the samples.
-            Optional, default: None, in which case it is equally weighted.
+            If None, it is equally weighted.
 
         Returns
         -------

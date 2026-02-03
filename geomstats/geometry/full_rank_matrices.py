@@ -27,7 +27,13 @@ class FullRankMatrices(VectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MatricesMetric
+            Default metric.
+        """
         return MatricesMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -85,12 +91,11 @@ class FullRankMatrices(VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound: float
             This parameter is ignored.
         n_iter : int
             Maximum number of trials to sample a matrix with full rank.
-            Optional, default: 100.
 
         Returns
         -------

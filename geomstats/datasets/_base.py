@@ -16,6 +16,18 @@ FigshareMetadata = namedtuple("FigshareMetadata", ["filename", "article_id"])
 
 
 def _get_data_home(data_home=None):
+    """Get the data home directory.
+
+    Parameters
+    ----------
+    data_home : str
+        Path to the data directory.
+
+    Returns
+    -------
+    data_home : str
+        Path to the data directory.
+    """
     if data_home is None:
         data_home = DEFAULT_DATA_DIR
 
@@ -25,6 +37,22 @@ def _get_data_home(data_home=None):
 
 
 def download_figshare_zip(article_id, filename, dirname=None):
+    """Download a zip file from Figshare.
+
+    Parameters
+    ----------
+    article_id : int
+        Figshare article ID.
+    filename : str
+        Name of the file to download.
+    dirname : str
+        Directory to save the file.
+
+    Returns
+    -------
+    file_path : str
+        Path to the downloaded file.
+    """
     url = f"https://api.figshare.com/v2/articles/{article_id}/download"
 
     if filename is None:

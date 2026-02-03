@@ -20,7 +20,6 @@ NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
 PI_2_3 = gs.power(gs.array([2.0 * gs.pi]), gs.array([2 / 3]))
 SQRT_2 = gs.sqrt(2.0)
 
-
 class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
     """Class for the n-dimensional Poincare ball.
 
@@ -44,7 +43,13 @@ class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : PoincareBallMetric
+            Default metric.
+        """
         return PoincareBallMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -57,10 +62,9 @@ class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
         ----------
         point : array-like, shape=[..., dim]
             Point to be tested.
-        atol : float, optional
+        atol : float
             Tolerance at which to evaluate how close the squared norm
             is to the reference value.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -94,7 +98,6 @@ class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
             return -gs.maximum(-projected_point, -point)
 
         return gs.copy(point)
-
 
 class PoincareBallMetric(RiemannianMetric):
     """Class that defines operations using a Poincare ball."""
@@ -275,7 +278,6 @@ class PoincareBallMetric(RiemannianMetric):
         ----------
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, defaults to zeros if None.
 
         Returns
         -------

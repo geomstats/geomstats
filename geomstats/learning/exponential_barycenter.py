@@ -26,7 +26,7 @@ class GradientDescent(BaseGradientDescent):
             Input points lying in the Lie Group.
         weights : array-like, shape=[n_samples,]
             Weights associated to the points.
-            Optional, defaults to 1 for each point if None.
+            If None, defaults to 1 for each point.
 
         Returns
         -------
@@ -126,7 +126,7 @@ class ExponentialBarycenter(BaseEstimator):
             Target values. Ignored.
         weights : array-like, shape=[n_samples,]
             Weights associated to the samples.
-            Optional, default: None, in which case it is equally weighted.
+            If None, it is equally weighted.
 
         Returns
         -------

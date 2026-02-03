@@ -25,7 +25,6 @@ class ComplexRiemannianMetric(RiemannianMetric):
             Tangent vector at base point.
         base_point: array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------

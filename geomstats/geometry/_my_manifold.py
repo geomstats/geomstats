@@ -63,7 +63,6 @@ class MyManifold(Manifold):
             Point to evaluate.
         atol : float
             Tolerance, unused.
-            Optional, default: backend atol
 
         List the outputs of the method.
         For example:
@@ -137,10 +136,9 @@ class MyManifold(Manifold):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
 
         Returns
         -------

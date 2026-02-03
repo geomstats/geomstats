@@ -110,6 +110,11 @@ def GaussianKernel(sigma=1.0, init_index=0, dim=3):
         Index of first symbolic variable.
     dim : int
         Ambient dimension.
+
+    Returns
+    -------
+    kernel : pykeops.LazyTensor
+        Gaussian kernel expression.
     """
     x, y = Vi(init_index, dim), Vj(init_index + 1, dim)
     gamma = 1 / (sigma * sigma)
@@ -134,6 +139,11 @@ def CauchyKernel(sigma=1.0, init_index=0, dim=3):
         Index of first symbolic variable.
     dim : int
         Ambient dimension.
+
+    Returns
+    -------
+    kernel : pykeops.LazyTensor
+        Cauchy kernel expression.
     """
     x, y = Vi(init_index, dim), Vj(init_index + 1, dim)
     gamma = 1 / (sigma * sigma)
@@ -156,6 +166,11 @@ def LinearKernel(init_index=0, dim=3):
         Index of first symbolic variable.
     dim : int
         Ambient dimension.
+
+    Returns
+    -------
+    kernel : pykeops.LazyTensor
+        Linear kernel expression.
     """
     u, v = Vi(init_index, dim), Vj(init_index + 1, dim)
     return (u * v).sum()
@@ -176,6 +191,11 @@ def BinetKernel(init_index=0, dim=3):
         Index of first symbolic variable.
     dim : int
         Ambient dimension.
+
+    Returns
+    -------
+    kernel : pykeops.LazyTensor
+        Binet kernel expression.
     """
     u, v = Vi(init_index, dim), Vj(init_index + 1, dim)
     return (u * v).sum() ** 2
@@ -211,6 +231,11 @@ def RestrictedGaussianKernel(sigma=1.0, oriented=False, init_index=0, dim=3):
         Index of first symbolic variable.
     dim : int
         Ambient dimension.
+
+    Returns
+    -------
+    kernel : pykeops.LazyTensor
+        Restricted Gaussian kernel expression.
     """
     u, v = Vi(init_index, dim), Vj(init_index + 1, dim)
     b = 1 / (sigma * sigma)
@@ -298,8 +323,8 @@ class VarifoldMetric:
 
         Parameters
         ----------
-        point_a : Surface
-            A point.
+        target_point : Surface
+            Target point.
         target_faces : array-like, shape=[n_faces, 3]
             Combinatorial structure of target mesh.
 

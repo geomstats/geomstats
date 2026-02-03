@@ -66,10 +66,23 @@ class PreShapeSpace(LevelSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : PreShapeMetric
+            Default metric.
+        """
         return PreShapeMetric
 
     def _define_embedding_space(self):
+        """Define the embedding space.
+
+        Returns
+        -------
+        embedding_space : Matrices
+            Embedding space.
+        """
         return Matrices(self.k_landmarks, self.ambient_dim)
 
     def submersion(self, point):
@@ -129,7 +142,7 @@ class PreShapeSpace(LevelSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Not used.
 
@@ -147,7 +160,6 @@ class PreShapeSpace(LevelSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
@@ -174,7 +186,6 @@ class PreShapeSpace(LevelSet):
             Point in Matrices space.
         atol :  float
             Tolerance at which to evaluate mean == 0.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -236,7 +247,6 @@ class PreShapeSpace(LevelSet):
         coef = inner_prod / sq_norm
         return vector - gs.einsum("...,...ij->...ij", coef, base_point)
 
-
 class PreShapeBundle(FiberBundle):
     r"""Class for the Kendall pre-shape space bundle."""
 
@@ -280,7 +290,6 @@ class PreShapeBundle(FiberBundle):
             Point on the pre-shape space.
         return_skew : bool
             Whether to return the skew-symmetric matrix A.
-            Optional, default: False
 
         Returns
         -------
@@ -307,10 +316,9 @@ class PreShapeBundle(FiberBundle):
             Tangent vector.
         base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point on the manifold.
-            Optional, default: none.
+
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -686,7 +694,6 @@ class PreShapeBundle(FiberBundle):
 
         return nabla_x_a_y_v, a_x_a_y_a_x_y, nabla_x_v, a_y_a_x_y, vertical_vec_v
 
-
 class PreShapeMetric(PullbackDiffeoMetric):
     """Procrustes metric on the pre-shape space."""
 
@@ -769,7 +776,6 @@ class PreShapeMetric(PullbackDiffeoMetric):
         """
         radius = gs.array(gs.pi)
         return repeat_out(self._space.point_ndim, radius, base_point)
-
 
 class KendallShapeMetric(QuotientMetric):
     """Quotient metric on the shape space.
@@ -860,17 +866,14 @@ class KendallShapeMetric(QuotientMetric):
         direction : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector ar `base_point`, initial velocity of the geodesic to
             transport  along.
-            Optional, default: None.
         end_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point to transport to. Unused if `tangent_vec_b` is given.
-            Optional, default: None.
         n_steps : int
             Number of steps to use to approximate the solution of the
             ordinary differential equation.
-            Optional, default: 100.
+
         step : str, {'euler', 'rk2', 'rk4'}
             Scheme to use in the integration scheme.
-            Optional, default: 'rk4'.
 
         Returns
         -------
@@ -917,7 +920,6 @@ class KendallShapeMetric(QuotientMetric):
 
         flow = integrate(force, horizontal_a, n_steps=n_steps, step=step)
         return flow[-1]
-
 
 register_quotient(
     Space=PreShapeSpace,

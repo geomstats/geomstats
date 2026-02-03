@@ -39,7 +39,6 @@ def register_scaled_method(func_name, scaling_type):
     """
     _ScaledMethodsRegistry._add_scaled_method(func_name, scaling_type)
 
-
 def _wrap_attr(scaling_factor, func):
     @wraps(func)
     def response(*args, **kwargs):
@@ -47,7 +46,6 @@ def _wrap_attr(scaling_factor, func):
         return res
 
     return response
-
 
 class _ScaledMethodsRegistry:
     """Class to hold lists of methods and their scaling functions."""
@@ -129,7 +127,6 @@ class _ScaledMethodsRegistry:
         if func_name in cls._INVERSE_SQRT_LIST:
             return 1.0 / gs.sqrt(scale)
         return None
-
 
 class ScalarProductMetric:
     """Class for scalar products of Riemannian and pseudo-Riemannian metrics.

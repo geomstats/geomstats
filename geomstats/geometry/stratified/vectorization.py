@@ -14,10 +14,11 @@ def broadcast_lists(*lists):
     Parameters
     ----------
     *lists : list
+        Lists to broadcast.
 
     Returns
     -------
-    *broadcasted_lists : list
+    broadcasted_lists : tuple
         Lists with broadcasted length.
     """
     lens = [len(list_) for list_ in lists]
@@ -38,18 +39,20 @@ def broadcast_lists(*lists):
 
     return out
 
-
 def _manipulate_input(arg, *args):
     """Transform input into list if not one.
 
     Parameters
     ----------
     arg : any
-        Argument to manipulate
+        Argument to manipulate.
+    *args : tuple
+        Additional arguments (unused).
 
     Returns
     -------
-    arg : any or list[any]
+    arg : list
+        Transformed argument as a list.
     transformed : bool
         If point was transformed.
     """
@@ -58,10 +61,8 @@ def _manipulate_input(arg, *args):
 
     return arg, False
 
-
 def _manipulate_output_iterable(out):
     return PointBatch(out)
-
 
 def _manipulate_output(
     out, to_list, manipulate_output_iterable=_manipulate_output_iterable
@@ -83,7 +84,6 @@ def _manipulate_output(
 
     return out
 
-
 def vectorize_point(
     *args_positions,
     manipulate_input=_manipulate_input,
@@ -93,8 +93,18 @@ def vectorize_point(
 
     Parameters
     ----------
-    args_positions : tuple
+    *args_positions : tuple
         Position and corresponding argument name. A tuple for each position.
+    manipulate_input : callable
+        Function to manipulate input arguments.
+
+    manipulate_output : callable
+        Function to manipulate output.
+
+    Returns
+    -------
+    decorator : callable
+        Decorator function.
 
     Notes
     -----

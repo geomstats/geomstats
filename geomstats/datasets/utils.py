@@ -66,7 +66,7 @@ def load_cities():
         Array with each row representing one sample,
         i. e. latitude and longitude of a city.
         Angles are in radians.
-    name : list
+    names : list
         List of city names.
     """
     with open(CITIES_PATH, encoding="utf-8") as json_file:
@@ -119,6 +119,11 @@ def load_karate_graph():
 def load_poses(only_rotations=True):
     """Load data from data/poses/poses.csv.
 
+    Parameters
+    ----------
+    only_rotations : bool
+        Whether to return only rotations or rotations with translations.
+
     Returns
     -------
     data : array-like, shape=[5, 3] or shape=[5, 6]
@@ -159,15 +164,14 @@ def load_connectomes(as_vectors=False):
     ----------
     as_vectors : bool
         Whether to return raw data as vectors or as symmetric matrices.
-        Optional, default: False
 
     Returns
     -------
-    mat : array-like, shape=[86, {[28, 28], 378}
+    mat : array-like, shape=[86, 28, 28] or shape=[86, 378]
         Connectomes.
-    patient_id : array-like, shape=[86,]
-        Patient unique identifiers
-    target : array-like, shape=[86,]
+    patient_id : array-like, shape=[86]
+        Patient unique identifiers.
+    target : array-like, shape=[86]
         Labels, whether patients belong to the diseased class (1) or control
         (0).
     """
@@ -196,7 +200,7 @@ def load_leaves():
     beta_param : array-like, shape=[172, 2]
         Beta parameters of the beta distributions fitted to each
         leaf orientation angle sample of 172 species of plants.
-    distrib_type: array-like, shape=[172,]
+    distrib_type : array-like, shape=[172]
         Leaf orientation angle distribution type for each of the 172 species.
     """
     data = pd.read_csv(LEAVES_PATH, sep=";")
@@ -207,6 +211,11 @@ def load_leaves():
 
 def load_emg(file_path=EMG_PATH):
     """Load data from data/emg/emg.csv.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the EMG data file.
 
     Returns
     -------
@@ -249,10 +258,10 @@ def load_optical_nerves():
     -------
     data : array-like, shape=[22, 5, 3]
         Data representing the 5 landmarks, in 3D, for 11 different monkeys.
-    labels : array-like, shape=[22,]
+    labels : array-like, shape=[22]
         Labels in {0, 1} classifying the corresponding optical nerve as
         normal (label = 0) or glaucoma (label = 1).
-    monkeys : array-like, shape=[22,]
+    monkeys : array-like, shape=[22]
         Indices in 0...10 referencing the index of the monkey to which a given
         optical nerve belongs.
     """
@@ -296,9 +305,9 @@ def load_hands():
     data : array-like, shape=[52, 22, 3]
         Hand data, represented as a list of 22 joints, specifically as
         the 3D coordinates of these joints.
-    labels : array-like, shape=[52,]
+    labels : array-like, shape=[52]
         Label representing hands poses. Label 0: "Grab", Label 1: "Expand"
-    bone_list : array-like
+    bone_list : array-like, shape=[21, 2]
         List of bones, as a list of connexions between joints.
     """
     data = gs.array(pd.read_csv(HANDS_PATH, sep=" ").values)
@@ -383,11 +392,16 @@ def load_sao_paulo(dirname=None):
     The dataset is accessible here:
     https://www.kaggle.com/datasets/danlessa/sao-paulo-traffic-jams-since-2001
 
+    Parameters
+    ----------
+    dirname : str
+        Directory to save the downloaded file.
+
     Returns
     -------
     jam_table : pandas.DataFrame
         Columns : name (of the road), date (of traffic jam), duration.
-    jam_count : dictionary
+    jam_count : dict
         Keys : name of the road
         Values : count of traffic jams between 2001 and 2019.
     """
@@ -416,9 +430,14 @@ def load_sao_paulo(dirname=None):
 def load_mammals(file_path=MAMMALS_PATH):
     """Load data from data/graph_space/mammals_grooming.npy.
 
+    Parameters
+    ----------
+    file_path : str
+        Path to the mammals data file.
+
     Returns
     -------
-    data_mammals : gs.array, shape=[26, 18, 18]
+    data_mammals : array-like, shape=[26, 18, 18]
         Adjacency matrices of different group of mammals measuring the
         mammals grooming.
 
@@ -440,10 +459,10 @@ def load_football():
 
     Returns
     -------
-    data_football : gs.array, shape=[128, 11, 11]
+    data_football : array-like, shape=[128, 11, 11]
         Adjacency matrices of player passing networks of all the matches and teams
         in Fifa 2018.
-    data_scores: gs.array, shape=[128, 1]
+    data_scores : array-like, shape=[128, 1]
         Scores of the team during the match.
     """
     data_football = np.load(FOOTBALL_PATH_GRAPHS)
@@ -456,9 +475,9 @@ def load_cube():
 
     Returns
     -------
-    vertices : gs.array, shape=[8, 3]
+    vertices : array-like, shape=[8, 3]
         Vertices of the cube.
-    faces : gs.array, shape=[12, 3]
+    faces : array-like, shape=[12, 3]
         Faces of the cube.
         Each face contains the 3 indices of the vertices that compose it.
     """

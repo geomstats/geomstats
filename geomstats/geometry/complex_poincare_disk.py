@@ -58,7 +58,6 @@ class ComplexPoincareDisk(ComplexVectorSpaceOpenSet):
             Point to be checked.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -81,7 +80,6 @@ class ComplexPoincareDisk(ComplexVectorSpaceOpenSet):
             Point to project.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -103,10 +101,10 @@ class ComplexPoincareDisk(ComplexVectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample in the tangent space.
-            Optional, default: 0.8.
+            8.
 
         Returns
         -------
@@ -117,7 +115,6 @@ class ComplexPoincareDisk(ComplexVectorSpaceOpenSet):
         modulus = gs.random.rand(*size, dtype=gs.get_default_cdtype())
         angle = 2 * gs.pi * gs.random.rand(*size, dtype=gs.get_default_cdtype())
         return modulus * gs.exp(1j * angle)
-
 
 class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
     """Class for the complex Poincaré metric."""
@@ -186,7 +183,6 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
             Point.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -257,7 +253,6 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
             Point.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------

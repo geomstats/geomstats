@@ -31,7 +31,13 @@ class CategoricalDistributions(MultinomialDistributions):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : CategoricalMetric
+            Metric to equip the space with.
+        """
         return CategoricalMetric
 
 

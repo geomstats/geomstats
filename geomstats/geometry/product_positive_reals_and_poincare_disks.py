@@ -13,7 +13,6 @@ ComplexPoincareDisk is the one-dimensional case of Siegel.
 In these one-dimensional manifolds, many simplifications occur compared with
 the multidimensional manifolds since matrices commute in dimension 1.
 
-
 Lead author: Yann Cabanes.
 
 References
@@ -83,7 +82,6 @@ class ProductPositiveRealsAndComplexPoincareDisks(ProductManifold):
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return ProductPositiveRealsAndComplexPoincareDisksMetric
-
 
 class ProductPositiveRealsAndComplexPoincareDisksMetric(ProductRiemannianMetric):
     """Class defining the ProductPositiveRealsAndComplexPoincareDisks metric.

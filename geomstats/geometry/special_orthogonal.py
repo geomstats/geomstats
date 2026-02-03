@@ -25,7 +25,6 @@ TAYLOR_COEFFS_1_AT_PI = [
     -1.0 / 480.0,
 ]
 
-
 class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
     """Class for special orthogonal groups in matrix representation.
 
@@ -49,10 +48,23 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : BiInvariantMetric
+            Default metric.
+        """
         return BiInvariantMetric
 
     def _define_embedding_space(self):
+        """Define the embedding space.
+
+        Returns
+        -------
+        embedding_space : GeneralLinear
+            Embedding space.
+        """
         return GeneralLinear(self.n, positive_det=True, equip=False)
 
     def _aux_submersion(self, point):
@@ -129,7 +141,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Unused.
 
@@ -147,7 +159,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         tol : unused
 
         Returns
@@ -252,7 +264,6 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             Rotation matrix.
         base_point : array-like, shape=[..., n, n]
             Rotation matrix.
-            Optional, defaults to identity if None.
 
         Returns
         -------
@@ -278,7 +289,6 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             )
         return super().log(point, base_point)
 
-
 class _SpecialOrthogonalVectors(LieGroup):
     r"""Class for the special orthogonal groups SO({2,3}) in vector form.
 
@@ -300,7 +310,7 @@ class _SpecialOrthogonalVectors(LieGroup):
     epsilon : float
         Precision to use for calculations involving potential divison by 0 in
         rotations.
-        Optional, default: 0.
+
     """
 
     def __init__(self, n, epsilon=0.0, equip=True):
@@ -394,7 +404,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Unused.
 
@@ -430,7 +440,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         As rotations are represented by their rotation vector,
         which corresponds to the element `X` in the Lie Algebra such that
         `exp(X) = R`, this methods returns its input after regularization.
-
 
         Parameters
         ----------
@@ -503,7 +512,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         """
         return self.regularize_tangent_vec_at_identity(tangent_vec)
 
-
 class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
     """Class for the special orthogonal group SO(2) in vector representation.
 
@@ -516,7 +524,7 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
     epsilon : float
         Precision to use for calculations involving potential divison by 0 in
         rotations.
-        Optional, default: 0.
+
     """
 
     def __init__(self, epsilon=0.0, equip=True):
@@ -620,7 +628,7 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Unused.
 
@@ -638,7 +646,6 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
@@ -691,7 +698,6 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         """Compute the lie bracket of two tangent vectors."""
         raise NotImplementedError("The lie bracket is not implemented.")
 
-
 class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
     """Class for the special orthogonal group SO(3) in vector representation.
 
@@ -704,7 +710,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
     epsilon : float
         Precision to use for calculations involving potential divison by 0 in
         rotations.
-        Optional, default: 0.
+
     """
 
     def __init__(self, epsilon=0.0, equip=True):
@@ -712,7 +718,13 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : BiInvariantMetric
+            Default metric.
+        """
         return BiInvariantMetric
 
     def regularize(self, point):
@@ -1463,7 +1475,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             Point.
         left : bool
             Whether to use left or right invariant metric.
-            Optional, default: True.
 
         Returns
         -------
@@ -1507,7 +1518,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
@@ -1537,7 +1547,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             Tangent vector at base point.
         base_point : array-like, shape=[..., 3]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -1553,7 +1562,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             return gs.broadcast_to(out, base_point.shape)
         return out
 
-
 class SpecialOrthogonal:
     r"""Class for the special orthogonal groups.
 
@@ -1563,7 +1571,7 @@ class SpecialOrthogonal:
         Integer representing the shapes of the matrices : n x n.
     point_type : str, {\'vector\', \'matrix\'}
         Representation of the elements of the group.
-    epsilon : float, optional
+    epsilon : float
         precision to use for calculations involving potential divison by 0 in
         rotations
         default: 0

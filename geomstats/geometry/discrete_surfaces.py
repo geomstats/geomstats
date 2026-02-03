@@ -105,7 +105,6 @@ class DiscreteSurfaces(Manifold):
             Surface, as the 3D coordinates of the vertices of its triangulation.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -133,7 +132,6 @@ class DiscreteSurfaces(Manifold):
             Surface, as the 3D coordinates of the vertices of its triangulation.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -186,7 +184,6 @@ class DiscreteSurfaces(Manifold):
         ----------
         n_samples : int
             Number of surfaces to sample.
-            Optional, Default=1
 
         Returns
         -------
@@ -510,7 +507,6 @@ class DiscreteSurfaces(Manifold):
 
         return _laplacian
 
-
 class ElasticMetric(RiemannianMetric):
     """Elastic metric defined by a family of second order Sobolev metrics.
 
@@ -788,7 +784,6 @@ class ElasticMetric(RiemannianMetric):
             G_{a_2}(h, h) = \sum_{i=1}^N\left\|\left(\Delta_q h\right)_{v_i}
             \right\|^2 \operatorname{vol}_{x_i}
 
-
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., n_vertices, 3]
@@ -929,7 +924,6 @@ class ElasticMetric(RiemannianMetric):
             + inner_prod_c1
             + inner_prod_d1
         )
-
 
 class DiscreteSurfacesExpSolver(ExpSolver):
     """Class to solve the initial value problem (IVP) for exp.
@@ -1154,7 +1148,6 @@ class DiscreteSurfacesExpSolver(ExpSolver):
             discr_geod_path, point_ndim=self._space.point_ndim
         )
 
-
 class L2SurfacesMetric(NFoldMetric):
     """L2 metric on the space of discrete surfaces.
 
@@ -1197,7 +1190,6 @@ class L2SurfacesMetric(NFoldMetric):
         )
         dt = 1 / self._space.n_vertices
         return dt * gs.sum(inner_products, axis=-1)
-
 
 class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
     """Class to solve the geodesic boundary value problem with path-straightening.
@@ -1439,7 +1431,6 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
         point_ndim_slc = (slice(None),) * self._total_space.point_ndim
         return discr_geod_path[(..., -1) + point_ndim_slc]
 
-
 class ReparametrizationBundle(FiberBundle):
     """Principal bundle of surfaces module reparametrizations.
 
@@ -1457,11 +1448,9 @@ class ReparametrizationBundle(FiberBundle):
             aligner = RelaxedPathStraightening(total_space)
         super().__init__(total_space, aligner=aligner)
 
-
 def _is_iterable(obj):
     """Check if an object is an iterable."""
     return isinstance(obj, (list, tuple))
-
 
 register_quotient(
     Space=DiscreteSurfaces,

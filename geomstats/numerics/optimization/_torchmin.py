@@ -51,6 +51,11 @@ class TorchminMinimize(Minimizer):
             Hessian of fun. Ignored.
         hessp : callable
             Ignored.
+
+        Returns
+        -------
+        result : OptimizeResult
+            Optimization result.
         """
         result = torchmin_minimize(
             fun, x0, **params_to_kwargs(self, func=torchmin_minimize)

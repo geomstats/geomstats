@@ -52,9 +52,9 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
     ----------
     space : Manifold
         Equipped manifold.
-    radius : float, optional (default = inf)
+    radius : float
         Range of parameter space to use by default.
-    kernel : string or callable, optional (default = 'distance')
+    kernel : string or callable
         Kernel function used in prediction. Possible values:
 
         - 'distance' : weight points by the inverse of their distance.
@@ -65,17 +65,17 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         - [callable] : a user-defined function which accepts an
           array of distances, and returns an array of the same shape
           containing the weights.
-    bandwidth : float, optional (default = 1.0)
+    bandwidth : float
         Bandwidth parameter used for the kernel. The kernel parameter is
         used if and only if the kernel is a callable function.
-    outlier_label : {manual label, 'most_frequent'}, optional (default = None)
+    outlier_label : {manual label, 'most_frequent'}
         Label for outlier samples (samples with no neighbors in given radius).
 
         - manual label: str or int label (should be the same type as y)
           or list of manual labels if multi-output is used.
         - 'most_frequent' : assign the most frequent label of y to outliers.
         - None : when any outlier is detected, ValueError will be raised.
-    n_jobs : int or None, optional (default = None)
+    n_jobs : int or None
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1; ``-1`` means using all processors.
 

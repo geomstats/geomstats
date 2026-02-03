@@ -56,7 +56,6 @@ class PullbackMetric(RiemannianMetric):
         ----------
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -117,7 +116,6 @@ class PullbackMetric(RiemannianMetric):
         ----------
         base_point : array-like, shape=[..., *shape]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -180,7 +178,6 @@ class PullbackMetric(RiemannianMetric):
         second_fund_form = self.second_fundamental_form(base_point)
         cometric = self.cometric_matrix(base_point)
         return gs.einsum("...ij,...aij->...a", cometric, second_fund_form)
-
 
 class PullbackDiffeoMetric(RiemannianMetric):
     """Pullback metric induced by a diffeomorphism."""

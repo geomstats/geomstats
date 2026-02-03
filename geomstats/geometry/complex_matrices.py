@@ -29,7 +29,13 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : ComplexMatricesMetric
+            Default metric.
+        """
         return ComplexMatricesMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -81,7 +87,6 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -100,7 +105,6 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -119,7 +123,6 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -177,10 +180,9 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample each entry.
-            Optional, default: 1.
 
         Returns
         -------
@@ -235,7 +237,6 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
         """
         return gs.einsum("...ij,...ij->...", gs.conj(mat_1), mat_2)
 
-
 class ComplexMatricesMetric(HermitianMetric):
     """Hermitian metric on complex matrices given by Frobenius inner-product."""
 
@@ -251,7 +252,6 @@ class ComplexMatricesMetric(HermitianMetric):
             Tangent vector.
         base_point : array-like, shape=[..., m, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -272,7 +272,6 @@ class ComplexMatricesMetric(HermitianMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -294,7 +293,6 @@ class ComplexMatricesMetric(HermitianMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------

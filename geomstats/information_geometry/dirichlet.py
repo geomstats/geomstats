@@ -47,7 +47,13 @@ class DirichletDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : DirichletMetric
+            Metric to equip the space with.
+        """
         return DirichletMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -62,7 +68,6 @@ class DirichletDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point to be checked.
         atol : float
             Tolerance to evaluate positivity.
-            Optional, default: gs.atol
 
         Returns
         -------
@@ -85,10 +90,8 @@ class DirichletDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         bound : float
             Side of the square where the Dirichlet parameters are sampled.
-            Optional, default: 5.
 
         Returns
         -------
@@ -129,7 +132,6 @@ class DirichletDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point representing a Dirichlet distribution.
         n_samples : int
             Number of points to sample for each set of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------

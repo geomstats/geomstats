@@ -82,7 +82,6 @@ class PoincareHalfSpace(_Hyperbolic, VectorSpaceOpenSet):
         last = gs.where(point[..., -1] < atol, atol, point[..., -1])
         return gs.concatenate([point[..., :-1], last[..., None]], axis=-1)
 
-
 class PoincareHalfSpaceMetric(PullbackDiffeoMetric):
     """Class for the metric of the n-dimensional hyperbolic space.
 

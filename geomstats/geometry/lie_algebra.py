@@ -58,7 +58,6 @@ class MatrixLieAlgebra(MatrixVectorSpace, abc.ABC):
         order : int
             The order to which the approximation is calculated. Note that this
             is NOT the same as using only e_i with i < order.
-            Optional, default 2.
 
         References
         ----------

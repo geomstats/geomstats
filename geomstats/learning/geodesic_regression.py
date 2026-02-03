@@ -164,21 +164,16 @@ class GeodesicRegression(BaseEstimator):
         Equipped manifold.
     center_X : bool
         Subtract mean to X as a preprocessing.
-    method : str, {\'extrinsic\', \'riemannian\'}
-        Gradient descent method.
-        Optional, default: extrinsic.
-    initialization : str or array-like,
-        {'random', 'data', 'frechet', warm_start'}
+    method : str
+        Gradient descent method. One of {'extrinsic', 'riemannian'}.
+    initialization : str or array-like
         Initial values of the parameters for the optimization,
-        or initialization method.
-        Optional, default: 'random'
+        or initialization method. One of {'random', 'data', 'frechet', 'warm_start'}.
     regularization : float
         Weight on the constraint for the intercept to lie on the manifold in
         the extrinsic optimization scheme. An L^2 constraint is applied.
-        Optional, default: 1.
     compute_training_score : bool
         Whether to compute R^2.
-        Optional, default: False.
 
     Notes
     -----
@@ -263,16 +258,16 @@ class GeodesicRegression(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples,]
+        X : array-like, shape=[n_samples]
             Training input samples.
-        coef : array-like, shape=[{dim, [n,n]}]
+        coef : array-like, shape=[dim] or [n, n]
             Coefficient of the geodesic regression.
-        intercept : array-like, shape=[{dim, [n,n]}]
+        intercept : array-like, shape=[dim] or [n, n]
             Intercept of the geodesic regression.
 
         Returns
         -------
-        _ : array-like, shape=[..., {dim, [n,n]}]
+        _ : array-like, shape=[..., dim] or [..., n, n]
             Value on the manifold output by the generative model.
         """
         return self.space.metric.exp(gs.einsum("n,...->n...", X, coef), intercept)
@@ -282,16 +277,15 @@ class GeodesicRegression(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape=[...,}]
+        X : array-like, shape=[n_samples]
             Training input samples.
-        y : array-like, shape=[..., {dim, [n,n]}]
+        y : array-like, shape=[n_samples, dim] or [n_samples, n, n]
             Training target values.
-        param : array-like, shape=[2, {dim, [n,n]}]
+        param : array-like, shape=[2, dim] or [2, n, n]
             Parameters intercept and coef of the geodesic regression,
             vertically stacked.
-        weights : array-like, shape=[...,]
+        weights : array-like, shape=[n_samples]
             Weights associated to the points.
-            Optional, default: None.
 
         Returns
         -------
@@ -333,14 +327,14 @@ class GeodesicRegression(BaseEstimator):
 
         Parameters
         ----------
-        y: array-like, shape=[n_samples, {dim, [n,n]}]
+        y : array-like, shape=[n_samples, dim] or [n_samples, n, n]
             The target data, used for the option `data` and 'frechet'.
 
         Returns
         -------
-        intercept : array-like, shape=[{dim, [n,n]}]
+        intercept : array-like, shape=[dim] or [n, n]
             Initial value for the intercept.
-        coef : array-like, shape=[{dim, [n,n]}]
+        coef : array-like, shape=[dim] or [n, n]
             Initial value for the coefficient.
         """
         init = self.initialization
@@ -372,13 +366,12 @@ class GeodesicRegression(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples,]
+        X : array-like, shape=[n_samples]
             Training input samples.
-        y : array-like, shape[n_samples, {dim, [n,n]}]
+        y : array-like, shape=[n_samples, dim] or [n_samples, n, n]
             Training target values.
         weights : array-like, shape=[n_samples]
             Weights associated to the points.
-            Optional, default: None.
 
         Returns
         -------
@@ -416,13 +409,12 @@ class GeodesicRegression(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples,]
+        X : array-like, shape=[n_samples]
             Training input samples.
-        y : array-like, shape=[n_samples, {dim, [n,n]}]
+        y : array-like, shape=[n_samples, dim] or [n_samples, n, n]
             Training target values.
-        weights : array-like, shape=[n_samples,]
+        weights : array-like, shape=[n_samples]
             Weights associated to the points.
-            Optional, default: None.
 
         Returns
         -------
@@ -449,13 +441,12 @@ class GeodesicRegression(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples,]
+        X : array-like, shape=[n_samples]
             Training input samples.
-        y : array-like, shape=[n_samples, {dim, [n,n]}]
+        y : array-like, shape=[n_samples, dim] or [n_samples, n, n]
             Training target values.
-        weights : array-like, shape=[n_samples,]
+        weights : array-like, shape=[n_samples]
             Weights associated to the points.
-            Optional, default: None.
 
         Returns
         -------
@@ -474,13 +465,13 @@ class GeodesicRegression(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples,]
+        X : array-like, shape=[n_samples]
             Input data.
 
         Returns
         -------
-        y : array-like, shape=[n_samples, {dim, [n,n]}]
-            Training target values.
+        y : array-like, shape=[n_samples, dim] or [n_samples, n, n]
+            Predicted target values.
         """
         if self.coef_ is None:
             raise RuntimeError("Fit method must be called before predict.")
@@ -499,13 +490,12 @@ class GeodesicRegression(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples,]
+        X : array-like, shape=[n_samples]
             Training input samples.
-        y : array-like, shape=[n_samples, {dim, [n,n]}]
+        y : array-like, shape=[n_samples, dim] or [n_samples, n, n]
             Training target values.
-        weights : array-like, shape=[n_samples,]
+        weights : array-like, shape=[n_samples]
             Weights associated to the points.
-            Optional, default: None.
 
         Returns
         -------

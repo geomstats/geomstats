@@ -70,7 +70,6 @@ class PoincarePolydisk(NFoldManifold):
         )
         return point_extrinsic
 
-
 class PoincarePolydiskMetric(NFoldMetric):
     r"""Class defining the Poincare polydisk metric.
 
@@ -80,7 +79,6 @@ class PoincarePolydiskMetric(NFoldMetric):
 
     This metric comes from a model used to represent
     stationary complex autoregressive Gaussian signals.
-
 
     References
     ----------

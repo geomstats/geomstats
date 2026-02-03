@@ -62,16 +62,14 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, {dim, [n, n]}]
+        X : array-like, shape=[n_samples, dim] or [n_samples, n, n]
             The training input samples.
         y : None
             Ignored.
-        weights : array-like, shape=[n_samples, 1]
+        weights : array-like, shape=[n_samples]
             Weights associated to the points.
-            Optional, default: None
-        base_point : array-like, shape=[{dim, [n, n]}]
+        base_point : array-like, shape=[dim] or [n, n]
             Point similar to the input data from which to compute the logs.
-            Optional, default: None.
 
         Returns
         -------
@@ -96,7 +94,7 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, {dim, [n, n]}]
+        X : array-like, shape=[n_samples, dim] or [n_samples, n, n]
             Data to transform.
 
         Returns
@@ -137,7 +135,7 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
 
         Returns
         -------
-        X_original : array-like, shape=[n_samples, {dim, [n, n]}
+        X_original : array-like, shape=[n_samples, dim] or [n_samples, n, n]
             Data lying on the manifold.
         """
         if self.base_point_ is None:

@@ -74,11 +74,24 @@ class Grassmannian(LevelSet):
         super().__init__(dim=dim, equip=equip)
 
     def _define_embedding_space(self):
+        """Define embedding space.
+
+        Returns
+        -------
+        embedding_space : SymmetricMatrices
+            Embedding space.
+        """
         return SymmetricMatrices(self.n)
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        default_metric : type
+            Metric class.
+        """
         return GrassmannianCanonicalMetric
 
     def submersion(self, point):
@@ -153,7 +166,6 @@ class Grassmannian(LevelSet):
         ----------
         n_samples : int
             The number of points to sample
-            Optional. default: 1.
 
         Returns
         -------
@@ -184,7 +196,6 @@ class Grassmannian(LevelSet):
         ----------
         n_samples : int
             The number of points to sample
-            Optional. default: 1.
 
         Returns
         -------
@@ -239,7 +250,6 @@ class Grassmannian(LevelSet):
         diagonal = gs.array([0.0] * (self.n - self.p) + [1.0] * self.p)
         p_d = gs.einsum("...ij,...j->...ij", eigvecs, diagonal)
         return Matrices.mul(p_d, Matrices.transpose(eigvecs))
-
 
 class GrassmannianCanonicalMetric(RiemannianMetric):
     """Canonical metric of the Grassmann manifold."""
@@ -327,11 +337,9 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         direction : array-like, shape=[..., n, n]
             Tangent vector at base point, along which the parallel transport
             is computed.
-            Optional, default: None
         end_point : array-like, shape=[..., n, n]
             Point on the Grassmann manifold to transport to. Unused if
             `direction` is given.
-            Optional, default: None
 
         Returns
         -------
@@ -447,7 +455,6 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
             Tangent vector.
         base_point : array-like, shape=[..., m, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -471,7 +478,6 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -492,7 +498,6 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -501,7 +506,6 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         """
         norm = gs.linalg.norm(vector, axis=(-2, -1))
         return repeat_out(self._space.point_ndim, norm, vector, base_point)
-
 
 class GrassmannianBundle(FiberBundle):
     """Fiber bundle representing the Grassmannian quotient structure."""
@@ -565,11 +569,11 @@ class GrassmannianBundle(FiberBundle):
         tangent_vec : array-like, shape=[..., n, n]
         fiber_point : array-like, shape=[..., n, p]
             Point of the total space.
-            Optional, default : None. The `lift` method is used to compute a
+             The `lift` method is used to compute a
             point at which to compute a tangent vector.
         base_point : array-like, shape=[..., n, n]
             Point of the base space.
-            Optional, default : None. In this case, point must be given,
+             In this case, point must be given,
             and `submersion` is used to compute the base_point if needed.
 
         Returns
@@ -605,7 +609,6 @@ class GrassmannianBundle(FiberBundle):
             Aligned point.
         """
         return Matrices.align_matrices(point, base_point, flip=False)
-
 
 register_quotient(
     Space=Stiefel,

@@ -47,7 +47,7 @@ class Siegel(ComplexVectorSpaceOpenSet):
     symmetric : bool
         If symmetric is True, add a symmetry condition
         on the matrices to belong to the Siegel space.
-        Optional, default: False.
+
     """
 
     def __init__(self, n, symmetric=False, equip=True):
@@ -61,7 +61,13 @@ class Siegel(ComplexVectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : SiegelMetric
+            Default metric.
+        """
         return SiegelMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -73,7 +79,6 @@ class Siegel(ComplexVectorSpaceOpenSet):
             Point to be checked.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -100,7 +105,6 @@ class Siegel(ComplexVectorSpaceOpenSet):
             Matrix to project.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -136,10 +140,9 @@ class Siegel(ComplexVectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample in the tangent space.
-            Optional, default: 1.
 
         Returns
         -------
@@ -161,10 +164,9 @@ class Siegel(ComplexVectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
-            Optional, default: None.
 
         Returns
         -------
@@ -179,7 +181,6 @@ class Siegel(ComplexVectorSpaceOpenSet):
         samples -= 1 + 1j
 
         return self.to_tangent(samples, base_point)
-
 
 class SiegelMetric(ComplexRiemannianMetric):
     """Class for the Siegel metric."""
@@ -507,7 +508,6 @@ class SiegelMetric(ComplexRiemannianMetric):
             Tangent vector at zero.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -563,10 +563,9 @@ class SiegelMetric(ComplexRiemannianMetric):
         tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
-            Base point. Optional, default is zero
+            Base point.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------

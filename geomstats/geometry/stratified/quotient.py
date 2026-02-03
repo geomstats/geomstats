@@ -34,13 +34,13 @@ class Aligner(ABC):
 
         Returns
         -------
-        aligned_point: list, shape = [..., *point_shape]
+        aligned_point : array-like, shape=[..., *point_shape]
+            Aligned point.
         """
         if hasattr(self, "align_algo"):
             return self.align_algo.align(point, base_point)
 
         raise NotImplementedError("`align` is not implemented")
-
 
 class QuotientMetric(PointSetMetric, ABC):
     """Quotient metric.
@@ -82,7 +82,9 @@ class QuotientMetric(PointSetMetric, ABC):
         Parameters
         ----------
         point_a : array-like, shape=[..., *point_shape]
+            First point.
         point_b : array-like, shape=[..., *point_shape]
+            Second point.
 
         Returns
         -------
@@ -104,7 +106,8 @@ class QuotientMetric(PointSetMetric, ABC):
         Returns
         -------
         geodesic : callable
-            Geodesic function.
+            Geodesic function. Takes parameter t, that is the time
+            between 0 and 1 at which the corresponding point on the path is returned.
         """
         aligned_end_point = self._total_space.aligner.align(end_point, initial_point)
         return self._total_space.metric.geodesic(

@@ -10,6 +10,20 @@ import geomstats.errors
 
 
 def _check_log_solver(connection, raise_=True):
+    """Check if connection has a log solver.
+
+    Parameters
+    ----------
+    connection : Connection
+        Connection object.
+    raise_ : bool
+        Whether to raise an error if no log solver exists.
+
+    Returns
+    -------
+    has_solver : bool
+        True if the connection has a log solver.
+    """
     if not hasattr(connection, "log_solver"):
         if raise_:
             raise ValueError(
@@ -19,8 +33,21 @@ def _check_log_solver(connection, raise_=True):
         return False
     return True
 
-
 def _check_exp_solver(connection, raise_=True):
+    """Check if connection has an exp solver.
+
+    Parameters
+    ----------
+    connection : Connection
+        Connection object.
+    raise_ : bool
+        Whether to raise an error if no exp solver exists.
+
+    Returns
+    -------
+    has_solver : bool
+        True if the connection has an exp solver.
+    """
     if not hasattr(connection, "exp_solver"):
         if raise_:
             raise ValueError(
@@ -29,7 +56,6 @@ def _check_exp_solver(connection, raise_=True):
             )
         return False
     return True
-
 
 class Connection(ABC):
     r"""Class for affine connections.
@@ -116,15 +142,6 @@ class Connection(ABC):
             Point on the manifold.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
-        n_steps : int
-            Number of discrete time steps to take in the integration.
-            Optional, default: N_STEPS.
-        step : str, {'euler', 'rk4'}
-            Numerical scheme to use for integration.
-            Optional, default: 'euler'.
-        max_iter
-        verbose
-        tol
 
         Returns
         -------
@@ -151,21 +168,15 @@ class Connection(ABC):
         base_shoot : array-like, shape=[..., dim]
             Point on the manifold, end point of the geodesics starting
             from the base point with initial speed to be transported.
-        return_geodesics : bool, optional (defaults to False)
-            Whether to return the geodesics of the
-            construction.
+        return_geodesics : bool
+            Whether to return the geodesics of the construction.
 
         Returns
         -------
-        next_step : dict of array-like and callable with following keys:
-            next_tangent_vec : array-like, shape=[..., dim]
-                Tangent vector at end point.
-            end_point : array-like, shape=[..., dim]
-                Point on the manifold, closes the geodesic parallelogram of the
-                construction.
-            geodesics : list of callable, len=3 (only if
-            `return_geodesics=True`)
-                Three geodesics of the construction.
+        next_step : dict
+            Dictionary with keys ``end_point`` (array-like, shape=[..., dim])
+            and ``geodesics`` (list of callable, len=3, only if
+            ``return_geodesics=True``).
 
         References
         ----------
@@ -216,17 +227,14 @@ class Connection(ABC):
             Point on the manifold, end point of the geodesics starting
             from the base point with initial speed to be transported.
         return_geodesics : bool
-            Whether to return points computed along each geodesic of the
-            construction.
-            Optional, default: False.
+            Whether to return geodesics of the construction.
 
         Returns
         -------
-        transported_tangent_vector : array-like, shape=[..., dim]
-            Tangent vector at end point.
-        end_point : array-like, shape=[..., dim]
-            Point on the manifold, closes the geodesic parallelogram of the
-            construction.
+        next_step : dict
+            Dictionary with keys ``end_point`` (array-like, shape=[..., dim])
+            and ``geodesics`` (list of callable, len=4, only if
+            ``return_geodesics=True``).
 
         References
         ----------
@@ -294,14 +302,13 @@ class Connection(ABC):
             which to transport.
         n_rungs : int
             Number of steps of the ladder.
-            Optional, default: 1.
+
         scheme : str, {'pole', 'schild'}
             The scheme to use for the construction of the ladder at each step.
-            Optional, default: 'pole'.
+
         alpha : float
             Exponent for the scaling of the vector to transport. Must be
             greater or equal to 1, 2 is optimal. See [GP2020]_.
-            Optional, default: 2
 
         Returns
         -------
@@ -559,6 +566,20 @@ class Connection(ABC):
         plays an important role in the computation of the moments of the
         empirical Fréchet mean.
 
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at ``base_point``.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at ``base_point``.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        curvature_derivative : array-like, shape=[..., dim]
+            Covariant derivative of the directional curvature.
+
         References
         ----------
         .. [P2019] Pennec, Xavier. Curvature effects on the empirical mean in
@@ -579,7 +600,6 @@ class Connection(ABC):
             Point on the manifold, initial point of the geodesic.
         initial_tangent_vec : array-like, shape=[..., dim],
             Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
 
         Returns
@@ -604,6 +624,11 @@ class Connection(ABC):
             ----------
             t : array-like, shape=[n_points,]
                 Times at which to compute points of the geodesics.
+
+            Returns
+            -------
+            points : array-like, shape=[..., n_points, dim]
+                Points on the geodesic at times t.
             """
             t = gs.to_ndarray(t, to_ndim=1, dtype=initial_tangent_vec.dtype)
 
@@ -690,12 +715,11 @@ class Connection(ABC):
         ----------
         initial_point : array-like, shape=[..., dim]
             Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., dim], optional
+        end_point : array-like, shape=[..., dim]
             Point on the manifold, end point of the geodesic. If None,
             an initial tangent vector must be given.
         initial_tangent_vec : array-like, shape=[..., dim],
             Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
 
         Returns
@@ -744,10 +768,8 @@ class Connection(ABC):
         direction : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at base point, along which the parallel transport
             is computed.
-            Optional, default: None.
         end_point : array-like, shape=[..., {dim, [n, m]}]
             Point on the manifold. Point to transport to.
-            Optional, default: None.
 
         Returns
         -------

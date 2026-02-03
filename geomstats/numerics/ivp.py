@@ -11,6 +11,20 @@ from geomstats.numerics._common import result_to_backend_type
 
 
 def _merge_scipy_results(results, same_t=False):
+    """Merge multiple scipy results.
+
+    Parameters
+    ----------
+    results : list of dict
+        List of result dictionaries.
+    same_t : bool
+        Whether all results have the same time points.
+
+    Returns
+    -------
+    merged_results : dict
+        Merged result dictionary.
+    """
     keys = list(results[0].keys())
     merged_results = {key: [] for key in keys}
 
@@ -38,6 +52,11 @@ class OdeResult(scipy.optimize.OptimizeResult):
         for cases where they have different shapes).
 
         Assumes last ``t`` is the same.
+
+        Returns
+        -------
+        y : array-like
+            Last y value.
         """
         if isinstance(self.y, (list, tuple)):
             return gs.stack([y_[-1] for y_ in self.y])
@@ -73,12 +92,13 @@ class ODEIVPIntegrator(ABC):
             Function to integrate: ``f(state, t)``.
         initial_state : array-like, shape=[..., n_vars, *point_shape]
             Initial state.
-        end_time : float or None
+        end_time : float
             Integration end time.
 
         Returns
         -------
         result : OdeResult
+            Integration result.
         """
 
     def integrate_t(self, force, initial_state, t_eval):
@@ -167,12 +187,13 @@ class GSIVPIntegrator(ODEIVPIntegrator):
             Function to integrate: `f(state, t)`.
         initial_state : array-like, shape=[..., n_vars, *point_shape]
             Initial state.
-        end_time : float or None
+        end_time : float
             Integration end time.
 
         Returns
         -------
         result : OdeResult
+            Integration result.
         """
         states = self._integrate(force, initial_state, end_time=end_time)
 
@@ -200,8 +221,10 @@ class ScipySolveIVP(ODEIVPIntegrator):
         Integration method.
     save_result : bool
         If True, result is stored after calling ``integrate`` or ``integrate_t``.
-    point_ndim = int
+    point_ndim : int
         Dimension of array representing a point in the space.
+    **options : dict
+        Additional options passed to scipy.integrate.solve_ivp.
     """
 
     def __init__(self, method="RK45", save_result=False, point_ndim=1, **options):
@@ -240,12 +263,13 @@ class ScipySolveIVP(ODEIVPIntegrator):
             Function to integrate: ``f(state, t)``.
         initial_state : array-like, shape=[..., n_vars, *point_shape]
             Initial state.
-        end_time : float or None
+        end_time : float
             Integration end time.
 
         Returns
         -------
         result : OdeResult
+            Integration result.
         """
         return self._integrate(force, initial_state, end_time=end_time)
 

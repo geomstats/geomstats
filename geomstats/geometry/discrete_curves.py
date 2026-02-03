@@ -61,7 +61,6 @@ def insert_zeros(array, axis=-1, end=False):
     first, second = (array, zeros) if end else (zeros, array)
     return gs.concatenate((first, second), axis=-array_ndim)
 
-
 class DiscreteCurves:
     """Space of discrete curves."""
 
@@ -104,7 +103,6 @@ class DiscreteCurves:
             space.equip_with_metric(L2CurvesMetric)
 
         return space
-
 
 class DiscreteCurvesStartingAtOrigin(NFoldManifold):
     r"""Space of discrete curves modulo translations.
@@ -271,7 +269,6 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
         """Rescale discrete curve to have unit length."""
         return gs.einsum("...ij,...->...ij", point, 1 / self.length(point))
 
-
 class SRVTransform(Diffeo):
     """SRV transform.
 
@@ -344,7 +341,6 @@ class SRVTransform(Diffeo):
         - c the curve that can be retrieved only up to a translation,
         - q the srv representation of the curve,
         - c(0) the starting point of the curve.
-
 
         See [Sea2011]_ Section 2.1 for details.
 
@@ -470,7 +466,6 @@ class SRVTransform(Diffeo):
         increment = d_vec / (self.k_sampling_points - 1)
 
         return gs.cumsum(increment, axis=-2)
-
 
 class FTransform(AutodiffDiffeo):
     r"""FTransform.
@@ -675,7 +670,6 @@ class FTransform(AutodiffDiffeo):
 
         return gs.cumsum(delta_points, axis=-2)
 
-
 class L2CurvesMetric(NFoldMetric):
     """L2 metric on the space of discrete curves.
 
@@ -745,7 +739,6 @@ class L2CurvesMetric(NFoldMetric):
             tangent_vec_a, tangent_vec_b, base_point
         )
         return self.riemann_sum(inner_products)
-
 
 class ElasticMetric(PullbackDiffeoMetric):
     r"""Elastic metric on the space of discrete curves.
@@ -822,7 +815,6 @@ class ElasticMetric(PullbackDiffeoMetric):
             signature=(math.inf, 0, 0),
         )
 
-
 class SRVMetric(PullbackDiffeoMetric):
     """Square Root Velocity metric on the space of discrete curves.
 
@@ -871,7 +863,6 @@ class SRVMetric(PullbackDiffeoMetric):
         image_space.equip_with_metric(L2CurvesMetric)
         return image_space
 
-
 class IterativeHorizontalGeodesicAligner(AlignerAlgorithm):
     r"""Align two curves through iterative horizontal geodesic algorithm.
 
@@ -904,16 +895,16 @@ class IterativeHorizontalGeodesicAligner(AlignerAlgorithm):
     threshold : float
         When the difference between the new end curve and the current end
         curve becomes lower than this threshold, the algorithm stops.
-        Optional, default: 1e-3.
+
     max_iter : int
         Maximum number of iterations.
-        Optional, default: 20.
+
     tol: float
         Minimal spacing between time samples in the unit segment when
         reparametrizing the end curve.
-        Optional, default: 1e-3.
+
     verbose: boolean
-        Optional, default: False.
+
     save_history : bool
         If True, history is saved in a `self.history`.
 
@@ -1291,7 +1282,6 @@ class IterativeHorizontalGeodesicAligner(AlignerAlgorithm):
             ..., -1, :, :
         ]
 
-
 class DynamicProgrammingAligner(AlignerAlgorithm):
     r"""Align two curves through dynamic programming.
 
@@ -1618,7 +1608,6 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
         sdists = gs.stack([out_[1] for out_ in out])
         return aligned, sdists
 
-
 class ReparametrizationBundle(FiberBundle):
     """Principal bundle of curves modulo reparametrizations with an elastic metric.
 
@@ -1750,7 +1739,6 @@ class ReparametrizationBundle(FiberBundle):
 
         return tangent_vec_ver
 
-
 class RotationBundle(FiberBundle):
     """Principal bundle of curves modulo rotations with an elastic metric.
 
@@ -1781,7 +1769,6 @@ class RotationBundle(FiberBundle):
             Reference discrete curve.
         return_rotation : boolean
             If true, returns the optimal rotation used for the alignment.
-            Optional, default : False.
 
         Returns
         -------
@@ -1803,7 +1790,6 @@ class RotationBundle(FiberBundle):
             return point_aligned, rotation
 
         return point_aligned
-
 
 register_quotient(
     Space=DiscreteCurvesStartingAtOrigin,

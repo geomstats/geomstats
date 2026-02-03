@@ -42,7 +42,6 @@ class NormalDistributions:
         Dimension of the sample space of the normal distribution.
     distribution_type : str, {'centered', 'diagonal', 'general'}
         Type of distributions.
-        Optional, default: 'general'.
     """
 
     def __new__(cls, sample_dim, distribution_type="general", equip=True):
@@ -73,7 +72,13 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : UnivariateNormalMetric
+            Metric to equip the space with.
+        """
         return UnivariateNormalMetric
 
     @staticmethod
@@ -86,10 +91,8 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         bound : float
             Side of the square where the normal parameters are sampled.
-            Optional, default: 5.
 
         Returns
         -------
@@ -114,7 +117,6 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
             Point representing a normal distribution (mean and scale).
         n_samples : int
             Number of points to sample with each pair of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -184,7 +186,13 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : CenteredNormalMetric
+            Metric to equip the space with.
+        """
         return CenteredNormalMetric
 
     def sample(self, point, n_samples=1):
@@ -197,7 +205,6 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
             of a multivariate normal distribution with zero mean.
         n_samples : int
             Number of points to sample with each covariance matrix in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -279,7 +286,13 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : DiagonalNormalMetric
+            Metric to equip the space with.
+        """
         return DiagonalNormalMetric
 
     def _unstack_mean_diagonal(self, point):
@@ -287,8 +300,6 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
 
         Parameters
         ----------
-        sample_dim : int
-            Dimension of the sample space of the multivariate normal distribution.
         point : array-like, shape=[..., 2 * sample_dim]
             Input point from which means and diagonals are extracted.
 
@@ -348,7 +359,6 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
@@ -400,7 +410,6 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             the diagonal of the covariance matrix.
         n_samples : int
             Number of points to sample with each pair of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -439,6 +448,12 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             x : array-like, shape=[n_samples, sample_dim]
                 Points at which to compute the probability
                 density function.
+
+            Returns
+            -------
+            pdf_at_x : array-like, shape=[..., n_samples]
+                Values of pdf at x for each value of the parameters provided
+                by point.
             """
             x_, (mean_, diagonal_) = broadcast_to_multibatch(
                 (x.shape[0],), batch_shape, x, mean, diagonal
@@ -505,7 +520,6 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
             :math:`sample\_dim ^ 2` elements contain the covariance matrix row by row.
         n_samples : int
             Number of points to sample with each parameter in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -544,6 +558,12 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
             x : array-like, shape=[n_samples, sample_dim]
                 Points at which to compute the probability
                 density function.
+
+            Returns
+            -------
+            pdf_at_x : array-like, shape=[..., n_samples]
+                Values of pdf at x for each value of the parameters provided
+                by point.
             """
             x_, (mean_, inv_cov_) = broadcast_to_multibatch(
                 (x.shape[0],), batch_shape, x, mean, inv_cov
@@ -612,7 +632,7 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
             Tangent vector at base point.
         base_point : array-like, shape=[..., 2]
             Base point representing a normal distribution.
-        image_point : array-like, shape=[..., *shape]
+        image_point : array-like, shape=[..., 2]
             Image point.
 
         Returns
@@ -634,7 +654,7 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
             Image of a tangent vector at image_point.
         image_point : array-like, shape=[..., 2]
             Image of a point representing a normal distribution.
-        base_point : array-like, shape=[..., *shape]
+        base_point : array-like, shape=[..., 2]
             Base point.
 
         Returns
@@ -786,7 +806,6 @@ class DiagonalNormalMetric(RiemannianMetric):
             Tangent vector at base point.
         base_point: array-like, shape=[..., 2 * sample_dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------

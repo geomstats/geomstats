@@ -106,7 +106,6 @@ def from_vector_to_diagonal_matrix(vector, num_diag=0):
         diagonal matrix; if positive, the result matrix has an upper-right
         non-zero diagonal; if negative, the result matrix has a lower-left
         non-zero diagonal.
-        Optional, Default: 0.
 
     Returns
     -------
@@ -151,7 +150,6 @@ def taylor_exp_even_func(point, taylor_function, order=5, tol=EPSILON):
             Taylor coefficients of even order at zero.
     order : int
         Order of the Taylor approximation.
-        Optional, Default: 5.
     tol : float
         Threshold to use the approximation instead of the function's value.
         Where `abs(point) <= tol`, the approximation is returned.

@@ -12,7 +12,6 @@ in geomstats. It is a product manifold of complex type, therefore the manifold
 PositiveReals is compatible with complex input points and vectors even if the
 input values should be reals.
 
-
 Lead author: Yann Cabanes.
 
 References
@@ -78,7 +77,6 @@ class PositiveReals(VectorSpaceOpenSet):
             Points to be checked.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -107,7 +105,6 @@ class PositiveReals(VectorSpaceOpenSet):
             Point in ambient manifold.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -124,13 +121,12 @@ class PositiveReals(VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample in the tangent space.
-            Optional, default: 1.
+
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -139,7 +135,6 @@ class PositiveReals(VectorSpaceOpenSet):
         """
         size = (n_samples, 1) if n_samples != 1 else (1,)
         return (bound - atol) * gs.random.rand(*size) + atol
-
 
 class PositiveRealsMetric(RiemannianMetric):
     """Class for the positive reals metric.

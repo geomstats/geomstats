@@ -78,8 +78,13 @@ class FisherRaoMetric(RiemannianMetric):
 
             Parameters
             ----------
-            x : float, shape (,)
-                Point on the support of the distribution
+            x : float
+                Point on the support of the distribution.
+
+            Returns
+            -------
+            pdf_at_point : callable
+                Function that computes pdf at x for a given point.
             """
             return lambda point: gs.squeeze(self._space.point_to_pdf(point)(x), axis=-1)
 
@@ -143,8 +148,13 @@ class FisherRaoMetric(RiemannianMetric):
 
             Parameters
             ----------
-            x : float, shape (,)
-                Point on the support of the distribution
+            x : float
+                Point on the support of the distribution.
+
+            Returns
+            -------
+            pdf_at_point : callable
+                Function that computes pdf at x for a given point.
             """
             return lambda point: gs.squeeze(self._space.point_to_pdf(point)(x), axis=-1)
 

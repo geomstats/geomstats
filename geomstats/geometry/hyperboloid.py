@@ -42,10 +42,23 @@ class Hyperboloid(_Hyperbolic, LevelSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : HyperboloidMetric
+            Default metric.
+        """
         return HyperboloidMetric
 
     def _define_embedding_space(self):
+        """Define the embedding space.
+
+        Returns
+        -------
+        embedding_space : Minkowski
+            Embedding space.
+        """
         return Minkowski(self.dim + 1)
 
     def submersion(self, point):
@@ -221,7 +234,6 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         )
         return proj
 
-
 class HyperboloidMetric(RiemannianMetric):
     """Class that defines operations using a hyperbolic metric."""
 
@@ -230,13 +242,12 @@ class HyperboloidMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point: array-like, shape=[..., dim + 1]
+        base_point : array-like, shape=[..., dim + 1]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
-        inner_prod_mat: array-like, shape=[..., dim+1, dim + 1]
+        inner_prod_mat : array-like, shape=[..., dim+1, dim + 1]
             Inner-product matrix.
         """
         return self._space.embedding_space.metric.metric_matrix(base_point)
@@ -250,7 +261,7 @@ class HyperboloidMetric(RiemannianMetric):
             First tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., dim + 1]
             Second tangent vector at base point.
-        base_point : array-like, shape=[..., dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space.
 
         Returns
@@ -272,7 +283,7 @@ class HyperboloidMetric(RiemannianMetric):
         ----------
         vector : array-like, shape=[..., dim + 1]
             Vector on the tangent space of the hyperbolic space at base point.
-        base_point : array-like, shape=[..., dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
 
         Returns
@@ -406,11 +417,9 @@ class HyperboloidMetric(RiemannianMetric):
         direction : array-like, shape=[..., dim + 1]
             Tangent vector at base point, along which the parallel transport
             is computed.
-            Optional, default : None.
         end_point : array-like, shape=[..., dim + 1]
             Point on the hyperboloid. Point to transport to. Unused if `tangent_vec_b`
             is given.
-            Optional, default : None.
 
         Returns
         -------

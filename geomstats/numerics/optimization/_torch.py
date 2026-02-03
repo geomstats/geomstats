@@ -22,15 +22,48 @@ class TorchMinimizer(Minimizer, abc.ABC):
     """
 
     def __init__(self, Toptim, save_result=False):
+        """Initialize torch minimizer.
+
+        Parameters
+        ----------
+        Toptim : torch.optim.optimizer
+            Class to be instantiated.
+        save_result : bool
+            Whether to save result.
+        """
         super().__init__(save_result=save_result)
 
         self._Toptim = Toptim
         self.toptim_ = None
 
     def _instantiate_toptim(self, x0):
+        """Instantiate torch optimizer.
+
+        Parameters
+        ----------
+        x0 : array-like
+            Initial guess.
+
+        Returns
+        -------
+        optimizer : torch.optim.optimizer
+            Instantiated optimizer.
+        """
         return self._Toptim([x0], **params_to_kwargs(self, func=self._Toptim))
 
     def _to_result(self, x0):
+        """Convert to OptimizeResult.
+
+        Parameters
+        ----------
+        x0 : array-like
+            Solution.
+
+        Returns
+        -------
+        result : OptimizeResult
+            Optimization result.
+        """
         return OptimizeResult(
             x=x0,
             success=1,
@@ -60,6 +93,11 @@ class TorchClosuredBasedMinimizer(TorchMinimizer):
             Hessian of fun. Ignored.
         hessp : callable
             Ignored.
+
+        Returns
+        -------
+        result : OptimizeResult
+            Optimization result.
         """
         x0 = gs.copy(x0)
         x0.requires_grad = True
@@ -102,6 +140,19 @@ class TorchStepwiseMinimizer(TorchMinimizer):
     """
 
     def __init__(self, Toptim, max_iter=1000, tol=1e-7, save_result=False):
+        """Initialize stepwise minimizer.
+
+        Parameters
+        ----------
+        Toptim : torch.optim.optimizer
+            Class to be instantiated.
+        max_iter : int
+            Maximum number of iterations.
+        tol : float
+            Tolerance for convergence.
+        save_result : bool
+            Whether to save result.
+        """
         super().__init__(Toptim, save_result=save_result)
         self.max_iter = max_iter
         self.tol = tol
@@ -109,6 +160,18 @@ class TorchStepwiseMinimizer(TorchMinimizer):
         self.n_iter_ = None
 
     def _to_result(self, x0):
+        """Convert to OptimizeResult.
+
+        Parameters
+        ----------
+        x0 : array-like
+            Solution.
+
+        Returns
+        -------
+        result : OptimizeResult
+            Optimization result.
+        """
         message = "The solution converged."
         status = 1
         if self.n_iter_ == self.max_iter:
@@ -141,6 +204,11 @@ class TorchStepwiseMinimizer(TorchMinimizer):
             Hessian of fun. Ignored.
         hessp : callable
             Ignored.
+
+        Returns
+        -------
+        result : OptimizeResult
+            Optimization result.
         """
         x0 = gs.copy(x0)
         x0.requires_grad = True
@@ -202,6 +270,18 @@ class TorchLBFGS(TorchClosuredBasedMinimizer):
         super().__init__(LBFGS, save_result=save_result)
 
     def _to_result(self, x0):
+        """Convert to OptimizeResult.
+
+        Parameters
+        ----------
+        x0 : array-like
+            Solution.
+
+        Returns
+        -------
+        result : OptimizeResult
+            Optimization result.
+        """
         state = self.toptim_.state_dict()["state"][0]
         n_iter = state.get("n_iter")
         nfev = state.get("func_evals")

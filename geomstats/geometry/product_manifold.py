@@ -15,7 +15,6 @@ from geomstats.vectorization import get_batch_shape
 
 COMPLEX_OBJECTS = (ComplexRiemannianMetric, ComplexManifold)
 
-
 def _factor_is_complex(factor):
     if (
         isinstance(factor, COMPLEX_OBJECTS)
@@ -26,7 +25,6 @@ def _factor_is_complex(factor):
 
     return False
 
-
 def _has_mixed_fields(factors):
     bools = [_factor_is_complex(factor) for factor in factors]
     if len(set(bools)) == 2:
@@ -34,11 +32,9 @@ def _has_mixed_fields(factors):
 
     return False
 
-
 def _all_equal(arg):
     """Check if all elements of arg are equal."""
     return arg.count(arg[0]) == len(arg)
-
 
 def _block_diagonal(factor_matrices):
     """Put a list of square matrices in block diagonal form."""
@@ -61,7 +57,6 @@ def _block_diagonal(factor_matrices):
     metric_matrix = gs.concatenate(rows, axis=-2)
     return metric_matrix
 
-
 def _find_product_shape(factors, point_ndim):
     """Determine an appropriate shape for the product from the factors."""
     factor_shapes = [factor.shape for factor in factors]
@@ -79,7 +74,6 @@ def _find_product_shape(factors, point_ndim):
             "manifolds have shape."
         )
     return len(factors), *factors[0].shape
-
 
 class _IterateOverFactorsMixins:
     def __init__(
@@ -253,7 +247,6 @@ class _IterateOverFactorsMixins:
         """Call factor.method_name."""
         return getattr(factor, method_name)(**array_args, **num_args)
 
-
 class ProductManifold(_IterateOverFactorsMixins, Manifold):
     """Class for a product of manifolds M_1 x ... x M_n.
 
@@ -313,7 +306,13 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : ProductRiemannianMetric
+            Default metric.
+        """
         return ProductRiemannianMetric
 
     def _pool_outputs_from_function(self, outputs):
@@ -406,11 +405,10 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
         Parameters
         ----------
-        n_samples : int, optional
+        n_samples : int
             Number of samples.
         bound : float
             Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
 
         Returns
         -------
@@ -433,10 +431,8 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
         ----------
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
-            Optional, default: None.
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
@@ -504,10 +500,8 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
             Vector.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
-            Optional, default: None
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -518,7 +512,6 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
             "is_tangent", {"base_point": base_point, "vector": vector, "atol": atol}
         )
         return is_tangent
-
 
 class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
     """Class for product of Riemannian metrics."""
@@ -559,7 +552,6 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         ----------
         base_point : array-like, shape=[..., self.shape]
             Point on the manifold at which to compute the inner-product matrix.
-            Optional, default: None.
 
         Returns
         -------
@@ -587,7 +579,6 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             Second tangent vector at base point.
         base_point : array-like, shape=[..., self.shape]
             Point on the manifold.
-            Optional, default: None.
 
         Returns
         -------
@@ -614,7 +605,6 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             Vector.
         base_point : array-like, shape=[..., self.shape]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -637,7 +627,6 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             Tangent vector at a base point.
         base_point : array-like, shape=[..., self.shape]
             Point on the manifold.
-            Optional, default: None.
 
         Returns
         -------
@@ -658,7 +647,6 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             Point on the manifold.
         base_point : array-like, shape=[..., self.shape]
             Point on the manifold.
-            Optional, default: None.
 
         Returns
         -------
@@ -701,12 +689,11 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         ----------
         initial_point : array-like, shape=[..., dim]
             Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., dim], optional
+        end_point : array-like, shape=[..., dim]
             Point on the manifold, end point of the geodesic. If None,
             an initial tangent vector must be given.
         initial_tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
 
         Returns

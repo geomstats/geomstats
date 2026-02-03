@@ -102,7 +102,6 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         left : bool
             Indicate whether to calculate the differential of left or right
             translations.
-            Optional, default: True.
 
         Returns
         -------

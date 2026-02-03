@@ -9,7 +9,18 @@ import geomstats.backend as gs
 
 
 def result_to_backend_type(result):
-    """Convert np.array to gs.array within result object."""
+    """Convert np.array to gs.array within result object.
+
+    Parameters
+    ----------
+    result : dict
+        Result object containing numpy arrays.
+
+    Returns
+    -------
+    result : dict
+        Result object with numpy arrays converted to backend arrays.
+    """
     if gs.__name__.endswith("numpy") or gs.__name__.endswith("autograd"):
         return result
 
@@ -41,6 +52,13 @@ class _InstanceConvertOutputWrapper:
     """Dynamic wrapper for an instance to convert method output to gs.array."""
 
     def __init__(self, instance):
+        """Initialize wrapper.
+
+        Parameters
+        ----------
+        instance : object
+            Instance to wrap.
+        """
         self._instance = instance
         self._dict = {}
 
@@ -79,11 +97,11 @@ def params_to_kwargs(obj, ignore=(), renamings=None, ignore_private=False, func=
     ----------
     obj : object
         Object with desired attributes.
-    ignore : tuple[str]
+    ignore : tuple of str
         Attributes to ignore.
-    renamings: dict
+    renamings : dict
         Attribute renamings.
-    ignore_private: bool
+    ignore_private : bool
         Whether to ignore private attributes.
     func : callable
         Function to get signature from. Attributes

@@ -85,7 +85,6 @@ class GraphSpaceAlignerAlgorithm(AlignerAlgorithm, ABC):
         self.perm_ = self._get_opt_perm(point, base_point)
         return self._total_space.group_action(self.perm_, point)
 
-
 class FAQAligner(GraphSpaceAlignerAlgorithm):
     """Fast Quadratic Assignment for graph matching (or network alignment).
 
@@ -117,7 +116,6 @@ class FAQAligner(GraphSpaceAlignerAlgorithm):
                 base_point, point, options={"maximize": True}
             )
         )
-
 
 class ExhaustiveAligner(GraphSpaceAlignerAlgorithm):
     """Brute force exact alignment.
@@ -158,7 +156,6 @@ class ExhaustiveAligner(GraphSpaceAlignerAlgorithm):
         sdists = self._total_space.metric.squared_dist(base_point, orbit)
         return self._perms[gs.argmin(sdists)]
 
-
 class PointToGeodesicAlignerBase(ABC):
     """Base class for point to geodesic aligner.
 
@@ -180,12 +177,37 @@ class PointToGeodesicAlignerBase(ABC):
 
     @abstractmethod
     def align(self, geodesic, point):
-        """Class for the alignment of the geodesic with respect to a point."""
+        """Class for the alignment of the geodesic with respect to a point.
+
+        Parameters
+        ----------
+        geodesic : callable
+            Geodesic function.
+        point : array-like, shape=[..., n_nodes, n_nodes]
+            Graph to align.
+
+        Returns
+        -------
+        aligned_point : array-like, shape=[..., n_nodes, n_nodes]
+            Aligned graph.
+        """
 
     @abstractmethod
     def dist(self, geodesic, point):
-        """Class to compute distance between the geodesic with respect to a point."""
+        """Class to compute distance between the geodesic with respect to a point.
 
+        Parameters
+        ----------
+        geodesic : callable
+            Geodesic function.
+        point : array-like, shape=[..., n_nodes, n_nodes]
+            Graph to align.
+
+        Returns
+        -------
+        dist : array-like, shape=[...]
+            Distance between the geodesic and the point.
+        """
 
 class PointToGeodesicAligner(PointToGeodesicAlignerBase):
     """Class for the alignment of the points with respect to a geodesic.
@@ -307,14 +329,14 @@ class PointToGeodesicAligner(PointToGeodesicAlignerBase):
 
         Parameters
         ----------
-        geodesic : function
+        geodesic : callable
             Geodesic function in GraphSpace.
         point : array-like, shape=[..., n_nodes, n_nodes]
             Graph to align.
 
         Returns
         -------
-        dist : array-like, shape=[..., n_nodes]
+        dist : array-like, shape=[...]
             Distance between the point and the geodesic.
 
         Notes
@@ -352,7 +374,6 @@ class PointToGeodesicAligner(PointToGeodesicAlignerBase):
 
         slc.extend([slice(None), slice(None)])
         return aligned_points[tuple(slc)]
-
 
 class _GeodesicToPointAligner(PointToGeodesicAlignerBase):
     """Class for the alignment of the points with respect to a geodesic.
@@ -478,14 +499,14 @@ class _GeodesicToPointAligner(PointToGeodesicAlignerBase):
 
         Parameters
         ----------
-        geodesic : function
+        geodesic : callable
             Geodesic function in GraphSpace.
         point : array-like, shape=[..., n_nodes, n_nodes]
             Graph to align.
 
         Returns
         -------
-        dist : array-like, shape=[..., n_nodes]
+        dist : array-like, shape=[...]
             Distance between the point and the geodesic.
         """
         sdist, _ = self.squared_dist(geodesic, point, return_perm=True)
@@ -508,7 +529,6 @@ class _GeodesicToPointAligner(PointToGeodesicAlignerBase):
         """
         _, self.perm_ = self.squared_dist(geodesic, point, return_perm=True)
         return self._total_space.group_action(self.perm_, point)
-
 
 class GraphSpace(Matrices):
     r"""Class for the Graph Space.
@@ -547,16 +567,37 @@ class GraphSpace(Matrices):
         super().__init__(n_nodes, n_nodes, equip=equip)
 
     def new(self, equip=True):
-        """Create manifold with same parameters."""
+        """Create manifold with same parameters.
+
+        Parameters
+        ----------
+        equip : bool
+            Whether to equip the manifold with a metric.
+
+        Returns
+        -------
+        space : GraphSpace
+            New GraphSpace instance with same parameters.
+        """
         return GraphSpace(n_nodes=self.n_nodes, equip=equip)
 
     def equip_with_group_action(self, group_action="permutations"):
-        """Equip manifold with group action."""
+        """Equip manifold with group action.
+
+        Parameters
+        ----------
+        group_action : str or GroupAction
+            Group action to equip with.
+
+        Returns
+        -------
+        self : GraphSpace
+            Self.
+        """
         if group_action == "permutations":
             group_action = PermutationAction()
 
         return super().equip_with_group_action(group_action)
-
 
 class GraphSpaceAligner(Aligner):
     """Graph space aligner.
@@ -603,7 +644,15 @@ class GraphSpaceAligner(Aligner):
         ----------
         align_algo : str or GraphSpaceAlignerAlgorithm
             'FAQ': Fast Quadratic Assignment - only compatible with Frobenius norm,
-            'exhaustive': all group exhaustive search
+            'exhaustive': all group exhaustive search.
+
+        **kwargs : dict
+            Additional keyword arguments for the aligner.
+
+        Returns
+        -------
+        aligner : GraphSpaceAlignerAlgorithm
+            The alignment algorithm instance.
         """
         if isinstance(align_algo, str):
             check_parameter_accepted_values(
@@ -626,13 +675,25 @@ class GraphSpaceAligner(Aligner):
 
         Parameters
         ----------
-        aligner: BasePointToGeodesicAligner
+        aligner : str or BasePointToGeodesicAligner
+            Aligner to use.
+
         s_min : float
             Minimum value of the domain to sample along the geodesics.
+            0.
         s_max : float
-            Minimum value of the domain to sample along the geodesics.
-        n_points: int
+            Maximum value of the domain to sample along the geodesics.
+            0.
+        n_grid : int
             Number of points to sample between s_min and s_max.
+
+        **kwargs : dict
+            Additional keyword arguments for the aligner.
+
+        Returns
+        -------
+        aligner : BasePointToGeodesicAligner
+            The point to geodesic aligner instance.
         """
         if aligner == "default":
             kwargs.setdefault("s_min", -1.0)
@@ -662,7 +723,6 @@ class GraphSpaceAligner(Aligner):
         """
         return self.point_to_geodesic_aligner.align(geodesic, point)
 
-
 class GraphSpaceQuotientMetric(QuotientMetric):
     r"""Class for the Graph Space Metric.
 
@@ -689,7 +749,6 @@ class GraphSpaceQuotientMetric(QuotientMetric):
         "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
         https://www.jmlr.org/papers/v10/jain09a.html.
     """
-
 
 register_quotient(
     Space=GraphSpace,

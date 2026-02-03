@@ -34,7 +34,13 @@ class KleinBottle(Manifold):
         super().__init__(dim=2, shape=(2,), intrinsic=True, equip=equip)
 
     def default_metric(self):
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : KleinBottleMetric
+            Default metric.
+        """
         return KleinBottleMetric
 
     def random_point(self, n_samples=1, bound=None):
@@ -44,7 +50,7 @@ class KleinBottle(Manifold):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : unused
 
         Returns
@@ -363,7 +369,6 @@ class KleinBottle(Manifold):
 
         return gs.stack([x, y, z], axis=-1)
 
-
 class KleinBottleMetric(RiemannianMetric):
     """Class for the Klein Bottle Metric.
 
@@ -405,8 +410,7 @@ class KleinBottleMetric(RiemannianMetric):
         tangent_vec_b: array-like, shape=[..., 2]
             Tangent vector at base point.
         base_point: array-like, shape=[..., 2]
-            Base point.
-            Optional, default: None, unused.
+            Base point. Unused.
 
         Returns
         -------
@@ -512,7 +516,6 @@ class KleinBottleMetric(RiemannianMetric):
         p1 = gs.reshape(p1, shape)
         minimizers = gs.reshape(minimizers, shape)
         return p1, minimizers
-
 
 def _is_close_mod(array, divisor, atol):
     """Determine if values in array are elementwise close to zero modulo divisor.

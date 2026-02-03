@@ -34,7 +34,6 @@ class Minkowski(Euclidean):
             space.equip_with_metric(MinkowskiMetric)
         return space
 
-
 class MinkowskiMetric(EuclideanMetric):
     """Class for the pseudo-Euclidean Minkowski metric."""
 

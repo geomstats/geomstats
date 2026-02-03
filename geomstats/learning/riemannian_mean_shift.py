@@ -29,23 +29,17 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
     tol : float
         Stopping condition. Computation of subsequent mean centers is stopped
         when the distance between them is less than 'tol'.
-        Optional, default : 1e-2.
     n_clusters : int
         Number of centers.
-        Optional, default : 1.
     n_jobs : int
         Number of parallel threads to be initiated for parallel jobs.
-        Optional, default : 1.
     max_iter : int
         Upper bound on total number of iterations for the centers to converge.
-        Optional, default : 100.
     init_centers : str
         Initializing centers, either from the given input points or
         random points uniformly distributed in the input manifold.
-        Optional, default : "from_points".
     kernel : str
         Weighing function to assign kernel weights to each center.
-        Optional, default : "flat".
 
     Notes
     -----
@@ -85,6 +79,11 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
             Clusters of points.
         points_b : array-like, shape=[..., n_features]
             Clusters of points.
+
+        Returns
+        -------
+        dist_matrix : array-like, shape=[n_a, n_b]
+            Distance matrix between points_a and points_b.
         """
         n_a, n_b = points_a.shape[0], points_b.shape[0]
 
@@ -145,8 +144,13 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
             ----------
             points : array-like, shape=[..., n_features]
                 Clusters of points.
-            weights : array-like,
+            weights : array-like, shape=[n_points]
                 Weight associated with each point in cluster.
+
+            Returns
+            -------
+            mean : array-like, shape=[n_features]
+                Frechet mean of the points.
             """
             return self.mean_estimator.fit(points, weights=weights).estimate_
 
@@ -191,12 +195,22 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         return self
 
     def predict(self, X):
-        """Predict the closest cluster each point in `points` belongs to.
+        """Predict the closest cluster each point in `X` belongs to.
 
         Parameters
         ----------
-        points : array-like, shape=[n_samples, n_features]
+        X : array-like, shape=[n_samples, n_features]
             Clusters of points.
+
+        Returns
+        -------
+        labels : array-like, shape=[n_samples]
+            Index of the cluster each sample belongs to.
+
+        Returns
+        -------
+        self : object
+            Returns self.
         """
         if self.cluster_centers_ is None:
             raise Exception("Not fitted")

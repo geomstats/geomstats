@@ -14,7 +14,6 @@ from geomstats.vectorization import repeat_out
 
 EPSILON = 1e-6
 
-
 class InvariantMetricMatrixExpODESolver(ExpODESolver):
     """An exp solver adapted to _InvariantMetricMatrix."""
 
@@ -43,7 +42,6 @@ class InvariantMetricMatrixExpODESolver(ExpODESolver):
             Tangent vector at a base point.
         base_point : array-like, shape=[..., n, n]
             Point in the group.
-            Optional, defaults to identity if None.
 
         Returns
         -------
@@ -71,7 +69,6 @@ class InvariantMetricMatrixExpODESolver(ExpODESolver):
         )
         return super().geodesic_ivp(left_angular_vel, base_point)
 
-
 class InvariantMetricMatrixLogODESolver(LogODESolver):
     """A log solver adapted to _InvariantMetricMatrix."""
 
@@ -85,7 +82,6 @@ class InvariantMetricMatrixLogODESolver(LogODESolver):
             base_point,
         )
 
-
 class _InvariantMetricMatrix(RiemannianMetric):
     """Class for invariant metrics on Matrix Lie groups.
 
@@ -98,10 +94,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
         Group to equip with the invariant metric.
     metric_mat_at_identity : array-like, shape=[dim, dim]
         Matrix that defines the metric at identity.
-        Optional, defaults to identity matrix if None.
+
     left : bool
         Whether to use a left or right invariant metric.
-        Optional, default: True.
 
     References
     ----------
@@ -190,7 +185,6 @@ class _InvariantMetricMatrix(RiemannianMetric):
             Second tangent vector at base_point.
         base_point : array-like, shape=[..., n, n]
             Point in the group.
-            Optional, defaults to identity if None.
 
         Returns
         -------
@@ -408,7 +402,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         tangent_vec_c : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
         base_point :  array-like, shape=[..., n, n]
-            Point on the group. Optional, default is the identity.
+            Point on the group.
 
         Returns
         -------
@@ -487,7 +481,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., n, n]
-            Point in the group. Optional, default is the identity
+            Point in the group.
 
         Returns
         -------
@@ -645,7 +639,6 @@ class _InvariantMetricMatrix(RiemannianMetric):
             Point in the group.
         base_point : array-like, shape=[..., n, n]
             Point in the group, from which to compute the log.
-            Optional, default: identity.
 
         Returns
         -------
@@ -695,20 +688,17 @@ class _InvariantMetricMatrix(RiemannianMetric):
         direction : array-like, shape=[..., n, n]
             Tangent vector at base point, along which the parallel transport
             is computed.
-            Optional, default: None
         end_point : array-like, shape=[..., n, n]
             Point on the manifold. Point to transport to.
             Unused if `tangent_vec_b` is given
-            Optional, default: None
         n_steps : int
             Number of integration steps to take.
-            Optional, default : 10.
+
         step : str, {'euler', 'rk2', 'rk4'}
             Scheme to use for the approximation of the solution of the ODE
-            Optional, default : rk4
+
         return_endpoint : bool
             Whether the end-point of the geodesic should be returned.
-            Optional, default : False.
 
         Returns
         -------
@@ -817,7 +807,6 @@ class _InvariantMetricMatrix(RiemannianMetric):
         acceleration = gs.einsum("...i,ijk->...jk", coefficients, basis)
         return gs.stack([velocity, sign * acceleration], axis=-3)
 
-
 class _InvariantMetricVector(RiemannianMetric):
     """Class for invariant metrics on Lie groups represented by vectors.
 
@@ -827,7 +816,7 @@ class _InvariantMetricVector(RiemannianMetric):
         Group to equip with the invariant metric
     left : bool
         Whether to use a left or right invariant metric.
-        Optional, default: True.
+
     """
 
     def __init__(self, space, left=True):
@@ -858,7 +847,7 @@ class _InvariantMetricVector(RiemannianMetric):
 
         Parameters
         ----------
-        base_point : array-like, shape=[..., dim], optional
+        base_point : array-like, shape=[..., dim]
             Point in the group (the default is identity).
 
         Returns
@@ -932,7 +921,6 @@ class _InvariantMetricVector(RiemannianMetric):
             Tangent vector at a base point.
         base_point : array-like, shape=[..., dim]
             Point in the group.
-            Optional, defaults to identity if None.
 
         Returns
         -------
@@ -1016,7 +1004,7 @@ class _InvariantMetricVector(RiemannianMetric):
         ----------
         point : array-like, shape=[..., dim]
             Point in the group.
-        base_point : array-like, shape=[..., dim], optional
+        base_point : array-like, shape=[..., dim]
             Point in the group, from which to compute the log,
             (the default is identity).
 
@@ -1060,7 +1048,6 @@ class _InvariantMetricVector(RiemannianMetric):
             Second tangent vector at base_point.
         base_point : array-like, shape=[..., n, n]
             Point in the group.
-            Optional, defaults to identity if None.
 
         Returns
         -------
@@ -1077,7 +1064,6 @@ class _InvariantMetricVector(RiemannianMetric):
         tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
         return self.inner_product_at_identity(tangent_vec_a_at_id, tangent_vec_b_at_id)
 
-
 class InvariantMetric:
     """Class for invariant metrics on Lie groups.
 
@@ -1093,10 +1079,10 @@ class InvariantMetric:
         Group to equip with the invariant metric
     metric_mat_at_identity : array-like, shape=[dim, dim]
         Matrix that defines the metric at identity.
-        Optional, defaults to identity matrix if None.
+
     left : bool
         Whether to use a left or right invariant metric.
-        Optional, default: True.
+
     """
 
     def __new__(cls, space, metric_mat_at_identity=None, left=True):
@@ -1111,7 +1097,6 @@ class InvariantMetric:
             left=left,
             metric_mat_at_identity=metric_mat_at_identity,
         )
-
 
 class BiInvariantMetric(RiemannianMetric):
     """Class for bi-invariant metrics on compact Lie groups.
@@ -1157,7 +1142,6 @@ class BiInvariantMetric(RiemannianMetric):
             Tangent vector at identity.
         base_point : array-like, shape=[..., {dim, [n, n]}]
             Point in the group.
-            Optional, default : identity.
 
         Returns
         -------
@@ -1184,7 +1168,6 @@ class BiInvariantMetric(RiemannianMetric):
             Point in the group.
         base_point : array-like, shape=[..., {dim, [n, n]}]
             Point in the group.
-            Optional, default : identity.
 
         Returns
         -------
@@ -1233,7 +1216,6 @@ class BiInvariantMetric(RiemannianMetric):
             Second tangent vector at base_point.
         base_point : array-like, shape=[..., n, n]
             Point in the group.
-            Optional, defaults to identity if None.
 
         Returns
         -------
@@ -1280,10 +1262,8 @@ class BiInvariantMetric(RiemannianMetric):
         direction : array-like, shape=[..., n, n]
             Tangent vector at base point, along which the parallel transport
             is computed.
-            Optional, default: None.
         end_point : array-like, shape=[..., n, n]
             Point on the manifold. Point to transport to.
-            Optional, default: None.
 
         Returns
         -------

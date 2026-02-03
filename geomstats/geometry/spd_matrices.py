@@ -32,7 +32,6 @@ def logmh(mat):
     logm = apply_func_to_eigvalsh(dim_3_mat, gs.log, check_positive=True)
     return gs.reshape(logm, mat.shape)
 
-
 def _aux_differential_power(power, tangent_vec, base_point):
     """Compute the differential of the matrix power.
 
@@ -96,7 +95,6 @@ def _aux_differential_power(power, tangent_vec, base_point):
 
     return (eigvectors, transp_eigvectors, numerator, denominator, temp_result)
 
-
 def generalized_eigenvalues(point_a, point_b):
     """Compute the generalized eigenvalues of SPD matrix pair.
 
@@ -132,7 +130,6 @@ def generalized_eigenvalues(point_a, point_b):
         Matrices.transpose(scaled_b_eigvecs), point_a, scaled_b_eigvecs
     )
     return gs.linalg.eigvalsh(point_a_scaled)
-
 
 class SymMatrixLog(Diffeo):
     """Matrix logarithm diffeomorphism.
@@ -259,7 +256,6 @@ class SymMatrixLog(Diffeo):
         result = power_operator * temp_result
         return Matrices.mul(eigvectors, result, transp_eigvectors)
 
-
 class MatrixPower(Diffeo):
     """Matrix power diffeomorphism.
 
@@ -368,7 +364,6 @@ class MatrixPower(Diffeo):
         result = power_operator * temp_result
         return Matrices.mul(eigvectors, result, transp_eigvectors)
 
-
 class CholeskyMap(Diffeo):
     """Cholesky map.
 
@@ -467,7 +462,6 @@ class CholeskyMap(Diffeo):
         mat2 = gs.einsum("...ij,...kj->...ik", image_point, image_tangent_vec)
         return mat1 + mat2
 
-
 class SPDMatrices(VectorSpaceOpenSet):
     """Class for the manifold of symmetric positive definite (SPD) matrices.
 
@@ -489,7 +483,13 @@ class SPDMatrices(VectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        default_metric : type
+            Metric class.
+        """
         return SPDAffineMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -501,7 +501,6 @@ class SPDMatrices(VectorSpaceOpenSet):
             Matrix to be checked.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -541,10 +540,9 @@ class SPDMatrices(VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample in the tangent space.
-            Optional, default: 1.
 
         Returns
         -------
@@ -564,7 +562,7 @@ class SPDMatrices(VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
 
@@ -585,7 +583,6 @@ class SPDMatrices(VectorSpaceOpenSet):
 
         return Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
-
 class SPDAffineMetric(RiemannianMetric):
     """Class for the affine-invariant metric on the SPD manifold.
 
@@ -593,7 +590,6 @@ class SPDAffineMetric(RiemannianMetric):
     ----------
     power_affine : int
         Power transformation of the classical SPD metric.
-        Optional, default: 1.
 
     References
     ----------
@@ -729,10 +725,8 @@ class SPDAffineMetric(RiemannianMetric):
         direction : array-like, shape=[..., n, n]
             Tangent vector at base point, initial speed of the geodesic along
             which the parallel transport is computed. Unused if `end_point` is given.
-            Optional, default: None.
         end_point : array-like, shape=[..., n, n]
             Point on the manifold of SPD matrices. Point to transport to.
-            Optional, default: None.
 
         Returns
         -------
@@ -765,7 +759,6 @@ class SPDAffineMetric(RiemannianMetric):
         """
         radius = gs.array(math.inf)
         return repeat_out(self._space.point_ndim, radius, base_point)
-
 
 class SPDBuresWassersteinMetric(RiemannianMetric):
     """Class for the Bures-Wasserstein metric on the SPD manifold.
@@ -933,14 +926,12 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
             transport along.
         end_point : array-like, shape=[..., n, n]
             Point to transport to.
-            Optional, default: None.
         n_steps : int
             Number of steps to use to approximate the solution of the
             ordinary differential equation.
-            Optional, default: 100
+
         step : str, {'euler', 'rk2', 'rk4'}
             Scheme to use in the integration scheme.
-            Optional, default: 'rk4'.
 
         Returns
         -------
@@ -1013,7 +1004,6 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         eigen_values = gs.linalg.eigvalsh(base_point)
         return eigen_values[..., 0] ** 0.5
 
-
 class SPDEuclideanMetric(MatricesMetric):
     """Class for the Euclidean metric on the SPD manifold."""
 
@@ -1067,7 +1057,6 @@ class SPDEuclideanMetric(MatricesMetric):
         eigen_values = gs.linalg.eigvalsh(base_point)
         return eigen_values[..., 0]
 
-
 class SPDLogEuclideanMetric(PullbackDiffeoMetric):
     """Class for the Log-Euclidean metric on the SPD manifold."""
 
@@ -1076,7 +1065,6 @@ class SPDLogEuclideanMetric(PullbackDiffeoMetric):
             image_space = SymmetricMatrices(n=space.n)
         diffeo = SymMatrixLog()
         super().__init__(space, diffeo, image_space)
-
 
 class SPDPowerMetric(PullbackDiffeoMetric):
     r"""Pullback metric induced by the power diffeomorphism.
@@ -1115,7 +1103,6 @@ class SPDPowerMetric(PullbackDiffeoMetric):
         diffeo = MatrixPower(power)
 
         super().__init__(space, diffeo, image_space)
-
 
 class LieCholeskyMetric(PullbackDiffeoMetric):
     """Pullback metric via a diffeomorphism.

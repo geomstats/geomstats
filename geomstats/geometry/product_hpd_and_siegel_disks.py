@@ -8,7 +8,6 @@ HPD matrices affine-invariant metric (with power affine parameter equal 1)
 and Siegel metrics multiplied by constants.
 This product manifold can be used to represent Block-Toeplitz HPD matrices.
 
-
 Lead author: Yann Cabanes.
 
 References
@@ -68,7 +67,6 @@ class ProductHPDMatricesAndSiegelDisks(ProductManifold):
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return ProductHPDMatricesAndSiegelDisksMetric
-
 
 class ProductHPDMatricesAndSiegelDisksMetric(ProductRiemannianMetric):
     """Class defining the ProductHPDMatricesAndSiegelDisks metric.

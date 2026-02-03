@@ -47,10 +47,23 @@ class Stiefel(LevelSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        default_metric : type
+            Metric class.
+        """
         return StiefelCanonicalMetric
 
     def _define_embedding_space(self):
+        """Define embedding space.
+
+        Returns
+        -------
+        embedding_space : Matrices
+            Embedding space.
+        """
         return Matrices(self.n, self.p)
 
     def submersion(self, point):
@@ -114,7 +127,6 @@ class Stiefel(LevelSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
@@ -143,7 +155,7 @@ class Stiefel(LevelSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Unused here.
 
@@ -199,7 +211,6 @@ class Stiefel(LevelSet):
         """
         mat_u, _, mat_v = gs.linalg.svd(point)
         return Matrices.mul(mat_u[..., :, : self.p], mat_v)
-
 
 class StiefelCanonicalMetric(RiemannianMetric):
     """Class that defines the canonical metric for Stiefel manifolds."""
@@ -413,7 +424,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
         radius = gs.array(0.89 * gs.pi)
         return repeat_out(self._space.point_ndim, radius, base_point)
 
-
 class _StiefelLogSolver(LogSolver):
     """Stiefel log solver.
 
@@ -526,11 +536,10 @@ class _StiefelLogSolver(LogSolver):
             Point in the Stiefel manifold.
         max_iter: int
             Maximum number of iterations to perform during the algorithm.
-            Optional, default: 30.
+
         tol: float
             Tolerance to reach convergence. The matrix 2-norm is used as
             criterion.
-            Optional, default: 1e-6.
 
         Returns
         -------

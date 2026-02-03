@@ -7,7 +7,19 @@ from geomstats.numerics._common import result_to_backend_type
 
 
 class ScipySolveBVP:
-    """Wrapper for scipy.integrate.solve_bvp."""
+    """Wrapper for scipy.integrate.solve_bvp.
+
+    Parameters
+    ----------
+    tol : float
+        Tolerance for solution.
+    max_nodes : int
+        Maximum number of mesh nodes.
+    bc_tol : float
+        Tolerance for boundary conditions.
+    save_result : bool
+        Whether to save result.
+    """
 
     def __init__(self, tol=1e-3, max_nodes=1000, bc_tol=None, save_result=False):
         self.tol = tol
@@ -18,7 +30,28 @@ class ScipySolveBVP:
         self.result_ = None
 
     def integrate(self, fun, bc, x, y, fun_jac=None, bc_jac=None):
-        """Solve a boundary value problem for a system of ODEs."""
+        """Solve a boundary value problem for a system of ODEs.
+
+        Parameters
+        ----------
+        fun : callable
+            Right-hand side of the system.
+        bc : callable
+            Boundary conditions.
+        x : array-like, shape=[n_points]
+            Initial mesh.
+        y : array-like, shape=[n, n_points]
+            Initial guess for the solution.
+        fun_jac : callable
+            Jacobian of fun.
+        bc_jac : callable
+            Jacobian of bc.
+
+        Returns
+        -------
+        result : OptimizeResult
+            Solution result.
+        """
 
         def fun_(t, state):
             return fun(t, gs.from_numpy(state))

@@ -34,7 +34,6 @@ class GradientDescent:
             x = exp(grad_x, x)
         return x
 
-
 class TangentBundle(Manifold):
     """Tangent bundle of a space."""
 
@@ -65,7 +64,6 @@ class TangentBundle(Manifold):
             Point to evaluate.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -87,10 +85,9 @@ class TangentBundle(Manifold):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
 
         Returns
         -------
@@ -134,7 +131,6 @@ class TangentBundle(Manifold):
             Point in the vector space.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -166,7 +162,6 @@ class TangentBundle(Manifold):
         """Generate random tangent vec."""
         raise NotImplementedError("`random_tangent_vec` is not implemented")
 
-
 class SasakiMetric(RiemannianMetric):
     """Implements of the Sasaki metric on the tangent bundle TM of a Riem. manifold M.
 
@@ -189,10 +184,9 @@ class SasakiMetric(RiemannianMetric):
         Tangent bundle.
     n_jobs: int
         Number of jobs for parallel computing.
-        Optional, default: 1.
+
     n_steps : int
         Number of discrete time steps.
-        Optional, default: 3.
 
     References
     ----------
@@ -223,7 +217,6 @@ class SasakiMetric(RiemannianMetric):
             Tangent vector in TTM at the base point in TM.
         base_point : array-like, shape=[..., 2, M.dim]
             Point in the tangent bundle TM of manifold M.
-
 
         Returns
         -------

@@ -106,7 +106,19 @@ class TangentPCA(_BasePCA):
         Equipped manifold.
     n_components : int
         Number of principal components.
-        Optional, default: None.
+    copy : bool
+        If False, data passed to fit are overwritten.
+    whiten : bool
+        When True the components_ vectors are multiplied by the square root
+        of n_samples and then divided by the singular values to ensure
+        uncorrelated outputs with unit component-wise variances.
+    tol : float
+        Tolerance for singular values computed by svd_solver == 'arpack'.
+    iterated_power : int or 'auto'
+        Number of iterations for the power method computed by
+        svd_solver == 'randomized'.
+    random_state : int, RandomState instance or None
+        Used when the 'arpack' or 'randomized' solvers are used.
 
     Notes
     -----
@@ -157,10 +169,11 @@ class TangentPCA(_BasePCA):
         X : array-like, shape=[..., n_features]
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
-        y : Ignored (Compliance with scikit-learn interface)
-        base_point : array-like, shape=[..., n_features], optional
-            Point at which to perform the tangent PCA
-            Optional, default to Frechet mean if None.
+        y : None
+            Ignored (Compliance with scikit-learn interface).
+        base_point : array-like, shape=[..., n_features]
+            Point at which to perform the tangent PCA.
+            If None, Frechet mean is used.
 
         Returns
         -------
@@ -178,10 +191,11 @@ class TangentPCA(_BasePCA):
         X : array-like, shape=[..., n_features]
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
-        y : Ignored (Compliance with scikit-learn interface)
+        y : None
+            Ignored (Compliance with scikit-learn interface).
         base_point : array-like, shape=[..., n_features]
-            Point at which to perform the tangent PCA
-            Optional, default to Frechet mean if None.
+            Point at which to perform the tangent PCA.
+            If None, Frechet mean is used.
 
         Returns
         -------
@@ -203,7 +217,8 @@ class TangentPCA(_BasePCA):
         X : array-like, shape=[..., n_features]
             Data, where n_samples is the number of samples
             and n_features is the number of features.
-        y : Ignored (Compliance with scikit-learn interface)
+        y : None
+            Ignored (Compliance with scikit-learn interface).
 
         Returns
         -------
@@ -264,10 +279,11 @@ class TangentPCA(_BasePCA):
         X : array-like, shape=[..., n_features]
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
-        y : Ignored (Compliance with scikit-learn interface)
+        y : None
+            Ignored (Compliance with scikit-learn interface).
         base_point : array-like, shape=[..., n_features]
             Point at which to perform the tangent PCA.
-            Optional, default to Frechet mean if None.
+            If None, Frechet mean is used.
 
         Returns
         -------
@@ -371,7 +387,7 @@ class HyperbolicPlaneExactPGA(_BasePCA):
     ----------
     space : Hyperbolic
         Two-dimensional hyperbolic space.
-    n_vec : int
+    n_grid : int
         Number of vectors used to discretize the unit ball when finding
         the direction of maximal variance.
 
@@ -416,7 +432,8 @@ class HyperbolicPlaneExactPGA(_BasePCA):
             Training data in the hyperbolic plane. If the space is
             the Poincare half-space or Poincare ball, n_features is
             2. If it is the hyperboloid, n_features is 3.
-        y : Ignored (Compliance with scikit-learn interface)
+        y : None
+            Ignored (Compliance with scikit-learn interface).
 
         Returns
         -------
@@ -459,11 +476,12 @@ class HyperbolicPlaneExactPGA(_BasePCA):
 
         Parameters
         ----------
-         X : array-like, shape=[n_points, 2]
-             Training data in the hyperbolic plane. If the space is
-             the Poincare half-space or Poincare ball, n_features is
-             2. If it is the hyperboloid, n_features is 3.
-         y : Ignored (Compliance with scikit-learn interface)
+        X : array-like, shape=[n_points, 2]
+            Training data in the hyperbolic plane. If the space is
+            the Poincare half-space or Poincare ball, n_features is
+            2. If it is the hyperboloid, n_features is 3.
+        y : None
+            Ignored (Compliance with scikit-learn interface).
 
         Returns
         -------

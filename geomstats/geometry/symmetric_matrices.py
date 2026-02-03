@@ -30,7 +30,13 @@ class SymmetricMatrices(MatrixVectorSpace):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MatricesMetric
+            Default metric.
+        """
         return MatricesMetric
 
     def _create_basis(self):
@@ -141,7 +147,6 @@ class SymmetricMatrices(MatrixVectorSpace):
         mat = Matrices.to_symmetric(upper_triangular) * mask
         return mat
 
-
 class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
     r"""Space of symmetric hollow matrices.
 
@@ -170,10 +175,23 @@ class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MatricesMetric
+            Default metric.
+        """
         return MatricesMetric
 
     def _define_embedding_space(self):
+        """Define the embedding space.
+
+        Returns
+        -------
+        embedding_space : SymmetricMatrices
+            Embedding space.
+        """
         return SymmetricMatrices(n=self.n)
 
     def submersion(self, point):
@@ -246,7 +264,6 @@ class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
             Projected point.
         """
         return point - Matrices.to_diagonal(point)
-
 
 class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
     r"""A permutation-invariant metric on the space of hollow matrices.
@@ -359,7 +376,6 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
             Tangent vector at base point.
         base_point: array-like, shape=[..., n, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -387,7 +403,6 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
             Vector.
         base_point : array-like, shape=[..., n, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -395,7 +410,6 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
             Squared norm.
         """
         return self._quadratic_form(vector)
-
 
 class ConstantValueRowSumsDiffeo(Diffeo):
     r"""A diffeomorphism from the constant-value-row-sum matrices to symmetric matrices.
@@ -520,7 +534,6 @@ class ConstantValueRowSumsDiffeo(Diffeo):
             out_ndim=self._space_ndim,
         )
 
-
 class NullRowSumsSymmetricMatrices(LevelSet, DiffeomorphicMatrixVectorSpace):
     r"""Space of null-row-sums symmetric matrices.
 
@@ -561,7 +574,13 @@ class NullRowSumsSymmetricMatrices(LevelSet, DiffeomorphicMatrixVectorSpace):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MatricesMetric
+            Default metric.
+        """
         return MatricesMetric
 
     def _define_embedding_space(self):
@@ -622,7 +641,6 @@ class NullRowSumsSymmetricMatrices(LevelSet, DiffeomorphicMatrixVectorSpace):
                 pre_basis,
             )
         )
-
 
 class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
     r"""A permutation-invariant metric on the space of null-row-sums symmetric matrices.
@@ -743,7 +761,6 @@ class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
             Tangent vector at base point.
         base_point: array-like, shape=[..., n, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -771,7 +788,6 @@ class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
             Vector.
         base_point : array-like, shape=[..., n, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------

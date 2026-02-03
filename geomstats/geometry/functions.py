@@ -92,7 +92,6 @@ class HilbertSphere(Manifold):
             Point on the manifold.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -130,7 +129,7 @@ class HilbertSphere(Manifold):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             This parameter is ignored
 
@@ -151,7 +150,6 @@ class HilbertSphere(Manifold):
 
         return self.projection(point)
 
-
 class HilbertSphereMetric(RiemannianMetric):
     """A Riemannian metric on the Hilbert sphere (functions of norm 1)."""
 
@@ -164,7 +162,7 @@ class HilbertSphereMetric(RiemannianMetric):
             First tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., n_samples]
             Second tangent vector at base point.
-        base_point : array-like, shape=[..., n_samples], optional
+        base_point : array-like, shape=[..., n_samples]
             Point on the hypersphere.
 
         Returns

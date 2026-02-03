@@ -29,7 +29,13 @@ class Euclidean(VectorSpace):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        default_metric : type
+            Metric class.
+        """
         return CanonicalEuclideanMetric
 
     @property
@@ -43,7 +49,13 @@ class Euclidean(VectorSpace):
         return gs.zeros(self.dim)
 
     def _create_basis(self):
-        """Create the canonical basis."""
+        """Create the canonical basis.
+
+        Returns
+        -------
+        basis : array-like, shape=[dim, dim]
+            Identity matrix as canonical basis.
+        """
         return gs.eye(self.dim)
 
     def exp(self, tangent_vec, base_point):
@@ -62,7 +74,6 @@ class Euclidean(VectorSpace):
             Group exponential.
         """
         return tangent_vec + base_point
-
 
 class EuclideanMetric(RiemannianMetric):
     """Class for a Euclidean metric.
@@ -101,7 +112,6 @@ class EuclideanMetric(RiemannianMetric):
         ----------
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -224,14 +234,11 @@ class EuclideanMetric(RiemannianMetric):
             Tangent vector at base point to be transported.
         base_point : array-like, shape=[..., dim]
             Point on the manifold. Point to transport from.
-            Optional, default: None
         direction : array-like, shape=[..., dim]
             Tangent vector at base point, along which the parallel transport
             is computed.
-            Optional, default: None.
         end_point : array-like, shape=[..., dim]
             Point on the manifold. Point to transport to.
-            Optional, default: None.
 
         Returns
         -------
@@ -261,12 +268,11 @@ class EuclideanMetric(RiemannianMetric):
         ----------
         initial_point : array-like, shape=[..., dim]
             Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., dim], optional
+        end_point : array-like, shape=[..., dim]
             Point on the manifold, end point of the geodesic. If None,
             an initial tangent vector must be given.
-        initial_tangent_vec : array-like, shape=[..., dim], optional
+        initial_tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
 
         Returns
@@ -307,6 +313,11 @@ class EuclideanMetric(RiemannianMetric):
             ----------
             t : array-like, shape=[n_points,]
                 Times at which to compute points of the geodesics.
+
+            Returns
+            -------
+            points : array-like, shape=[..., n_points, dim]
+                Points on the geodesic at times t.
             """
             t = gs.to_ndarray(t, to_ndim=1, dtype=initial_tangent_vec.dtype)
             tangent_vecs = gs.einsum(f"n,...{ijk}->...n{ijk}", t, initial_tangent_vec)
@@ -334,7 +345,6 @@ class EuclideanMetric(RiemannianMetric):
         radius = gs.array(math.inf)
         return repeat_out(self._space.point_ndim, radius, base_point)
 
-
 class CanonicalEuclideanMetric(EuclideanMetric):
     """Class for the canonical Euclidean metric.
 
@@ -358,7 +368,6 @@ class CanonicalEuclideanMetric(EuclideanMetric):
             Tangent vector at base point.
         base_point: array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -386,7 +395,6 @@ class CanonicalEuclideanMetric(EuclideanMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -411,7 +419,6 @@ class CanonicalEuclideanMetric(EuclideanMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------

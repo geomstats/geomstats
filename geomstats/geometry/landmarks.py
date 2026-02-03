@@ -36,7 +36,6 @@ class Landmarks(NFoldManifold):
         """Metric to equip the space with if equip is True."""
         return L2LandmarksMetric
 
-
 class L2LandmarksMetric(NFoldMetric):
     """L2 Riemannian metric on the space of landmarks.
 

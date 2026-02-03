@@ -11,7 +11,7 @@ def forward_difference(array, delta=None, axis=-1):
 
     Parameters
     ----------
-    array : array-like
+    array : array-like, shape=[..., n_points]
         Values of a function.
     delta : float
         Spacing between points.
@@ -46,7 +46,7 @@ def centered_difference(array, delta=None, axis=-1, endpoints=False):
 
     Parameters
     ----------
-    array : array-like
+    array : array-like, shape=[..., n_points]
         Values of a function.
     delta : float
         Spacing between points.
@@ -98,7 +98,7 @@ def second_centered_difference(array, delta=None, axis=-1):
 
     Parameters
     ----------
-    array : array-like
+    array : array-like, shape=[..., n_points]
         Values of a function.
     delta : float
         Spacing between points.

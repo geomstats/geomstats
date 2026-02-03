@@ -69,6 +69,17 @@ class LogNormalEuclidean:
     """LogNormal Distribution on Euclidean Space."""
 
     def __init__(self, space, mean, cov):
+        """Initialize LogNormalEuclidean.
+
+        Parameters
+        ----------
+        space : Euclidean
+            Euclidean space.
+        mean : array-like, shape=[dim]
+            Mean of the distribution.
+        cov : array-like, shape=[dim, dim]
+            Covariance of the distribution.
+        """
         self._check_metric(space)
 
         self.space = space
@@ -77,6 +88,17 @@ class LogNormalEuclidean:
 
     @staticmethod
     def _check_metric(space):
+        """Check the metric is valid.
+
+        Parameters
+        ----------
+        space : Euclidean
+            Manifold to check.
+
+        Returns
+        -------
+        None
+        """
         if not isinstance(space.metric, (CanonicalEuclideanMetric, MatricesMetric)):
             raise ValueError(
                 "Invalid Metric. Should be of type CanonicalEuclideanMetric"
@@ -84,7 +106,18 @@ class LogNormalEuclidean:
             )
 
     def sample(self, n_samples):
-        """Generate samples for Euclidean Manifold."""
+        """Generate samples for Euclidean Manifold.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples to generate.
+
+        Returns
+        -------
+        samples : array-like, shape=[n_samples, dim]
+            Samples from the LogNormal distribution on Euclidean space.
+        """
         _samples = gs.random.multivariate_normal(self.mean, self.cov, (n_samples,))
         return gs.exp(_samples)
 
@@ -112,14 +145,12 @@ class LogNormal:
     space : Manifold obj, {Euclidean(n), SPDMatrices(n)}
         Manifold to sample over. Manifold should
         be instance of Euclidean or SPDMatrices.
-    mean : array-like, \
-            shape=[dim] if space is Euclidean Space, \
-            shape=[n, n] if space is SPD Manifold
-        Mean of the distribution.
-    cov : array-like, \
-            shape=[dim, dim] if space is Euclidean Space, \
-            shape=[n*(n+1)/2, n*(n+1)/2] if space is SPD Manifold
-        Covariance of the distribution.
+    mean : array-like, shape=[dim] or shape=[n, n]
+        Mean of the distribution. Shape is [dim] if space is Euclidean Space,
+        [n, n] if space is SPD Manifold.
+    cov : array-like, shape=[dim, dim] or shape=[n*(n+1)/2, n*(n+1)/2]
+        Covariance of the distribution. Shape is [dim, dim] if space is Euclidean Space,
+        [n*(n+1)/2, n*(n+1)/2] if space is SPD Manifold.
 
     Example
     --------
@@ -141,7 +172,22 @@ class LogNormal:
     """
 
     def __new__(cls, space, mean, cov=None):
-        """Dispatch based on space."""
+        """Dispatch based on space.
+
+        Parameters
+        ----------
+        space : Manifold
+            Manifold to sample over. Should be instance of Euclidean or SPDMatrices.
+        mean : array-like, shape=[dim] or shape=[n, n]
+            Mean of the distribution.
+        cov : array-like, shape=[dim, dim] or shape=[n*(n+1)/2, n*(n+1)/2]
+            Covariance of the distribution.
+
+        Returns
+        -------
+        instance : LogNormalSPD or LogNormalEuclidean
+            Instance of LogNormal distribution.
+        """
         if not isinstance(space, SPDMatrices) and not isinstance(space, Euclidean):
             raise ValueError(
                 "Invalid Manifold object. Should be of type SPDMatrices or Euclidean"

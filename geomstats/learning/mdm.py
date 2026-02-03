@@ -65,11 +65,11 @@ class RiemannianMinimumDistanceToMean(
         ----------
         X : array-like, shape=[n_samples, *space.shape]
             Training input samples.
-        y : array-like, shape=[n_samples,]
+        y : array-like, shape=[n_samples]
             Training labels.
-        weights : array-like, shape=[n_samples,]
+        weights : array-like, shape=[n_samples]
             Weights associated to the samples.
-            Optional, default: None, in which case it is equally weighted.
+            If None, it is equally weighted.
 
         Returns
         -------
@@ -102,7 +102,7 @@ class RiemannianMinimumDistanceToMean(
 
         Returns
         -------
-        y : array-like, shape=[n_samples,]
+        y : array-like, shape=[n_samples]
             Predicted labels.
         """
         indices = self.space.metric.closest_neighbor_index(

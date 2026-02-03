@@ -29,7 +29,7 @@ class Hyperbolic:
         Dimension of the hyperbolic space.
     coords_type : str, {'extrinsic', 'ball', 'half-space'}
         Default coordinates to represent points in hyperbolic space.
-        Optional, default: 'extrinsic'.
+
     """
 
     def __new__(cls, dim, coords_type="extrinsic", equip=True):

@@ -25,9 +25,9 @@ class Manifold(abc.ABC):
         Dimension of the manifold.
     shape : tuple of int
         Shape of one element of the manifold.
-        Optional, default : None.
     intrinsic : bool
         Coordinate type.
+
     equip : bool
         If True, equip space with default metric.
 
@@ -68,6 +68,13 @@ class Manifold(abc.ABC):
         ----------
         Metric : RiemannianMetric object or instance or ScalarProductMetric instance
             If None, default metric will be used.
+        **metric_kwargs : dict
+            Keyword arguments to pass to the metric constructor.
+
+        Returns
+        -------
+        self : Manifold
+            Manifold equipped with the metric.
         """
         if Metric is None:
             out = self.default_metric()
@@ -97,6 +104,11 @@ class Manifold(abc.ABC):
         ----------
         group_action : str
             Group action.
+
+        Returns
+        -------
+        self : Manifold
+            Manifold equipped with the group action.
         """
         self.group_action = group_action
 
@@ -146,7 +158,6 @@ class Manifold(abc.ABC):
             Point to evaluate.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -166,7 +177,6 @@ class Manifold(abc.ABC):
             Point on the manifold.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -201,10 +211,9 @@ class Manifold(abc.ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
 
         Returns
         -------
@@ -238,7 +247,7 @@ class Manifold(abc.ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         base_point :  array-like, shape={[n_samples, *point_shape], [*point_shape,]}
             Point.
 
@@ -279,7 +288,6 @@ class Manifold(abc.ABC):
             return gs.copy(point)
 
         raise NotImplementedError("`projection` is not implemented yet")
-
 
 class _QuotientStructureRegistry:
     """Registry for quotient structures."""
@@ -426,7 +434,6 @@ class _QuotientStructureRegistry:
                 raise ValueError(f"No mapping for key: {key}")
 
         return out
-
 
 def register_quotient(Space, Metric, GroupAction, FiberBundle, QuotientMetric=None):
     """Register quotient structure.

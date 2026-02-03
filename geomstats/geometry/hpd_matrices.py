@@ -2,7 +2,6 @@
 
 Lead author: Yann Cabanes.
 
-
 References
 ----------
 .. [Cabanes2022] Yann Cabanes. Multidimensional complex stationary
@@ -46,7 +45,13 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : HPDAffineMetric
+            Default metric.
+        """
         return HPDAffineMetric
 
     @staticmethod
@@ -59,7 +64,6 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
             Point to be checked.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -80,7 +84,6 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
             Matrix to project.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -100,10 +103,9 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample in the tangent space.
-            Optional, default: 1.
 
         Returns
         -------
@@ -126,7 +128,7 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
 
@@ -151,7 +153,6 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
         )
 
         return Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
-
 
 class HPDAffineMetric(ComplexRiemannianMetric):
     """Class for the affine-invariant metric on the HPD manifold."""
@@ -265,10 +266,8 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         direction : array-like, shape=[..., n, n]
             Tangent vector at base point, initial speed of the geodesic along
             which the parallel transport is computed. Unused if `end_point` is given.
-            Optional, default: None.
         end_point : array-like, shape=[..., n, n]
             Point on the manifold of HPD matrices. Point to transport to.
-            Optional, default: None.
 
         Returns
         -------
@@ -300,7 +299,6 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         """
         radius = gs.array(math.inf)
         return repeat_out(self._space.point_ndim, radius, base_point)
-
 
 class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
     """Class for the Bures-Wasserstein metric on the HPD manifold."""
@@ -453,14 +451,12 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
             transport along.
         end_point : array-like, shape=[..., n, n]
             Point to transport to.
-            Optional, default: None.
         n_steps : int
             Number of steps to use to approximate the solution of the
             ordinary differential equation.
-            Optional, default: 100
+
         step : str, {'euler', 'rk2', 'rk4'}
             Scheme to use in the integration scheme.
-            Optional, default: 'rk4'.
 
         Returns
         -------
@@ -528,7 +524,6 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         eigen_values = gs.linalg.eigvalsh(base_point)
         return eigen_values[..., 0] ** 0.5
 
-
 class HPDEuclideanMetric(ComplexMatricesMetric):
     """Class for the Euclidean metric on the HPD manifold."""
 
@@ -578,7 +573,6 @@ class HPDEuclideanMetric(ComplexMatricesMetric):
         """
         eigen_values = gs.linalg.eigvalsh(base_point)
         return eigen_values[..., 0]
-
 
 class HPDLogEuclideanMetric(PullbackDiffeoMetric):
     """Class for the Log-Euclidean metric on the HPD manifold."""

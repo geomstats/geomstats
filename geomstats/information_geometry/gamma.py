@@ -109,7 +109,13 @@ class GammaDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : GammaMetric
+            Metric to equip the space with.
+        """
         return GammaMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -124,7 +130,6 @@ class GammaDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point to be checked.
         atol : float
             Tolerance to evaluate positivity.
-            Optional, default: gs.atol
 
         Returns
         -------
@@ -145,10 +150,10 @@ class GammaDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
-        bound : float
-            Side of the square where the Gamma parameters are sampled.
-            Optional, default: 5.
+        upper_bound : float
+            Upper bound of the square where the Gamma parameters are sampled.
+        lower_bound : float
+            Lower bound of the square where the Gamma parameters are sampled.
 
         Returns
         -------
@@ -195,7 +200,6 @@ class GammaDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point representing a Gamma distribution.
         n_samples : int
             Number of points to sample for each set of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------

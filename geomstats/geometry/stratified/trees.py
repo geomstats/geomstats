@@ -7,7 +7,6 @@ Splits are corresponding uniquely to edges in a phylogenetic forest, where, if o
 the edge in the forest, the resulting two-set partition of the labels of the respective
 component of the forest is the corresponding split.
 
-
 Lead author: Jonas Lueg
 """
 
@@ -25,10 +24,15 @@ def _pop_random_elem(ls):
     Parameters
     ----------
     ls : list
+        List to pop from.
+
+    Returns
+    -------
+    elem : any
+        Random element from the list.
     """
     random_index = random.randint(0, len(ls) - 1)
     return ls.pop(random_index)
-
 
 def generate_splits(labels):
     """Generate random maximal set of compatible splits of set ``labels``.
@@ -82,7 +86,6 @@ def generate_splits(labels):
         splits = updated_splits
     return splits
 
-
 def check_if_separated(labels, splits):
     """Check for each pair of labels if exists split that separates them.
 
@@ -104,7 +107,6 @@ def check_if_separated(labels, splits):
             for u, v in itertools.combinations(labels, 2)
         ]
     )
-
 
 def delete_splits(splits, labels, p_keep, check=True):
     """Delete splits randomly from a set of splits.
@@ -143,7 +145,6 @@ def delete_splits(splits, labels, p_keep, check=True):
             elif check_if_separated(splits=splits_cp, labels=labels):
                 splits = splits_cp
     return splits
-
 
 @functools.total_ordering
 class Split:
@@ -207,7 +208,7 @@ class Split:
         Returns
         -------
         is_equal : bool
-            Return ``True`` if the splits are equal, else ``False``.
+            True if the splits are equal, else False.
         """
         return hash(self) == hash(other)
 
@@ -250,7 +251,7 @@ class Split:
         Returns
         -------
         string_of_split : str
-            Return the string representation of the split.
+            The string representation of the split.
         """
         return str((self.part1, self.part2))
 
@@ -264,7 +265,7 @@ class Split:
         Returns
         -------
         string_of_split : str
-            Return the fancy readable string representation of the split.
+            The fancy readable string representation of the split.
         """
         return f"{self.part1}|{self.part2}"
 
@@ -282,7 +283,7 @@ class Split:
         Returns
         -------
         is_compatible_with : bool
-            Return ``True`` if the splits are compatible, else ``False``.
+            True if the splits are compatible, else False.
         """
         p1, p2 = self.part1, self.part2
         o1, o2 = other.part1, other.part2
@@ -298,8 +299,8 @@ class Split:
 
         Returns
         -------
-        part_that_does_not_point : iterable
-            Return the part of the split ``self`` that does not point toward
+        part_that_does_not_point : set
+            The part of the split ``self`` that does not point toward
             ``other``. See ``self.get_part_towards`` for further explanation.
         """
         if other.part_contains(self.part1):
@@ -324,8 +325,8 @@ class Split:
 
         Returns
         -------
-        part_towards : iterable
-            Return the part of the split ``self`` that points toward ``other_split``.
+        part_towards : set
+            The part of the split ``self`` that points toward ``other_split``.
         """
         if other.part_contains(self.part1):
             return self.part2
@@ -387,7 +388,6 @@ class Split:
         b1 = u.issubset(self.part1) and v.issubset(self.part2)
         b2 = v.issubset(self.part1) and u.issubset(self.part2)
         return b1 or b2
-
 
 class ForestTopology:
     r"""The topology of a forest, using a split-based graph-structure representation.
@@ -634,7 +634,7 @@ class ForestTopology:
         Returns
         -------
         string_of_topology : str
-            Return the string representation of the topology.
+            The string representation of the topology.
         """
         return str((self.n_labels, self.partition, self.split_sets))
 
@@ -648,7 +648,7 @@ class ForestTopology:
         Returns
         -------
         string_of_topology : str
-            Return the fancy readable string representation of the topology.
+            The fancy readable string representation of the topology.
         """
         comps = [", ".join(str(sp) for sp in splits) for splits in self.split_sets]
         return "(" + "; ".join(comps) + ")"
@@ -658,13 +658,13 @@ class ForestTopology:
 
         Parameters
         ----------
-        weights : array-like, [n_splits]
+        weights : array-like, shape=[n_splits]
             Edge weights.
 
         Returns
         -------
-        corr : array-like, shape=[n, n]
-            Returns the corresponding correlation matrix.
+        corr : array-like, shape=[n_labels, n_labels]
+            The corresponding correlation matrix.
         """
         corr = gs.zeros((self.n_labels, self.n_labels))
         for path_dict in self.paths:
@@ -682,12 +682,12 @@ class ForestTopology:
 
         Parameters
         ----------
-        weights : array-like, [n_splits]
+        weights : array-like, shape=[n_splits]
             The vector weights at which the gradient is computed.
 
         Returns
         -------
-        gradient : array-like, shape=[n_splits, n, n]
+        gradient : array-like, shape=[n_splits, n_labels, n_labels]
             The gradient of the correlation matrix, differentiated by weights.
         """
         x_list = [
@@ -713,7 +713,7 @@ class ForestTopology:
 
         Returns
         -------
-        ls_nested : list[list]
+        ls_nested : list
             The nested list of lists.
         """
         return [ls[i:j] for i, j in zip(self.sep[:-1], self.sep[1:])]
@@ -724,12 +724,12 @@ class ForestTopology:
 
         Parameters
         ----------
-        ls : nested list
+        ls : list
             The nested list to flatten.
 
         Returns
         -------
-        ls_flat : list, tuple
-            The flatted list.
+        ls_flat : list
+            The flattened list.
         """
         return [y for z in ls for y in z]

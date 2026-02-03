@@ -34,7 +34,13 @@ class PoissonDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : PoissonMetric
+            Metric to equip the space with.
+        """
         return PoissonMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -46,7 +52,6 @@ class PoissonDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point to be checked.
         atol : float
             Tolerance to evaluate positivity.
-            Optional, default: gs.atol
 
         Returns
         -------
@@ -69,10 +74,8 @@ class PoissonDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         bound : float
             Right-end ot the segment where Poisson parameters are sampled.
-            Optional, default: 1.
 
         Returns
         -------
@@ -114,7 +117,6 @@ class PoissonDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point representing an Poisson distribution.
         n_samples : int
             Number of points to sample with each parameter in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -213,6 +215,10 @@ class PoissonMetric(RiemannianMetric):
         ----------
         t : array-like, shape=[n_times,]
             Times at which to compute points of the geodesics.
+        constant_a : array-like
+            Constant parameter a.
+        constant_b : array-like
+            Constant parameter b.
 
         Returns
         -------

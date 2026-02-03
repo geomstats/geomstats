@@ -30,7 +30,6 @@ def expmh(mat):
     expm = apply_func_to_eigvalsh(dim_3_mat, gs.exp)
     return gs.reshape(expm, mat.shape)
 
-
 def powermh(mat, power):
     """Compute the matrix power for a Hermitian matrix.
 
@@ -56,7 +55,6 @@ def powermh(mat, power):
 
     return apply_func_to_eigvalsh(mat, power_, check_positive=False)
 
-
 def apply_func_to_eigvalsh(mat, function, check_positive=False):
     """Apply function to eigenvalues and reconstruct the matrix.
 
@@ -69,7 +67,6 @@ def apply_func_to_eigvalsh(mat, function, check_positive=False):
         a list of results will be returned.
     check_positive : bool
         Whether to check positivity of the eigenvalues.
-        Optional. Default: False.
 
     Returns
     -------
@@ -102,7 +99,6 @@ def apply_func_to_eigvalsh(mat, function, check_positive=False):
         reconstruction.append(Matrices.mul(eigvecs, eigvals_f, transp_eigvecs))
     return reconstruction if return_list else reconstruction[0]
 
-
 class HermitianMatrices(ComplexMatrixVectorSpace):
     """Class for the vector space of Hermitian matrices of size n.
 
@@ -118,7 +114,13 @@ class HermitianMatrices(ComplexMatrixVectorSpace):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : ComplexMatricesMetric
+            Default metric.
+        """
         return ComplexMatricesMetric
 
     def _create_basis(self):
@@ -200,10 +202,10 @@ class HermitianMatrices(ComplexMatrixVectorSpace):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Side of hypercube support of the uniform distribution.
-            Optional, default: 1.0
+            0
 
         Returns
         -------

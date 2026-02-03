@@ -21,7 +21,7 @@ class ComplexManifold(abc.ABC):
         Dimension of the manifold.
     shape : tuple of int
         Shape of one element of the manifold.
-        Optional, default : None.
+
     intrinsic : bool
         Coordinates type.
     equip : bool
@@ -83,7 +83,6 @@ class ComplexManifold(abc.ABC):
             Point to evaluate.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -103,7 +102,6 @@ class ComplexManifold(abc.ABC):
             Point on the manifold.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -138,10 +136,9 @@ class ComplexManifold(abc.ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
 
         Returns
         -------
@@ -171,7 +168,7 @@ class ComplexManifold(abc.ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         base_point :  array-like, shape=[..., *point_shape]
             Point.
 

@@ -25,9 +25,9 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
     ----------
     space : Manifold
         Equipped manifold.
-    n_neighbors : int, optional (default = 5)
+    n_neighbors : int
         Number of neighbors to use by default.
-    weights : string or callable, optional (default = 'uniform')
+    weights : string or callable
         Weight function used in prediction. Possible values:
 
         - 'uniform' : uniform weights.  All points in each neighborhood
@@ -38,7 +38,7 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
         - [callable] : a user-defined function which accepts an
           array of distances, and returns an array of the same shape
           containing the weights.
-    n_jobs : int or None, optional (default = None)
+    n_jobs : int or None
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1; ``-1`` means using all processors.
 

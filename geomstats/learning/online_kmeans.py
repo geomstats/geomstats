@@ -32,13 +32,15 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
     n_clusters : int
         Number of clusters of the k-means clustering, or number of desired
         atoms of the quantized distribution.
-    n_repetitions : int, default=20
+    n_repetitions : int
         The cluster centers are updated using decreasing step sizes, each
         of which stays constant for n_repetitions iterations to allow a better
         exploration of the data points.
-    max_iter : int, default=5e4
+    max_iter : int
         Maximum number of iterations. If it is reached, the
         quantization may be inacurate.
+    atol : float
+        Absolute tolerance for convergence.
 
     Attributes
     ----------
@@ -115,6 +117,11 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
         -------
         self : object
             Returns self.
+
+        Returns
+        -------
+        self : object
+            Returns self.
         """
         n_samples = X.shape[0]
 
@@ -173,7 +180,7 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
 
         Returns
         -------
-        labels : int
+        labels : array-like, shape=[n_samples]
             Index of the cluster each sample belongs to.
         """
         if self.cluster_centers_ is None:

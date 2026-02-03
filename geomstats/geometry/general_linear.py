@@ -21,7 +21,7 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
     positive_det : bool
         Whether to restrict to the identity connected component of the
         general linear group, i.e. matrices with positive determinant.
-        Optional, default: False.
+
     """
 
     def __init__(self, n, positive_det=False, equip=True):
@@ -38,7 +38,13 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MatricesMetric
+            Default metric.
+        """
         return MatricesMetric
 
     def projection(self, point):
@@ -97,12 +103,11 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound: float
             This parameter is ignored
         n_iter : int
             Maximum number of trials to sample a matrix with positive det.
-            Optional, default: 100.
 
         Returns
         -------
@@ -134,9 +139,8 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
         ----------
         point : array-like, shape=[..., n, n]
             Target point.
-        base_point : array-like, shape=[..., n, n], optional
+        base_point : array-like, shape=[..., n, n]
             Base point.
-            Optional, defaults to identity if None.
 
         Returns
         -------
@@ -186,7 +190,6 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
 
         return path
 
-
 class SquareMatrices(MatrixLieAlgebra):
     """Lie algebra of the general linear group.
 
@@ -205,7 +208,13 @@ class SquareMatrices(MatrixLieAlgebra):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MatricesMetric
+            Default metric.
+        """
         return MatricesMetric
 
     def _create_basis(self):

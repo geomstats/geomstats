@@ -40,7 +40,7 @@ def uniform_radial_kernel(distance, bandwidth=1.0):
     ----------
     distance : array-like
         Array of non-negative real values.
-    bandwidth : float, optional (default=1.0)
+    bandwidth : float
         Positive scale parameter of the kernel.
 
     Returns
@@ -71,7 +71,7 @@ def triangular_radial_kernel(distance, bandwidth=1.0):
     ----------
     distance : array-like
         Array of non-negative real values.
-    bandwidth : float, optional (default=1.0)
+    bandwidth : float
         Positive scale parameter of the kernel.
 
     Returns
@@ -100,7 +100,7 @@ def parabolic_radial_kernel(distance, bandwidth=1.0):
     ----------
     distance : array-like
         Array of non-negative real values.
-    bandwidth : float, optional (default=1.0)
+    bandwidth : float
         Positive scale parameter of the kernel.
 
     Returns
@@ -131,7 +131,7 @@ def biweight_radial_kernel(distance, bandwidth=1.0):
     ----------
     distance : array-like
         Array of non-negative real values.
-    bandwidth : float, optional (default=1.0)
+    bandwidth : float
         Positive scale parameter of the kernel.
 
     Returns
@@ -162,7 +162,7 @@ def triweight_radial_kernel(distance, bandwidth=1.0):
     ----------
     distance : array-like
         Array of non-negative real values.
-    bandwidth : float, optional (default=1.0)
+    bandwidth : float
         Positive scale parameter of the kernel.
 
     Returns
@@ -193,7 +193,7 @@ def tricube_radial_kernel(distance, bandwidth=1.0):
     ----------
     distance : array-like
         Array of non-negative real values.
-    bandwidth : float, optional (default=1.0)
+    bandwidth : float
         Positive scale parameter of the kernel.
 
     Returns
@@ -224,7 +224,7 @@ def gaussian_radial_kernel(distance, bandwidth=1.0):
     ----------
     distance : array-like
         Array of non-negative real values.
-    bandwidth : float, optional (default=1.0)
+    bandwidth : float
         Positive scale parameter of the kernel.
 
     Returns
@@ -252,7 +252,7 @@ def cosine_radial_kernel(distance, bandwidth=1.0):
     ----------
     distance : array-like
         Array of non-negative real values.
-    bandwidth : float, optional (default=1.0)
+    bandwidth : float
         Positive scale parameter of the kernel.
 
     Returns
@@ -283,7 +283,7 @@ def logistic_radial_kernel(distance, bandwidth=1.0):
     ----------
     distance : array-like
         Array of non-negative real values.
-    bandwidth : float, optional (default=1.0)
+    bandwidth : float
         Positive scale parameter of the kernel.
 
     Returns
@@ -310,7 +310,7 @@ def sigmoid_radial_kernel(distance, bandwidth=1.0):
     ----------
     distance : array-like
         Array of non-negative real values.
-    bandwidth : float, optional (default=1.0)
+    bandwidth : float
         Positive scale parameter of the kernel.
 
     Returns
@@ -333,7 +333,7 @@ def bump_radial_kernel(distance, bandwidth=1.0):
     ----------
     distance : array-like
         Array of non-negative real values.
-    bandwidth : float, optional (default=1.0)
+    bandwidth : float
         Positive scale parameter of the kernel.
 
     Returns
@@ -364,7 +364,7 @@ def inverse_quadratic_radial_kernel(distance, bandwidth=1.0):
     ----------
     distance : array-like
         Array of non-negative real values.
-    bandwidth : float, optional (default=1.0)
+    bandwidth : float
         Positive scale parameter of the kernel.
 
     Returns
@@ -391,7 +391,7 @@ def inverse_multiquadric_radial_kernel(distance, bandwidth=1.0):
     ----------
     distance : array-like
         Array of non-negative real values.
-    bandwidth : float, optional (default=1.0)
+    bandwidth : float
         Positive scale parameter of the kernel.
 
     Returns
@@ -418,7 +418,7 @@ def laplacian_radial_kernel(distance, bandwidth=1.0):
     ----------
     distance : array-like
         Array of non-negative real values.
-    bandwidth : float, optional (default=1.0)
+    bandwidth : float
         Positive scale parameter of the kernel.
 
     Returns

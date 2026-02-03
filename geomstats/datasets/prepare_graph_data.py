@@ -66,7 +66,7 @@ class Graph:
 
         Returns
         -------
-        self : array-like, shape=[n_walks_per_node*self.n_edges, walk_length]
+        paths : array-like, shape=[n_walks_per_node*self.n_nodes, walk_length+1]
             Array containing random walks.
         """
         paths = [
@@ -79,7 +79,20 @@ class Graph:
         return gs.stack(paths)
 
     def _walk(self, index, walk_length):
-        """Generate a single random walk."""
+        """Generate a single random walk.
+
+        Parameters
+        ----------
+        index : int
+            Starting node index.
+        walk_length : int
+            Length of the walk in terms of number of edges.
+
+        Returns
+        -------
+        path : array-like, shape=[walk_length+1]
+            Random walk path as array of node indices.
+        """
         count_index = index
         path = [index]
         for _ in range(walk_length):
@@ -95,11 +108,11 @@ class HyperbolicEmbedding:
 
     Parameters
     ----------
-    dim : object
+    dim : int
         Dimensions of the used hyperbolic space.
     max_epochs : int
         Maximum number of iterations for embedding.
-    lr : int
+    lr : float
         Learning rate for embedding.
     n_context : int
         Number of nodes to consider from a neighborhood
@@ -124,11 +137,13 @@ class HyperbolicEmbedding:
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dim]
+        vector : array-like, shape=[..., dim]
+            Input vector.
 
         Returns
         -------
-        result : array-like, shape=[n_samples, dim]
+        result : array-like, shape=[..., dim]
+            Log sigmoid of the input vector.
         """
         return gs.log((1 / (1 + gs.exp(-vector))))
 
@@ -138,11 +153,13 @@ class HyperbolicEmbedding:
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dim]
+        vector : array-like, shape=[..., dim]
+            Input vector.
 
         Returns
         -------
-        gradient : array-like, shape=[n_samples, dim]
+        gradient : array-like, shape=[..., dim]
+            Gradient of log sigmoid function.
         """
         return 1 / (1 + gs.exp(vector))
 
@@ -154,15 +171,15 @@ class HyperbolicEmbedding:
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dim]
+        point_a : array-like, shape=[..., dim]
             First point in hyperbolic space.
-        point_b : array-like, shape=[n_samples, dim]
+        point_b : array-like, shape=[..., dim]
             Second point in hyperbolic space.
 
         Returns
         -------
-        dist : array-like, shape=[n_samples, 1]
-            Geodesic squared distance between the two points.
+        dist : array-like, shape=[..., dim]
+            Gradient of squared hyperbolic distance.
         """
         hyperbolic_metric = self.manifold.metric
         log_map = hyperbolic_metric.log(point_b, point_a)
@@ -177,18 +194,18 @@ class HyperbolicEmbedding:
 
         Parameters
         ----------
-        example_embedding : array-like, shape=[dim]
+        example_embedding : array-like, shape=[..., dim]
             Current data sample embedding.
-        context_embedding : array-like, shape=[dim]
+        context_embedding : array-like, shape=[..., dim]
             Current context embedding.
-        negative_embedding: array-like, shape=[dim]
+        negative_embedding : array-like, shape=[n_edges, dim]
             Current negative sample embedding.
 
         Returns
         -------
-        total_loss : int
+        total_loss : array-like
             The current value of the loss function.
-        example_grad : array-like, shape=[dim]
+        example_grad : array-like, shape=[..., dim]
             The gradient of the loss function at the embedding
             of the current data sample.
         """
@@ -239,12 +256,12 @@ class HyperbolicEmbedding:
 
         Parameters
         ----------
-        graph : object
+        graph : Graph
             An instance of the Graph class.
 
         Returns
         -------
-        embeddings : array-like, shape=[n_samples, dim]
+        embeddings : array-like, shape=[n_nodes, dim]
             Return the embedding of the data. Each data sample
             is represented as a point belonging to the manifold.
         """

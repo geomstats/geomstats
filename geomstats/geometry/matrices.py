@@ -32,14 +32,12 @@ def matrix_matrix_transpose(point):
     """
     return Matrices.mul(point, Matrices.transpose(point))
 
-
 def tangent_matrix_matrix_transpose(tangent_vec, base_point):
     r"""Tangent matrix multiplication with transpose.
 
     .. math::
 
         d_A f (X) = X A^\top + A X^\top
-
 
     Parameters
     ----------
@@ -56,7 +54,6 @@ def tangent_matrix_matrix_transpose(tangent_vec, base_point):
     return Matrices.mul(tangent_vec, Matrices.transpose(base_point)) + Matrices.mul(
         base_point, Matrices.transpose(tangent_vec)
     )
-
 
 class FlattenDiffeo(VectorSpaceDiffeo):
     """A diffeo from matrices to Euclidean by flattening.
@@ -107,7 +104,6 @@ class FlattenDiffeo(VectorSpaceDiffeo):
             return None
         return gs.reshape(image_point, image_point.shape[:-1] + (self.m, self.n))
 
-
 class BasisRepresentationDiffeo(VectorSpaceDiffeo):
     """A diffeo from matrices to Euclidean through basis representation.
 
@@ -156,7 +152,6 @@ class BasisRepresentationDiffeo(VectorSpaceDiffeo):
             return None
         return self._space.matrix_representation(image_point)
 
-
 class Matrices(MatrixVectorSpace):
     """Class for the space of matrices (m, n).
 
@@ -175,13 +170,25 @@ class Matrices(MatrixVectorSpace):
         self.n = n
 
     def _create_basis(self):
-        """Create the canonical basis."""
+        """Create the canonical basis.
+
+        Returns
+        -------
+        basis : array-like, shape=[m*n, m, n]
+            Canonical basis of the matrix space.
+        """
         m, n = self.m, self.n
         return gs.reshape(gs.eye(n * m), (n * m, m, n))
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        default_metric : type
+            Metric class.
+        """
         return MatricesMetric
 
     def basis_representation(self, matrix_representation):
@@ -213,7 +220,6 @@ class Matrices(MatrixVectorSpace):
             Matrix.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -327,7 +333,6 @@ class Matrices(MatrixVectorSpace):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -348,7 +353,6 @@ class Matrices(MatrixVectorSpace):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default : backend atol.
 
         Returns
         -------
@@ -367,7 +371,6 @@ class Matrices(MatrixVectorSpace):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default : backend atol.
 
         Returns
         -------
@@ -386,7 +389,6 @@ class Matrices(MatrixVectorSpace):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default : backend atol.
 
         Returns
         -------
@@ -405,7 +407,6 @@ class Matrices(MatrixVectorSpace):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default : backend atol.
 
         Returns
         -------
@@ -424,7 +425,6 @@ class Matrices(MatrixVectorSpace):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -467,7 +467,6 @@ class Matrices(MatrixVectorSpace):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -486,7 +485,6 @@ class Matrices(MatrixVectorSpace):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -653,10 +651,9 @@ class Matrices(MatrixVectorSpace):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample each entry.
-            Optional, default: 1.
 
         Returns
         -------
@@ -832,7 +829,6 @@ class Matrices(MatrixVectorSpace):
             flipped = cls.transpose(right)
         return Matrices.mul(point, left, cls.transpose(flipped))
 
-
 class MatricesMetric(EuclideanMetric):
     """Euclidean metric on matrices given by Frobenius inner-product."""
 
@@ -847,7 +843,6 @@ class MatricesMetric(EuclideanMetric):
             Tangent vector.
         base_point : array-like, shape=[..., m, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -871,7 +866,6 @@ class MatricesMetric(EuclideanMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -894,7 +888,6 @@ class MatricesMetric(EuclideanMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -903,7 +896,6 @@ class MatricesMetric(EuclideanMetric):
         """
         norm = gs.linalg.norm(vector, axis=(-2, -1))
         return repeat_out(self._space.point_ndim, norm, vector, base_point)
-
 
 class MatricesDiagMetric(EuclideanMetric):
     """Flat metric on matrices given by a diagonal metric matrix.
@@ -949,7 +941,6 @@ class MatricesDiagMetric(EuclideanMetric):
             Tangent vector.
         base_point : array-like, shape=[..., m, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------

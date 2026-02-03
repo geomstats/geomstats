@@ -29,9 +29,7 @@ PI6 = PI * PI5
 PI7 = PI * PI6
 PI8 = PI * PI7
 
-
 ATOL = 1e-5
-
 
 def homogeneous_representation(rotation, translation, constant=1.0):
     r"""Embed rotation, translation couples into n+1 square matrices.
@@ -52,7 +50,6 @@ def homogeneous_representation(rotation, translation, constant=1.0):
         Vector.
     constant : float or array-like of shape [...]
         Constant to use at the last line and column of the square matrix.
-        Optional, default: 1.
 
     Returns
     -------
@@ -93,7 +90,6 @@ def homogeneous_representation(rotation, translation, constant=1.0):
 
     return gs.concatenate([mat, last_row[..., None, :]], axis=-2)
 
-
 class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
     """Class for special Euclidean group.
 
@@ -126,10 +122,23 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : SpecialEuclideanMatricesCanonicalLeftMetric
+            Default metric.
+        """
         return SpecialEuclideanMatricesCanonicalLeftMetric
 
     def _define_embedding_space(self):
+        """Define the embedding space.
+
+        Returns
+        -------
+        embedding_space : GeneralLinear
+            Embedding space.
+        """
         return GeneralLinear(self.n + 1, positive_det=True)
 
     def submersion(self, point):
@@ -190,11 +199,10 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound: float
             Bound of the interval in which to sample each entry of the
             translation part.
-            Optional, default: 1.
 
         Returns
         -------
@@ -252,7 +260,6 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         translation = mat[..., :n, -1]
         return homogeneous_representation(projected_rot, translation)
 
-
 class _SpecialEuclideanVectors(LieGroup):
     """Base Class for the special Euclidean groups in 2d and 3d in vector form.
 
@@ -267,7 +274,7 @@ class _SpecialEuclideanVectors(LieGroup):
     epsilon : float
         Precision to use for calculations involving potential
         division by 0 in rotations.
-        Optional, default: 0.
+
     """
 
     def __init__(self, n, epsilon=0.0, equip=True):
@@ -533,10 +540,9 @@ class _SpecialEuclideanVectors(LieGroup):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Upper bound for the translation part of the sample.
-            Optional, default: 1.
 
         Returns
         -------
@@ -550,7 +556,6 @@ class _SpecialEuclideanVectors(LieGroup):
     def lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the lie bracket of two tangent vectors."""
         raise NotImplementedError("The lie bracket is not implemented.")
-
 
 class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
     """Class for the special Euclidean group in 2d, SE(2).
@@ -566,7 +571,7 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
     epsilon : float
         Precision to use for calculations involving potential
         division by 0 in rotations.
-        Optional, default: 0.
+
     """
 
     def __init__(self, epsilon=0.0, equip=True):
@@ -613,7 +618,6 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
             Point.
         left: bool
             Whether to compute the jacobian of the left or right translation.
-            Optional, default: True.
 
         Returns
         -------
@@ -653,7 +657,6 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
 
         return transform
 
-
 class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
     """Class for the special Euclidean group in 3d, SE(3).
 
@@ -668,7 +671,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
     epsilon : float
         Precision to use for calculations involving potential
         division by 0 in rotations.
-        Optional, default: 0.
+
     """
 
     def __init__(self, epsilon=0.0, equip=True):
@@ -727,7 +730,6 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
             Point.
         left: bool
             Whether to compute the jacobian of the left or right translation.
-            Optional, default: True.
 
         Returns
         -------
@@ -915,7 +917,6 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
 
         return transform
 
-
 class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
     """Class for the canonical left-invariant metric on SE(n).
 
@@ -957,7 +958,6 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
             Second tangent vector at `base_point`.
         base_point : array-like, shape=[..., n, n]
             Point in the group.
-            Optional, defaults to identity if None.
 
         Returns
         -------
@@ -1054,12 +1054,11 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
         ----------
         initial_point : array-like, shape=[..., dim]
             Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., dim], optional
+        end_point : array-like, shape=[..., dim]
             Point on the manifold, end point of the geodesic. If None,
             an initial tangent vector must be given.
         initial_tangent_vec : array-like, shape=[..., dim],
             Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
 
         Returns
@@ -1106,11 +1105,9 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
         direction : array-like, shape=[..., n + 1, n + 1]
             Tangent vector at base point, along which the parallel transport
             is computed.
-            Optional, default: None
         end_point : array-like, shape=[..., n + 1, n + 1]
             Point on the Grassmann manifold to transport to. Unused if
             `tangent_vec_b` is given.
-            Optional, default: None
 
         Returns
         -------
@@ -1208,7 +1205,6 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
         rotation_radius = gs.pi * (self._space.dim - n) ** 0.5
         return gs.where(gs.sum(rotation, axis=(-2, -1)) == 0, math.inf, rotation_radius)
 
-
 class SpecialEuclidean:
     r"""Class for the special Euclidean groups.
 
@@ -1218,11 +1214,11 @@ class SpecialEuclidean:
         Integer representing the shapes of the matrices : n x n.
     point_type : str, {\'vector\', \'matrix\'}
         Representation of the elements of the group.
-        Optional, default: 'matrix',
+
     epsilon : float
         Precision used for calculations involving potential divison by 0 in
         rotations.
-        Optional, default: 0.
+
     """
 
     def __new__(cls, n, point_type="matrix", epsilon=0.0, equip=True):
@@ -1239,7 +1235,6 @@ class SpecialEuclidean:
                 "SE(n) is only implemented in matrix representation when n > 3."
             )
         return _SpecialEuclideanMatrices(n, equip=equip)
-
 
 class SpecialEuclideanMatricesLieAlgebra(MatrixLieAlgebra):
     r"""Lie Algebra of the special Euclidean group.
@@ -1269,7 +1264,13 @@ class SpecialEuclideanMatricesLieAlgebra(MatrixLieAlgebra):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MatricesMetric
+            Default metric.
+        """
         return MatricesMetric
 
     def _create_basis(self):
@@ -1295,7 +1296,6 @@ class SpecialEuclideanMatricesLieAlgebra(MatrixLieAlgebra):
             Square matrix to check.
         atol : float
             Tolerance for the equality evaluation.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -1323,10 +1323,10 @@ class SpecialEuclideanMatricesLieAlgebra(MatrixLieAlgebra):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Side of hypercube support of the uniform distribution.
-            Optional, default: 1.0
+            0
 
         Returns
         -------

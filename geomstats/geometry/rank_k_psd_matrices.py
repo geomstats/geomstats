@@ -44,7 +44,13 @@ class RankKPSDMatrices(Manifold):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : PSDEuclideanMetric
+            Default metric.
+        """
         return PSDEuclideanMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -56,7 +62,6 @@ class RankKPSDMatrices(Manifold):
             Matrix to be checked.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -122,10 +127,8 @@ class RankKPSDMatrices(Manifold):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         bound : float
             Bound of the interval in which to sample in the tangent space.
-            Optional, default: 1.
 
         Returns
         -------
@@ -147,10 +150,8 @@ class RankKPSDMatrices(Manifold):
             Matrix to check if it belongs to the tangent space.
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
-            Optional, default: None.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -176,7 +177,6 @@ class RankKPSDMatrices(Manifold):
             Matrix to check if it belongs to the tangent space.
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
-            Optional, default: None.
 
         Returns
         -------
@@ -190,9 +190,7 @@ class RankKPSDMatrices(Manifold):
         rr = gs.matmul(r_ort, r_ort_t)
         return vector_sym - Matrices.mul(rr, vector_sym, rr)
 
-
 PSDEuclideanMetric = SPDEuclideanMetric
-
 
 class PSDMatrices:
     r"""Class for the psd matrices.
@@ -222,7 +220,6 @@ class PSDMatrices:
         if n == k:
             return SPDMatrices(n, equip=equip)
         raise NotImplementedError("The PSD matrices is not implemented yet.")
-
 
 class BuresWassersteinBundle(FiberBundle):
     """Class for the quotient structure on PSD matrices."""
@@ -282,7 +279,6 @@ class BuresWassersteinBundle(FiberBundle):
             Point on the pre-shape space.
         return_skew : bool
             Whether to return the skew-symmetric matrix A.
-            Optional, default: False
 
         Returns
         -------
@@ -320,7 +316,6 @@ class BuresWassersteinBundle(FiberBundle):
         """
         return Matrices.align_matrices(point, base_point)
 
-
 class PSDBuresWassersteinMetric(QuotientMetric):
     """Bures-Wasserstein metric for fixed rank PSD matrices."""
 
@@ -339,7 +334,6 @@ class PSDBuresWassersteinMetric(QuotientMetric):
             total_space.equip_with_quotient()
 
         super().__init__(space=space, total_space=total_space)
-
 
 register_quotient(
     Space=FullRankMatrices,

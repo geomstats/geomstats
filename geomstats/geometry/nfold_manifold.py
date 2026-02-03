@@ -46,7 +46,13 @@ class NFoldManifold(Manifold):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : NFoldMetric
+            Default metric.
+        """
         return NFoldMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -86,7 +92,6 @@ class NFoldManifold(Manifold):
             Point on the manifold.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -138,11 +143,10 @@ class NFoldManifold(Manifold):
 
         Parameters
         ----------
-        n_samples : int, optional
+        n_samples : int
             Number of samples.
         bound : float
             Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
 
         Returns
         -------
@@ -178,7 +182,6 @@ class NFoldManifold(Manifold):
         raise NotImplementedError(
             "The base manifold does not implement a projection method."
         )
-
 
 class NFoldMetric(RiemannianMetric):
     r"""Class for an n-fold product manifold :math:`M^n`.
@@ -248,7 +251,6 @@ class NFoldMetric(RiemannianMetric):
             Second tangent vector at base point.
         base_point : array-like, shape=[..., n_copies, *base_shape]
             Point on the manifold.
-            Optional, default: None.
 
         Returns
         -------
@@ -288,7 +290,6 @@ class NFoldMetric(RiemannianMetric):
             Second tangent vector at base point.
         base_point : array-like, shape=[..., n_copies, *base_shape]
             Point on the manifold.
-            Optional, default: None.
 
         Returns
         -------
@@ -332,7 +333,6 @@ class NFoldMetric(RiemannianMetric):
             Tangent vector at a base point.
         base_point : array-like, shape=[..., n_copies, *base_shape]
             Point on the manifold.
-            Optional, default: None.
 
         Returns
         -------
@@ -358,7 +358,6 @@ class NFoldMetric(RiemannianMetric):
             Point on the manifold.
         base_point : array-like, shape=[..., n_copies, *base_shape]
             Point on the manifold.
-            Optional, default: None.
 
         Returns
         -------
