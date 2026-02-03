@@ -217,6 +217,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         -------
         self : object
             Returns self.
+        """
         if self.cluster_centers_ is None:
             raise Exception("Not fitted")
 
