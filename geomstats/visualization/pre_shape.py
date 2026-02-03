@@ -23,7 +23,7 @@ class KendallSphere:
     """Class used to plot points in Kendall shape space of 2D triangles.
 
     David G. Kendall showed that the shape space of 2D triangles is isometric
-    to the 2-sphere of radius 1/2 [K1984a]_. This class encodes this isometric
+    to the 2-sphere of radius 1/2 [K1984]_. This class encodes this isometric
     representation, offering a 3D visualization of Kendall shape space of order
     (3,2), and its related objects.
 
@@ -47,7 +47,7 @@ class KendallSphere:
 
     References
     ----------
-    .. [K1984a] David G. Kendall. "Shape Manifolds, Procrustean Metrics, and
+    .. [K1984] David G. Kendall. "Shape Manifolds, Procrustean Metrics, and
         Complex Projective Spaces." Bulletin of the London Mathematical
         Society, Volume 16, Issue 2, March 1984, Pages 81–121.
         https://doi.org/10.1112/blms/16.2.81
@@ -268,8 +268,8 @@ class KendallDisk:
     """Class used to plot points in Kendall shape space of 3D triangles.
 
     The shape space of 2D triangles is isometric to the 2-sphere of radius 1/2
-    [K1984a]_. This isometry induced another isometry between the shape space of
-    3D triangle and the 1-ball of radius pi/4 [LK1993a]_. Following the first
+    [K1984]_. This isometry induced another isometry between the shape space of
+    3D triangle and the 1-ball of radius pi/4 [LK1993]_. Following the first
     visualization class "KendallSphere" for 2D triangles, this class encodes
     the 2D isometric representation of Kendall shape space of order (3,3).
 
@@ -295,11 +295,11 @@ class KendallDisk:
 
     References
     ----------
-    .. [K1984a] David G. Kendall. "Shape Manifolds, Procrustean Metrics, and
+    .. [K1984] David G. Kendall. "Shape Manifolds, Procrustean Metrics, and
         Complex Projective Spaces." Bulletin of the London Mathematical
         Society, Volume 16, Issue 2, March 1984, Pages 81–121.
         https://doi.org/10.1112/blms/16.2.81
-    .. [LK1993a] Huiling Le and David G. Kendall. "The Riemannian structure of
+    .. [LK1993] Huiling Le and David G. Kendall. "The Riemannian structure of
         Euclidean shape spaces: a novel environment for statistics." Annals of
         statistics, 1993, vol. 21, no 3, p. 1225-1271.
         https://doi.org/10.1112/blms/16.2.81
