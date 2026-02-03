@@ -11,6 +11,7 @@ import geomstats.backend as gs
 from geomstats.numerics.optimization import ScipyMinimize
 from geomstats.vectorization import check_is_batch, get_batch_shape
 
+
 def _from_base(method):
     """Decorate method in order to avoid recursive calls."""
     method._from_base = True

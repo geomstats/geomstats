@@ -11,6 +11,7 @@ import inspect
 
 import geomstats.backend as gs
 
+
 class ComplexManifold(abc.ABC):
     r"""Class for complex manifolds.
 

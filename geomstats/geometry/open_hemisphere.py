@@ -19,6 +19,7 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 
+
 class OpenHemisphereToHyperboloidDiffeo(InvolutionDiffeomorphism):
     """A diffeomorphism between the open hemisphere and the hyperboloid."""
 

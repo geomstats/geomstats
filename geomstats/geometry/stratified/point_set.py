@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
 
+
 class Point(ABC):
     """Class for points of a set."""
 

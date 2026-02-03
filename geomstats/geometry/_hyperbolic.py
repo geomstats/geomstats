@@ -6,6 +6,7 @@ The n-dimensional hyperbolic regardless its different representations.
 import geomstats.backend as gs
 from geomstats.geometry.diffeo import Diffeo
 
+
 class HyperbolicDiffeo(Diffeo):
     """Diffeomorphism between hyperbolic coordinates.
 

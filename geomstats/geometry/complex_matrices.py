@@ -10,6 +10,7 @@ from geomstats.geometry.hermitian import HermitianMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.vectorization import repeat_out
 
+
 class ComplexMatrices(ComplexMatrixVectorSpace):
     """Class for the space of complex matrices (m, n).
 

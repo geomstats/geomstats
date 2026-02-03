@@ -47,6 +47,7 @@ from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.vectorization import repeat_out
 
+
 class Grassmannian(LevelSet):
     r"""Class for Grassmann manifolds :math:`Gr(n, p)`.
 

@@ -17,6 +17,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.numerics.geodesic import LogSolver
 from geomstats.vectorization import repeat_out
 
+
 class Stiefel(LevelSet):
     """Class for Stiefel manifolds St(n,p).
 

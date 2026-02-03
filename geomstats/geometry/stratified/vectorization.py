@@ -5,6 +5,7 @@ import functools
 import geomstats.backend as gs
 from geomstats.geometry.stratified.point_set import PointBatch
 
+
 def broadcast_lists(*lists):
     """Broadcast lists.
 

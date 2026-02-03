@@ -9,6 +9,7 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import get_batch_shape
 
+
 class NFoldManifold(Manifold):
     r"""Class for an n-fold product manifold :math:`M^n`.
 

@@ -9,6 +9,7 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import get_batch_shape, repeat_out
 
+
 class KleinBottle(Manifold):
     r"""Class for the Klein Bottle, a two dimensional manifold which is not orientable.
 

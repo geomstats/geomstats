@@ -24,6 +24,7 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.integrator import integrate
 from geomstats.vectorization import repeat_out
 
+
 def logmh(mat):
     """Compute the matrix log for a Hermitian matrix."""
     n = mat.shape[-1]

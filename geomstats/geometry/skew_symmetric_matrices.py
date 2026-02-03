@@ -12,6 +12,7 @@ import geomstats.backend as gs
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
+
 class SkewSymmetricMatrices(MatrixLieAlgebra):
     """Class for skew-symmetric matrices.
 

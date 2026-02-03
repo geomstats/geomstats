@@ -14,6 +14,7 @@ from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.vectorization import repeat_out, repeat_out_multiple_ndim
 
+
 class SymmetricMatrices(MatrixVectorSpace):
     """Class for the vector space of symmetric matrices of size n.
 

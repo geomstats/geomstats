@@ -5,6 +5,7 @@ Lead author: Morten Pedersen.
 
 import geomstats.backend as gs
 
+
 class SubRiemannianMetric:
     """Class for Sub-Riemannian metrics.
 

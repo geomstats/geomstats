@@ -7,6 +7,7 @@ from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import check_is_batch, repeat_out
 
+
 class Euclidean(VectorSpace):
     """Class for Euclidean spaces.
 

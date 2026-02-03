@@ -7,6 +7,7 @@ import geomstats.backend as gs
 from geomstats.geometry.base import ComplexVectorSpace
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 
+
 class Hermitian(ComplexVectorSpace):
     """Class for Hermitian spaces.
 

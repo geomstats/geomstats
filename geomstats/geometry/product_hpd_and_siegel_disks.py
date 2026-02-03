@@ -31,6 +31,7 @@ from geomstats.geometry.product_manifold import ProductManifold, ProductRiemanni
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.siegel import Siegel
 
+
 class ProductHPDMatricesAndSiegelDisks(ProductManifold):
     """Class for the ProductHPDMatricesAndSiegelDisks manifold.
 

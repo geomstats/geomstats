@@ -9,6 +9,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
+
 class HeisenbergVectors(LieGroup, VectorSpace):
     """Class for the 3D Heisenberg group in the vector representation.
 

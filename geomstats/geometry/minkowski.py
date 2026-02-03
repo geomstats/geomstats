@@ -7,6 +7,7 @@ import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 
+
 class Minkowski(Euclidean):
     r"""Class for Minkowski space.
 

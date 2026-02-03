@@ -16,6 +16,7 @@ from functools import wraps
 import geomstats.backend as gs
 import geomstats.errors
 
+
 def register_scaled_method(func_name, scaling_type):
     """Register the scaling factor of a method of a RiemannianMetric.
 

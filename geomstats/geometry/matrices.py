@@ -12,6 +12,7 @@ from geomstats.geometry.diffeo import VectorSpaceDiffeo
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.vectorization import repeat_out
 
+
 def matrix_matrix_transpose(point):
     r"""Matrix multiplication with transpose.
 

@@ -19,6 +19,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import get_batch_shape, repeat_out
 
+
 class _Hypersphere(LevelSet):
     """Private class for the n-dimensional hypersphere.
 

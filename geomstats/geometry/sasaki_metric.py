@@ -13,6 +13,7 @@ from geomstats.geometry.base import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import check_is_batch
 
+
 class GradientDescent:
     """Gradient descent algorithm."""
 

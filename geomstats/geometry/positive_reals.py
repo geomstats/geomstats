@@ -45,6 +45,7 @@ from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
+
 class PositiveReals(VectorSpaceOpenSet):
     """Class for the manifold of positive reals.
 

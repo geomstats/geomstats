@@ -7,6 +7,7 @@ import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
+
 class HilbertSphere(Manifold):
     """Class for space of one dimensional functions with norm 1.
 

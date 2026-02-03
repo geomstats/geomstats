@@ -20,6 +20,7 @@ from geomstats.geometry.open_hemisphere import OpenHemisphere, OpenHemispheresPr
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
+
 class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
     """Manifold of lower triangular matrices with >0 diagonal.
 

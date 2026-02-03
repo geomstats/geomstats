@@ -7,6 +7,7 @@ import geomstats.backend as gs
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
+
 class FullRankMatrices(VectorSpaceOpenSet):
     r"""Class for :math:`R_*^{n\times k}` matrices of dimension n x k and full rank.
 

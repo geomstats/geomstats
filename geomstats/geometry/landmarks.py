@@ -5,6 +5,7 @@ Lead author: Nicolas Guigui.
 
 from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 
+
 class Landmarks(NFoldManifold):
     """Class for space of landmarks.
 

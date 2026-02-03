@@ -16,6 +16,7 @@ from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import repeat_out
 
+
 class Hyperboloid(_Hyperbolic, LevelSet):
     r"""Class for the n-dimensional hyperboloid space.
 

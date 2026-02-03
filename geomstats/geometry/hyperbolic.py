@@ -9,6 +9,7 @@ from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 
+
 class Hyperbolic:
     """Class for the n-dimensional Hyperbolic space.
 

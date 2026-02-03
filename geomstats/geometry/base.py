@@ -12,6 +12,7 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.pullback_metric import PullbackMetric
 from geomstats.vectorization import get_batch_shape
 
+
 class VectorSpace(Manifold, abc.ABC):
     """Abstract class for vector spaces.
 

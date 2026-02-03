@@ -23,6 +23,7 @@ from geomstats.geometry.stratified.quotient import Aligner, QuotientMetric
 from geomstats.numerics.optimization import ScipyMinimize
 from geomstats.vectorization import check_is_batch, get_batch_shape
 
+
 class GraphSpaceAlignerAlgorithm(AlignerAlgorithm, ABC):
     """Base class for graph space numerical aligner.
 

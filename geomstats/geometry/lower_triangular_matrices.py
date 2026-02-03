@@ -7,6 +7,7 @@ import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet, MatrixVectorSpace
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
+
 class LowerTriangularMatrices(MatrixVectorSpace):
     """Class for the vector space of lower triangular matrices of size n.
 

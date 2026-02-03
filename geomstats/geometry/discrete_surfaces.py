@@ -33,6 +33,7 @@ from geomstats.numerics.path import (
 )
 from geomstats.vectorization import get_batch_shape
 
+
 class DiscreteSurfaces(Manifold):
     r"""Space of parameterized discrete surfaces.
 

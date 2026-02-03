@@ -36,6 +36,7 @@ from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian_matrices import expmh, powermh
 from geomstats.geometry.matrices import Matrices
 
+
 class Siegel(ComplexVectorSpaceOpenSet):
     """Class for the Siegel space.
 

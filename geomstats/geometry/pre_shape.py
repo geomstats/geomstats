@@ -14,6 +14,7 @@ from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.integrator import integrate
 from geomstats.vectorization import get_batch_shape, repeat_out
 
+
 class PreShapeSpace(LevelSet):
     r"""Class for the Kendall pre-shape space.
 

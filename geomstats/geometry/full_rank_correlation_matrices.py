@@ -53,6 +53,7 @@ from geomstats.geometry.symmetric_matrices import (
 )
 from geomstats.numerics.optimization import NewtonMethod
 
+
 def corr_map(point):
     r"""Compute the correlation matrix associated to an SPD matrix.
 

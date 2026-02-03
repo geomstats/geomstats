@@ -18,6 +18,7 @@ from geomstats.geometry.matrices import Matrices
 
 from ._bch_coefficients import BCH_COEFFICIENTS
 
+
 class MatrixLieAlgebra(MatrixVectorSpace, abc.ABC):
     """Class implementing matrix Lie algebra related functions.
 

@@ -14,6 +14,7 @@ from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDEuclideanMetric, SPDMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
+
 class RankKPSDMatrices(Manifold):
     r"""Class for PSD(n,k).
 

@@ -6,6 +6,7 @@ Lead author: Nicolas Guigui.
 import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
+
 class QuotientMetric(RiemannianMetric):
     """Quotient metric.
 

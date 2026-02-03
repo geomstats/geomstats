@@ -8,6 +8,7 @@ from abc import ABC
 import geomstats.backend as gs
 import geomstats.errors
 
+
 def _check_log_solver(connection, raise_=True):
     """Check if connection has a log solver.
 

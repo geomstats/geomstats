@@ -27,6 +27,7 @@ from geomstats.geometry.spd_matrices import SymMatrixLog, logmh
 from geomstats.integrator import integrate
 from geomstats.vectorization import repeat_out
 
+
 class HPDMatrices(ComplexVectorSpaceOpenSet):
     """Class for the manifold of Hermitian positive definite (HPD) matrices.
 

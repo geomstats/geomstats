@@ -7,6 +7,7 @@ from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
+
 class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
     """Class for the general linear group GL(n) and its identity component.
 

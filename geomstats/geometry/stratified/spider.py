@@ -13,6 +13,7 @@ from geomstats.geometry.stratified.point_set import (
 )
 from geomstats.geometry.stratified.vectorization import broadcast_lists, vectorize_point
 
+
 class SpiderPoint(Point):
     r"""Class for points of the Spider.
 

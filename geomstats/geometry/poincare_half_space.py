@@ -15,6 +15,7 @@ from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.vectorization import repeat_out
 
+
 class PoincareHalfSpace(_Hyperbolic, VectorSpaceOpenSet):
     """Class for the n-dimensional Poincare half-space.
 

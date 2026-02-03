@@ -8,6 +8,7 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.vectorization import get_batch_shape
 
+
 class GroupAction(ABC):
     """Base class for group action."""
 

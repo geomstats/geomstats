@@ -9,6 +9,7 @@ from geomstats.numerics.geodesic import ExpODESolver, LogShootingSolver
 from geomstats.numerics.ivp import GSIVPIntegrator
 from geomstats.vectorization import check_is_batch
 
+
 class PullbackMetric(RiemannianMetric):
     r"""Pullback metric.
 

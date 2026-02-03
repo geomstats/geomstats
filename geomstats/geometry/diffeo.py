@@ -6,6 +6,7 @@ import math
 import geomstats.backend as gs
 from geomstats.vectorization import get_batch_shape, repeat_out_multiple_ndim
 
+
 class Diffeo:
     r"""Diffeormorphism.
 

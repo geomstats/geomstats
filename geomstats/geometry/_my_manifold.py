@@ -13,6 +13,7 @@ import geomstats.backend as gs
 # Import the class(es) that MyManifold inherits from
 from geomstats.geometry.manifold import Manifold
 
+
 # This class inherits from the class Manifold.
 # Inheritance in geomstats means that the class MyManifold will reuse code
 # that is in the Manifold class.

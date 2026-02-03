@@ -31,6 +31,7 @@ from geomstats.numerics.interpolation import (
 )
 from geomstats.vectorization import check_is_batch, get_batch_shape
 
+
 def insert_zeros(array, axis=-1, end=False):
     """Insert zeros in a given array.
 

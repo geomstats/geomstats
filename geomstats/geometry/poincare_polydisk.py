@@ -18,6 +18,7 @@ from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 
+
 class PoincarePolydisk(NFoldManifold):
     r"""Class for the Poincare polydisk.
 

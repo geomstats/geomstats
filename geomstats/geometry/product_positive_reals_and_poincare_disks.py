@@ -50,6 +50,7 @@ from geomstats.geometry.positive_reals import PositiveReals
 from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 
+
 class ProductPositiveRealsAndComplexPoincareDisks(ProductManifold):
     """Class for the ProductPositiveRealsAndComplexPoincareDisks manifold.
 

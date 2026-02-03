@@ -36,6 +36,7 @@ from geomstats.geometry.stratified.trees import (
 )
 from geomstats.geometry.stratified.vectorization import broadcast_lists, vectorize_point
 
+
 def generate_random_tree(n_labels, p_keep=0.9, btol=1e-8):
     """Generate a random instance of ``Tree``.
 

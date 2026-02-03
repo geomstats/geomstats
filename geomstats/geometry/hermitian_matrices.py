@@ -11,6 +11,7 @@ from geomstats.geometry.base import ComplexMatrixVectorSpace
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
 from geomstats.geometry.matrices import Matrices
 
+
 def expmh(mat):
     """Compute the matrix exponential for a Hermitian matrix.
 

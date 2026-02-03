@@ -42,6 +42,7 @@ from geomstats.geometry.stratified.vectorization import (
 from geomstats.numerics.interpolation import LinearInterpolator1D
 from geomstats.numerics.optimization import ScipyMinimize
 
+
 def _manipulate_input_with_array(arg, name):
     if gs.is_array(arg):
         ndim = 2 if name == "ambient_point" else 1

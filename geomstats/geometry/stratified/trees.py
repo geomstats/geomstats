@@ -17,6 +17,7 @@ import random
 import geomstats.backend as gs
 from geomstats.exceptions import NotPartialOrder
 
+
 def _pop_random_elem(ls):
     """Pops a random element from a list.
 

@@ -15,6 +15,7 @@ import geomstats.errors
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.quotient_metric import QuotientMetric
 
+
 class Manifold(abc.ABC):
     r"""Class for manifolds.
 

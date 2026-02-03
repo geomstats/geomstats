@@ -25,6 +25,7 @@ from geomstats.geometry.base import ComplexVectorSpaceOpenSet
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian import Hermitian
 
+
 class ComplexPoincareDisk(ComplexVectorSpaceOpenSet):
     """Class for the complex Poincaré disk.
 
