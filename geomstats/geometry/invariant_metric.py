@@ -22,7 +22,7 @@ class InvariantMetricMatrixExpODESolver(ExpODESolver):
         r"""Compute Riemannian exponential of tan. vector wrt to base point.
 
         If :math:`\gamma` is a geodesic, then it satisfies the
-        Euler-Poincare equation [Kolev]_:
+        Euler-Poincare equation [K2004]_:
 
         .. math::
 
@@ -34,8 +34,8 @@ class InvariantMetricMatrixExpODESolver(ExpODESolver):
         :math:`dL` and :math:`ad^*` is replaced by :math:`-ad^*`. The
         exponential map is approximated by numerical integration
         of this equation, with initial conditions :math:`\dot{\gamma}(0)`
-        given by the argument `tangent_vec` and :math:`\gamma(0)` by
-        `base_point`.
+        given by the argument ``tangent_vec`` and :math:`\gamma(0)` by
+        ``base_point``.
 
         Parameters
         ----------
@@ -55,7 +55,7 @@ class InvariantMetricMatrixExpODESolver(ExpODESolver):
         ----------
         https://en.wikipedia.org/wiki/Runge–Kutta_methods
 
-        .. [Kolev]   Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
+        .. [K2004]   Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
                      Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
                      480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
@@ -105,13 +105,13 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
     References
     ----------
-    .. [Milnor]    Milnor, John. “Curvatures of Left Invariant Metrics on Lie
+    .. [M1976]    Milnor, John. “Curvatures of Left Invariant Metrics on Lie
                    Groups.” Advances in Mathematics 21, no. 3, 1976:
                    293–329. https://doi.org/10.1016/S0001-8708(76)80002-3.
-    .. [Kolev]     Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
+    .. [K2004]     Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
                    Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
                     480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
-    .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential Geometry
+    .. [GQ2020]   Gallier, Jean, and Jocelyn Quaintance. Differential Geometry
                    and Lie Groups: A Computational Perspective.
                    Geonger International Publishing, 2020.
                    https://doi.org/10.1007/978-3-030-46040-2.
@@ -136,10 +136,10 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
     @property
     def reshaped_metric_matrix(self):
-        """Diagonal metric matrix reshaped to a symmetric matrix of size n.
+        r"""Diagonal metric matrix reshaped to a symmetric matrix of size n.
 
-        Reshape a diagonal metric matrix of size `dim x dim` into a symmetric
-        matrix of size `n x n` where :math:`dim= n (n -1) / 2` is the
+        Reshape a diagonal metric matrix of size ``dim x dim`` into a symmetric
+        matrix of size ``n x n`` where :math:`dim= n (n -1) / 2` is the
         dimension of the space of skew symmetric matrices. The
         non-diagonal coefficients in the output matrix correspond to the
         basis matrices of this space. The diagonal is filled with ones.
@@ -250,11 +250,11 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         References
         ----------
-        .. [Kolev] Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
+        .. [K2004] Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
                    Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
                    480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
 
-        .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential
+        .. [GQ2020]   Gallier, Jean, and Jocelyn Quaintance. Differential
                        Geometry and Lie Groups: A Computational Perspective.
                        Geonger International Publishing, 2020.
                        https://doi.org/10.1007/978-3-030-46040-2.
@@ -278,7 +278,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         left (respectively right) invariant vector fields :math:`\tilde{x},
         \tilde{y}`. Then the vector :math:`(\nabla_\tilde{x}(\tilde{x}))_{
         Id}` is computed using the lie bracket and the dual adjoint map. This
-        is a bilinear map that characterizes the connection [Gallier]_.
+        is a bilinear map that characterizes the connection [GQ2020]_.
 
         Parameters
         ----------
@@ -294,7 +294,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         References
         ----------
-        .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential
+        .. [GQ2020]   Gallier, Jean, and Jocelyn Quaintance. Differential
                        Geometry and Lie Groups: A Computational Perspective.
                        Geonger International Publishing, 2020.
                        https://doi.org/10.1007/978-3-030-46040-2.
@@ -317,7 +317,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         associate left (respectively right) invariant vector fields :math:
         `\tilde{x}, \tilde{y}`. Then the vector :math:`(\nabla_\tilde{x}(
         \tilde{x}))_{p}` is computed using the invariance of the connection
-        and its value at identity [Gallier]_.
+        and its value at identity [GQ2020]_.
 
         Parameters
         ----------
@@ -335,7 +335,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         References
         ----------
-        .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential
+        .. [GQ2020]   Gallier, Jean, and Jocelyn Quaintance. Differential
                        Geometry and Lie Groups: A Computational Perspective.
                        Geonger International Publishing, 2020.
                        https://doi.org/10.1007/978-3-030-46040-2.
@@ -435,7 +435,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         return translation_map(value_at_id)
 
     def sectional_curvature_at_identity(self, tangent_vec_a, tangent_vec_b):
-        """Compute the sectional curvature at identity.
+        r"""Compute the sectional curvature at identity.
 
         For two orthonormal tangent vectors at identity :math:`x,y`,
         the sectional curvature is defined by :math:`< R(x, y)x,
@@ -457,7 +457,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         ----------
         https://en.wikipedia.org/wiki/Sectional_curvature
 
-        .. [Milnor]    Milnor, John. “Curvatures of Left Invariant Metrics on
+        .. [M1976]    Milnor, John. “Curvatures of Left Invariant Metrics on
                        Lie Groups.” Advances in Mathematics 21, no. 3, 1976:
                        293–329. https://doi.org/10.1016/S0001-8708(76)80002-3.
         """
@@ -474,7 +474,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         return gs.where(~condition, num / denom, 0.0)
 
     def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the sectional curvature.
+        r"""Compute the sectional curvature.
 
         For two orthonormal tangent vectors at a base point :math:`x,y`,
         the sectional curvature is defined by :math:`<R(x, y)x,
@@ -498,7 +498,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         ----------
         https://en.wikipedia.org/wiki/Sectional_curvature
 
-        .. [Milnor]    Milnor, John. “Curvatures of Left Invariant Metrics on
+        .. [M1976]    Milnor, John. “Curvatures of Left Invariant Metrics on
                        Lie Groups.” Advances in Mathematics 21, no. 3, 1976:
                        293–329. https://doi.org/10.1016/S0001-8708(76)80002-3.
         """
@@ -637,7 +637,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         where :math:`x,y` are respectively `base_point` and `point`,
         an extrinsic 2-norm is used, and exp is computed by integration
-        of the Euler-Poincare equation [Kolev]_.
+        of the Euler-Poincare equation [K2004]_.
 
         Parameters
         ----------
@@ -655,7 +655,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         References
         ----------
-        .. [Kolev]   Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
+        .. [K2004]   Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
                      Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
                      480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
@@ -778,7 +778,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         r"""Compute the geodesic ODE associated with the invariant metric.
 
         This is a reduced geodesic equation written entirely in the Lie
-        algebra. It is known as Euler-Poincare equation [Kolev]_.
+        algebra. It is known as Euler-Poincare equation [K2004]_.
 
         .. math::
             \dot{\gamma}(t) = (dL_{\gamma(t)}) X(t)
@@ -796,7 +796,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         References
         ----------
-        .. [Kolev] Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
+        .. [K2004] Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
             Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
             480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
@@ -1117,7 +1117,7 @@ class BiInvariantMetric(RiemannianMetric):
     """Class for bi-invariant metrics on compact Lie groups.
 
     Compact Lie groups and direct products of compact Lie groups with vector
-    spaces admit bi-invariant metrics [Gallier]_. Products Lie groups are not
+    spaces admit bi-invariant metrics [GQ2020]_. Products Lie groups are not
     implemented. Other groups such as SE(3) admit bi-invariant pseudo-metrics.
 
     Parameters
@@ -1127,7 +1127,7 @@ class BiInvariantMetric(RiemannianMetric):
 
     References
     ----------
-    .. [Gallier] Gallier, Jean, and Jocelyn Quaintance. Differential Geometry
+    .. [GQ2020] Gallier, Jean, and Jocelyn Quaintance. Differential Geometry
         and Lie Groups: A Computational Perspective.
         Geonger International Publishing, 2020.
         https://doi.org/10.1007/978-3-030-46040-2.
@@ -1166,7 +1166,7 @@ class BiInvariantMetric(RiemannianMetric):
 
         References
         ----------
-        .. [Gallier] Gallier, Jean, and Jocelyn Quaintance. Differential
+        .. [GQ2020] Gallier, Jean, and Jocelyn Quaintance. Differential
             Geometry and Lie Groups: A Computational Perspective.
             Geonger International Publishing, 2020.
             https://doi.org/10.1007/978-3-030-46040-2.
@@ -1194,7 +1194,7 @@ class BiInvariantMetric(RiemannianMetric):
 
         References
         ----------
-        .. [Gallier] Gallier, Jean, and Jocelyn Quaintance. Differential
+        .. [GQ2020] Gallier, Jean, and Jocelyn Quaintance. Differential
             Geometry and Lie Groups: A Computational Perspective.
             Geonger International Publishing, 2020.
             https://doi.org/10.1007/978-3-030-46040-2.

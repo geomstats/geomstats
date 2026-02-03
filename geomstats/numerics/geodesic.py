@@ -389,7 +389,7 @@ class _LogShootingSolverFlatten(_LogShootingSolver):
 
     Notes
     -----
-    Differs from `_LogShootingSolverUnflatten` as it always solves one
+    Differs from ``_LogShootingSolverUnflatten`` as it always solves one
     optimization problem, even in batch mode.
     """
 
@@ -435,7 +435,7 @@ class _LogShootingSolverUnflatten(_LogBatchMixins, _LogShootingSolver):
 
     Notes
     -----
-    Differs from `_LogShootingSolverFlatten` as it solves one
+    Differs from ``_LogShootingSolverFlatten`` as it solves one
     optimization problem for each combination of point and base point.
     """
 

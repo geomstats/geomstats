@@ -34,10 +34,10 @@ class OdeResult(scipy.optimize.OptimizeResult):
     def get_last_y(self):
         """Get value for last y.
 
-        Allows to have y represented as an `gs.array` or `list[gs.array]` (latter
+        Allows to have y represented as an ``gs.array`` or ``list[gs.array]`` (latter
         for cases where they have different shapes).
 
-        Assumes last `t` is the same.
+        Assumes last ``t`` is the same.
         """
         if isinstance(self.y, (list, tuple)):
             return gs.stack([y_[-1] for y_ in self.y])
@@ -51,10 +51,10 @@ class ODEIVPIntegrator(ABC):
     Parameters
     ----------
     save_result : bool
-        If True, result is stored after calling `integrate` or `integrate_t`.
+        If True, result is stored after calling ``integrate`` or ``integrate_t``.
     tchosen : bool
         Informs about ability to solve at chosen times.
-        If False, then does not implement `integrate_t`.
+        If False, then does not implement ``integrate_t``.
     """
 
     def __init__(self, save_result=False, tchosen=False):
@@ -70,7 +70,7 @@ class ODEIVPIntegrator(ABC):
         Parameters
         ----------
         force : callable
-            Function to integrate: `f(state, t)`.
+            Function to integrate: ``f(state, t)``.
         initial_state : array-like, shape=[..., n_vars, *point_shape]
             Initial state.
         end_time : float or None
@@ -87,7 +87,7 @@ class ODEIVPIntegrator(ABC):
         Parameters
         ----------
         force : callable
-            Function to integrate: `f(state, t)`.
+            Function to integrate: ``f(state, t)``.
         initial_state : array-like, shape=[..., n_vars, *point_shape]
             Initial state.
         t_eval : array-like
@@ -109,9 +109,9 @@ class GSIVPIntegrator(ODEIVPIntegrator):
         Number of steps to perform.
     step_type : str
         Type of integration step.
-        Possible values are `euler`, `rk2`, `rk4`.
+        Possible values are ``euler``, ``rk2``, ``rk4``.
     save_result : bool
-        If True, result is stored after calling `integrate` or `integrate_t`.
+        If True, result is stored after calling ``integrate`` or ``integrate_t``.
     """
 
     def __init__(self, n_steps=10, step_type="euler", save_result=False):
@@ -199,7 +199,7 @@ class ScipySolveIVP(ODEIVPIntegrator):
     method : str
         Integration method.
     save_result : bool
-        If True, result is stored after calling `integrate` or `integrate_t`.
+        If True, result is stored after calling ``integrate`` or ``integrate_t``.
     point_ndim = int
         Dimension of array representing a point in the space.
     """
@@ -237,7 +237,7 @@ class ScipySolveIVP(ODEIVPIntegrator):
         Parameters
         ----------
         force : callable
-            Function to integrate: `f(state, t)`.
+            Function to integrate: ``f(state, t)``.
         initial_state : array-like, shape=[..., n_vars, *point_shape]
             Initial state.
         end_time : float or None
@@ -250,12 +250,12 @@ class ScipySolveIVP(ODEIVPIntegrator):
         return self._integrate(force, initial_state, end_time=end_time)
 
     def integrate_t(self, force, initial_state, t_eval):
-        """Integrate force at `t_eval` points.
+        """Integrate force at ``t_eval`` points.
 
         Parameters
         ----------
         force : callable
-            Function to integrate: `f(state, t)`.
+            Function to integrate: ``f(state, t)``.
         initial_state : array-like, shape=[..., n_vars, *point_shape]
             Initial state.
         t_eval : array-like

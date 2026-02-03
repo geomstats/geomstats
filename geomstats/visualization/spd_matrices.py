@@ -7,7 +7,7 @@ import geomstats.backend as gs
 
 
 class Ellipses:
-    """Class used to plot points on the manifold SPD(2).
+    r"""Class used to plot points on the manifold SPD(2).
 
     Elements S of the manifold of 2D Symmetric Positive Definite matrices
     can be conveniently represented by ellipses.

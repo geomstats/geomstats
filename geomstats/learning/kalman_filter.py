@@ -470,11 +470,12 @@ class KalmanFilter:
         self.state = self.model.propagate(self.state, sensor_input)
 
     def compute_gain(self, observation):
-        """Compute the Kalman gain given the observation model.
+        r"""Compute the Kalman gain given the observation model.
 
-        Given the observation Jacobian :math:`H` and covariance :math:`N` (not necessarily
-        equal to that of the sensor), and the current covariance :math:`P`, the Kalman
-        gain is :math:`K = P H^T(H P H^T + N)^{-1}`.
+        Given the observation Jacobian :math:`H` and covariance :math:`N`
+        (not necessarily equal to that of the sensor), and the current
+        covariance :math:`P`, the Kalman gain is
+        :math:`K = P H^T(H P H^T + N)^{-1}`.
 
         Parameters
         ----------

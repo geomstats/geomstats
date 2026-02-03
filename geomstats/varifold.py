@@ -306,9 +306,9 @@ class VarifoldMetric:
         Returns
         -------
         squared_dist : callable
-            `f(vertices) -> scalar`. Measures squared varifold distance
-            between a point with `vertices` given wrt `target_faces`
-            against `target_point`.
+            ``f(vertices) -> scalar``. Measures squared varifold distance
+            between a point with ``vertices`` given wrt ``target_faces``
+            against ``target_point``.
         """
         if target_faces is None:
             target_faces = target_point.faces

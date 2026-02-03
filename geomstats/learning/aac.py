@@ -26,7 +26,7 @@ class _AACFrechetMean(BaseEstimator):
     r"""Class AAC for Frechet Mean on Graph Space.
 
     The Align All and Compute (AAC) algorithm for Frechet Mean (FM)estimation is
-    introduced in [Calissano2020]_ and it estimates the Frechet Mean for a set of
+    introduced in [CFV2020]_ and it estimates the Frechet Mean for a set of
     labeled or unlabeled graphs. The idea is to optimally aligned the graphs to the
     current mean estimator using the optimal alignment between the graphs and the mean
     (graph matching between two graphs) and compute the mean estimation between the
@@ -66,7 +66,7 @@ class _AACFrechetMean(BaseEstimator):
 
     References
     ----------
-    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+    .. [CFV2020]  Calissano, A., Feragen, A., Vantini, S.
         “Graph Space: Geodesic Principal Components for a Population of
         Network-valued Data.” Mox report 14, 2020.
         https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
@@ -141,7 +141,7 @@ class _AACGGPCA(BaseEstimator):
     r"""Class AAC for Generalized Geodesic Principal Components (GGPCA) on Graph Space.
 
     The Align All and Compute (AAC) algorithm for GGPCA estimation is
-    introduced in [Calissano2020]_ and it estimates the GGPCA for a set of
+    introduced in [CFV2020]_ and it estimates the GGPCA for a set of
     labeled or unlabeled graphs. The idea is to optimally aligned the graphs to the
     current GGPCA estimator using the optimal alignment between the graphs and the
     geodesics and then compute the GGPCA estimation between the aligned adjacency
@@ -182,7 +182,7 @@ class _AACGGPCA(BaseEstimator):
 
     References
     ----------
-    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+    .. [CFV2020]  Calissano, A., Feragen, A., Vantini, S.
         “Graph Space: Geodesic Principal Components for a Population of
         Network-valued Data.” Mox report 14, 2020.
         https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
@@ -286,7 +286,7 @@ class _AACRegression(BaseEstimator):
     r"""Class AAC for Generalized Geodesic Regression (GGR) on Graph Space.
 
     The Align All and Compute (AAC) algorithm for GGR estimation is
-    introduced in [Calissano2022] and it estimates the GGR for
+    introduced in [CFV2022]_ and it estimates the GGR for
     :math:`\{(s_i, X_i)\in \mathbb{R}^p\times X/T\}` a set of labeled or unlabeled
     graphs as output and a set of scalar or vector as input:
     :math:`f: \mathbb{R}^p \rightarrow X/T`. The idea is to iteratively estimate a OLS
@@ -328,7 +328,7 @@ class _AACRegression(BaseEstimator):
 
     References
     ----------
-    .. [Calissano2022]  Calissano, A., Feragen, A., Vantini, S.
+    .. [CFV2022]  Calissano, A., Feragen, A., Vantini, S.
         “Graph-valued regression: prediction of unlabelled networks in a non-Euclidean
         Graph Space.”Journal of Multivariate Analysis 190 - 104950, (2022).
         https://doi.org/10.1016/j.jmva.2022.104950.
@@ -420,7 +420,7 @@ class _AACRegression(BaseEstimator):
 class AAC:
     r"""Class for Align all and Compute algorithm on Graph Space.
 
-    The Align All and Compute (AAC) algorithm is introduced in [Calissano2020]_ and it
+    The Align All and Compute (AAC) algorithm is introduced in [CFV2020]_ and it
     allows to compute different statistical estimators: the Frechet Mean, the
     Generalized Geodesic Principal components and the Regression for a set of labeled or
     unlabeled graphs.
@@ -436,9 +436,9 @@ class AAC:
     estimate : str
         Desired estimator. One of the following:
 
-        - "frechet_mean": Frechet Mean estimation [Calissano2020]_
-        - "ggpca": Generalized Geodesic Principal Components [Calissano2020]_
-        - "regression": Graph-on-vector regression model [Calissano2022]_
+        - "frechet_mean": Frechet Mean estimation [CFV2020]_
+        - "ggpca": Generalized Geodesic Principal Components [CFV2020]_
+        - "regression": Graph-on-vector regression model [CFV2022]_
 
     Examples
     --------
@@ -450,11 +450,11 @@ class AAC:
 
     References
     ----------
-    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+    .. [CFV2020]  Calissano, A., Feragen, A., Vantini, S.
         “Graph Space: Geodesic Principal Components for a Population of
         Network-valued Data.” Mox report 14, 2020.
         https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
-    .. [Calissano2022]  Calissano, A., Feragen, A., Vantini, S.
+    .. [CFV2022]  Calissano, A., Feragen, A., Vantini, S.
         “Graph-valued regression: prediction of unlabelled networks in a non-Euclidean
         Graph Space.”Journal of Multivariate Analysis 190 - 104950, (2022).
         https://doi.org/10.1016/j.jmva.2022.104950.

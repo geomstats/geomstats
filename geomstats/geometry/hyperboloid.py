@@ -18,7 +18,7 @@ from geomstats.vectorization import repeat_out
 
 
 class Hyperboloid(_Hyperbolic, LevelSet):
-    """Class for the n-dimensional hyperboloid space.
+    r"""Class for the n-dimensional hyperboloid space.
 
     Class for the n-dimensional hyperboloid space as embedded in (n+1)-dimensional
     Minkowski space as the set of points with squared norm equal to -1, i.e.

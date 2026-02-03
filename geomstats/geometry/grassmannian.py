@@ -29,7 +29,7 @@ For such a representation, work in the Stiefel manifold instead.
 
 References
 ----------
-.. [Batzies15] Batzies, E., K. Hüper, L. Machado, and F. Silva Leite.
+.. [BHML2015] Batzies, E., K. Hüper, L. Machado, and F. Silva Leite.
     “Geometric Mean and Geodesic Regression on Grassmannians.”
     Linear Algebra and Its Applications 466 (February 1, 2015):
     83–101. https://doi.org/10.1016/j.laa.2014.10.003.
@@ -49,7 +49,7 @@ from geomstats.vectorization import repeat_out
 
 
 class Grassmannian(LevelSet):
-    """Class for Grassmann manifolds :math:`Gr(n, p)`.
+    r"""Class for Grassmann manifolds :math:`Gr(n, p)`.
 
     Parameters
     ----------
@@ -107,7 +107,7 @@ class Grassmannian(LevelSet):
 
         References
         ----------
-        .. [Pau07] Paulin, Frédéric. “Géométrie diﬀérentielle élémentaire,” 2007.
+        .. [P2007] Paulin, Frédéric. “Géométrie diﬀérentielle élémentaire,” 2007.
             https://www.imo.universite-paris-saclay.fr/~paulin/notescours/
             cours_geodiff.pdf.
         """
@@ -162,7 +162,7 @@ class Grassmannian(LevelSet):
 
         References
         ----------
-        .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
+        .. [C2003] Yasuko Chikuse, Statistics on special manifolds,
             New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
         """
         points = gs.random.normal(size=(n_samples, self.n, self.p))
@@ -193,7 +193,7 @@ class Grassmannian(LevelSet):
 
         References
         ----------
-        .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
+        .. [C2003] Yasuko Chikuse, Statistics on special manifolds,
             New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
         """
         return self.random_uniform(n_samples)
@@ -297,7 +297,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
 
         References
         ----------
-        .. [Batzies2015] Batzies, Hüper, Machado, Leite.
+        .. [BHML2015] Batzies, Hüper, Machado, Leite.
             "Geometric Mean and Geodesic Regression on Grassmannians"
             Linear Algebra and its Applications, 466, 83-101, 2015.
         """
@@ -340,7 +340,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
 
         References
         ----------
-        .. [BZA20]  Bendokat, Thomas, Ralf Zimmermann, and P.-A. Absil.
+        .. [BZA2020]  Bendokat, Thomas, Ralf Zimmermann, and P.-A. Absil.
             “A Grassmann Manifold Handbook: Basic Geometry and Computational
             Aspects.” ArXiv:2011.13699 [Cs, Math], November 27, 2020.
             https://arxiv.org/abs/2011.13699.
@@ -425,7 +425,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
 
         References
         ----------
-        .. [BZA20]  Bendokat, Thomas, Ralf Zimmermann, and P.-A. Absil.
+        .. [BZA2020]  Bendokat, Thomas, Ralf Zimmermann, and P.-A. Absil.
             “A Grassmann Manifold Handbook: Basic Geometry and
             Computational Aspects.”
             ArXiv:2011.13699 [Cs, Math], November 27, 2020.

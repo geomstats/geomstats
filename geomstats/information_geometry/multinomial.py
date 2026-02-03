@@ -108,9 +108,9 @@ class SimplexToPositiveHypersphere(Diffeo):
 class MultinomialDistributions(InformationManifoldMixin, LevelSet):
     r"""Class for the manifold of multinomial distributions.
 
-    This is the set of `n+1`-tuples of positive reals that sum up to one,
-    i.e. the `n`-simplex. Each point is the parameter of a multinomial
-    distribution, i.e. gives the probabilities of `n` different outcomes
+    This is the set of ``n+1``-tuples of positive reals that sum up to one,
+    i.e. the ``n``-simplex. Each point is the parameter of a multinomial
+    distribution, i.e. gives the probabilities of ``n`` different outcomes
     in a single experiment.
 
     Attributes
@@ -283,13 +283,13 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
 class MultinomialMetric(PullbackDiffeoMetric):
     """Class for the Fisher information metric on multinomial distributions.
 
-    The Fisher information metric on the `n`-simplex of multinomial
+    The Fisher information metric on the ``n``-simplex of multinomial
     distributions parameters can be obtained as the pullback metric of the
-    `n`-sphere using the componentwise square root.
+    ``n``-sphere using the componentwise square root.
 
     References
     ----------
-    .. [K2003] R. E. Kass. The Geometry of Asymptotic Inference. Statistical
+    .. [K1989] R. E. Kass. The Geometry of Asymptotic Inference. Statistical
         Science, 4(3): 188 - 234, 1989.
     """
 
