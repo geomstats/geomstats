@@ -186,8 +186,9 @@ class ComplexMatrixVectorSpaceTestCase(ComplexVectorSpaceTestCase):
 
 
 class LevelSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
-    # TODO: need to develop `intrinsic_after_extrinsic` and `extrinsic_after_intrinsic`
-    # TODO: class to handle `extrinsinc-intrinsic` mixins?
+    # TODO: need to develop ``intrinsic_after_extrinsic``
+    # and ``extrinsic_after_intrinsic``
+    # TODO: class to handle ``extrinsinc-intrinsic`` mixins?
 
     def setup_method(self):
         if not hasattr(self, "data_generator"):

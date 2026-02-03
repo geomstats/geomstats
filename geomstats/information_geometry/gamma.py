@@ -91,7 +91,7 @@ class NaturalToStandardDiffeo(InvolutionDiffeomorphism):
 
 
 class GammaDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
-    """Class for the manifold of Gamma distributions.
+    r"""Class for the manifold of Gamma distributions.
 
     This is :math:`Gamma = (R_+^*)^2`, the positive quadrant of the
     2-dimensional Euclidean space.
@@ -327,7 +327,7 @@ class GammaMetric(RiemannianMetric):
         return from_vector_to_diagonal_matrix(mat_diag)
 
     def christoffels(self, base_point):
-        """Compute the Christoffel symbols.
+        r"""Compute the Christoffel symbols.
 
         Compute the Christoffel symbols of the Fisher information metric.
         For computation purposes, we replace the value of
@@ -387,7 +387,7 @@ class GammaMetric(RiemannianMetric):
         return gs.stack([c1, c2], axis=-3)
 
     def jacobian_christoffels(self, base_point):
-        """Compute the Jacobian of the Christoffel symbols.
+        r"""Compute the Jacobian of the Christoffel symbols.
 
         Compute the Jacobian of the Christoffel symbols of the
         Fisher information metric.

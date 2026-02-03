@@ -25,7 +25,7 @@ from geomstats.vectorization import repeat_out
 
 
 class DirichletDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
-    """Class for the manifold of Dirichlet distributions.
+    r"""Class for the manifold of Dirichlet distributions.
 
     This is Dirichlet = :math:`(R_+^*)^dim`, the positive quadrant of the
     dim-dimensional Euclidean space.
@@ -194,7 +194,7 @@ class DirichletMetric(RiemannianMetric):
         return mat_diag - gs.einsum("...,...jk->...jk", poly_sum, mat_ones)
 
     def christoffels(self, base_point):
-        """Compute the Christoffel symbols.
+        r"""Compute the Christoffel symbols.
 
         Compute the Christoffel symbols of the Fisher information metric.
 
@@ -263,7 +263,7 @@ class DirichletMetric(RiemannianMetric):
         return gs.squeeze(christoffels)
 
     def jacobian_christoffels(self, base_point):
-        """Compute the Jacobian of the Christoffel symbols.
+        r"""Compute the Jacobian of the Christoffel symbols.
 
         Compute the Jacobian of the Christoffel symbols of the
         Fisher information metric.

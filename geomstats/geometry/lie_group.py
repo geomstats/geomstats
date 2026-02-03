@@ -30,7 +30,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
     def compose(point_a, point_b):
         """Perform function composition corresponding to the Lie group.
 
-        Multiply the elements `point_a` and `point_b`.
+        Multiply the elements ``point_a`` and ``point_b``.
 
         Parameters
         ----------
@@ -42,7 +42,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
         Returns
         -------
         composed : array-like, shape=[..., {dim, [n, n]}]
-            Product of `point_a` and `point_b` along the first dimension.
+            Product of ``point_a`` and ``point_b`` along the first dimension.
         """
         return Matrices.mul(point_a, point_b)
 
@@ -99,7 +99,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
         return lambda tangent_vec: self.compose(tangent_vec, point)
 
     def lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the lie bracket of two tangent vectors.
+        r"""Compute the lie bracket of two tangent vectors.
 
         For matrix Lie groups with tangent vectors A,B at the same base point P
         this is given by (translate to identity, compute commutator, go back)
@@ -185,7 +185,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
         Exponentiate a left-invariant vector field from a base point.
 
         The vector input is not an element of the Lie algebra, but of the
-        tangent space at base_point: if :math:`g` denotes `base_point`,
+        tangent space at base_point: if :math:`g` denotes ``base_point``,
         :math:`v` the tangent vector, and :math:`V = g^{-1} v` the associated
         Lie algebra vector, then
 
@@ -206,7 +206,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
         Returns
         -------
         point : array-like, shape=[..., n, n]
-            Left multiplication of `exp(algebra_mat)` with `base_point`.
+            Left multiplication of ``exp(algebra_mat)`` with ``base_point``.
         """
         expm = gs.linalg.expm
         if base_point is None:
@@ -219,7 +219,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
         r"""
         Compute a left-invariant vector field bringing base_point to point.
 
-        The output is a vector of the tangent space at `base_point`,
+        The output is a vector of the tangent space at ``base_point``,
         so not a Lie algebra element if it is not the identity.
 
         Parameters
@@ -233,11 +233,11 @@ class MatrixLieGroup(Manifold, abc.ABC):
         Returns
         -------
         tangent_vec : array-like, shape=[..., n, n]
-            Matrix such that `exp(tangent_vec, base_point) = point`.
+            Matrix such that ``exp(tangent_vec, base_point) = point``.
 
         Notes
         -----
-        Denoting `point` by :math:`g` and `base_point` by :math:`h`,
+        Denoting ``point`` by :math:`g` and ``base_point`` by :math:`h`,
         the output satisfies:
 
         .. math::
@@ -300,7 +300,7 @@ class LieGroup(Manifold, abc.ABC):
     def compose(self, point_a, point_b):
         """Perform function composition corresponding to the Lie group.
 
-        Multiply the elements `point_a` and `point_b`.
+        Multiply the elements ``point_a`` and ``point_b``.
 
         Parameters
         ----------
@@ -444,7 +444,7 @@ class LieGroup(Manifold, abc.ABC):
         return self.compose(base_point, self.exp_from_identity(lie_vec))
 
     def exp(self, tangent_vec, base_point=None):
-        """Compute the group exponential at `base_point` of `tangent_vec`.
+        """Compute the group exponential at ``base_point`` of ``tangent_vec``.
 
         Parameters
         ----------
@@ -471,7 +471,7 @@ class LieGroup(Manifold, abc.ABC):
         return self.exp_not_from_identity(tangent_vec, base_point)
 
     def log_from_identity(self, point):
-        """Compute the group logarithm of `point` from the identity.
+        """Compute the group logarithm of ``point`` from the identity.
 
         Parameters
         ----------
@@ -488,7 +488,7 @@ class LieGroup(Manifold, abc.ABC):
         )
 
     def log_not_from_identity(self, point, base_point):
-        """Compute the group logarithm of `point` from `base_point`.
+        """Compute the group logarithm of ``point`` from ``base_point``.
 
         Parameters
         ----------
@@ -516,7 +516,7 @@ class LieGroup(Manifold, abc.ABC):
         return self.compose(base_point, self.log_from_identity(lie_point))
 
     def log(self, point, base_point=None):
-        """Compute the group logarithm of `point` relative to `base_point`.
+        """Compute the group logarithm of ``point`` relative to ``base_point``.
 
         Parameters
         ----------
@@ -546,7 +546,7 @@ class LieGroup(Manifold, abc.ABC):
         return self.log_not_from_identity(point, base_point)
 
     def lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the lie bracket of two tangent vectors.
+        r"""Compute the lie bracket of two tangent vectors.
 
         For matrix Lie groups with tangent vectors A,B at the same base point P
         this is given by (translate to identity, compute commutator, go back)
