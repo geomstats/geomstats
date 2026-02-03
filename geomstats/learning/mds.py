@@ -11,6 +11,7 @@ def pairwise_dists(space, points):
     Parameters
     ----------
     space : Manifold or PointSet
+        Space equipped with a distance metric.
     points : array-like, shape=[n_samples, dim]
         Set of points in the manifold.
 
@@ -100,12 +101,13 @@ class MDS(_MDS):
         ----------
         X : array-like, shape=[n_samples, *metric.shape]
             Training input samples.
-        y: ignored
+        y : None
             Not used, present for API consistency by convention.
-        init : ndarray of shape (n_samples, n_components), default=None
+        init : array-like, shape=[n_samples, n_components]
             Starting configuration of the embedding to initialize the SMACOF
             algorithm. By default, the algorithm is initialized with a randomly
-            chosen array. DON'T USE
+            chosen array. DON'T USE.
+            Optional, default: None.
 
         Returns
         -------

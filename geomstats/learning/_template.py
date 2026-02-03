@@ -16,8 +16,9 @@ class TemplateEstimator(BaseEstimator):
 
     Parameters
     ----------
-    demo_param : str, default='demo_param'
+    demo_param : str
         A parameter used for demonstation of how to pass and store paramters.
+        Optional, default: 'demo_param'.
     """
 
     def __init__(self, demo_param="demo_param"):
@@ -28,9 +29,9 @@ class TemplateEstimator(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+        X : array-like, shape=[n_samples, n_features]
             The training input samples.
-        y : array-like, shape (n_samples,) or (n_samples, n_outputs)
+        y : array-like, shape=[n_samples] or [n_samples, n_outputs]
             The target values (class labels in classification, real numbers in
             regression).
 
@@ -49,12 +50,12 @@ class TemplateEstimator(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+        X : array-like, shape=[n_samples, n_features]
             The training input samples.
 
         Returns
         -------
-        y : ndarray, shape (n_samples,)
+        y : array-like, shape=[n_samples]
             Returns an array of ones.
         """
         X = check_array(X, accept_sparse=True)
@@ -70,8 +71,9 @@ class TemplateClassifier(BaseEstimator, ClassifierMixin):
 
     Parameters
     ----------
-    demo_param : str, default='demo'
+    demo_param : str
         A parameter used for demonstation of how to pass and store paramters.
+        Optional, default: 'demo'.
 
     Attributes
     ----------
@@ -91,9 +93,9 @@ class TemplateClassifier(BaseEstimator, ClassifierMixin):
 
         Parameters
         ----------
-        X : array-like, shape (n_samples, n_features)
+        X : array-like, shape=[n_samples, n_features]
             The training input samples.
-        y : array-like, shape (n_samples,)
+        y : array-like, shape=[n_samples]
             The target values. An array of int.
 
         Returns
@@ -116,12 +118,12 @@ class TemplateClassifier(BaseEstimator, ClassifierMixin):
 
         Parameters
         ----------
-        X : array-like, shape (n_samples, n_features)
+        X : array-like, shape=[n_samples, n_features]
             The input samples.
 
         Returns
         -------
-        y : ndarray, shape (n_samples,)
+        y : array-like, shape=[n_samples]
             The label for each sample is the label of the closest sample
             seen during fit.
         """
@@ -143,8 +145,9 @@ class TemplateTransformer(BaseEstimator, TransformerMixin):
 
     Parameters
     ----------
-    demo_param : str, default='demo'
+    demo_param : str
         A parameter used for demonstation of how to pass and store paramters.
+        Optional, default: 'demo'.
 
     Attributes
     ----------
@@ -160,7 +163,7 @@ class TemplateTransformer(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+        X : array-like, shape=[n_samples, n_features]
             The training input samples.
         y : None
             There is no need of a target in a transformer, yet the pipeline API
@@ -183,12 +186,12 @@ class TemplateTransformer(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : {array-like, sparse-matrix}, shape (n_samples, n_features)
+        X : array-like, shape=[n_samples, n_features]
             The input samples.
 
         Returns
         -------
-        X_transformed : array, shape (n_samples, n_features)
+        X_transformed : array-like, shape=[n_samples, n_features]
             The array containing the element-wise square roots of the values
             in ``X``.
         """

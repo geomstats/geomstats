@@ -44,7 +44,13 @@ class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : PoincareBallMetric
+            Default metric.
+        """
         return PoincareBallMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -275,7 +281,6 @@ class PoincareBallMetric(RiemannianMetric):
         ----------
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, defaults to zeros if None.
 
         Returns
         -------

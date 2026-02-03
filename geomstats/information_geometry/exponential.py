@@ -33,7 +33,13 @@ class ExponentialDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : ExponentialMetric
+            Metric to equip the space with.
+        """
         return ExponentialMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -69,9 +75,12 @@ class ExponentialDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        bound : float
-            Right-end ot the segment where exponential parameters are sampled.
-            Optional, default: 1.
+        lower_bound : float
+            Left-end of the segment where exponential parameters are sampled.
+            Optional, default: 0.1.
+        upper_bound : float
+            Right-end of the segment where exponential parameters are sampled.
+            Optional, default: 1.0.
 
         Returns
         -------
@@ -210,6 +219,10 @@ class ExponentialMetric(RiemannianMetric):
         ----------
         t : array-like, shape=[n_times,]
             Times at which to compute points of the geodesics.
+        initial_point : array-like
+            Initial point parameter.
+        base : array-like
+            Base parameter.
 
         Returns
         -------

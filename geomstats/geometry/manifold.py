@@ -25,11 +25,12 @@ class Manifold(abc.ABC):
         Dimension of the manifold.
     shape : tuple of int
         Shape of one element of the manifold.
-        Optional, default : None.
     intrinsic : bool
         Coordinate type.
+        Optional, default: True.
     equip : bool
         If True, equip space with default metric.
+        Optional, default: True.
 
     Attributes
     ----------
@@ -68,6 +69,13 @@ class Manifold(abc.ABC):
         ----------
         Metric : RiemannianMetric object or instance or ScalarProductMetric instance
             If None, default metric will be used.
+        **metric_kwargs : dict
+            Keyword arguments to pass to the metric constructor.
+
+        Returns
+        -------
+        self : Manifold
+            Manifold equipped with the metric.
         """
         if Metric is None:
             out = self.default_metric()
@@ -97,6 +105,11 @@ class Manifold(abc.ABC):
         ----------
         group_action : str
             Group action.
+
+        Returns
+        -------
+        self : Manifold
+            Manifold equipped with the group action.
         """
         self.group_action = group_action
 

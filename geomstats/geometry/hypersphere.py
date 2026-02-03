@@ -54,10 +54,23 @@ class _Hypersphere(LevelSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        default_metric : type
+            Metric class.
+        """
         return HypersphereMetric
 
     def _define_embedding_space(self):
+        """Define embedding space.
+
+        Returns
+        -------
+        embedding_space : Euclidean
+            Embedding Euclidean space.
+        """
         return Euclidean(self.dim + 1)
 
     def submersion(self, point):
@@ -293,11 +306,9 @@ class _Hypersphere(LevelSet):
             Tangent vector to the sphere, in spherical coordinates.
         base_point : array-like, shape=[..., 3]
             Point on the sphere. Unused if ``base_point_spherical`` is given.
-            Optional, default : None.
         base_point_spherical : array-like, shape=[..., 2]
             Point on the sphere, in spherical coordinates. Either
             ``base_point`` or ``base_point_spherical`` must be given.
-            Optional, default : None.
 
         Returns
         -------
@@ -668,7 +679,13 @@ class _Hypersphere(LevelSet):
 
 
 class HypersphereMetric(RiemannianMetric):
-    """Class for the Hypersphere Metric."""
+    """Class for the Hypersphere Metric.
+
+    Parameters
+    ----------
+    space : _Hypersphere
+        Hypersphere to equip with metric.
+    """
 
     def metric_matrix(self, base_point=None):
         """Metric matrix at the tangent space at a base point.
@@ -677,7 +694,6 @@ class HypersphereMetric(RiemannianMetric):
         ----------
         base_point : array-like, shape=[..., dim + 1]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -695,7 +711,7 @@ class HypersphereMetric(RiemannianMetric):
             First tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., dim + 1]
             Second tangent vector at base point.
-        base_point : array-like, shape=[..., dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point on the hypersphere.
 
         Returns
@@ -717,7 +733,7 @@ class HypersphereMetric(RiemannianMetric):
         ----------
         vector : array-like, shape=[..., dim + 1]
             Vector on the tangent space of the hypersphere at base point.
-        base_point : array-like, shape=[..., dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point on the hypersphere.
 
         Returns
@@ -845,11 +861,9 @@ class HypersphereMetric(RiemannianMetric):
         direction : array-like, shape=[..., dim + 1]
             Tangent vector at base point, along which the parallel transport
             is computed.
-            Optional, default : None.
         end_point : array-like, shape=[..., dim + 1]
             Point on the hypersphere. Point to transport to. Unused if
             ``tangent_vec_b`` is given.
-            Optional, default : None.
 
         Returns
         -------

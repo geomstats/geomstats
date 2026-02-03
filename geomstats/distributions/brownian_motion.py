@@ -38,7 +38,17 @@ class BrownianMotion:
         self._check_coordinates(space)
 
     def _check_coordinates(self, space):
-        """Check the manifold is defined in intrinsic coordinates."""
+        """Check the manifold is defined in intrinsic coordinates.
+
+        Parameters
+        ----------
+        space : Manifold
+            Manifold to check.
+
+        Returns
+        -------
+        None
+        """
         if not space.intrinsic:
             raise ValueError(
                 "Space should be equipped with intrinsic coordinates to create Brownian"
@@ -59,9 +69,8 @@ class BrownianMotion:
 
         Returns
         -------
-        path : array-like, shape=[..., n_steps, dim]
+        path : array-like, shape=[..., n_steps+1, dim]
             Sample path of Brownian motion.
-
         """
         step_size = end_time / n_steps
 

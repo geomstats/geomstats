@@ -46,7 +46,13 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : HPDAffineMetric
+            Default metric.
+        """
         return HPDAffineMetric
 
     @staticmethod
@@ -265,10 +271,8 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         direction : array-like, shape=[..., n, n]
             Tangent vector at base point, initial speed of the geodesic along
             which the parallel transport is computed. Unused if `end_point` is given.
-            Optional, default: None.
         end_point : array-like, shape=[..., n, n]
             Point on the manifold of HPD matrices. Point to transport to.
-            Optional, default: None.
 
         Returns
         -------
@@ -453,7 +457,6 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
             transport along.
         end_point : array-like, shape=[..., n, n]
             Point to transport to.
-            Optional, default: None.
         n_steps : int
             Number of steps to use to approximate the solution of the
             ordinary differential equation.

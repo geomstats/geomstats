@@ -73,18 +73,15 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features) or list of object
+        X : array-like, shape=[n_samples, n_features] or list of object
             Feature vectors or other representations of training data.
-        y : array-like of shape (n_samples,) or (n_samples, n_targets)
-        or (n_samples, n1_targets, n2_targets) for
-        matrix-valued targets.
-            Target values. The target must belongs to the manifold space
+        y : array-like, shape=[n_samples] or [n_samples, n_targets] or [n_samples, n1_targets, n2_targets]
+            Target values. The target must belongs to the manifold space.
 
         Returns
         -------
-        tangent_y : array-like of shape (n_samples,) or (n_samples, n_targets)
-        or (n_samples, n1_targets, n2_targets)
-                Target projected on the associated (by the prior) tangent space.
+        tangent_y : array-like, shape=[n_samples] or [n_samples, n_targets] or [n_samples, n1_targets, n2_targets]
+            Target projected on the associated (by the prior) tangent space.
         """
         base_points = self.prior(X)
         return self.space.metric.log(y, base_point=base_points)
@@ -100,9 +97,9 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples,]
+        X : array-like, shape=[n_samples]
             Training input samples.
-        y : array-like, shape[n_samples, {dim, [n,n]}]
+        y : array-like, shape=[n_samples, dim] or [n_samples, n, n]
             Training target values.
 
         Returns
@@ -136,28 +133,29 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features) or list of object
+        X : array-like, shape=[n_samples, n_features] or list of object
             Query points where the GP is evaluated.
-        return_tangent_std : bool, default=False
+        return_tangent_std : bool
             If True, the standard-deviation of the predictive distribution on at
             the query points in the tangent space is returned along with the mean.
-        return_tangent_cov : bool, default=False
+            Optional, default: False.
+        return_tangent_cov : bool
             If True, the covariance of the joint predictive distribution at
             the query points in the tangent space is returned along with the mean.
+            Optional, default: False.
 
         Returns
         -------
-        y_mean : ndarray of shape (n_samples,) or (n_samples, n_targets)
+        y_mean : array-like, shape=[n_samples] or [n_samples, n_targets]
             Mean of predictive distribution a query points.
-        y_std : ndarray of shape (n_samples,) or (n_samples, n_targets), optional
+        y_std : array-like, shape=[n_samples] or [n_samples, n_targets]
             Standard deviation of predictive distribution at query points in
             the tangent space.
-            Only returned when ``return_std`` is True.
-        y_cov : ndarray of shape (n_samples, n_samples) or \
-                (n_samples, n_samples, n_targets), optional
+            Only returned when ``return_tangent_std`` is True.
+        y_cov : array-like, shape=[n_samples, n_samples] or [n_samples, n_samples, n_targets]
             Covariance of joint predictive distribution a query points
             in the tangent space.
-            Only returned when ``return_cov`` is True.
+            Only returned when ``return_tangent_cov`` is True.
             In the case where the target is matrix valued,
             return the covariance of the vectorized prediction.
         """
@@ -197,20 +195,21 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
 
         Parameters
         ----------
-        X : array-like of shape (n_samples_X, n_features) or list of object
+        X : array-like, shape=[n_samples_X, n_features] or list of object
             Query points where the WGP is evaluated.
-        n_samples : int, default=1
+        n_samples : int
             Number of samples drawn from the Wrapped Gaussian process per query
             point.
-        random_state : int, RandomState instance or None, default=0
+            Optional, default: 1.
+        random_state : int, RandomState instance or None
             Determines random number generation to randomly draw samples.
             Pass an int for reproducible results across multiple function
             calls.
+            Optional, default: 0.
 
         Returns
         -------
-        y_samples : ndarray of shape (n_samples_X, n_samples), or \
-            (n_samples_X, *target_shape, n_samples)
+        y_samples : array-like, shape=[n_samples_X, n_samples] or [n_samples_X, *target_shape, n_samples]
             Values of n_samples samples drawn from wrapped Gaussian process and
             evaluated at query points.
         """

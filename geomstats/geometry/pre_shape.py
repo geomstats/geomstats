@@ -66,10 +66,23 @@ class PreShapeSpace(LevelSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : PreShapeMetric
+            Default metric.
+        """
         return PreShapeMetric
 
     def _define_embedding_space(self):
+        """Define the embedding space.
+
+        Returns
+        -------
+        embedding_space : Matrices
+            Embedding space.
+        """
         return Matrices(self.k_landmarks, self.ambient_dim)
 
     def submersion(self, point):
@@ -860,10 +873,8 @@ class KendallShapeMetric(QuotientMetric):
         direction : array-like, shape=[..., k_landmarks, ambient_dim]
             Tangent vector ar `base_point`, initial velocity of the geodesic to
             transport  along.
-            Optional, default: None.
         end_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Point to transport to. Unused if `tangent_vec_b` is given.
-            Optional, default: None.
         n_steps : int
             Number of steps to use to approximate the solution of the
             ordinary differential equation.

@@ -137,7 +137,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
 
         Returns
         -------
-        labels : array-like, shape=[n_samples,]
+        labels : array-like, shape=[n_samples]
             Index of the cluster each sample belongs to.
         """
         labels = gs.zeros(len(X))

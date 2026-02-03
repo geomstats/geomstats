@@ -70,7 +70,8 @@ def make_splits(n_labels):
 
     Returns
     -------
-    split_iterator : Iterator[Split]
+    split_iterator : iterator
+        Iterator over all possible splits.
     """
     if n_labels <= 1:
         raise ValueError("`n_labels` must be greater than 1.")
@@ -95,7 +96,8 @@ def make_topologies(n_labels):
 
     Returns
     -------
-    topology_iterator : Iterator[ForestTopology]
+    topology_iterator : iterator
+        Iterator over all possible ForestTopology instances.
     """
     if n_labels <= 1:
         raise ValueError("The collection must have 2 elements or more.")
@@ -149,13 +151,15 @@ def _generate_partition(n_labels, p_new):
 
     Parameters
     ----------
+    n_labels : int
+        Number of labels.
     p_new : float
         A float between 0 and 1, the probability that no new component is added,
         and 1 - probability that a new component is added.
 
     Returns
     -------
-    partition : list[list[int]]
+    partition : list
         A partition of the set :math:`\{0,\dots,n-1\}` into non-empty sets.
     """
     _partition = [[0]]
@@ -181,12 +185,13 @@ def generate_random_wald(n_labels, p_keep, p_new, btol=1e-8, check=True):
     p_new : float
         A float between 0 and 1, the probability that no new component is added,
         and probability of 1 - p_new_ that a new component is added.
-    btol: float
-        Tolerance for the boundary of the coordinates in each grove. Defaults to
-        1e-08.
+    btol : float
+        Tolerance for the boundary of the coordinates in each grove.
+        Optional, default: 1e-08.
     check : bool
         If True, checks if splits still separate all labels. In this case, the split
         will not be deleted. If False, any split can be randomly deleted.
+        Optional, default: True.
 
     Returns
     -------
@@ -270,10 +275,12 @@ class Wald(Point):
         point : Wald
             Point to compare against point.
         atol : float
+            Absolute tolerance.
 
         Returns
         -------
         is_equal : bool
+            Whether the points are equal.
         """
         if self.topology != point.topology:
             return False
@@ -289,10 +296,12 @@ class Wald(Point):
         point : Wald or WaldBatch
             Point to compare against point.
         atol : float
+            Absolute tolerance.
 
         Returns
         -------
         is_equal : array-like, shape=[...]
+            Whether the points are equal.
         """
         return gs.array([self._equal_single(point_, atol) for point_ in point])
 
@@ -365,7 +374,13 @@ class WaldSpace(PointSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : WaldSpaceMetric
+            Default metric for the space.
+        """
         return WaldSpaceMetric
 
     def _belongs_single(self, point, atol=gs.atol):
@@ -377,7 +392,6 @@ class WaldSpace(PointSet):
             The point to be checked.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -406,7 +420,6 @@ class WaldSpace(PointSet):
             The point to be checked.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -421,20 +434,21 @@ class WaldSpace(PointSet):
         Parameters
         ----------
         n_samples : int
-            Number of samples. Defaults to 1.
-        p_tree : float between 0 and 1
+            Number of samples.
+            Optional, default: 1.
+        p_tree : float
             The probability that the sampled point is a tree, and not a forest. If the
             probability is equal to 1, then the sampled point will be a tree.
-            Defaults to 0.9.
-        p_keep : float between 0 and 1
+            Optional, default: 0.9.
+        p_keep : float
             The probability that a sampled edge is kept and not deleted randomly.
             To be precise, it is not exactly the probability, as some edges cannot be
             deleted since the requirement that two labels are separated by a split might
             be violated otherwise.
-            Defaults to 0.9
-        btol: float
-            Tolerance for the boundary of the coordinates in each grove. Defaults to
-            1e-08.
+            Optional, default: 0.9.
+        btol : float
+            Tolerance for the boundary of the coordinates in each grove.
+            Optional, default: 1e-08.
 
         Returns
         -------
@@ -453,13 +467,15 @@ class WaldSpace(PointSet):
         return WaldBatch(forests)
 
     def random_grove_point(self, topology, n_samples=1):
-        """Sample a random point in a given grove of wald spcae.
+        """Sample a random point in a given grove of wald space.
 
         Parameters
         ----------
         topology : ForestTopology
+            Topology of the grove.
         n_samples : int
-            Number of samples. Defaults to 1.
+            Number of samples.
+            Optional, default: 1.
 
         Returns
         -------
@@ -597,6 +613,11 @@ class WaldSpaceMetric(PointSetMetric):
             Stratum topology.
         initial_weights : array-like, shape=[..., n_splits]
             Initial guess for weights.
+
+        Returns
+        -------
+        projected_point : Wald or WaldBatch
+            Projected point in Wald space.
         """
         return self.projection_solver.projection(
             ambient_point, topology, initial_weights=initial_weights
@@ -729,6 +750,11 @@ class LocalProjectionSolver:
             Stratum topology.
         initial_weights : array-like, shape=[n_splits]
             Initial guess for weights.
+
+        Returns
+        -------
+        projected_point : Wald
+            Projected point in Wald space.
         """
         if len(topology.partition) == topology.n_labels:
             return Wald(topology=topology, weights=gs.ones(self.n_labels))
@@ -781,6 +807,11 @@ class LocalProjectionSolver:
             Stratum topology.
         initial_weights : array-like, shape=[..., n_splits]
             Initial guess for weights.
+
+        Returns
+        -------
+        projected_point : Wald or WaldBatch
+            Projected point in Wald space.
         """
         ambient_point, topology, initial_weights = broadcast_lists(
             ambient_point, topology, initial_weights
@@ -816,9 +847,9 @@ class BasicWaldGeodesicSolver(ABC):
 
         Parameters
         ----------
-        initial_point: Wald or WaldBatch
+        initial_point : Wald or WaldBatch
             Point in the WaldSpace.
-        initial_point: Wald or WaldBatch
+        end_point : Wald or WaldBatch
             Point in the WaldSpace.
 
         Returns
@@ -840,15 +871,16 @@ class BasicWaldGeodesicSolver(ABC):
 
         Parameters
         ----------
-        initial_point: Wald or WaldBatch
+        initial_point : Wald or WaldBatch
             Point in the WaldSpace.
-        initial_point: Wald or WaldBatch
+        end_point : Wald or WaldBatch
             Point in the WaldSpace.
 
         Returns
         -------
         path : callable
-            Time parameterized geodesic curve.
+            Time parameterized geodesic curve. Takes parameter t, that is the time
+            between 0 and 1 at which the corresponding point on the path is returned.
         """
 
         def _vec(t, fncs):
@@ -1029,6 +1061,7 @@ class DiscreteWaldPath:
         Returns
         -------
         path : WaldBatch
+            Interpolated path points.
         """
         weights = self.interpolator(t)
         return WaldBatch([Wald(self._topology, weights_) for weights_ in weights])

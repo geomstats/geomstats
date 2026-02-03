@@ -180,7 +180,7 @@ class GaussianMixtureModel:
 
         Parameters
         ----------
-        weighted_distances : array-like, shape=[n_gaussians,]
+        weighted_distances : array-like, shape=[n_gaussians]
             Mean of the weighted distances between training data
             and current barycentres. The weights of each data sample
             corresponds to the probability of belonging to a component
@@ -188,7 +188,7 @@ class GaussianMixtureModel:
 
         Returns
         -------
-        var : array-like, shape=[n_gaussians,]
+        var : array-like, shape=[n_gaussians]
             Estimated variances for each component of the GMM.
         """
         n_gaussians, precision = (
@@ -215,14 +215,14 @@ class GaussianMixtureModel:
 
         Parameters
         ----------
-        mixture_coefficients : array-like, shape=[n_gaussians,]
+        mixture_coefficients : array-like, shape=[n_gaussians]
             Coefficients of the Gaussian mixture model.
-        mesh_data : array-like, shape=[n_precision, dim]
+        mesh_data : array-like, shape=[..., dim]
             Points at which the GMM probability density is computed.
 
         Returns
         -------
-        weighted_pdf : array-like, shape=[n_precision, n_gaussians]
+        weighted_pdf : array-like, shape=[..., n_gaussians]
             Probability density function computed for each point of
             the mesh data, for each component of the GMM.
         """
@@ -263,18 +263,19 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         Equipped manifold.
     n_gaussians : int
         Number of Gaussian components in the mix.
-    initialisation_method : basestring
-        Optional, default: 'random'.
+        Optional, default: 8.
+    initialisation_method : str
         Choice between initialization method for variances, means and weights.
 
         - 'random' : will select random uniformly train points as
           initial cluster centers.
         - 'kmeans' : will apply Riemannian kmeans to deduce
           variances and means that the EM will use initially.
+        Optional, default: 'random'.
     tol : float
-        Optional, default: 1e-2.
         Convergence tolerance. If the difference of mean distance
         between two steps is lower than tol.
+        Optional, default: 1e-2.
     max_iter : int
         Maximum number of iterations for the gradient descent.
         Optional, default: 100.
@@ -343,6 +344,10 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         posterior_probabilities : array-like, shape=[n_samples, n_gaussians]
             Probability of a given sample to belong to a component
             of the GMM, computed for all components.
+
+        Returns
+        -------
+        None
         """
         self.mixture_coefficients_ = gs.mean(posterior_probabilities, 0)
 
@@ -397,6 +402,11 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         data : array-like, shape=[n_samples, n_features]
             Training data, where n_samples is the number of samples and
             n_features is the number of features.
+
+        Returns
+        -------
+        posterior_probabilities : array-like, shape=[n_samples, n_gaussians]
+            Updated posterior probabilities.
         """
         pdf = self._model.pdf(data)
 

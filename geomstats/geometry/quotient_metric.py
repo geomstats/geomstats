@@ -54,12 +54,10 @@ class QuotientMetric(RiemannianMetric):
             Tangent vector to the quotient manifold.
         base_point : array-like, shape=[..., {dim, [n, n]}]
             Point on the quotient manifold.
-            Optional, default: None.
         fiber_point : array-like, shape=[..., {dim, [n, n]}]
             Point on the total space, lift of `base_point`, i.e. such that
             `submersion` applied to `point` results in `base_point`.
-            Optional, default: None. In this case, it is computed using the
-            method lift.
+            In this case, it is computed using the method lift.
 
         Returns
         -------
@@ -94,7 +92,6 @@ class QuotientMetric(RiemannianMetric):
             Tangent vector to the quotient manifold.
         base_point : array-like, shape=[..., {dim, [n, n]}]
             Point on the quotient manifold.
-            Optional, default: None.
 
         Returns
         -------
@@ -118,7 +115,6 @@ class QuotientMetric(RiemannianMetric):
             Point on the manifold, initial point of the geodesic.
         initial_tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
 
         Returns
@@ -494,7 +490,6 @@ class QuotientMetric(RiemannianMetric):
             an initial tangent vector must be given.
         initial_tangent_vec : array-like, shape=[..., dim],
             Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
 
         Returns

@@ -38,7 +38,13 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MatricesMetric
+            Default metric.
+        """
         return MatricesMetric
 
     def projection(self, point):
@@ -205,7 +211,13 @@ class SquareMatrices(MatrixLieAlgebra):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MatricesMetric
+            Default metric.
+        """
         return MatricesMetric
 
     def _create_basis(self):

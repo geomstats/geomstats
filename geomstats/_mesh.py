@@ -17,6 +17,7 @@ class Surface:
         Mesh faces.
     signal : array-like, shape=[n_faces, d]
         A signal of the surface.
+        Optional, default: None.
     """
 
     def __init__(self, vertices, faces, signal=None):

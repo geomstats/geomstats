@@ -40,15 +40,19 @@ class _AACFrechetMean(BaseEstimator):
     ----------
     space : GraphSpace
         Graph space total space with a quotient structure.
-    epsilon: float, default=1e-6
+    epsilon : float
         Stopping criterion for the estimation step, i.e., the distance between two
         consecutive estimators.
-    max_iter: int, default = 20
+        Optional, default: 1e-3.
+    max_iter : int
         Stopping criterion on the maximum number of iterations.
-    init_point: array-like, shape=[n_nodes, n_nodes] or GraphPoint, default random.
+        Optional, default: 20.
+    init_point : array-like, shape=[n_nodes, n_nodes] or GraphPoint
         Algorithm initialization.
-    save_last_X: bool, default = True
+        Optional, default: random.
+    save_last_X : bool
         Flag to save the data as aligned in the last algorithm iteration.
+        Optional, default: True.
     total_space_estimator_kwargs : dict
         Total space estimator keyword arguments.
 
@@ -102,7 +106,7 @@ class _AACFrechetMean(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, n_nodes, n_nodes].
+        X : array-like, shape=[n_samples, n_nodes, n_nodes]
             Dataset to estimate the FM.
         y : Ignored
             Ignored.
@@ -237,7 +241,7 @@ class _AACGGPCA(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint.
+        X : array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint
             Dataset to estimate the GGPCA.
         y : Ignored
             Ignored.
@@ -303,15 +307,19 @@ class _AACRegression(BaseEstimator):
     ----------
     space : GraphSpace
         Graph space total space with a quotient structure.
-    epsilon: float, default=1e-6
+    epsilon : float
         Stopping criterion for the estimation step, i.e., the distance between loss
         function in two consecutive estimation steps.
-    max_iter: int, default = 20
+        Optional, default: 1e-3.
+    max_iter : int
         Stopping criterion on the maximum number of iterations.
-    init_point: array-like, shape=[n_nodes, n_nodes] or GraphPoint, default random.
+        Optional, default: 20.
+    init_point : array-like, shape=[n_nodes, n_nodes] or GraphPoint
         Algorithm initialization.
-    save_last_y: bool, default=True
+        Optional, default: random.
+    save_last_y : bool
         Flag to save the data as aligned in the last algorithm iteration.
+        Optional, default: True.
     total_space_estimator_kwargs : dict
         Total space estimator keyword arguments.
 
@@ -362,9 +370,9 @@ class _AACRegression(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, p].
+        X : array-like, shape=[n_samples, p]
             Dataset of regressors to estimate the GGR.
-        y : array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint.
+        y : array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint
             Dataset to estimate the GGR.
 
         Returns
@@ -405,13 +413,12 @@ class _AACRegression(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint
+        X : array-like, shape=[n_samples, p]
             Dataset to estimate the GGR.
 
         Returns
         -------
-        prediction : array-like, shape=[n_samples, n_nodes, n_nodes] or set of
-            GraphPoint
+        prediction : array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint
             Predicted unlabeled graphs.
         """
         return self.total_space_estimator.predict(X)

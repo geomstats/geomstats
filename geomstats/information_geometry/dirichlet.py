@@ -47,7 +47,13 @@ class DirichletDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : DirichletMetric
+            Metric to equip the space with.
+        """
         return DirichletMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -400,13 +406,17 @@ class DirichletMetric(RiemannianMetric):
             End point of the geodesic.
         degree : int
             Degree of the coordinates' polynomial functions of time.
+            Optional, default: 5.
         method : str
             Minimization method to use in scipy.optimize.minimize.
+            Optional, default: 'BFGS'.
         n_times : int
             Number of sample times.
+            Optional, default: 200.
         jac_on : bool
             If jac_on=True, use the Jacobian of the energy cost function in
             scipy.optimize.minimize.
+            Optional, default: True.
 
         Returns
         -------

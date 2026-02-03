@@ -11,13 +11,13 @@ def forward_difference(array, delta=None, axis=-1):
 
     Parameters
     ----------
-    array : array-like
+    array : array-like, shape=[..., n_points]
         Values of a function.
-    delta : float
+    delta : float, optional
         Spacing between points.
     axis : int
         Axis in which perform the difference.
-        Must be given backwards.
+        Must be given backwards. Optional, default: -1.
 
     Returns
     -------
@@ -46,16 +46,16 @@ def centered_difference(array, delta=None, axis=-1, endpoints=False):
 
     Parameters
     ----------
-    array : array-like
+    array : array-like, shape=[..., n_points]
         Values of a function.
-    delta : float
+    delta : float, optional
         Spacing between points.
     axis : int
         Axis in which perform the difference.
-        Must be given backwards.
+        Must be given backwards. Optional, default: -1.
     endpoints : bool
         If True, endpoints are computed by backward and forward differences,
-        respectively.
+        respectively. Optional, default: False.
 
     Returns
     -------
@@ -98,13 +98,13 @@ def second_centered_difference(array, delta=None, axis=-1):
 
     Parameters
     ----------
-    array : array-like
+    array : array-like, shape=[..., n_points]
         Values of a function.
-    delta : float
+    delta : float, optional
         Spacing between points.
     axis : int
         Axis in which perform the difference.
-        Must be given backwards.
+        Must be given backwards. Optional, default: -1.
 
     Returns
     -------

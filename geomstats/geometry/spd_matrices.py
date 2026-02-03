@@ -489,7 +489,13 @@ class SPDMatrices(VectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        default_metric : type
+            Metric class.
+        """
         return SPDAffineMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -729,10 +735,8 @@ class SPDAffineMetric(RiemannianMetric):
         direction : array-like, shape=[..., n, n]
             Tangent vector at base point, initial speed of the geodesic along
             which the parallel transport is computed. Unused if `end_point` is given.
-            Optional, default: None.
         end_point : array-like, shape=[..., n, n]
             Point on the manifold of SPD matrices. Point to transport to.
-            Optional, default: None.
 
         Returns
         -------
@@ -933,7 +937,6 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
             transport along.
         end_point : array-like, shape=[..., n, n]
             Point to transport to.
-            Optional, default: None.
         n_steps : int
             Number of steps to use to approximate the solution of the
             ordinary differential equation.

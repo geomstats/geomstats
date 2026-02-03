@@ -160,14 +160,26 @@ class VectorSpace(Manifold, abc.ABC):
 
     @property
     def basis(self):
-        """Basis of the vector space."""
+        """Basis of the vector space.
+
+        Returns
+        -------
+        basis : array-like, shape=[dim, *point_shape]
+            Basis of the vector space.
+        """
         if self._basis is None:
             self._basis = self._create_basis()
         return self._basis
 
     @abc.abstractmethod
     def _create_basis(self):
-        """Create a canonical basis."""
+        """Create a canonical basis.
+
+        Returns
+        -------
+        basis : array-like, shape=[dim, *point_shape]
+            Canonical basis of the vector space.
+        """
 
 
 class MatrixVectorSpace(VectorSpace, abc.ABC):
@@ -348,7 +360,13 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
 
 
 class ComplexMatrixVectorSpace(ComplexVectorSpace):
-    """A matrix vector space."""
+    """A complex matrix vector space.
+
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the elements of the vector space.
+    """
 
 
 class LevelSet(Manifold, abc.ABC):
@@ -748,7 +766,13 @@ class ImmersedSet(Manifold, abc.ABC):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        default_metric : type
+            Metric class.
+        """
         return PullbackMetric
 
     @abc.abstractmethod

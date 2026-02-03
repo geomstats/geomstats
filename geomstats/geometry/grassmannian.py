@@ -74,11 +74,24 @@ class Grassmannian(LevelSet):
         super().__init__(dim=dim, equip=equip)
 
     def _define_embedding_space(self):
+        """Define embedding space.
+
+        Returns
+        -------
+        embedding_space : SymmetricMatrices
+            Embedding space.
+        """
         return SymmetricMatrices(self.n)
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        default_metric : type
+            Metric class.
+        """
         return GrassmannianCanonicalMetric
 
     def submersion(self, point):
@@ -327,11 +340,9 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         direction : array-like, shape=[..., n, n]
             Tangent vector at base point, along which the parallel transport
             is computed.
-            Optional, default: None
         end_point : array-like, shape=[..., n, n]
             Point on the Grassmann manifold to transport to. Unused if
             `direction` is given.
-            Optional, default: None
 
         Returns
         -------
@@ -447,7 +458,6 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
             Tangent vector.
         base_point : array-like, shape=[..., m, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -471,7 +481,6 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -492,7 +501,6 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------

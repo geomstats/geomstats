@@ -151,7 +151,7 @@ def taylor_exp_even_func(point, taylor_function, order=5, tol=EPSILON):
             Taylor coefficients of even order at zero.
     order : int
         Order of the Taylor approximation.
-        Optional, Default: 5.
+        Optional, default: 5.
     tol : float
         Threshold to use the approximation instead of the function's value.
         Where `abs(point) <= tol`, the approximation is returned.

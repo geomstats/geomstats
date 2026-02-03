@@ -695,11 +695,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
         direction : array-like, shape=[..., n, n]
             Tangent vector at base point, along which the parallel transport
             is computed.
-            Optional, default: None
         end_point : array-like, shape=[..., n, n]
             Point on the manifold. Point to transport to.
             Unused if `tangent_vec_b` is given
-            Optional, default: None
         n_steps : int
             Number of integration steps to take.
             Optional, default : 10.
@@ -1280,10 +1278,8 @@ class BiInvariantMetric(RiemannianMetric):
         direction : array-like, shape=[..., n, n]
             Tangent vector at base point, along which the parallel transport
             is computed.
-            Optional, default: None.
         end_point : array-like, shape=[..., n, n]
             Point on the manifold. Point to transport to.
-            Optional, default: None.
 
         Returns
         -------

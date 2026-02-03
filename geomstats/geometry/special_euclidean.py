@@ -126,10 +126,23 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : SpecialEuclideanMatricesCanonicalLeftMetric
+            Default metric.
+        """
         return SpecialEuclideanMatricesCanonicalLeftMetric
 
     def _define_embedding_space(self):
+        """Define the embedding space.
+
+        Returns
+        -------
+        embedding_space : GeneralLinear
+            Embedding space.
+        """
         return GeneralLinear(self.n + 1, positive_det=True)
 
     def submersion(self, point):
@@ -1059,7 +1072,6 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
             an initial tangent vector must be given.
         initial_tangent_vec : array-like, shape=[..., dim],
             Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
 
         Returns
@@ -1106,11 +1118,9 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
         direction : array-like, shape=[..., n + 1, n + 1]
             Tangent vector at base point, along which the parallel transport
             is computed.
-            Optional, default: None
         end_point : array-like, shape=[..., n + 1, n + 1]
             Point on the Grassmann manifold to transport to. Unused if
             `tangent_vec_b` is given.
-            Optional, default: None
 
         Returns
         -------
@@ -1269,7 +1279,13 @@ class SpecialEuclideanMatricesLieAlgebra(MatrixLieAlgebra):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MatricesMetric
+            Default metric.
+        """
         return MatricesMetric
 
     def _create_basis(self):

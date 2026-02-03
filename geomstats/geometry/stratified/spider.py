@@ -43,13 +43,15 @@ class SpiderPoint(Point):
 
         Parameters
         ----------
-        point : Point
+        point : SpiderPoint
             Point to compare against.
         atol : float
+            Absolute tolerance.
 
         Returns
         -------
         is_equal : bool
+            Whether the points are equal.
         """
         return self.stratum == point.stratum and abs(self.coord - point.coord) < gs.atol
 
@@ -59,13 +61,15 @@ class SpiderPoint(Point):
 
         Parameters
         ----------
-        point : Point or PointBatch
+        point : SpiderPoint or PointBatch
             Point to compare against.
         atol : float
+            Absolute tolerance.
 
         Returns
         -------
         is_equal : array-like, shape=[...]
+            Whether the points are equal.
         """
         return gs.array([self._equal_single(point_, atol) for point_ in point])
 
@@ -95,7 +99,13 @@ class Spider(PointSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : SpiderMetric
+            Default metric for the space.
+        """
         return SpiderMetric
 
     def random_point(self, n_samples=1):
@@ -110,7 +120,7 @@ class Spider(PointSet):
         Returns
         -------
         samples : SpiderPoint or PointBatch
-            List of SpiderPoints randomly sampled from the Spider.
+            Points randomly sampled from the Spider.
         """
         s = gs.random.randint(low=0, high=self.n_rays, size=(n_samples,))
         x = gs.abs(gs.random.normal(loc=10, scale=1, size=n_samples))
@@ -173,7 +183,7 @@ class Spider(PointSet):
 
         Returns
         -------
-        belongs : boolean
+        belongs : bool
             Boolean denoting if the point has a positive length when on non-zero ray.
         """
         if point.coord <= -atol:
@@ -203,7 +213,7 @@ class SpiderMetric(PointSetMetric):
 
         Returns
         -------
-        dist : array-like, shape=[...]
+        dist : float
             Distance between points.
         """
         if point_a.stratum == point_b.stratum:
@@ -269,7 +279,7 @@ class SpiderMetric(PointSetMetric):
         return lambda t: _vec(t, fncs=fncs)
 
     def _geodesic_single(self, initial_point, end_point):
-        """Compute the distance between two Spider points.
+        """Compute the geodesic between two Spider points.
 
         Parameters
         ----------
@@ -280,8 +290,9 @@ class SpiderMetric(PointSetMetric):
 
         Returns
         -------
-        geo: function
-            Geodesic between two Spider Points.
+        geodesic : callable
+            Geodesic between two Spider Points. Takes parameter t, that is the time
+            between 0 and 1 at which the corresponding point on the path is returned.
         """
         if initial_point.stratum == end_point.stratum:
 

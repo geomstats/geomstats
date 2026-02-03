@@ -45,12 +45,17 @@ class TorchminMinimize(Minimizer):
             The objective function to be minimized.
         x0 : array-like
             Initial guess.
-        fun_jac : callable
+        fun_jac : callable, optional
             Jacobian of fun. Ignored.
-        fun_hess : callable
+        fun_hess : callable, optional
             Hessian of fun. Ignored.
-        hessp : callable
+        hessp : callable, optional
             Ignored.
+
+        Returns
+        -------
+        result : OptimizeResult
+            Optimization result.
         """
         result = torchmin_minimize(
             fun, x0, **params_to_kwargs(self, func=torchmin_minimize)

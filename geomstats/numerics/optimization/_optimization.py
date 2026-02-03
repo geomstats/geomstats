@@ -32,11 +32,17 @@ class Minimizer(ABC):
             The objective function to be minimized.
         x0 : array-like
             Initial guess.
-        fun_jac : callable
+        fun_jac : callable, optional
             Jacobian of fun.
-        fun_hess : callable
+        fun_hess : callable, optional
             Hessian of fun.
-        hessp : callable
+        hessp : callable, optional
+            Hessian-vector product.
+
+        Returns
+        -------
+        result : OptimizeResult
+            Optimization result.
         """
 
 
@@ -53,8 +59,8 @@ class RootFinder(ABC):
             Vector-valued function.
         x0 : array-like
             Initial guess.
-        fun_jac : callable
-            Ignored if None.
+        fun_jac : callable, optional
+            Jacobian of fun. Ignored if None.
 
         Returns
         -------
@@ -83,6 +89,17 @@ class NewtonMethod(RootFinder):
     """
 
     def __init__(self, atol=gs.atol, max_iter=100, damped=False):
+        """Initialize Newton method.
+
+        Parameters
+        ----------
+        atol : float
+            Tolerance to check algorithm convergence. Optional, default: gs.atol.
+        max_iter : int
+            Maximum iterations. Optional, default: 100.
+        damped : bool
+            Whether to use a damped version. Optional, default: False.
+        """
         self.atol = atol
         self.max_iter = max_iter
         self.damped = damped
@@ -98,6 +115,11 @@ class NewtonMethod(RootFinder):
             Initial guess.
         fun_jac : callable
             Jacobian of fun.
+
+        Returns
+        -------
+        result : OptimizeResult
+            Root finding result.
         """
         xk = x0
         message = "The solution converged."

@@ -175,13 +175,25 @@ class Matrices(MatrixVectorSpace):
         self.n = n
 
     def _create_basis(self):
-        """Create the canonical basis."""
+        """Create the canonical basis.
+
+        Returns
+        -------
+        basis : array-like, shape=[m*n, m, n]
+            Canonical basis of the matrix space.
+        """
         m, n = self.m, self.n
         return gs.reshape(gs.eye(n * m), (n * m, m, n))
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        default_metric : type
+            Metric class.
+        """
         return MatricesMetric
 
     def basis_representation(self, matrix_representation):
@@ -847,7 +859,6 @@ class MatricesMetric(EuclideanMetric):
             Tangent vector.
         base_point : array-like, shape=[..., m, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -871,7 +882,6 @@ class MatricesMetric(EuclideanMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -894,7 +904,6 @@ class MatricesMetric(EuclideanMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -949,7 +958,6 @@ class MatricesDiagMetric(EuclideanMetric):
             Tangent vector.
         base_point : array-like, shape=[..., m, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------

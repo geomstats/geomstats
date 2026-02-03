@@ -20,10 +20,12 @@ class Point(ABC):
         point : Point or PointBatch
             Point to compare against point.
         atol : float
+            Absolute tolerance.
 
         Returns
         -------
         is_equal : array-like, shape=[...]
+            Whether the points are equal.
         """
 
 
@@ -44,6 +46,12 @@ class PointBatch(ABC, list):
         point : Point or PointBatch
             Point to compare against point.
         atol : float
+            Absolute tolerance.
+
+        Returns
+        -------
+        is_equal : array-like, shape=[...]
+            Whether the points are equal.
         """
         if isinstance(point, (list, tuple)):
             return gs.array(
@@ -70,8 +78,15 @@ class PointSet(ABC):
 
         Parameters
         ----------
-        Metric : PointSetMetric object
+        Metric : PointSetMetric
             If None, default metric will be used.
+        **metric_kwargs : dict
+            Additional keyword arguments for the metric.
+
+        Returns
+        -------
+        self : PointSet
+            Self.
         """
         if Metric is None:
             out = self.default_metric()
@@ -94,7 +109,6 @@ class PointSet(ABC):
             Point to evaluate.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------

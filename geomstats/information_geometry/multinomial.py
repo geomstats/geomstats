@@ -133,10 +133,23 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MultinomialMetric
+            Metric to equip the space with.
+        """
         return MultinomialMetric
 
     def _define_embedding_space(self):
+        """Define the embedding space.
+
+        Returns
+        -------
+        embedding_space : Euclidean
+            Embedding Euclidean space.
+        """
         return Euclidean(self.dim + 1)
 
     def submersion(self, point):
@@ -145,10 +158,12 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         Parameters
         ----------
         point : array-like, shape=[..., dim + 1]
+            Point on the embedding space.
 
         Returns
         -------
         submersed_point : array-like, shape=[...]
+            Result of the submersion.
         """
         return gs.sum(point, axis=-1) - 1.0
 
@@ -158,11 +173,14 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         Parameters
         ----------
         vector : array-like, shape=[..., dim + 1]
-        point : Ignored.
+            Tangent vector.
+        point : array-like
+            Base point. Ignored.
 
         Returns
         -------
         submersed_vector : array-like, shape=[...]
+            Result of the tangent submersion.
         """
         return gs.sum(vector, axis=-1)
 

@@ -23,18 +23,18 @@ class TimeSeriesCovariance:
 
     Parameters
     ----------
-    data_dict : dict
+    data : dict
         Dictionary with 'time', 'raw_data', 'label' as key
         and the corresponding array as values.
     n_steps : int
         Size of the batches.
     n_timeseries : int
         The number of electrodes used for the recording.
-    label_map : dictionary
+    label_map : dict
         Encode the label into digits.
     margin : int
         Number of index to remove before and after a sign change (Can
-        help getting a stationary signal).
+        help getting a stationary signal). Optional, default: 0.
 
     Attributes
     ----------
@@ -63,6 +63,23 @@ class TimeSeriesCovariance:
     """
 
     def __init__(self, data, n_steps, n_timeseries, label_map, margin=0):
+        """Initialize TimeSeriesCovariance.
+
+        Parameters
+        ----------
+        data : dict
+            Dictionary with 'time', 'raw_data', 'label' as key
+            and the corresponding array as values.
+        n_steps : int
+            Size of the batches.
+        n_timeseries : int
+            The number of electrodes used for the recording.
+        label_map : dict
+            Encode the label into digits.
+        margin : int
+            Number of index to remove before and after a sign change (Can
+            help getting a stationary signal). Optional, default: 0.
+        """
         self.label_map = label_map
         self.data = data
         self.n_steps = n_steps
@@ -75,7 +92,12 @@ class TimeSeriesCovariance:
         self.diags = gs.array([])
 
     def _format_labels(self):
-        """Convert the labels into digits."""
+        """Convert the labels into digits.
+
+        Returns
+        -------
+        self : object
+        """
         self.data["y"] = gs.array([self.label_map[x] for x in self.data["label"]])
 
     def _create_batches(self):
@@ -98,6 +120,10 @@ class TimeSeriesCovariance:
 
         We also compute the corresponding vectors, variance vector,
         labels, and experiments.
+
+        Returns
+        -------
+        self : object
         """
         if "y" not in self.data.keys():
             self._format_labels()

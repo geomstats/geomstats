@@ -313,7 +313,13 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : ProductRiemannianMetric
+            Default metric.
+        """
         return ProductRiemannianMetric
 
     def _pool_outputs_from_function(self, outputs):
@@ -433,7 +439,6 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
         ----------
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
-            Optional, default: None.
         n_samples : int
             Number of samples.
             Optional, default: 1.
@@ -504,7 +509,6 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
             Vector.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
-            Optional, default: None
         atol : float
             Absolute tolerance.
             Optional, default: backend atol.
@@ -559,7 +563,6 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         ----------
         base_point : array-like, shape=[..., self.shape]
             Point on the manifold at which to compute the inner-product matrix.
-            Optional, default: None.
 
         Returns
         -------
@@ -587,7 +590,6 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             Second tangent vector at base point.
         base_point : array-like, shape=[..., self.shape]
             Point on the manifold.
-            Optional, default: None.
 
         Returns
         -------
@@ -614,7 +616,6 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             Vector.
         base_point : array-like, shape=[..., self.shape]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -637,7 +638,6 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             Tangent vector at a base point.
         base_point : array-like, shape=[..., self.shape]
             Point on the manifold.
-            Optional, default: None.
 
         Returns
         -------
@@ -658,7 +658,6 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             Point on the manifold.
         base_point : array-like, shape=[..., self.shape]
             Point on the manifold.
-            Optional, default: None.
 
         Returns
         -------
@@ -706,7 +705,6 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             an initial tangent vector must be given.
         initial_tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
 
         Returns

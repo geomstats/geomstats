@@ -180,11 +180,37 @@ class PointToGeodesicAlignerBase(ABC):
 
     @abstractmethod
     def align(self, geodesic, point):
-        """Class for the alignment of the geodesic with respect to a point."""
+        """Class for the alignment of the geodesic with respect to a point.
+
+        Parameters
+        ----------
+        geodesic : callable
+            Geodesic function.
+        point : array-like, shape=[..., n_nodes, n_nodes]
+            Graph to align.
+
+        Returns
+        -------
+        aligned_point : array-like, shape=[..., n_nodes, n_nodes]
+            Aligned graph.
+        """
 
     @abstractmethod
     def dist(self, geodesic, point):
-        """Class to compute distance between the geodesic with respect to a point."""
+        """Class to compute distance between the geodesic with respect to a point.
+
+        Parameters
+        ----------
+        geodesic : callable
+            Geodesic function.
+        point : array-like, shape=[..., n_nodes, n_nodes]
+            Graph to align.
+
+        Returns
+        -------
+        dist : array-like, shape=[...]
+            Distance between the geodesic and the point.
+        """
 
 
 class PointToGeodesicAligner(PointToGeodesicAlignerBase):
@@ -307,14 +333,14 @@ class PointToGeodesicAligner(PointToGeodesicAlignerBase):
 
         Parameters
         ----------
-        geodesic : function
+        geodesic : callable
             Geodesic function in GraphSpace.
         point : array-like, shape=[..., n_nodes, n_nodes]
             Graph to align.
 
         Returns
         -------
-        dist : array-like, shape=[..., n_nodes]
+        dist : array-like, shape=[...]
             Distance between the point and the geodesic.
 
         Notes
@@ -478,14 +504,14 @@ class _GeodesicToPointAligner(PointToGeodesicAlignerBase):
 
         Parameters
         ----------
-        geodesic : function
+        geodesic : callable
             Geodesic function in GraphSpace.
         point : array-like, shape=[..., n_nodes, n_nodes]
             Graph to align.
 
         Returns
         -------
-        dist : array-like, shape=[..., n_nodes]
+        dist : array-like, shape=[...]
             Distance between the point and the geodesic.
         """
         sdist, _ = self.squared_dist(geodesic, point, return_perm=True)
@@ -547,11 +573,35 @@ class GraphSpace(Matrices):
         super().__init__(n_nodes, n_nodes, equip=equip)
 
     def new(self, equip=True):
-        """Create manifold with same parameters."""
+        """Create manifold with same parameters.
+
+        Parameters
+        ----------
+        equip : bool
+            Whether to equip the manifold with a metric.
+            Optional, default: True.
+
+        Returns
+        -------
+        space : GraphSpace
+            New GraphSpace instance with same parameters.
+        """
         return GraphSpace(n_nodes=self.n_nodes, equip=equip)
 
     def equip_with_group_action(self, group_action="permutations"):
-        """Equip manifold with group action."""
+        """Equip manifold with group action.
+
+        Parameters
+        ----------
+        group_action : str or GroupAction
+            Group action to equip with.
+            Optional, default: "permutations".
+
+        Returns
+        -------
+        self : GraphSpace
+            Self.
+        """
         if group_action == "permutations":
             group_action = PermutationAction()
 
@@ -603,7 +653,15 @@ class GraphSpaceAligner(Aligner):
         ----------
         align_algo : str or GraphSpaceAlignerAlgorithm
             'FAQ': Fast Quadratic Assignment - only compatible with Frobenius norm,
-            'exhaustive': all group exhaustive search
+            'exhaustive': all group exhaustive search.
+            Optional, default: "FAQ".
+        **kwargs : dict
+            Additional keyword arguments for the aligner.
+
+        Returns
+        -------
+        aligner : GraphSpaceAlignerAlgorithm
+            The alignment algorithm instance.
         """
         if isinstance(align_algo, str):
             check_parameter_accepted_values(
@@ -626,13 +684,25 @@ class GraphSpaceAligner(Aligner):
 
         Parameters
         ----------
-        aligner: BasePointToGeodesicAligner
+        aligner : str or BasePointToGeodesicAligner
+            Aligner to use.
+            Optional, default: "default".
         s_min : float
             Minimum value of the domain to sample along the geodesics.
+            Optional, default: -1.0.
         s_max : float
-            Minimum value of the domain to sample along the geodesics.
-        n_points: int
+            Maximum value of the domain to sample along the geodesics.
+            Optional, default: 1.0.
+        n_grid : int
             Number of points to sample between s_min and s_max.
+            Optional, default: 10.
+        **kwargs : dict
+            Additional keyword arguments for the aligner.
+
+        Returns
+        -------
+        aligner : BasePointToGeodesicAligner
+            The point to geodesic aligner instance.
         """
         if aligner == "default":
             kwargs.setdefault("s_min", -1.0)

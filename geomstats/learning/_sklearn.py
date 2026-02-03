@@ -43,9 +43,10 @@ class GetParamsMixin:
 
         Parameters
         ----------
-        deep : bool, default=True
+        deep : bool
             If True, will return the parameters for this estimator and
             contained subobjects that are estimators.
+            Optional, default: True.
 
         Returns
         -------
@@ -108,8 +109,7 @@ class InvertibleFlattenButFirst(FunctionTransformer):
 
         Parameters
         ----------
-        X : {array-like, sparse-matrix} of shape (n_samples, n_features) \
-                if `validate=True` else any object that `func` can handle
+        X : array-like, shape=[n_samples, n_features]
             Input array.
         y : Ignored
             Not used, present here for API consistency by convention.

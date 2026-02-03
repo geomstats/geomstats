@@ -14,7 +14,17 @@ ATOL = 1e-6
 
 
 class MatrixLieGroup(Manifold, abc.ABC):
-    """Class for matrix Lie groups."""
+    """Class for matrix Lie groups.
+
+    Parameters
+    ----------
+    representation_dim : int
+        Dimension of the matrix representation of the group.
+    lie_algebra : MatrixLieAlgebra
+        Lie algebra for the group.
+    **kwargs : dict
+        Keyword arguments passed to parent class.
+    """
 
     def __init__(self, representation_dim, lie_algebra=None, **kwargs):
         super().__init__(shape=(representation_dim, representation_dim), **kwargs)
@@ -23,7 +33,13 @@ class MatrixLieGroup(Manifold, abc.ABC):
 
     @property
     def identity(self):
-        """Matrix identity."""
+        """Matrix identity.
+
+        Returns
+        -------
+        identity : array-like, shape=[n, n]
+            Identity matrix.
+        """
         return gs.eye(self.representation_dim)
 
     @staticmethod
@@ -144,7 +160,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
         atol : float
             Precision at which to evaluate if the rotation part is
             skew-symmetric.
-            Optional. default: 1e-6
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -164,9 +180,8 @@ class MatrixLieGroup(Manifold, abc.ABC):
         ----------
         vector : array-like, shape=[..., {dim, [n, n]}]
             Vector to project. Its shape must match the shape of base_point.
-        base_point : array-like, shape=[..., {dim, [n, n]}], optional
+        base_point : array-like, shape=[..., {dim, [n, n]}]
             Point of the group.
-            Optional, default: identity.
 
         Returns
         -------
@@ -263,11 +278,10 @@ class LieGroup(Manifold, abc.ABC):
 
     Parameters
     ----------
-    dim : int
-        Dimension of the Lie group.
     lie_algebra : MatrixLieAlgebra
         Lie algebra for matrix groups.
-        Optional, default: None.
+    **kwargs : dict
+        Keyword arguments passed to parent class.
 
     Attributes
     ----------
@@ -280,7 +294,13 @@ class LieGroup(Manifold, abc.ABC):
         self.lie_algebra = lie_algebra
 
     def default_metric(self):
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        default_metric : tuple
+            Tuple containing the metric class and kwargs.
+        """
         return (
             InvariantMetric,
             {"left": True, "metric_mat_at_identity": gs.eye(self.dim)},
@@ -587,11 +607,10 @@ class LieGroup(Manifold, abc.ABC):
             Vector.
         base_point : array-like, shape=[..., dim_embedding]
             Point in the Lie group.
-            Optional. default: identity.
         atol : float
             Precision at which to evaluate if the rotation part is
             skew-symmetric.
-            Optional. default: 1e-6
+            Optional, default: 1e-6.
 
         Returns
         -------
@@ -611,9 +630,8 @@ class LieGroup(Manifold, abc.ABC):
         ----------
         vector : array-like, shape=[..., {dim, [n, n]}]
             Vector to project. Its shape must match the shape of base_point.
-        base_point : array-like, shape=[..., {dim, [n, n]}], optional
+        base_point : array-like, shape=[..., {dim, [n, n]}]
             Point of the group.
-            Optional, default: identity.
 
         Returns
         -------

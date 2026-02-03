@@ -61,7 +61,13 @@ class Siegel(ComplexVectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : SiegelMetric
+            Default metric.
+        """
         return SiegelMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -164,7 +170,6 @@ class Siegel(ComplexVectorSpaceOpenSet):
             Optional, default: 1.
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
-            Optional, default: None.
 
         Returns
         -------

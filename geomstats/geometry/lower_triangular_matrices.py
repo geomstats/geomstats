@@ -23,7 +23,13 @@ class LowerTriangularMatrices(MatrixVectorSpace):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MatricesMetric
+            Default metric.
+        """
         return MatricesMetric
 
     def _create_basis(self):
@@ -128,7 +134,13 @@ class StrictlyLowerTriangularMatrices(LevelSet, MatrixVectorSpace):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MatricesMetric
+            Default metric.
+        """
         return MatricesMetric
 
     def submersion(self, point):

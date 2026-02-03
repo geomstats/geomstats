@@ -44,7 +44,13 @@ class RankKPSDMatrices(Manifold):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : PSDEuclideanMetric
+            Default metric.
+        """
         return PSDEuclideanMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -147,7 +153,6 @@ class RankKPSDMatrices(Manifold):
             Matrix to check if it belongs to the tangent space.
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
-            Optional, default: None.
         atol : float
             Absolute tolerance.
             Optional, default: backend atol.
@@ -176,7 +181,6 @@ class RankKPSDMatrices(Manifold):
             Matrix to check if it belongs to the tangent space.
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
-            Optional, default: None.
 
         Returns
         -------

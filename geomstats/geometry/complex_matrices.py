@@ -29,7 +29,13 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : ComplexMatricesMetric
+            Default metric.
+        """
         return ComplexMatricesMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -251,7 +257,6 @@ class ComplexMatricesMetric(HermitianMetric):
             Tangent vector.
         base_point : array-like, shape=[..., m, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -272,7 +277,6 @@ class ComplexMatricesMetric(HermitianMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -294,7 +298,6 @@ class ComplexMatricesMetric(HermitianMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------

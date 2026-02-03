@@ -39,6 +39,7 @@ class IncrementalFrechetMean(BaseEstimator):
         Optional, default: False.
     clean_state : bool
         If keeping track of last iteration or clean state of estimator.
+        Optional, default: True.
 
     Notes
     -----
@@ -71,11 +72,11 @@ class IncrementalFrechetMean(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, {dim, [n, n]}]
+        X : array-like, shape=[n_samples, dim] or [n_samples, n, n]
             Training input samples.
         y : None
             Ignored.
-        init : array-like, shape=[{dim, [n, n]}]
+        init : array-like, shape=[dim] or [n, n]
             If not None, starts mean computation from init, could be useful
             when data comes in streaming setting.
             Optional, default: None.

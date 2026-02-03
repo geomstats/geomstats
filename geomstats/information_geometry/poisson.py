@@ -34,7 +34,13 @@ class PoissonDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : PoissonMetric
+            Metric to equip the space with.
+        """
         return PoissonMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -213,6 +219,10 @@ class PoissonMetric(RiemannianMetric):
         ----------
         t : array-like, shape=[n_times,]
             Times at which to compute points of the geodesics.
+        constant_a : array-like
+            Constant parameter a.
+        constant_b : array-like
+            Constant parameter b.
 
         Returns
         -------

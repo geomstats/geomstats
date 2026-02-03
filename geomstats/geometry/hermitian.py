@@ -25,7 +25,13 @@ class Hermitian(ComplexVectorSpace):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : HermitianMetric
+            Default metric.
+        """
         return HermitianMetric
 
     @property
@@ -73,7 +79,6 @@ class HermitianMetric(ComplexRiemannianMetric):
         ----------
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -97,7 +102,6 @@ class HermitianMetric(ComplexRiemannianMetric):
             Tangent vector at base point.
         base_point: array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -122,7 +126,6 @@ class HermitianMetric(ComplexRiemannianMetric):
             Vector.
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------

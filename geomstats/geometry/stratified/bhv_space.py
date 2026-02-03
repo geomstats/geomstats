@@ -42,14 +42,22 @@ def generate_random_tree(n_labels, p_keep=0.9, btol=1e-8):
 
     Parameters
     ----------
-    p_keep : float between 0 and 1
+    n_labels : int
+        Number of labels.
+    p_keep : float
         The probability that a sampled edge is kept and not deleted randomly.
         To be precise, it is not exactly the probability, as some edges cannot be
         deleted since the requirement that two labels are separated by a split might
         be violated otherwise.
-        Defaults to 0.9
-    btol: float
-        Tolerance for the boundary of the edge lengths. Defaults to 1e-08.
+        Optional, default: 0.9.
+    btol : float
+        Tolerance for the boundary of the edge lengths.
+        Optional, default: 1e-08.
+
+    Returns
+    -------
+    tree : Tree
+        Random tree instance.
     """
     labels = list(range(n_labels))
 
@@ -192,10 +200,12 @@ class Tree(Point):
         point : Tree
             Point to compare against point.
         atol : float
+            Absolute tolerance.
 
         Returns
         -------
         is_equal : bool
+            Whether the points are equal.
         """
         if self.topology != point.topology:
             return False
@@ -211,10 +221,12 @@ class Tree(Point):
         point : Tree or TreeBatch
             Point to compare against point.
         atol : float
+            Absolute tolerance.
 
         Returns
         -------
         is_equal : array-like, shape=[...]
+            Whether the points are equal.
         """
         return gs.array([self._equal_single(point_, atol) for point_ in point])
 
@@ -262,7 +274,13 @@ class TreeSpace(PointSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : BHVMetric
+            Default metric for the space.
+        """
         return BHVMetric
 
     def _belongs_single(self, point, atol=gs.atol):
@@ -274,7 +292,6 @@ class TreeSpace(PointSet):
             The point to be checked.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -691,14 +708,14 @@ class GTPSolver:
 
         Parameters
         ----------
-        splits : iterable of split
+        splits : iterable of Split
             The tree given via its splits. Each split corresponds to an edge.
         cut_splits : iterable of Split
             A subset of splits, the edges at which the tree is cut.
 
         Returns
         -------
-        partition : dict of tuple, tuple
+        partition : dict
             A dictionary, where the keys form a partition of the set of labels
             (0,...,n_labels-1),
             and each key is assigned the tuple of splits that are part of the subtree
@@ -751,9 +768,9 @@ class GTPSolver:
 
         Returns
         -------
-        support_a : tuple of tuple
+        support_a : tuple
             The support partition of A corresponding to a geodesic.
-        support_b : tuple of tuple
+        support_b : tuple
             The support partition of B corresponding to a geodesic.
         """
         old_support_a = (tuple(splits_a.keys()),)
@@ -824,13 +841,13 @@ class GTPSolver:
         -------
         value : float
             The value of the minimum cut.
-        c1 : set of Split
+        c1 : tuple
             First part of A that it is split into.
-        c2 : set of Split
+        c2 : tuple
             Second part of A that it is split into.
-        d1 : set of Split
+        d1 : tuple
             First part of B that it is split into.
-        d2 : set of Split
+        d2 : tuple
             Second part of B that it is split into.
         """
         total_a, total_b = sum(sq_splits_a.values()), sum(sq_splits_b.values())

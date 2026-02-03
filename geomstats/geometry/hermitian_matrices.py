@@ -118,7 +118,13 @@ class HermitianMatrices(ComplexMatrixVectorSpace):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : ComplexMatricesMetric
+            Default metric.
+        """
         return ComplexMatricesMetric
 
     def _create_basis(self):

@@ -39,6 +39,15 @@ class Interpolator(ABC):
 
 class _LinearInterpolator1D(Interpolator, ABC):
     def __init__(self, data, point_ndim=1):
+        """Initialize linear interpolator.
+
+        Parameters
+        ----------
+        data : array-like, shape=[..., n_times, *point_shape]
+            Data to interpolate.
+        point_ndim : int
+            Dimension of point. Optional, default: 1.
+        """
         self.data = data
         self.point_ndim = point_ndim
 
@@ -57,6 +66,7 @@ class _LinearInterpolator1D(Interpolator, ABC):
         Returns
         -------
         interval_index : array-like, shape=[n_times]
+            Interval indices.
         """
 
     def _get_ratio(self, t, interval_index, end_index):
@@ -67,7 +77,9 @@ class _LinearInterpolator1D(Interpolator, ABC):
         t : array-like, shape=[n_time]
             Interpolation time.
         interval_index : array-like, shape=[n_times]
+            Interval indices.
         end_index : array-like, shape=[n_times]
+            End indices.
 
         Returns
         -------
@@ -118,9 +130,10 @@ class UniformUnitIntervalLinearInterpolator(_LinearInterpolator1D):
 
     Parameters
     ----------
-    data : array-like, [..., *point_shape]
+    data : array-like, shape=[..., n_times, *point_shape]
+        Data to interpolate.
     point_ndim : int
-        Dimension of point.
+        Dimension of point. Optional, default: 1.
     """
 
     def __init__(self, data, point_ndim=1):
@@ -138,6 +151,7 @@ class UniformUnitIntervalLinearInterpolator(_LinearInterpolator1D):
         Returns
         -------
         interval_index : array-like, shape=[n_times]
+            Interval indices.
         """
         return gs.cast(
             t // self._delta,
@@ -171,11 +185,12 @@ class LinearInterpolator1D(_LinearInterpolator1D):
 
     Parameters
     ----------
-    times : array-like, [n_times]
+    times : array-like, shape=[n_times]
         Times. Must be sorted.
-    data : array-like, [..., *point_shape]
+    data : array-like, shape=[..., n_times, *point_shape]
+        Data to interpolate.
     point_ndim : int
-        Dimension of point.
+        Dimension of point. Optional, default: 1.
     """
 
     def __init__(self, times, data, point_ndim=1):
@@ -194,6 +209,7 @@ class LinearInterpolator1D(_LinearInterpolator1D):
         Returns
         -------
         interval_index : array-like, shape=[n_times]
+            Interval indices.
         """
         indices = gs.searchsorted(self.times, t) - 1
         return gs.where(indices < 0, 0, indices)

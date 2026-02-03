@@ -35,7 +35,13 @@ class BinomialDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : BinomialMetric
+            Metric to equip the space with.
+        """
         return BinomialMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -225,6 +231,10 @@ class BinomialMetric(RiemannianMetric):
         ----------
         t : array-like, shape=[n_times,]
             Times at which to compute points of the geodesics.
+        initial_phase : array-like
+            Initial phase parameter.
+        frequency : array-like
+            Frequency parameter.
 
         Returns
         -------

@@ -56,7 +56,6 @@ class PullbackMetric(RiemannianMetric):
         ----------
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -117,7 +116,6 @@ class PullbackMetric(RiemannianMetric):
         ----------
         base_point : array-like, shape=[..., *shape]
             Base point.
-            Optional, default: None.
 
         Returns
         -------

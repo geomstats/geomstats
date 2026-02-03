@@ -42,7 +42,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         Optional, default: 1e-2.
     max_iter : int
         Maximum number of iterations.
-        Optional, default: 100
+        Optional, default: 100.
     verbose : int
         If verbose > 0, information will be printed during learning.
         Optional, default: 0.
@@ -149,6 +149,11 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         -------
         self : object
             Returns self.
+
+        Returns
+        -------
+        self : object
+            Returns self.
         """
         n_samples = X.shape[0]
         if self.verbose > 0:
@@ -218,12 +223,12 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape[n_samples, n_features]
+        X : array-like, shape=[n_samples, n_features]
             Input data.
 
         Returns
         -------
-        labels : array-like, shape=[n_samples,]
+        labels : array-like, shape=[n_samples]
             Array of predicted cluster indices for each sample.
         """
         if self.cluster_centers_ is None:

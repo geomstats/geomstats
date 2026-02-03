@@ -94,6 +94,11 @@ class DistanceMinimizingAligner(AlignerAlgorithm):
             ----------
             param : array-like
                 Flat representation of group element.
+
+            Returns
+            -------
+            loss : float
+                Sum of squared distances.
             """
             group_elem = gs.reshape(param, batch_shape + self.group_elem_shape)
             aligned_point = self._total_space.group_action(group_elem, point)
@@ -436,10 +441,9 @@ class FiberBundle:
             Tangent vector.
         base_point : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point on the manifold.
-            Optional, default: None.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -464,7 +468,6 @@ class FiberBundle:
             Tangent vector.
         base_point : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point on the manifold.
-            Optional, default: None.
         atol : float
             Absolute tolerance.
             Optional, default: backend atol.
@@ -496,13 +499,12 @@ class FiberBundle:
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., {base_dim, [n, m]}]
+            Tangent vector in base manifold to lift.
         fiber_point : array-like, shape=[..., {ambient_dim, [n, m]}]
-            Point of the total space.
-            Optional, default : None. The `lift` method is used to compute a
-            point at which to compute a tangent vector.
+            Point of the total space. The `lift` method is used to compute a
+            point at which to compute a tangent vector if not provided.
         base_point : array-like, shape=[..., {base_dim, [n, m]}]
-            Point of the base space.
-            Optional, default : None. In this case, point must be given,
+            Point of the base space. In this case, point must be given,
             and `submersion` is used to compute the base_point if needed.
 
         Returns

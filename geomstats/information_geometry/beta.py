@@ -34,7 +34,13 @@ class BetaDistributions(DirichletDistributions):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : BetaMetric
+            Metric to equip the space with.
+        """
         return BetaMetric
 
     def sample(self, point, n_samples=1):
@@ -54,7 +60,7 @@ class BetaDistributions(DirichletDistributions):
         Returns
         -------
         samples : array-like, shape=[..., n_samples]
-            Sample from beta distributions.)
+            Sample from beta distributions.
         """
         return self._scp_rv.rvs(point, n_samples)
 
@@ -121,6 +127,9 @@ class BetaDistributions(DirichletDistributions):
             Scale parameter of the distribution to estimate parameters
             from. It is kept fixed during optimization.
             Optional, default: 1.
+        epsilon : float
+            Tolerance parameter for boundary values.
+            Optional, default: 1e-6.
 
         Returns
         -------

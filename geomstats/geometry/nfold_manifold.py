@@ -46,7 +46,13 @@ class NFoldManifold(Manifold):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : NFoldMetric
+            Default metric.
+        """
         return NFoldMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -248,7 +254,6 @@ class NFoldMetric(RiemannianMetric):
             Second tangent vector at base point.
         base_point : array-like, shape=[..., n_copies, *base_shape]
             Point on the manifold.
-            Optional, default: None.
 
         Returns
         -------
@@ -288,7 +293,6 @@ class NFoldMetric(RiemannianMetric):
             Second tangent vector at base point.
         base_point : array-like, shape=[..., n_copies, *base_shape]
             Point on the manifold.
-            Optional, default: None.
 
         Returns
         -------
@@ -332,7 +336,6 @@ class NFoldMetric(RiemannianMetric):
             Tangent vector at a base point.
         base_point : array-like, shape=[..., n_copies, *base_shape]
             Point on the manifold.
-            Optional, default: None.
 
         Returns
         -------
@@ -358,7 +361,6 @@ class NFoldMetric(RiemannianMetric):
             Point on the manifold.
         base_point : array-like, shape=[..., n_copies, *base_shape]
             Point on the manifold.
-            Optional, default: None.
 
         Returns
         -------

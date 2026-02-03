@@ -49,10 +49,23 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : BiInvariantMetric
+            Default metric.
+        """
         return BiInvariantMetric
 
     def _define_embedding_space(self):
+        """Define the embedding space.
+
+        Returns
+        -------
+        embedding_space : GeneralLinear
+            Embedding space.
+        """
         return GeneralLinear(self.n, positive_det=True, equip=False)
 
     def _aux_submersion(self, point):
@@ -712,7 +725,13 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : BiInvariantMetric
+            Default metric.
+        """
         return BiInvariantMetric
 
     def regularize(self, point):
@@ -1537,7 +1556,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             Tangent vector at base point.
         base_point : array-like, shape=[..., 3]
             Base point.
-            Optional, default: None.
 
         Returns
         -------

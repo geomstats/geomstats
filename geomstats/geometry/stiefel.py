@@ -47,10 +47,23 @@ class Stiefel(LevelSet):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        default_metric : type
+            Metric class.
+        """
         return StiefelCanonicalMetric
 
     def _define_embedding_space(self):
+        """Define embedding space.
+
+        Returns
+        -------
+        embedding_space : Matrices
+            Embedding space.
+        """
         return Matrices(self.n, self.p)
 
     def submersion(self, point):

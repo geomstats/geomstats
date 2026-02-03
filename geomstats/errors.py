@@ -49,8 +49,9 @@ def check_belongs(point, manifold, atol=gs.atol):
         Point to be tested.
     manifold : Manifold
         Manifold to which the point should belong.
-    manifold_name : string
-        Name of the manifold for the error message.
+    atol : float
+        Absolute tolerance for the belongs check.
+        Optional, default: gs.atol.
     """
     if not gs.all(manifold.belongs(point, atol=atol)):
         raise RuntimeError(
@@ -92,8 +93,8 @@ def check_point_shape(point, manifold, suppress_error=False):
     manifold : {Manifold, RiemannianMetric}
         The object to check the point against
     suppress_error : bool
-        Whether to suppress the ShapeError if the shapes do not match. Optional, default
-        is False.
+        Whether to suppress the ShapeError if the shapes do not match.
+        Optional, default: False.
 
     Returns
     -------

@@ -30,7 +30,13 @@ class SymmetricMatrices(MatrixVectorSpace):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MatricesMetric
+            Default metric.
+        """
         return MatricesMetric
 
     def _create_basis(self):
@@ -170,10 +176,23 @@ class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MatricesMetric
+            Default metric.
+        """
         return MatricesMetric
 
     def _define_embedding_space(self):
+        """Define the embedding space.
+
+        Returns
+        -------
+        embedding_space : SymmetricMatrices
+            Embedding space.
+        """
         return SymmetricMatrices(n=self.n)
 
     def submersion(self, point):
@@ -359,7 +378,6 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
             Tangent vector at base point.
         base_point: array-like, shape=[..., n, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -387,7 +405,6 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
             Vector.
         base_point : array-like, shape=[..., n, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -561,7 +578,13 @@ class NullRowSumsSymmetricMatrices(LevelSet, DiffeomorphicMatrixVectorSpace):
 
     @staticmethod
     def default_metric():
-        """Metric to equip the space with if equip is True."""
+        """Metric to equip the space with if equip is True.
+
+        Returns
+        -------
+        metric : MatricesMetric
+            Default metric.
+        """
         return MatricesMetric
 
     def _define_embedding_space(self):
@@ -743,7 +766,6 @@ class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
             Tangent vector at base point.
         base_point: array-like, shape=[..., n, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -771,7 +793,6 @@ class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
             Vector.
         base_point : array-like, shape=[..., n, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
