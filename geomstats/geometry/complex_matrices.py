@@ -10,7 +10,6 @@ from geomstats.geometry.hermitian import HermitianMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.vectorization import repeat_out
 
-
 class ComplexMatrices(ComplexMatrixVectorSpace):
     """Class for the space of complex matrices (m, n).
 
@@ -87,7 +86,6 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -106,7 +104,6 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -125,7 +122,6 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -183,10 +179,9 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample each entry.
-            Optional, default: 1.
 
         Returns
         -------
@@ -240,7 +235,6 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
             Frobenius inner-product of mat_1 and mat_2
         """
         return gs.einsum("...ij,...ij->...", gs.conj(mat_1), mat_2)
-
 
 class ComplexMatricesMetric(HermitianMetric):
     """Hermitian metric on complex matrices given by Frobenius inner-product."""

@@ -53,7 +53,6 @@ from geomstats.geometry.symmetric_matrices import (
 )
 from geomstats.numerics.optimization import NewtonMethod
 
-
 def corr_map(point):
     r"""Compute the correlation matrix associated to an SPD matrix.
 
@@ -75,7 +74,6 @@ def corr_map(point):
     """
     diagonal = Matrices.diagonal(point) ** (-0.5)
     return FullRankCorrelationMatrices.diag_action(diagonal, point)
-
 
 def tangent_corr_map(tangent_vec, base_point):
     r"""Compute the differential of the differential of the corr map.
@@ -108,7 +106,6 @@ def tangent_corr_map(tangent_vec, base_point):
     scaled_diag_vec = diagonal_bp ** (-0.5)
 
     return FullRankCorrelationMatrices.diag_action(scaled_diag_vec, mat)
-
 
 class FullRankCorrelationMatrices(LevelSet):
     """Class for the manifold of full-rank correlation matrices.
@@ -216,7 +213,6 @@ class FullRankCorrelationMatrices(LevelSet):
             Number of samples.
         bound : float
             Bound of the interval in which to sample.
-            Optional, default: 1.
 
         Returns
         -------
@@ -258,7 +254,6 @@ class FullRankCorrelationMatrices(LevelSet):
         sym = self.embedding_space.to_tangent(vector, base_point)
         mask_diag = gs.ones_like(vector) - gs.eye(self.n)
         return sym * mask_diag
-
 
 class CorrelationMatricesBundle(FiberBundle):
     """Fiber bundle to construct the quotient metric on correlation matrices.
@@ -362,7 +357,6 @@ class CorrelationMatricesBundle(FiberBundle):
         lift = self._total_space.group_action(diagonal_point, tangent_vec)
         return self.horizontal_projection(lift, base_point=fiber_point)
 
-
 class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
     """Class for the quotient of the affine-invariant metric.
 
@@ -386,7 +380,6 @@ class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
             space=space,
             total_space=total_space,
         )
-
 
 class PolyHyperbolicCholeskyMetric(PullbackDiffeoMetric):
     """Pullback metric via a diffeomorphism.
@@ -423,11 +416,9 @@ class PolyHyperbolicCholeskyMetric(PullbackDiffeoMetric):
 
         super().__init__(space=space, diffeo=diffeo, image_space=image_space)
 
-
 def off_map(matrix):
     """Subtract diagonal to a matrix."""
     return matrix - Matrices.to_diagonal(matrix)
-
 
 class EuclideanCholeskyDiffeo(Diffeo):
     r"""Euclidean-Cholesky diffeomorphism from Cor+ to LT^1.
@@ -473,7 +464,7 @@ class EuclideanCholeskyDiffeo(Diffeo):
         .. math::
 
             \begin{aligned}
-            \Phi(\Gamma) &= \operatorname{Diag}\left(\phi(\Gamma)\right)^{-1 / 2} 
+            \Phi(\Gamma) &= \operatorname{Diag}\left(\phi(\Gamma)\right)^{-1 / 2}
             \phi(\Gamma) \operatorname{Diag}\left(\phi(\Gamma)\right)^{-1 / 2} \\
             &= \operatorname{Cor} \circ \phi(\Gamma)
             \end{aligned}
@@ -560,7 +551,6 @@ class EuclideanCholeskyDiffeo(Diffeo):
         )
         return tangent_corr_map(image_tangent_vec_, image_point_)
 
-
 class EuclideanCholeskyMetric(PullbackDiffeoMetric):
     """Pullback metric via a diffeomorphism.
 
@@ -590,7 +580,6 @@ class EuclideanCholeskyMetric(PullbackDiffeoMetric):
 
         super().__init__(space=space, diffeo=diffeo, image_space=image_space)
 
-
 class LogEuclideanCholeskyDiffeo(ComposedDiffeo):
     r"""log-Euclidean-Cholesky diffeomorphism from Cor+ to LT^0.
 
@@ -610,7 +599,6 @@ class LogEuclideanCholeskyDiffeo(ComposedDiffeo):
     def __init__(self):
         diffeos = [EuclideanCholeskyDiffeo(), LowerMatrixLog()]
         super().__init__(diffeos=diffeos)
-
 
 class LogEuclideanCholeskyMetric(PullbackDiffeoMetric):
     """Pullback metric via a diffeomorphism.
@@ -640,7 +628,6 @@ class LogEuclideanCholeskyMetric(PullbackDiffeoMetric):
         ).equip_with_metric(MatricesMetric)
 
         super().__init__(space=space, diffeo=diffeo, image_space=image_space)
-
 
 class UniqueDiagonalMatrixAlgorithm:
     r"""Find unique diagonal matrix corresponding to a full-rank correlation matrix.
@@ -729,7 +716,6 @@ class UniqueDiagonalMatrixAlgorithm:
         flat_sym_mat = gs.reshape(sym_mat, (-1,) + mat_shape)
         out = gs.stack([self._call_single(sym_mat_) for sym_mat_ in flat_sym_mat])
         return gs.reshape(out, batch_shape + mat_shape)
-
 
 class OffLogDiffeo(Diffeo):
     r"""Off-log diffeomorphism from Cor+ to Hol.
@@ -979,7 +965,6 @@ class OffLogDiffeo(Diffeo):
             image_point=sym_mat, image_tangent_vec=image_tangent_vec + diff_D
         )
 
-
 class OffLogMetric(PullbackDiffeoMetric):
     """Pullback metric via a diffeomorphism.
 
@@ -1016,7 +1001,6 @@ class OffLogMetric(PullbackDiffeoMetric):
         )
 
         super().__init__(space=space, diffeo=diffeo, image_space=image_space)
-
 
 class SPDScalingFinder:
     r"""Find unique positive diagonal matrix corresponding to an SPD matrix.
@@ -1151,7 +1135,6 @@ class SPDScalingFinder:
         flat_spd_mat = gs.reshape(spd_matrix, (-1,) + mat_shape)
         out = gs.stack([self._call_single(sym_mat_) for sym_mat_ in flat_spd_mat])
         return gs.reshape(out, batch_shape + (mat_shape.shape[-1],))
-
 
 class LogScalingDiffeo(Diffeo):
     r"""Off-log diffeomorphism from Cor+ to Row_1^+.
@@ -1302,7 +1285,6 @@ class LogScalingDiffeo(Diffeo):
         )
         return tangent_corr_map(tangent_vec_row_1, base_point_row_1)
 
-
 class LogScaledMetric(PullbackDiffeoMetric):
     """Pullback metric via a diffeomorphism.
 
@@ -1342,7 +1324,6 @@ class LogScaledMetric(PullbackDiffeoMetric):
         )
 
         super().__init__(space=space, diffeo=diffeo, image_space=image_space)
-
 
 register_quotient(
     Space=SPDMatrices,

@@ -7,7 +7,6 @@ import geomstats.backend as gs
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
-
 class FullRankMatrices(VectorSpaceOpenSet):
     r"""Class for :math:`R_*^{n\times k}` matrices of dimension n x k and full rank.
 
@@ -91,12 +90,11 @@ class FullRankMatrices(VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound: float
             This parameter is ignored.
         n_iter : int
             Maximum number of trials to sample a matrix with full rank.
-            Optional, default: 100.
 
         Returns
         -------

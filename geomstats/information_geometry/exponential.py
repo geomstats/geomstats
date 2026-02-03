@@ -51,7 +51,6 @@ class ExponentialDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point to be checked.
         atol : float
             Tolerance to evaluate positivity.
-            Optional, default: gs.atol
 
         Returns
         -------
@@ -74,13 +73,10 @@ class ExponentialDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         lower_bound : float
             Left-end of the segment where exponential parameters are sampled.
-            Optional, default: 0.1.
         upper_bound : float
             Right-end of the segment where exponential parameters are sampled.
-            Optional, default: 1.0.
 
         Returns
         -------
@@ -121,7 +117,6 @@ class ExponentialDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point representing an exponential distribution.
         n_samples : int
             Number of points to sample with each parameter in point.
-            Optional, default: 1.
 
         Returns
         -------

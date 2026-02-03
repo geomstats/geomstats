@@ -17,7 +17,6 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.numerics.geodesic import LogSolver
 from geomstats.vectorization import repeat_out
 
-
 class Stiefel(LevelSet):
     """Class for Stiefel manifolds St(n,p).
 
@@ -127,7 +126,6 @@ class Stiefel(LevelSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
@@ -156,7 +154,7 @@ class Stiefel(LevelSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Unused here.
 
@@ -212,7 +210,6 @@ class Stiefel(LevelSet):
         """
         mat_u, _, mat_v = gs.linalg.svd(point)
         return Matrices.mul(mat_u[..., :, : self.p], mat_v)
-
 
 class StiefelCanonicalMetric(RiemannianMetric):
     """Class that defines the canonical metric for Stiefel manifolds."""
@@ -426,7 +423,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
         radius = gs.array(0.89 * gs.pi)
         return repeat_out(self._space.point_ndim, radius, base_point)
 
-
 class _StiefelLogSolver(LogSolver):
     """Stiefel log solver.
 
@@ -539,11 +535,10 @@ class _StiefelLogSolver(LogSolver):
             Point in the Stiefel manifold.
         max_iter: int
             Maximum number of iterations to perform during the algorithm.
-            Optional, default: 30.
+
         tol: float
             Tolerance to reach convergence. The matrix 2-norm is used as
             criterion.
-            Optional, default: 1e-6.
 
         Returns
         -------

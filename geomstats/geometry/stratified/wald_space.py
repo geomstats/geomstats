@@ -42,7 +42,6 @@ from geomstats.geometry.stratified.vectorization import (
 from geomstats.numerics.interpolation import LinearInterpolator1D
 from geomstats.numerics.optimization import ScipyMinimize
 
-
 def _manipulate_input_with_array(arg, name):
     if gs.is_array(arg):
         ndim = 2 if name == "ambient_point" else 1
@@ -55,10 +54,8 @@ def _manipulate_input_with_array(arg, name):
 
     return arg, False
 
-
 def _manipulate_output_wald(out, to_list):
     return _manipulate_output(out, to_list, manipulate_output_iterable=WaldBatch)
-
 
 def make_splits(n_labels):
     """Generate all possible splits of a collection.
@@ -82,7 +79,6 @@ def make_splits(n_labels):
             yield Split(part1=split.part1, part2=split.part2.union((n_labels - 1,)))
             yield Split(part1=split.part1.union((n_labels - 1,)), part2=split.part2)
         yield Split(part1=list(range(n_labels - 1)), part2=[n_labels - 1])
-
 
 def make_topologies(n_labels):
     """Generate all possible sets of compatible splits of a collection.
@@ -139,7 +135,6 @@ def make_topologies(n_labels):
                     split_sets=(new_split_set,),
                 )
 
-
 def _generate_partition(n_labels, p_new):
     r"""Generate a random partition of :math:`\{0,\dots,n-1\}`.
 
@@ -171,7 +166,6 @@ def _generate_partition(n_labels, p_new):
             _partition.append([u])
     return _partition
 
-
 def generate_random_wald(n_labels, p_keep, p_new, btol=1e-8, check=True):
     """Generate a random instance of class ``Wald``.
 
@@ -187,11 +181,10 @@ def generate_random_wald(n_labels, p_keep, p_new, btol=1e-8, check=True):
         and probability of 1 - p_new_ that a new component is added.
     btol : float
         Tolerance for the boundary of the coordinates in each grove.
-        Optional, default: 1e-08.
+
     check : bool
         If True, checks if splits still separate all labels. In this case, the split
         will not be deleted. If False, any split can be randomly deleted.
-        Optional, default: True.
 
     Returns
     -------
@@ -210,7 +203,6 @@ def generate_random_wald(n_labels, p_keep, p_new, btol=1e-8, check=True):
     x = gs.random.uniform(size=(top.n_splits,), low=0, high=1)
     x = gs.minimum(gs.maximum(btol, x), 1 - btol)
     return Wald(topology=top, weights=x)
-
 
 class Wald(Point):
     r"""A class for wälder, that are phylogenetic forests, elements of the Wald Space.
@@ -305,7 +297,6 @@ class Wald(Point):
         """
         return gs.array([self._equal_single(point_, atol) for point_ in point])
 
-
 class WaldBatch(PointBatch):
     """Wald batch."""
 
@@ -338,7 +329,6 @@ class WaldBatch(PointBatch):
         corr : array-like, shape=[n_points, n_nodes, n_nodes]
         """
         return gs.stack([point.corr for point in self])
-
 
 class WaldSpace(PointSet):
     r"""Class for the Wald space, a metric space for phylogenetic forests.
@@ -435,20 +425,19 @@ class WaldSpace(PointSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         p_tree : float
             The probability that the sampled point is a tree, and not a forest. If the
             probability is equal to 1, then the sampled point will be a tree.
-            Optional, default: 0.9.
+            9.
         p_keep : float
             The probability that a sampled edge is kept and not deleted randomly.
             To be precise, it is not exactly the probability, as some edges cannot be
             deleted since the requirement that two labels are separated by a split might
             be violated otherwise.
-            Optional, default: 0.9.
+            9.
         btol : float
             Tolerance for the boundary of the coordinates in each grove.
-            Optional, default: 1e-08.
 
         Returns
         -------
@@ -475,7 +464,6 @@ class WaldSpace(PointSet):
             Topology of the grove.
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
@@ -506,7 +494,6 @@ class WaldSpace(PointSet):
             Point in the ambient space.
         """
         return point.corr
-
 
 class WaldSpaceMetric(PointSetMetric):
     """Wald space metric.
@@ -623,7 +610,6 @@ class WaldSpaceMetric(PointSetMetric):
             ambient_point, topology, initial_weights=initial_weights
         )
 
-
 def _squared_dist_and_grad_affine(space, topology, ambient_point):
     """Squared distance and gradient wrt weights.
 
@@ -668,7 +654,6 @@ def _squared_dist_and_grad_affine(space, topology, ambient_point):
 
     return _value_and_grad
 
-
 def _squared_dist_and_grad_euclidean(space, topology, ambient_point):
     """Squared distance and gradient wrt weights.
 
@@ -695,7 +680,6 @@ def _squared_dist_and_grad_euclidean(space, topology, ambient_point):
 
     return _value_and_grad
 
-
 def _squared_dist_and_grad_autodiff(space, topology, ambient_point):
     """Squared distance and gradient wrt weights.
 
@@ -718,12 +702,10 @@ def _squared_dist_and_grad_autodiff(space, topology, ambient_point):
 
     return gs.autodiff.value_and_grad(_value)
 
-
 _AMBIENT_METRIC_TO_SQUARED_DIST_GRAD = {
     "SPDAffineMetric": _squared_dist_and_grad_affine,
     "SPDEuclideanMetric": _squared_dist_and_grad_euclidean,
 }
-
 
 class LocalProjectionSolver:
     """Local projection solver."""
@@ -823,7 +805,6 @@ class LocalProjectionSolver:
             )
         ]
 
-
 class BasicWaldGeodesicSolver(ABC):
     """Abstract class for wald geodesic solver.
 
@@ -902,7 +883,6 @@ class BasicWaldGeodesicSolver(ABC):
             ],
         )
 
-
 class NaiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
     """Naive geodesic projection solver.
 
@@ -946,7 +926,6 @@ class NaiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
         mid_points = self._space.metric.projection(mid_ambient_point, topology)
 
         return WaldBatch([initial_point] + mid_points + [end_point])
-
 
 class SuccessiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
     """Successive projection geodesic projection solver.
@@ -1019,7 +998,6 @@ class SuccessiveProjectionGeodesicSolver(BasicWaldGeodesicSolver):
 
         mid_point = self._space.metric.projection(ambient_geod_func(0.5), topology)
         return WaldBatch(left_points + mid_point + right_points)
-
 
 class DiscreteWaldPath:
     """A uniformly-sampled discrete path.

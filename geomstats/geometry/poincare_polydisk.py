@@ -18,7 +18,6 @@ from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 
-
 class PoincarePolydisk(NFoldManifold):
     r"""Class for the Poincare polydisk.
 
@@ -70,7 +69,6 @@ class PoincarePolydisk(NFoldManifold):
         )
         return point_extrinsic
 
-
 class PoincarePolydiskMetric(NFoldMetric):
     r"""Class defining the Poincare polydisk metric.
 
@@ -80,7 +78,6 @@ class PoincarePolydiskMetric(NFoldMetric):
 
     This metric comes from a model used to represent
     stationary complex autoregressive Gaussian signals.
-
 
     References
     ----------

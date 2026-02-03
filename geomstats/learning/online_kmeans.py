@@ -36,14 +36,11 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
         The cluster centers are updated using decreasing step sizes, each
         of which stays constant for n_repetitions iterations to allow a better
         exploration of the data points.
-        Optional, default: 20.
     max_iter : int
         Maximum number of iterations. If it is reached, the
         quantization may be inacurate.
-        Optional, default: 500.
     atol : float
         Absolute tolerance for convergence.
-        Optional, default: 1e-5.
 
     Attributes
     ----------

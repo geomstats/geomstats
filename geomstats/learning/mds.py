@@ -107,7 +107,6 @@ class MDS(_MDS):
             Starting configuration of the embedding to initialize the SMACOF
             algorithm. By default, the algorithm is initialized with a randomly
             chosen array. DON'T USE.
-            Optional, default: None.
 
         Returns
         -------

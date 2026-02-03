@@ -6,7 +6,6 @@ Lead author: Nicolas Guigui.
 import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-
 class QuotientMetric(RiemannianMetric):
     """Quotient metric.
 
@@ -485,7 +484,7 @@ class QuotientMetric(RiemannianMetric):
         ----------
         initial_point : array-like, shape=[..., dim]
             Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., dim], optional
+        end_point : array-like, shape=[..., dim]
             Point on the manifold, end point of the geodesic. If None,
             an initial tangent vector must be given.
         initial_tangent_vec : array-like, shape=[..., dim],

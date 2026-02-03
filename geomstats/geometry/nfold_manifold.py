@@ -9,7 +9,6 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import get_batch_shape
 
-
 class NFoldManifold(Manifold):
     r"""Class for an n-fold product manifold :math:`M^n`.
 
@@ -92,7 +91,6 @@ class NFoldManifold(Manifold):
             Point on the manifold.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -144,11 +142,10 @@ class NFoldManifold(Manifold):
 
         Parameters
         ----------
-        n_samples : int, optional
+        n_samples : int
             Number of samples.
         bound : float
             Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
 
         Returns
         -------
@@ -184,7 +181,6 @@ class NFoldManifold(Manifold):
         raise NotImplementedError(
             "The base manifold does not implement a projection method."
         )
-
 
 class NFoldMetric(RiemannianMetric):
     r"""Class for an n-fold product manifold :math:`M^n`.

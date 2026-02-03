@@ -34,7 +34,7 @@ class TimeSeriesCovariance:
         Encode the label into digits.
     margin : int
         Number of index to remove before and after a sign change (Can
-        help getting a stationary signal). Optional, default: 0.
+        help getting a stationary signal).
 
     Attributes
     ----------
@@ -78,7 +78,7 @@ class TimeSeriesCovariance:
             Encode the label into digits.
         margin : int
             Number of index to remove before and after a sign change (Can
-            help getting a stationary signal). Optional, default: 0.
+            help getting a stationary signal).
         """
         self.label_map = label_map
         self.data = data

@@ -23,7 +23,6 @@ from geomstats.geometry.stratified.quotient import Aligner, QuotientMetric
 from geomstats.numerics.optimization import ScipyMinimize
 from geomstats.vectorization import check_is_batch, get_batch_shape
 
-
 class GraphSpaceAlignerAlgorithm(AlignerAlgorithm, ABC):
     """Base class for graph space numerical aligner.
 
@@ -85,7 +84,6 @@ class GraphSpaceAlignerAlgorithm(AlignerAlgorithm, ABC):
         self.perm_ = self._get_opt_perm(point, base_point)
         return self._total_space.group_action(self.perm_, point)
 
-
 class FAQAligner(GraphSpaceAlignerAlgorithm):
     """Fast Quadratic Assignment for graph matching (or network alignment).
 
@@ -117,7 +115,6 @@ class FAQAligner(GraphSpaceAlignerAlgorithm):
                 base_point, point, options={"maximize": True}
             )
         )
-
 
 class ExhaustiveAligner(GraphSpaceAlignerAlgorithm):
     """Brute force exact alignment.
@@ -157,7 +154,6 @@ class ExhaustiveAligner(GraphSpaceAlignerAlgorithm):
         orbit = self._total_space.group_action(self._perms, point)
         sdists = self._total_space.metric.squared_dist(base_point, orbit)
         return self._perms[gs.argmin(sdists)]
-
 
 class PointToGeodesicAlignerBase(ABC):
     """Base class for point to geodesic aligner.
@@ -211,7 +207,6 @@ class PointToGeodesicAlignerBase(ABC):
         dist : array-like, shape=[...]
             Distance between the geodesic and the point.
         """
-
 
 class PointToGeodesicAligner(PointToGeodesicAlignerBase):
     """Class for the alignment of the points with respect to a geodesic.
@@ -379,7 +374,6 @@ class PointToGeodesicAligner(PointToGeodesicAlignerBase):
         slc.extend([slice(None), slice(None)])
         return aligned_points[tuple(slc)]
 
-
 class _GeodesicToPointAligner(PointToGeodesicAlignerBase):
     """Class for the alignment of the points with respect to a geodesic.
 
@@ -535,7 +529,6 @@ class _GeodesicToPointAligner(PointToGeodesicAlignerBase):
         _, self.perm_ = self.squared_dist(geodesic, point, return_perm=True)
         return self._total_space.group_action(self.perm_, point)
 
-
 class GraphSpace(Matrices):
     r"""Class for the Graph Space.
 
@@ -579,7 +572,6 @@ class GraphSpace(Matrices):
         ----------
         equip : bool
             Whether to equip the manifold with a metric.
-            Optional, default: True.
 
         Returns
         -------
@@ -595,7 +587,6 @@ class GraphSpace(Matrices):
         ----------
         group_action : str or GroupAction
             Group action to equip with.
-            Optional, default: "permutations".
 
         Returns
         -------
@@ -606,7 +597,6 @@ class GraphSpace(Matrices):
             group_action = PermutationAction()
 
         return super().equip_with_group_action(group_action)
-
 
 class GraphSpaceAligner(Aligner):
     """Graph space aligner.
@@ -654,7 +644,7 @@ class GraphSpaceAligner(Aligner):
         align_algo : str or GraphSpaceAlignerAlgorithm
             'FAQ': Fast Quadratic Assignment - only compatible with Frobenius norm,
             'exhaustive': all group exhaustive search.
-            Optional, default: "FAQ".
+
         **kwargs : dict
             Additional keyword arguments for the aligner.
 
@@ -686,16 +676,16 @@ class GraphSpaceAligner(Aligner):
         ----------
         aligner : str or BasePointToGeodesicAligner
             Aligner to use.
-            Optional, default: "default".
+
         s_min : float
             Minimum value of the domain to sample along the geodesics.
-            Optional, default: -1.0.
+            0.
         s_max : float
             Maximum value of the domain to sample along the geodesics.
-            Optional, default: 1.0.
+            0.
         n_grid : int
             Number of points to sample between s_min and s_max.
-            Optional, default: 10.
+
         **kwargs : dict
             Additional keyword arguments for the aligner.
 
@@ -732,7 +722,6 @@ class GraphSpaceAligner(Aligner):
         """
         return self.point_to_geodesic_aligner.align(geodesic, point)
 
-
 class GraphSpaceQuotientMetric(QuotientMetric):
     r"""Class for the Graph Space Metric.
 
@@ -759,7 +748,6 @@ class GraphSpaceQuotientMetric(QuotientMetric):
         "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
         https://www.jmlr.org/papers/v10/jain09a.html.
     """
-
 
 register_quotient(
     Space=GraphSpace,

@@ -8,7 +8,6 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.vectorization import get_batch_shape
 
-
 class GroupAction(ABC):
     """Base class for group action."""
 
@@ -28,7 +27,6 @@ class GroupAction(ABC):
         orbit_point : array-like
             A point on the orbit of point.
         """
-
 
 class ComposeAction(GroupAction):
     """Action of a group on itself by composition.
@@ -74,7 +72,6 @@ class ComposeAction(GroupAction):
             group_elem = self._group.exp(algebra_elt)
         return self._group.compose(point, group_elem)
 
-
 class SpecialOrthogonalComposeAction(ComposeAction):
     """Action of the special orthogonal group.
 
@@ -91,7 +88,6 @@ class SpecialOrthogonalComposeAction(ComposeAction):
 
     def __init__(self, n):
         super().__init__(SpecialOrthogonal(n, equip=False))
-
 
 class CongruenceAction(GroupAction):
     """Congruence action."""
@@ -112,7 +108,6 @@ class CongruenceAction(GroupAction):
             A point on the orbit of point.
         """
         return Matrices.mul(group_elem, point, Matrices.transpose(group_elem))
-
 
 class PermutationAction(CongruenceAction):
     """Congruence action of the permutation group on matrices."""
@@ -136,7 +131,6 @@ class PermutationAction(CongruenceAction):
         perm_mat = permutation_matrix_from_vector(group_elem, dtype=point.dtype)
         return super().__call__(perm_mat, point)
 
-
 class RowPermutationAction(GroupAction):
     """Action of the permutation group on matrices by multiplication."""
 
@@ -158,7 +152,6 @@ class RowPermutationAction(GroupAction):
         """
         perm_mat = permutation_matrix_from_vector(group_elem, dtype=point.dtype)
         return gs.matmul(Matrices.transpose(perm_mat), point)
-
 
 def permutation_matrix_from_vector(group_elem, dtype=gs.int64):
     """Transform a permutation vector into a matrix.

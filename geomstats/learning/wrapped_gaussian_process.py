@@ -138,11 +138,9 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         return_tangent_std : bool
             If True, the standard-deviation of the predictive distribution on at
             the query points in the tangent space is returned along with the mean.
-            Optional, default: False.
         return_tangent_cov : bool
             If True, the covariance of the joint predictive distribution at
             the query points in the tangent space is returned along with the mean.
-            Optional, default: False.
 
         Returns
         -------
@@ -200,12 +198,10 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         n_samples : int
             Number of samples drawn from the Wrapped Gaussian process per query
             point.
-            Optional, default: 1.
         random_state : int, RandomState instance or None
             Determines random number generation to randomly draw samples.
             Pass an int for reproducible results across multiple function
             calls.
-            Optional, default: 0.
 
         Returns
         -------

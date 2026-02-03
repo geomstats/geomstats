@@ -47,7 +47,6 @@ from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.vectorization import repeat_out
 
-
 class Grassmannian(LevelSet):
     r"""Class for Grassmann manifolds :math:`Gr(n, p)`.
 
@@ -166,7 +165,6 @@ class Grassmannian(LevelSet):
         ----------
         n_samples : int
             The number of points to sample
-            Optional. default: 1.
 
         Returns
         -------
@@ -197,7 +195,6 @@ class Grassmannian(LevelSet):
         ----------
         n_samples : int
             The number of points to sample
-            Optional. default: 1.
 
         Returns
         -------
@@ -252,7 +249,6 @@ class Grassmannian(LevelSet):
         diagonal = gs.array([0.0] * (self.n - self.p) + [1.0] * self.p)
         p_d = gs.einsum("...ij,...j->...ij", eigvecs, diagonal)
         return Matrices.mul(p_d, Matrices.transpose(eigvecs))
-
 
 class GrassmannianCanonicalMetric(RiemannianMetric):
     """Canonical metric of the Grassmann manifold."""
@@ -510,7 +506,6 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         norm = gs.linalg.norm(vector, axis=(-2, -1))
         return repeat_out(self._space.point_ndim, norm, vector, base_point)
 
-
 class GrassmannianBundle(FiberBundle):
     """Fiber bundle representing the Grassmannian quotient structure."""
 
@@ -573,11 +568,11 @@ class GrassmannianBundle(FiberBundle):
         tangent_vec : array-like, shape=[..., n, n]
         fiber_point : array-like, shape=[..., n, p]
             Point of the total space.
-            Optional, default : None. The `lift` method is used to compute a
+             The `lift` method is used to compute a
             point at which to compute a tangent vector.
         base_point : array-like, shape=[..., n, n]
             Point of the base space.
-            Optional, default : None. In this case, point must be given,
+             In this case, point must be given,
             and `submersion` is used to compute the base_point if needed.
 
         Returns
@@ -613,7 +608,6 @@ class GrassmannianBundle(FiberBundle):
             Aligned point.
         """
         return Matrices.align_matrices(point, base_point, flip=False)
-
 
 register_quotient(
     Space=Stiefel,

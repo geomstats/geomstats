@@ -55,7 +55,6 @@ class BetaDistributions(DirichletDistributions):
             Point representing a beta distribution.
         n_samples : int
             Number of points to sample with each pair of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -122,14 +121,11 @@ class BetaDistributions(DirichletDistributions):
         loc : float
             Location parameter of the distribution to estimate parameters
             from. It is kept fixed during optimization.
-            Optional, default: 0.
         scale : float
             Scale parameter of the distribution to estimate parameters
             from. It is kept fixed during optimization.
-            Optional, default: 1.
         epsilon : float
             Tolerance parameter for boundary values.
-            Optional, default: 1e-6.
 
         Returns
         -------

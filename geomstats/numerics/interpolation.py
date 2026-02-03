@@ -46,7 +46,7 @@ class _LinearInterpolator1D(Interpolator, ABC):
         data : array-like, shape=[..., n_times, *point_shape]
             Data to interpolate.
         point_ndim : int
-            Dimension of point. Optional, default: 1.
+            Dimension of point.
         """
         self.data = data
         self.point_ndim = point_ndim
@@ -133,7 +133,7 @@ class UniformUnitIntervalLinearInterpolator(_LinearInterpolator1D):
     data : array-like, shape=[..., n_times, *point_shape]
         Data to interpolate.
     point_ndim : int
-        Dimension of point. Optional, default: 1.
+        Dimension of point.
     """
 
     def __init__(self, data, point_ndim=1):
@@ -190,7 +190,7 @@ class LinearInterpolator1D(_LinearInterpolator1D):
     data : array-like, shape=[..., n_times, *point_shape]
         Data to interpolate.
     point_ndim : int
-        Dimension of point. Optional, default: 1.
+        Dimension of point.
     """
 
     def __init__(self, times, data, point_ndim=1):

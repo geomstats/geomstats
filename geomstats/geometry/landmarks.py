@@ -5,7 +5,6 @@ Lead author: Nicolas Guigui.
 
 from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 
-
 class Landmarks(NFoldManifold):
     """Class for space of landmarks.
 
@@ -35,7 +34,6 @@ class Landmarks(NFoldManifold):
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return L2LandmarksMetric
-
 
 class L2LandmarksMetric(NFoldMetric):
     """L2 Riemannian metric on the space of landmarks.

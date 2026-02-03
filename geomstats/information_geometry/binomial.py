@@ -53,7 +53,6 @@ class BinomialDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point to be checked.
         atol : float
             Tolerance to evaluate if point belongs to (0,1).
-            Optional, default: gs.atol
 
         Returns
         -------
@@ -76,7 +75,6 @@ class BinomialDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
@@ -122,7 +120,6 @@ class BinomialDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point representing a binomial distribution.
         n_samples : int
             Number of points to sample with for each parameter in point.
-            Optional, default: 1.
 
         Returns
         -------

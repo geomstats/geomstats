@@ -46,7 +46,6 @@ class GetParamsMixin:
         deep : bool
             If True, will return the parameters for this estimator and
             contained subobjects that are estimators.
-            Optional, default: True.
 
         Returns
         -------

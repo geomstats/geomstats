@@ -5,7 +5,6 @@ import functools
 import geomstats.backend as gs
 from geomstats.geometry.stratified.point_set import PointBatch
 
-
 def broadcast_lists(*lists):
     """Broadcast lists.
 
@@ -39,7 +38,6 @@ def broadcast_lists(*lists):
 
     return out
 
-
 def _manipulate_input(arg, *args):
     """Transform input into list if not one.
 
@@ -62,10 +60,8 @@ def _manipulate_input(arg, *args):
 
     return arg, False
 
-
 def _manipulate_output_iterable(out):
     return PointBatch(out)
-
 
 def _manipulate_output(
     out, to_list, manipulate_output_iterable=_manipulate_output_iterable
@@ -87,7 +83,6 @@ def _manipulate_output(
 
     return out
 
-
 def vectorize_point(
     *args_positions,
     manipulate_input=_manipulate_input,
@@ -101,10 +96,9 @@ def vectorize_point(
         Position and corresponding argument name. A tuple for each position.
     manipulate_input : callable
         Function to manipulate input arguments.
-        Optional, default: _manipulate_input.
+
     manipulate_output : callable
         Function to manipulate output.
-        Optional, default: _manipulate_output.
 
     Returns
     -------

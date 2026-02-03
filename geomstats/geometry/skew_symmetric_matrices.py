@@ -12,7 +12,6 @@ import geomstats.backend as gs
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
-
 class SkewSymmetricMatrices(MatrixLieAlgebra):
     """Class for skew-symmetric matrices.
 
@@ -65,7 +64,6 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
             Square matrix to check.
         atol : float
             Tolerance for the equality evaluation.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -84,10 +82,9 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample each entry.
-            Optional, default: 1.
 
         Returns
         -------

@@ -19,7 +19,6 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 
-
 class OpenHemisphereToHyperboloidDiffeo(InvolutionDiffeomorphism):
     """A diffeomorphism between the open hemisphere and the hyperboloid."""
 
@@ -46,7 +45,6 @@ class OpenHemisphereToHyperboloidDiffeo(InvolutionDiffeomorphism):
             axis=-1,
         )
         return gs.einsum("...,...i->...i", 1 / base_point[..., 0], image_tangent_vec)
-
 
 class OpenHemisphere(OpenSet):
     r"""Open hemisphere.
@@ -97,7 +95,6 @@ class OpenHemisphere(OpenSet):
         proj_point[..., 0] = gs.abs(proj_point[..., 0])
         return proj_point
 
-
 class OpenHemispherePullbackMetric(PullbackDiffeoMetric):
     """Pullback diffeo metric for Open Hemisphere.
 
@@ -108,7 +105,6 @@ class OpenHemispherePullbackMetric(PullbackDiffeoMetric):
         image_space = Hyperboloid(dim=space.dim)
         diffeo = OpenHemisphereToHyperboloidDiffeo()
         super().__init__(space=space, diffeo=diffeo, image_space=image_space)
-
 
 class OpenHemispheresProduct(ProductManifold):
     r"""A consecutively factor-dim increasing product manifold of open hemispheres.
@@ -131,7 +127,6 @@ class OpenHemispheresProduct(ProductManifold):
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return OpenHemispheresProductMetric
-
 
 class OpenHemispheresProductMetric(ProductRiemannianMetric):
     """Define the product metric on these manifolds."""

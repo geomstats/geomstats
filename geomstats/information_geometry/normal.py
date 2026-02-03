@@ -42,7 +42,6 @@ class NormalDistributions:
         Dimension of the sample space of the normal distribution.
     distribution_type : str, {'centered', 'diagonal', 'general'}
         Type of distributions.
-        Optional, default: 'general'.
     """
 
     def __new__(cls, sample_dim, distribution_type="general", equip=True):
@@ -92,10 +91,8 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         bound : float
             Side of the square where the normal parameters are sampled.
-            Optional, default: 1.0.
 
         Returns
         -------
@@ -120,7 +117,6 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
             Point representing a normal distribution (mean and scale).
         n_samples : int
             Number of points to sample with each pair of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -209,7 +205,6 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
             of a multivariate normal distribution with zero mean.
         n_samples : int
             Number of points to sample with each covariance matrix in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -364,7 +359,6 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
@@ -416,7 +410,6 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             the diagonal of the covariance matrix.
         n_samples : int
             Number of points to sample with each pair of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -527,7 +520,6 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
             :math:`sample\_dim ^ 2` elements contain the covariance matrix row by row.
         n_samples : int
             Number of points to sample with each parameter in point.
-            Optional, default: 1.
 
         Returns
         -------

@@ -194,13 +194,10 @@ def integrate(function, initial_state, end_time=1.0, n_steps=10, step="euler"):
         Initial position and speed.
     end_time : float
         Final integration time.
-        Optional, default: 1.0.
     n_steps : int
         Number of integration steps to use.
-        Optional, default: 10.
     step : str, {'euler', 'rk4', 'group_rk2', 'group_rk4'}
         Numerical scheme to use for elementary integration steps.
-        Optional, default: 'euler'.
 
     Returns
     -------

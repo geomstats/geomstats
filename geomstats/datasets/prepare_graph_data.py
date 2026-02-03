@@ -60,9 +60,9 @@ class Graph:
         Parameters
         ----------
         walk_length : int
-            Length of a random walk in terms of number of edges. Optional, default: 5.
+            Length of a random walk in terms of number of edges.
         n_walks_per_node : int
-            Number of generated walks starting from each node of the graph. Optional, default: 1.
+            Number of generated walks starting from each node of the graph.
 
         Returns
         -------
@@ -109,17 +109,17 @@ class HyperbolicEmbedding:
     Parameters
     ----------
     dim : int
-        Dimensions of the used hyperbolic space. Optional, default: 2.
+        Dimensions of the used hyperbolic space.
     max_epochs : int
-        Maximum number of iterations for embedding. Optional, default: 100.
+        Maximum number of iterations for embedding.
     lr : float
-        Learning rate for embedding. Optional, default: 0.05.
+        Learning rate for embedding.
     n_context : int
         Number of nodes to consider from a neighborhood
-        of nodes around a particular node. Optional, default: 1.
+        of nodes around a particular node.
     n_negative : int
         Number of nodes to consider when searching for
-        a set of nodes that are far from a particular node. Optional, default: 2.
+        a set of nodes that are far from a particular node.
     """
 
     def __init__(self, dim=2, max_epochs=100, lr=0.05, n_context=1, n_negative=2):

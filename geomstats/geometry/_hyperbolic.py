@@ -6,7 +6,6 @@ The n-dimensional hyperbolic regardless its different representations.
 import geomstats.backend as gs
 from geomstats.geometry.diffeo import Diffeo
 
-
 class HyperbolicDiffeo(Diffeo):
     """Diffeomorphism between hyperbolic coordinates.
 
@@ -115,7 +114,6 @@ class HyperbolicDiffeo(Diffeo):
             self.from_coordinates_system,
         )
 
-
 def _scalarvecmul(scalar, vec):
     """Vectorized scalar vector multiplication.
 
@@ -125,7 +123,6 @@ def _scalarvecmul(scalar, vec):
     vec : array-like, shape=[..., dim]
     """
     return gs.einsum("...,...i->...i", scalar, vec)
-
 
 class _Hyperbolic:
     """Class for the n-dimensional hyperbolic space.
@@ -601,7 +598,6 @@ class _Hyperbolic:
             Point in hyperbolic space.
         to_coords_type : str, {'extrinsic', 'intrinsic', etc}
             Coordinates type.
-            Optional, default: 'ball'.
 
         Returns
         -------
@@ -690,10 +686,9 @@ class _Hyperbolic:
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound: float
             Bound defining the hypersquare in which to sample.
-            Optional, default: 1.
 
         Returns
         -------

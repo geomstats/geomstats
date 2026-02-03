@@ -122,7 +122,7 @@ def load_poses(only_rotations=True):
     Parameters
     ----------
     only_rotations : bool
-        Whether to return only rotations or rotations with translations. Optional, default: True.
+        Whether to return only rotations or rotations with translations.
 
     Returns
     -------
@@ -163,7 +163,7 @@ def load_connectomes(as_vectors=False):
     Parameters
     ----------
     as_vectors : bool
-        Whether to return raw data as vectors or as symmetric matrices. Optional, default: False.
+        Whether to return raw data as vectors or as symmetric matrices.
 
     Returns
     -------
@@ -215,7 +215,7 @@ def load_emg(file_path=EMG_PATH):
     Parameters
     ----------
     file_path : str
-        Path to the EMG data file. Optional, default: data/emg/emg.csv.
+        Path to the EMG data file.
 
     Returns
     -------
@@ -395,7 +395,7 @@ def load_sao_paulo(dirname=None):
     Parameters
     ----------
     dirname : str
-        Directory to save the downloaded file. Optional, default: ~/.geomstats_data.
+        Directory to save the downloaded file.
 
     Returns
     -------
@@ -433,7 +433,7 @@ def load_mammals(file_path=MAMMALS_PATH):
     Parameters
     ----------
     file_path : str
-        Path to the mammals data file. Optional, default: data/graph_space/mammals_grooming.npy.
+        Path to the mammals data file.
 
     Returns
     -------

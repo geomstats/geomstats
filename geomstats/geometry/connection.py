@@ -8,7 +8,6 @@ from abc import ABC
 import geomstats.backend as gs
 import geomstats.errors
 
-
 def _check_log_solver(connection, raise_=True):
     """Check if connection has a log solver.
 
@@ -18,7 +17,6 @@ def _check_log_solver(connection, raise_=True):
         Connection object.
     raise_ : bool
         Whether to raise an error if no log solver exists.
-        Optional, default: True.
 
     Returns
     -------
@@ -34,7 +32,6 @@ def _check_log_solver(connection, raise_=True):
         return False
     return True
 
-
 def _check_exp_solver(connection, raise_=True):
     """Check if connection has an exp solver.
 
@@ -44,7 +41,6 @@ def _check_exp_solver(connection, raise_=True):
         Connection object.
     raise_ : bool
         Whether to raise an error if no exp solver exists.
-        Optional, default: True.
 
     Returns
     -------
@@ -59,7 +55,6 @@ def _check_exp_solver(connection, raise_=True):
             )
         return False
     return True
-
 
 class Connection(ABC):
     r"""Class for affine connections.
@@ -174,7 +169,6 @@ class Connection(ABC):
             from the base point with initial speed to be transported.
         return_geodesics : bool
             Whether to return the geodesics of the construction.
-            Optional, default: False.
 
         Returns
         -------
@@ -233,7 +227,6 @@ class Connection(ABC):
             from the base point with initial speed to be transported.
         return_geodesics : bool
             Whether to return geodesics of the construction.
-            Optional, default: False.
 
         Returns
         -------
@@ -308,14 +301,13 @@ class Connection(ABC):
             which to transport.
         n_rungs : int
             Number of steps of the ladder.
-            Optional, default: 1.
+
         scheme : str, {'pole', 'schild'}
             The scheme to use for the construction of the ladder at each step.
-            Optional, default: 'pole'.
+
         alpha : float
             Exponent for the scaling of the vector to transport. Must be
             greater or equal to 1, 2 is optimal. See [GP2020]_.
-            Optional, default: 2
 
         Returns
         -------
@@ -722,7 +714,7 @@ class Connection(ABC):
         ----------
         initial_point : array-like, shape=[..., dim]
             Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., dim], optional
+        end_point : array-like, shape=[..., dim]
             Point on the manifold, end point of the geodesic. If None,
             an initial tangent vector must be given.
         initial_tangent_vec : array-like, shape=[..., dim],

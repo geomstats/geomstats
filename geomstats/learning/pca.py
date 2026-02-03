@@ -106,25 +106,19 @@ class TangentPCA(_BasePCA):
         Equipped manifold.
     n_components : int
         Number of principal components.
-        Optional, default: None.
     copy : bool
         If False, data passed to fit are overwritten.
-        Optional, default: True.
     whiten : bool
         When True the components_ vectors are multiplied by the square root
         of n_samples and then divided by the singular values to ensure
         uncorrelated outputs with unit component-wise variances.
-        Optional, default: False.
     tol : float
         Tolerance for singular values computed by svd_solver == 'arpack'.
-        Optional, default: 0.0.
     iterated_power : int or 'auto'
         Number of iterations for the power method computed by
         svd_solver == 'randomized'.
-        Optional, default: 'auto'.
     random_state : int, RandomState instance or None
         Used when the 'arpack' or 'randomized' solvers are used.
-        Optional, default: None.
 
     Notes
     -----
@@ -179,7 +173,7 @@ class TangentPCA(_BasePCA):
             Ignored (Compliance with scikit-learn interface).
         base_point : array-like, shape=[..., n_features]
             Point at which to perform the tangent PCA.
-            Optional, default: None, in which case Frechet mean is used.
+            If None, Frechet mean is used.
 
         Returns
         -------
@@ -201,7 +195,7 @@ class TangentPCA(_BasePCA):
             Ignored (Compliance with scikit-learn interface).
         base_point : array-like, shape=[..., n_features]
             Point at which to perform the tangent PCA.
-            Optional, default: None, in which case Frechet mean is used.
+            If None, Frechet mean is used.
 
         Returns
         -------
@@ -289,7 +283,7 @@ class TangentPCA(_BasePCA):
             Ignored (Compliance with scikit-learn interface).
         base_point : array-like, shape=[..., n_features]
             Point at which to perform the tangent PCA.
-            Optional, default: None, in which case Frechet mean is used.
+            If None, Frechet mean is used.
 
         Returns
         -------
@@ -396,7 +390,6 @@ class HyperbolicPlaneExactPGA(_BasePCA):
     n_grid : int
         Number of vectors used to discretize the unit ball when finding
         the direction of maximal variance.
-        Optional, default: 100.
 
     Attributes
     ----------

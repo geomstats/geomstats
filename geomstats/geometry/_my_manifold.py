@@ -13,7 +13,6 @@ import geomstats.backend as gs
 # Import the class(es) that MyManifold inherits from
 from geomstats.geometry.manifold import Manifold
 
-
 # This class inherits from the class Manifold.
 # Inheritance in geomstats means that the class MyManifold will reuse code
 # that is in the Manifold class.
@@ -63,7 +62,6 @@ class MyManifold(Manifold):
             Point to evaluate.
         atol : float
             Tolerance, unused.
-            Optional, default: backend atol
 
         List the outputs of the method.
         For example:
@@ -137,10 +135,9 @@ class MyManifold(Manifold):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
 
         Returns
         -------

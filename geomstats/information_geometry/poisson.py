@@ -52,7 +52,6 @@ class PoissonDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point to be checked.
         atol : float
             Tolerance to evaluate positivity.
-            Optional, default: gs.atol
 
         Returns
         -------
@@ -75,10 +74,8 @@ class PoissonDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         bound : float
             Right-end ot the segment where Poisson parameters are sampled.
-            Optional, default: 1.
 
         Returns
         -------
@@ -120,7 +117,6 @@ class PoissonDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point representing an Poisson distribution.
         n_samples : int
             Number of points to sample with each parameter in point.
-            Optional, default: 1.
 
         Returns
         -------

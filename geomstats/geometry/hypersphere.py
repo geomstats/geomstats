@@ -19,7 +19,6 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import get_batch_shape, repeat_out
 
-
 class _Hypersphere(LevelSet):
     """Private class for the n-dimensional hypersphere.
 
@@ -437,7 +436,7 @@ class _Hypersphere(LevelSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : unused
 
         Returns
@@ -454,7 +453,6 @@ class _Hypersphere(LevelSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
@@ -503,14 +501,13 @@ class _Hypersphere(LevelSet):
             Mean parameter of the distribution.
         kappa : float
             Kappa parameter of the von Mises distribution.
-            Optional, default: 10.
+
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         max_iter : int
             Maximum number of trials in the rejection algorithm. In case it
             is reached, the current number of samples < n_samples is returned.
-            Optional, default: 100.
 
         Returns
         -------
@@ -597,19 +594,18 @@ class _Hypersphere(LevelSet):
         ----------
         mean : array-like, shape=[dim]
             Mean parameter of the distribution.
-            Optional, default: (0,...,0,1) (the north pole).
+            ..,0,1) (the north pole).
         precision : float or array-like, shape=[dim, dim]
             Inverse of the covariance parameter of the normal distribution.
             If a float is passed, the covariance matrix is precision times
             identity.
-            Optional, default: identity.
+
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         max_iter : int
             Maximum number of trials in the rejection algorithm. In case it
             is reached, the current number of samples < n_samples is returned.
-            Optional, default: 100.
 
         Returns
         -------
@@ -676,7 +672,6 @@ class _Hypersphere(LevelSet):
             mean = north_pole
         sample = self.metric.exp(tangent_sample_at_pt, mean)
         return sample[0] if (n_samples == 1) else sample
-
 
 class HypersphereMetric(RiemannianMetric):
     """Class for the Hypersphere Metric.
@@ -1144,7 +1139,6 @@ class HypersphereMetric(RiemannianMetric):
         """
         radius = gs.array(gs.pi)
         return repeat_out(self._space.point_ndim, radius, base_point)
-
 
 class Hypersphere(_Hypersphere):
     """Class for the n-dimensional hypersphere.

@@ -13,7 +13,6 @@ from geomstats.geometry.stratified.point_set import (
 )
 from geomstats.geometry.stratified.vectorization import broadcast_lists, vectorize_point
 
-
 class SpiderPoint(Point):
     r"""Class for points of the Spider.
 
@@ -73,7 +72,6 @@ class SpiderPoint(Point):
         """
         return gs.array([self._equal_single(point_, atol) for point_ in point])
 
-
 class Spider(PointSet):
     r"""Spider: a set of rays attached to the origin.
 
@@ -115,7 +113,6 @@ class Spider(PointSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
@@ -189,7 +186,6 @@ class Spider(PointSet):
         if point.coord <= -atol:
             return False
         return True
-
 
 class SpiderMetric(PointSetMetric):
     """Geometry on the Spider, induced by the rays metric."""

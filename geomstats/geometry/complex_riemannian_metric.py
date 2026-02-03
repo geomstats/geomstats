@@ -7,7 +7,6 @@ import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import check_is_batch
 
-
 class ComplexRiemannianMetric(RiemannianMetric):
     r"""Class for Riemannian and pseudo-Riemannian metrics for Complex manifolds.
 

@@ -5,7 +5,6 @@ Lead author: Morten Pedersen.
 
 import geomstats.backend as gs
 
-
 class SubRiemannianMetric:
     """Class for Sub-Riemannian metrics.
 
@@ -18,7 +17,6 @@ class SubRiemannianMetric:
     ----------
     space : Manifold object
     cometric_matrix : callable
-        Optional, default: 'None'
 
         The cometric matrix as a function of a point.
 
@@ -28,7 +26,6 @@ class SubRiemannianMetric:
             _ : array-like, shape=[..., dim, dim]
 
     frame : callable
-        Optional, default: 'None'
 
         Matrix representing the frame spanning the distribution,
         as a function of a point.
@@ -298,7 +295,6 @@ class SubRiemannianMetric:
             Point on the manifold.
         n_steps : int
             Number of discrete time steps to take in the integration.
-            Optional, default: N_STEPS.
 
         Returns
         -------

@@ -164,21 +164,16 @@ class GeodesicRegression(BaseEstimator):
         Equipped manifold.
     center_X : bool
         Subtract mean to X as a preprocessing.
-        Optional, default: True.
     method : str
         Gradient descent method. One of {'extrinsic', 'riemannian'}.
-        Optional, default: 'extrinsic'.
     initialization : str or array-like
         Initial values of the parameters for the optimization,
         or initialization method. One of {'random', 'data', 'frechet', 'warm_start'}.
-        Optional, default: 'random'.
     regularization : float
         Weight on the constraint for the intercept to lie on the manifold in
         the extrinsic optimization scheme. An L^2 constraint is applied.
-        Optional, default: 1.0.
     compute_training_score : bool
         Whether to compute R^2.
-        Optional, default: False.
 
     Notes
     -----
@@ -291,7 +286,6 @@ class GeodesicRegression(BaseEstimator):
             vertically stacked.
         weights : array-like, shape=[n_samples]
             Weights associated to the points.
-            Optional, default: None.
 
         Returns
         -------
@@ -378,7 +372,6 @@ class GeodesicRegression(BaseEstimator):
             Training target values.
         weights : array-like, shape=[n_samples]
             Weights associated to the points.
-            Optional, default: None.
 
         Returns
         -------
@@ -422,7 +415,6 @@ class GeodesicRegression(BaseEstimator):
             Training target values.
         weights : array-like, shape=[n_samples]
             Weights associated to the points.
-            Optional, default: None.
 
         Returns
         -------
@@ -455,7 +447,6 @@ class GeodesicRegression(BaseEstimator):
             Training target values.
         weights : array-like, shape=[n_samples]
             Weights associated to the points.
-            Optional, default: None.
 
         Returns
         -------
@@ -505,7 +496,6 @@ class GeodesicRegression(BaseEstimator):
             Training target values.
         weights : array-like, shape=[n_samples]
             Weights associated to the points.
-            Optional, default: None.
 
         Returns
         -------

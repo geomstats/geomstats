@@ -16,20 +16,16 @@ class GeometricMedian(BaseEstimator):
         Equipped manifold.
     max_iter : int
         Maximum number of iterations for the algorithm.
-        Optional, default: 100.
     lr : float
         Learning rate to be used for the algorithm.
-        Optional, default: 1.0.
     init_point : array-like, shape=[*space.shape]
         Initialization to be used in the start.
-        Optional, default: None, in which case it uses last sample.
+        If None, it uses last sample.
     print_every : int
         Print updated median after print_every iterations.
-        Optional, default: None.
     epsilon : float
         Tolerance for stopping the algorithm (distance between two successive
         estimates).
-        Optional, default: gs.atol.
 
     Attributes
     ----------
@@ -109,7 +105,7 @@ class GeometricMedian(BaseEstimator):
             Target values. Ignored.
         weights : array-like, shape=[n_samples]
             Weights associated to the samples.
-            Optional, default: None, in which case it is equally weighted.
+            If None, it is equally weighted.
 
         Returns
         -------

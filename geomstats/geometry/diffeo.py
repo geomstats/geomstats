@@ -6,7 +6,6 @@ import math
 import geomstats.backend as gs
 from geomstats.vectorization import get_batch_shape, repeat_out_multiple_ndim
 
-
 class Diffeo:
     r"""Diffeormorphism.
 
@@ -109,7 +108,6 @@ class Diffeo:
         -----
         See `tangent_diffeomorphism` docstrings for signature considerations.
         """
-
 
 class AutodiffDiffeo(Diffeo):
     """Diffeomorphism through autodiff.
@@ -246,7 +244,6 @@ class AutodiffDiffeo(Diffeo):
         )
         return tv
 
-
 class ReversedDiffeo(Diffeo):
     """Reverses the direction of a diffeomorphism.
 
@@ -329,7 +326,6 @@ class ReversedDiffeo(Diffeo):
         return self.diffeo.tangent(
             image_tangent_vec, base_point=image_point, image_point=image_point
         )
-
 
 class ComposedDiffeo(Diffeo):
     """A composed diffeomorphism.
@@ -440,7 +436,6 @@ class ComposedDiffeo(Diffeo):
 
         return tangent_vec
 
-
 class VectorSpaceDiffeo(Diffeo):
     """A diffeo between vector spaces."""
 
@@ -506,7 +501,6 @@ class VectorSpaceDiffeo(Diffeo):
             (base_point,),
             out_ndim=self.space_ndim,
         )
-
 
 class InvolutionDiffeomorphism(Diffeo):
     """A diffeomorphism that is also an involution."""

@@ -7,7 +7,6 @@ from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
-
 class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
     """Class for the general linear group GL(n) and its identity component.
 
@@ -21,7 +20,7 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
     positive_det : bool
         Whether to restrict to the identity connected component of the
         general linear group, i.e. matrices with positive determinant.
-        Optional, default: False.
+
     """
 
     def __init__(self, n, positive_det=False, equip=True):
@@ -103,12 +102,11 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound: float
             This parameter is ignored
         n_iter : int
             Maximum number of trials to sample a matrix with positive det.
-            Optional, default: 100.
 
         Returns
         -------
@@ -140,9 +138,8 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
         ----------
         point : array-like, shape=[..., n, n]
             Target point.
-        base_point : array-like, shape=[..., n, n], optional
+        base_point : array-like, shape=[..., n, n]
             Base point.
-            Optional, defaults to identity if None.
 
         Returns
         -------
@@ -191,7 +188,6 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
             return cls.exp(vecs, base_point)
 
         return path
-
 
 class SquareMatrices(MatrixLieAlgebra):
     """Lie algebra of the general linear group.

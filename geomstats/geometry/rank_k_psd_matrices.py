@@ -14,7 +14,6 @@ from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDEuclideanMetric, SPDMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
-
 class RankKPSDMatrices(Manifold):
     r"""Class for PSD(n,k).
 
@@ -62,7 +61,6 @@ class RankKPSDMatrices(Manifold):
             Matrix to be checked.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -128,10 +126,8 @@ class RankKPSDMatrices(Manifold):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         bound : float
             Bound of the interval in which to sample in the tangent space.
-            Optional, default: 1.
 
         Returns
         -------
@@ -155,7 +151,6 @@ class RankKPSDMatrices(Manifold):
             Base point of the tangent space.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -194,9 +189,7 @@ class RankKPSDMatrices(Manifold):
         rr = gs.matmul(r_ort, r_ort_t)
         return vector_sym - Matrices.mul(rr, vector_sym, rr)
 
-
 PSDEuclideanMetric = SPDEuclideanMetric
-
 
 class PSDMatrices:
     r"""Class for the psd matrices.
@@ -226,7 +219,6 @@ class PSDMatrices:
         if n == k:
             return SPDMatrices(n, equip=equip)
         raise NotImplementedError("The PSD matrices is not implemented yet.")
-
 
 class BuresWassersteinBundle(FiberBundle):
     """Class for the quotient structure on PSD matrices."""
@@ -286,7 +278,6 @@ class BuresWassersteinBundle(FiberBundle):
             Point on the pre-shape space.
         return_skew : bool
             Whether to return the skew-symmetric matrix A.
-            Optional, default: False
 
         Returns
         -------
@@ -324,7 +315,6 @@ class BuresWassersteinBundle(FiberBundle):
         """
         return Matrices.align_matrices(point, base_point)
 
-
 class PSDBuresWassersteinMetric(QuotientMetric):
     """Bures-Wasserstein metric for fixed rank PSD matrices."""
 
@@ -343,7 +333,6 @@ class PSDBuresWassersteinMetric(QuotientMetric):
             total_space.equip_with_quotient()
 
         super().__init__(space=space, total_space=total_space)
-
 
 register_quotient(
     Space=FullRankMatrices,

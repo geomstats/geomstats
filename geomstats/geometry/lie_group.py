@@ -12,7 +12,6 @@ from geomstats.geometry.matrices import Matrices
 
 ATOL = 1e-6
 
-
 class MatrixLieGroup(Manifold, abc.ABC):
     """Class for matrix Lie groups.
 
@@ -96,11 +95,10 @@ class MatrixLieGroup(Manifold, abc.ABC):
         left : bool
             Whether to calculate the differential of left or right
             translations.
-            Optional, default: True
+
         inverse : bool,
             Whether to inverse the jacobian matrix. If True, the push forward
             by the translation by the inverse of point is returned.
-            Optional, default: False.
 
         Returns
         -------
@@ -156,11 +154,10 @@ class MatrixLieGroup(Manifold, abc.ABC):
             Vector.
         base_point : array-like, shape=[..., dim_embedding]
             Point in the Lie group.
-            Optional. default: identity.
+
         atol : float
             Precision at which to evaluate if the rotation part is
             skew-symmetric.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -216,7 +213,6 @@ class MatrixLieGroup(Manifold, abc.ABC):
             Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
             Base point.
-            Optional, defaults to identity if None.
 
         Returns
         -------
@@ -243,7 +239,6 @@ class MatrixLieGroup(Manifold, abc.ABC):
             Point.
         base_point : array-like, shape=[..., n, n]
             Base point.
-            Optional, defaults to identity if None.
 
         Returns
         -------
@@ -263,7 +258,6 @@ class MatrixLieGroup(Manifold, abc.ABC):
             return logm(point)
         lie_algebra_vec = logm(cls.compose(cls.inverse(base_point), point))
         return cls.compose(base_point, lie_algebra_vec)
-
 
 class LieGroup(Manifold, abc.ABC):
     """Class for Lie groups.
@@ -364,7 +358,6 @@ class LieGroup(Manifold, abc.ABC):
         left : bool
             Indicate whether to calculate the differential of left or right
             translations.
-            Optional, default: True.
 
         Returns
         -------
@@ -393,11 +386,10 @@ class LieGroup(Manifold, abc.ABC):
         left: bool
             Whether to calculate the differential of left or right
             translations.
-            Optional, default: True.
+
         inverse : bool,
             Whether to inverse the jacobian matrix. If True, the push forward
             by the translation by the inverse of point is returned.
-            Optional, default: False.
 
         Returns
         -------
@@ -472,7 +464,7 @@ class LieGroup(Manifold, abc.ABC):
             Tangent vector at base point.
         base_point : array-like, shape=[..., {dim, [n, n]}]
             Base point.
-            Optional, default: self.identity
+            identity
 
         Returns
         -------
@@ -544,7 +536,6 @@ class LieGroup(Manifold, abc.ABC):
             Point.
         base_point : array-like, shape=[..., {dim, [n, n]}]
             Base point.
-            Optional, defaults to identity if None.
 
         Returns
         -------
@@ -610,7 +601,6 @@ class LieGroup(Manifold, abc.ABC):
         atol : float
             Precision at which to evaluate if the rotation part is
             skew-symmetric.
-            Optional, default: 1e-6.
 
         Returns
         -------

@@ -12,7 +12,6 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.pullback_metric import PullbackMetric
 from geomstats.vectorization import get_batch_shape
 
-
 class VectorSpace(Manifold, abc.ABC):
     """Abstract class for vector spaces.
 
@@ -66,7 +65,6 @@ class VectorSpace(Manifold, abc.ABC):
             Point in the vector space.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -107,10 +105,10 @@ class VectorSpace(Manifold, abc.ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Side of hypercube support of the uniform distribution.
-            Optional, default: 1.0
+            0
 
         Returns
         -------
@@ -133,7 +131,7 @@ class VectorSpace(Manifold, abc.ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         base_point :  array-like, shape={[n_samples, *point_shape], [*point_shape,]}
             Point.
 
@@ -180,7 +178,6 @@ class VectorSpace(Manifold, abc.ABC):
         basis : array-like, shape=[dim, *point_shape]
             Canonical basis of the vector space.
         """
-
 
 class MatrixVectorSpace(VectorSpace, abc.ABC):
     """A matrix vector space."""
@@ -234,10 +231,10 @@ class MatrixVectorSpace(VectorSpace, abc.ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Side of hypercube support of the uniform distribution.
-            Optional, default: 1.0
+            0
 
         Returns
         -------
@@ -245,7 +242,6 @@ class MatrixVectorSpace(VectorSpace, abc.ABC):
            Sample.
         """
         return self.matrix_representation(super().random_point(n_samples, bound))
-
 
 class ComplexVectorSpace(ComplexManifold, abc.ABC):
     """Abstract class for complex vector spaces.
@@ -299,7 +295,6 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
             Point in the vector space.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -340,10 +335,10 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Side of hypercube support of the uniform distribution.
-            Optional, default: 1.0
+            0
 
         Returns
         -------
@@ -358,7 +353,6 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         )
         return point
 
-
 class ComplexMatrixVectorSpace(ComplexVectorSpace):
     """A complex matrix vector space.
 
@@ -367,7 +361,6 @@ class ComplexMatrixVectorSpace(ComplexVectorSpace):
     shape : tuple
         Shape of the elements of the vector space.
     """
-
 
 class LevelSet(Manifold, abc.ABC):
     """Class for manifolds embedded in a vector space by a submersion.
@@ -434,7 +427,6 @@ class LevelSet(Manifold, abc.ABC):
             Point to evaluate.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -471,7 +463,6 @@ class LevelSet(Manifold, abc.ABC):
             Point on the manifold.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -524,7 +515,6 @@ class LevelSet(Manifold, abc.ABC):
         """
         raise NotImplementedError("extrinsic_to_intrinsic_coords is not implemented.")
 
-
 class OpenSet(Manifold, abc.ABC):
     """Class for manifolds that are open sets.
 
@@ -553,7 +543,6 @@ class OpenSet(Manifold, abc.ABC):
             Point on the manifold.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -590,10 +579,9 @@ class OpenSet(Manifold, abc.ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample for the embedding space.
-            Optional, default: 1.
 
         Returns
         -------
@@ -602,7 +590,6 @@ class OpenSet(Manifold, abc.ABC):
         """
         sample = self.embedding_space.random_point(n_samples, bound)
         return self.projection(sample)
-
 
 class VectorSpaceOpenSet(OpenSet, abc.ABC):
     """Class for manifolds that are open sets of a vector space.
@@ -627,7 +614,6 @@ class VectorSpaceOpenSet(OpenSet, abc.ABC):
             Point on the manifold.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -658,7 +644,6 @@ class VectorSpaceOpenSet(OpenSet, abc.ABC):
         if base_point is not None and base_point.ndim > vector.ndim:
             return gs.broadcast_to(tangent_vec, base_point.shape)
         return tangent_vec
-
 
 class ComplexVectorSpaceOpenSet(ComplexManifold, abc.ABC):
     """Class for manifolds that are open sets of a complex vector space.
@@ -692,7 +677,6 @@ class ComplexVectorSpaceOpenSet(ComplexManifold, abc.ABC):
             Point on the manifold.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -733,10 +717,9 @@ class ComplexVectorSpaceOpenSet(ComplexManifold, abc.ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
 
         Returns
         -------
@@ -745,7 +728,6 @@ class ComplexVectorSpaceOpenSet(ComplexManifold, abc.ABC):
         """
         sample = self.embedding_space.random_point(n_samples, bound)
         return self.projection(sample)
-
 
 class ImmersedSet(Manifold, abc.ABC):
     """Class for manifolds embedded in a vector space by an immersion.
@@ -858,7 +840,6 @@ class ImmersedSet(Manifold, abc.ABC):
             Point on the manifold.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -876,7 +857,6 @@ class ImmersedSet(Manifold, abc.ABC):
             Point to evaluate.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -930,10 +910,9 @@ class ImmersedSet(Manifold, abc.ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
 
         Returns
         -------
@@ -941,7 +920,6 @@ class ImmersedSet(Manifold, abc.ABC):
             Points sampled on the manifold.
         """
         raise NotImplementedError("`random_point` is not implemented yet")
-
 
 class DiffeomorphicManifold(Manifold):
     """A manifold defined by a diffeomorphism."""
@@ -960,7 +938,6 @@ class DiffeomorphicManifold(Manifold):
             Point to evaluate.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -982,7 +959,6 @@ class DiffeomorphicManifold(Manifold):
             Point on the manifold.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -1031,7 +1007,6 @@ class DiffeomorphicManifold(Manifold):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
@@ -1065,7 +1040,7 @@ class DiffeomorphicManifold(Manifold):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         base_point :  array-like, shape={[n_samples, *point_shape], [*point_shape,]}
             Point.
 
@@ -1081,7 +1056,6 @@ class DiffeomorphicManifold(Manifold):
         return self.diffeo.inverse_tangent(
             image_tangent_vec, image_point=image_point, base_point=base_point
         )
-
 
 class DiffeomorphicVectorSpace(VectorSpace, DiffeomorphicManifold):
     """A vector space defined by a diffeomorphism."""
@@ -1104,7 +1078,6 @@ class DiffeomorphicVectorSpace(VectorSpace, DiffeomorphicManifold):
         image_point = self.diffeo(point)
         proj_image_point = self.image_space.projection(image_point)
         return self.diffeo.inverse(proj_image_point)
-
 
 class DiffeomorphicMatrixVectorSpace(MatrixVectorSpace, DiffeomorphicVectorSpace):
     """A matrix vector space defined by a diffeomorphism."""

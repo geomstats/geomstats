@@ -68,7 +68,6 @@ class DirichletDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point to be checked.
         atol : float
             Tolerance to evaluate positivity.
-            Optional, default: gs.atol
 
         Returns
         -------
@@ -91,10 +90,8 @@ class DirichletDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         bound : float
             Side of the square where the Dirichlet parameters are sampled.
-            Optional, default: 5.
 
         Returns
         -------
@@ -135,7 +132,6 @@ class DirichletDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point representing a Dirichlet distribution.
         n_samples : int
             Number of points to sample for each set of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -406,17 +402,13 @@ class DirichletMetric(RiemannianMetric):
             End point of the geodesic.
         degree : int
             Degree of the coordinates' polynomial functions of time.
-            Optional, default: 5.
         method : str
             Minimization method to use in scipy.optimize.minimize.
-            Optional, default: 'BFGS'.
         n_times : int
             Number of sample times.
-            Optional, default: 200.
         jac_on : bool
             If jac_on=True, use the Jacobian of the energy cost function in
             scipy.optimize.minimize.
-            Optional, default: True.
 
         Returns
         -------

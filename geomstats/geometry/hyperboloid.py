@@ -16,7 +16,6 @@ from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import repeat_out
 
-
 class Hyperboloid(_Hyperbolic, LevelSet):
     r"""Class for the n-dimensional hyperboloid space.
 
@@ -234,7 +233,6 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         )
         return proj
 
-
 class HyperboloidMetric(RiemannianMetric):
     """Class that defines operations using a hyperbolic metric."""
 
@@ -262,7 +260,7 @@ class HyperboloidMetric(RiemannianMetric):
             First tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., dim + 1]
             Second tangent vector at base point.
-        base_point : array-like, shape=[..., dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space.
 
         Returns
@@ -284,7 +282,7 @@ class HyperboloidMetric(RiemannianMetric):
         ----------
         vector : array-like, shape=[..., dim + 1]
             Vector on the tangent space of the hyperbolic space at base point.
-        base_point : array-like, shape=[..., dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
 
         Returns

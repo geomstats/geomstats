@@ -9,7 +9,6 @@ from geomstats.numerics.geodesic import ExpODESolver, LogShootingSolver
 from geomstats.numerics.ivp import GSIVPIntegrator
 from geomstats.vectorization import check_is_batch
 
-
 class PullbackMetric(RiemannianMetric):
     r"""Pullback metric.
 
@@ -178,7 +177,6 @@ class PullbackMetric(RiemannianMetric):
         second_fund_form = self.second_fundamental_form(base_point)
         cometric = self.cometric_matrix(base_point)
         return gs.einsum("...ij,...aij->...a", cometric, second_fund_form)
-
 
 class PullbackDiffeoMetric(RiemannianMetric):
     """Pullback metric induced by a diffeomorphism."""

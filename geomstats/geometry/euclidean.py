@@ -7,7 +7,6 @@ from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import check_is_batch, repeat_out
 
-
 class Euclidean(VectorSpace):
     """Class for Euclidean spaces.
 
@@ -74,7 +73,6 @@ class Euclidean(VectorSpace):
             Group exponential.
         """
         return tangent_vec + base_point
-
 
 class EuclideanMetric(RiemannianMetric):
     """Class for a Euclidean metric.
@@ -269,10 +267,10 @@ class EuclideanMetric(RiemannianMetric):
         ----------
         initial_point : array-like, shape=[..., dim]
             Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., dim], optional
+        end_point : array-like, shape=[..., dim]
             Point on the manifold, end point of the geodesic. If None,
             an initial tangent vector must be given.
-        initial_tangent_vec : array-like, shape=[..., dim], optional
+        initial_tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point, the initial speed of the geodesics.
             If None, an end point must be given and a logarithm is computed.
 
@@ -345,7 +343,6 @@ class EuclideanMetric(RiemannianMetric):
         """
         radius = gs.array(math.inf)
         return repeat_out(self._space.point_ndim, radius, base_point)
-
 
 class CanonicalEuclideanMetric(EuclideanMetric):
     """Class for the canonical Euclidean metric.

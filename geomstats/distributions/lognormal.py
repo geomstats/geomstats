@@ -150,7 +150,7 @@ class LogNormal:
         [n, n] if space is SPD Manifold.
     cov : array-like, shape=[dim, dim] or shape=[n*(n+1)/2, n*(n+1)/2]
         Covariance of the distribution. Shape is [dim, dim] if space is Euclidean Space,
-        [n*(n+1)/2, n*(n+1)/2] if space is SPD Manifold. Optional, default: identity matrix.
+        [n*(n+1)/2, n*(n+1)/2] if space is SPD Manifold.
 
     Example
     --------
@@ -181,7 +181,7 @@ class LogNormal:
         mean : array-like, shape=[dim] or shape=[n, n]
             Mean of the distribution.
         cov : array-like, shape=[dim, dim] or shape=[n*(n+1)/2, n*(n+1)/2]
-            Covariance of the distribution. Optional, default: identity matrix.
+            Covariance of the distribution.
 
         Returns
         -------

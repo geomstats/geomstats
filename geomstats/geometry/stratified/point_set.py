@@ -7,7 +7,6 @@ from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
 
-
 class Point(ABC):
     """Class for points of a set."""
 
@@ -27,7 +26,6 @@ class Point(ABC):
         is_equal : array-like, shape=[...]
             Whether the points are equal.
         """
-
 
 class PointBatch(ABC, list):
     """Class for point batch."""
@@ -64,7 +62,6 @@ class PointBatch(ABC, list):
         return gs.array(
             [collection_point.equal(point, atol) for collection_point in self]
         )
-
 
 class PointSet(ABC):
     r"""Class for a set of points of type Point."""
@@ -124,14 +121,12 @@ class PointSet(ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
         samples : Point or PointBatch
             Points sampled on the PointSet.
         """
-
 
 class PointSetMetric(ABC):
     r"""Class for the lenght spaces.

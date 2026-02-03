@@ -11,7 +11,6 @@ from geomstats.geometry.base import ComplexMatrixVectorSpace
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
 from geomstats.geometry.matrices import Matrices
 
-
 def expmh(mat):
     """Compute the matrix exponential for a Hermitian matrix.
 
@@ -29,7 +28,6 @@ def expmh(mat):
     dim_3_mat = gs.reshape(mat, [-1, n, n])
     expm = apply_func_to_eigvalsh(dim_3_mat, gs.exp)
     return gs.reshape(expm, mat.shape)
-
 
 def powermh(mat, power):
     """Compute the matrix power for a Hermitian matrix.
@@ -56,7 +54,6 @@ def powermh(mat, power):
 
     return apply_func_to_eigvalsh(mat, power_, check_positive=False)
 
-
 def apply_func_to_eigvalsh(mat, function, check_positive=False):
     """Apply function to eigenvalues and reconstruct the matrix.
 
@@ -69,7 +66,6 @@ def apply_func_to_eigvalsh(mat, function, check_positive=False):
         a list of results will be returned.
     check_positive : bool
         Whether to check positivity of the eigenvalues.
-        Optional. Default: False.
 
     Returns
     -------
@@ -101,7 +97,6 @@ def apply_func_to_eigvalsh(mat, function, check_positive=False):
         eigvals_f = utils.from_vector_to_diagonal_matrix(eigvals_f)
         reconstruction.append(Matrices.mul(eigvecs, eigvals_f, transp_eigvecs))
     return reconstruction if return_list else reconstruction[0]
-
 
 class HermitianMatrices(ComplexMatrixVectorSpace):
     """Class for the vector space of Hermitian matrices of size n.
@@ -206,10 +201,10 @@ class HermitianMatrices(ComplexMatrixVectorSpace):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Side of hypercube support of the uniform distribution.
-            Optional, default: 1.0
+            0
 
         Returns
         -------

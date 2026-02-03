@@ -29,7 +29,7 @@ class TorchMinimizer(Minimizer, abc.ABC):
         Toptim : torch.optim.optimizer
             Class to be instantiated.
         save_result : bool
-            Whether to save result. Optional, default: False.
+            Whether to save result.
         """
         super().__init__(save_result=save_result)
 
@@ -87,11 +87,11 @@ class TorchClosuredBasedMinimizer(TorchMinimizer):
             The objective function to be minimized.
         x0 : array-like
             Initial guess.
-        fun_jac : callable, optional
+        fun_jac : callable
             Jacobian of fun. Ignored.
-        fun_hess : callable, optional
+        fun_hess : callable
             Hessian of fun. Ignored.
-        hessp : callable, optional
+        hessp : callable
             Ignored.
 
         Returns
@@ -147,11 +147,11 @@ class TorchStepwiseMinimizer(TorchMinimizer):
         Toptim : torch.optim.optimizer
             Class to be instantiated.
         max_iter : int
-            Maximum number of iterations. Optional, default: 1000.
+            Maximum number of iterations.
         tol : float
-            Tolerance for convergence. Optional, default: 1e-7.
+            Tolerance for convergence.
         save_result : bool
-            Whether to save result. Optional, default: False.
+            Whether to save result.
         """
         super().__init__(Toptim, save_result=save_result)
         self.max_iter = max_iter
@@ -198,11 +198,11 @@ class TorchStepwiseMinimizer(TorchMinimizer):
             The objective function to be minimized.
         x0 : array-like
             Initial guess.
-        fun_jac : callable, optional
+        fun_jac : callable
             Jacobian of fun. Ignored.
-        fun_hess : callable, optional
+        fun_hess : callable
             Hessian of fun. Ignored.
-        hessp : callable, optional
+        hessp : callable
             Ignored.
 
         Returns

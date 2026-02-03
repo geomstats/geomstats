@@ -21,7 +21,7 @@ def _get_data_home(data_home=None):
     Parameters
     ----------
     data_home : str
-        Path to the data directory. Optional, default: ~/.geomstats_data.
+        Path to the data directory.
 
     Returns
     -------
@@ -44,9 +44,9 @@ def download_figshare_zip(article_id, filename, dirname=None):
     article_id : int
         Figshare article ID.
     filename : str
-        Name of the file to download. Optional, default: {article_id}.zip.
+        Name of the file to download.
     dirname : str
-        Directory to save the file. Optional, default: ~/.geomstats_data.
+        Directory to save the file.
 
     Returns
     -------

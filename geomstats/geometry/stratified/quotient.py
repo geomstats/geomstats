@@ -5,7 +5,6 @@ from abc import ABC
 import geomstats.backend as gs
 from geomstats.geometry.stratified.point_set import PointSetMetric
 
-
 class Aligner(ABC):
     """Bundle structure.
 
@@ -41,7 +40,6 @@ class Aligner(ABC):
             return self.align_algo.align(point, base_point)
 
         raise NotImplementedError("`align` is not implemented")
-
 
 class QuotientMetric(PointSetMetric, ABC):
     """Quotient metric.

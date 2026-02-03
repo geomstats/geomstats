@@ -14,7 +14,6 @@ from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.vectorization import repeat_out, repeat_out_multiple_ndim
 
-
 class SymmetricMatrices(MatrixVectorSpace):
     """Class for the vector space of symmetric matrices of size n.
 
@@ -147,7 +146,6 @@ class SymmetricMatrices(MatrixVectorSpace):
         mat = Matrices.to_symmetric(upper_triangular) * mask
         return mat
 
-
 class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
     r"""Space of symmetric hollow matrices.
 
@@ -265,7 +263,6 @@ class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
             Projected point.
         """
         return point - Matrices.to_diagonal(point)
-
 
 class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
     r"""A permutation-invariant metric on the space of hollow matrices.
@@ -413,7 +410,6 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
         """
         return self._quadratic_form(vector)
 
-
 class ConstantValueRowSumsDiffeo(Diffeo):
     r"""A diffeomorphism from the constant-value-row-sum matrices to symmetric matrices.
 
@@ -537,7 +533,6 @@ class ConstantValueRowSumsDiffeo(Diffeo):
             out_ndim=self._space_ndim,
         )
 
-
 class NullRowSumsSymmetricMatrices(LevelSet, DiffeomorphicMatrixVectorSpace):
     r"""Space of null-row-sums symmetric matrices.
 
@@ -645,7 +640,6 @@ class NullRowSumsSymmetricMatrices(LevelSet, DiffeomorphicMatrixVectorSpace):
                 pre_basis,
             )
         )
-
 
 class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
     r"""A permutation-invariant metric on the space of null-row-sums symmetric matrices.

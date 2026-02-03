@@ -11,12 +11,10 @@ import geomstats.backend as gs
 from geomstats.numerics.optimization import ScipyMinimize
 from geomstats.vectorization import check_is_batch, get_batch_shape
 
-
 def _from_base(method):
     """Decorate method in order to avoid recursive calls."""
     method._from_base = True
     return method
-
 
 class AlignerAlgorithm(ABC):
     """Base class for point to point aligner.
@@ -46,7 +44,6 @@ class AlignerAlgorithm(ABC):
         aligned_point : array-like, shape=[..., *total_space.shape]
             Aligned point.
         """
-
 
 class DistanceMinimizingAligner(AlignerAlgorithm):
     """Aligment based on minimization of squared distance.
@@ -139,7 +136,6 @@ class DistanceMinimizingAligner(AlignerAlgorithm):
         aligned_point = self._total_space.group_action(group_elem, point)
 
         return aligned_point
-
 
 class AlternatingAligner(AlignerAlgorithm):
     """Alternate alignment algorithm.
@@ -255,7 +251,6 @@ class AlternatingAligner(AlignerAlgorithm):
                 for point_, base_point_ in zip(point, base_point)
             ]
         )
-
 
 class FiberBundle:
     """Class for (principal) fiber bundles.
@@ -443,7 +438,6 @@ class FiberBundle:
             Point on the manifold.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -470,7 +464,6 @@ class FiberBundle:
             Point on the manifold.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------

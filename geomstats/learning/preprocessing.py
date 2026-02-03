@@ -68,10 +68,8 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
             Ignored.
         weights : array-like, shape=[n_samples]
             Weights associated to the points.
-            Optional, default: None.
         base_point : array-like, shape=[dim] or [n, n]
             Point similar to the input data from which to compute the logs.
-            Optional, default: None.
 
         Returns
         -------

@@ -29,23 +29,17 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
     tol : float
         Stopping condition. Computation of subsequent mean centers is stopped
         when the distance between them is less than 'tol'.
-        Optional, default: 1e-2.
     n_clusters : int
         Number of centers.
-        Optional, default: 1.
     n_jobs : int
         Number of parallel threads to be initiated for parallel jobs.
-        Optional, default: 1.
     max_iter : int
         Upper bound on total number of iterations for the centers to converge.
-        Optional, default: 100.
     init_centers : str
         Initializing centers, either from the given input points or
         random points uniformly distributed in the input manifold.
-        Optional, default: "from_points".
     kernel : str
         Weighing function to assign kernel weights to each center.
-        Optional, default: "flat".
 
     Notes
     -----

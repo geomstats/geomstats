@@ -87,11 +87,11 @@ class ScipyMinimize(Minimizer):
             The objective function to be minimized.
         x0 : array-like
             Initial guess.
-        fun_jac : callable, optional
+        fun_jac : callable
             Jacobian of fun.
-        fun_hess : callable, optional
+        fun_hess : callable
             Hessian of fun.
-        hessp : callable, optional
+        hessp : callable
             Hessian-vector product.
 
         Returns
@@ -185,7 +185,7 @@ class ScipyRoot(RootFinder):
             Vector-valued function.
         x0 : array-like
             Initial guess.
-        fun_jac : callable, optional
+        fun_jac : callable
             Jacobian of fun. Ignored if None.
 
         Returns

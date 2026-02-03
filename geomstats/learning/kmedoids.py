@@ -22,18 +22,14 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         Equipped manifold.
     n_clusters : int
         Number of clusters (k value of k-medoids).
-        Optional, default: 8.
     max_iter : int
         Maximum number of iterations.
-        Optional, default: 100.
     init : str
         How to initialize cluster centers at the beginning of the algorithm. The
         choice 'random' will select training points as initial cluster centers
         uniformly at random.
-        Optional, default: 'random'.
     n_jobs : int
         Number of jobs to run in parallel. `-1` means using all processors.
-        Optional, default: 1.
 
     Notes
     -----

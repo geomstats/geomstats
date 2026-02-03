@@ -43,16 +43,12 @@ class _AACFrechetMean(BaseEstimator):
     epsilon : float
         Stopping criterion for the estimation step, i.e., the distance between two
         consecutive estimators.
-        Optional, default: 1e-3.
     max_iter : int
         Stopping criterion on the maximum number of iterations.
-        Optional, default: 20.
     init_point : array-like, shape=[n_nodes, n_nodes] or GraphPoint
         Algorithm initialization.
-        Optional, default: random.
     save_last_X : bool
         Flag to save the data as aligned in the last algorithm iteration.
-        Optional, default: True.
     total_space_estimator_kwargs : dict
         Total space estimator keyword arguments.
 
@@ -310,16 +306,12 @@ class _AACRegression(BaseEstimator):
     epsilon : float
         Stopping criterion for the estimation step, i.e., the distance between loss
         function in two consecutive estimation steps.
-        Optional, default: 1e-3.
     max_iter : int
         Stopping criterion on the maximum number of iterations.
-        Optional, default: 20.
     init_point : array-like, shape=[n_nodes, n_nodes] or GraphPoint
         Algorithm initialization.
-        Optional, default: random.
     save_last_y : bool
         Flag to save the data as aligned in the last algorithm iteration.
-        Optional, default: True.
     total_space_estimator_kwargs : dict
         Total space estimator keyword arguments.
 

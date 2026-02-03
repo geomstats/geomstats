@@ -7,7 +7,6 @@ import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 
-
 class Minkowski(Euclidean):
     r"""Class for Minkowski space.
 
@@ -33,7 +32,6 @@ class Minkowski(Euclidean):
         if equip:
             space.equip_with_metric(MinkowskiMetric)
         return space
-
 
 class MinkowskiMetric(EuclideanMetric):
     """Class for the pseudo-Euclidean Minkowski metric."""

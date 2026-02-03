@@ -9,7 +9,6 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import get_batch_shape, repeat_out
 
-
 class KleinBottle(Manifold):
     r"""Class for the Klein Bottle, a two dimensional manifold which is not orientable.
 
@@ -50,7 +49,7 @@ class KleinBottle(Manifold):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : unused
 
         Returns
@@ -369,7 +368,6 @@ class KleinBottle(Manifold):
 
         return gs.stack([x, y, z], axis=-1)
 
-
 class KleinBottleMetric(RiemannianMetric):
     """Class for the Klein Bottle Metric.
 
@@ -517,7 +515,6 @@ class KleinBottleMetric(RiemannianMetric):
         p1 = gs.reshape(p1, shape)
         minimizers = gs.reshape(minimizers, shape)
         return p1, minimizers
-
 
 def _is_close_mod(array, divisor, atol):
     """Determine if values in array are elementwise close to zero modulo divisor.

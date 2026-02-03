@@ -18,7 +18,6 @@ class TemplateEstimator(BaseEstimator):
     ----------
     demo_param : str
         A parameter used for demonstation of how to pass and store paramters.
-        Optional, default: 'demo_param'.
     """
 
     def __init__(self, demo_param="demo_param"):
@@ -73,7 +72,6 @@ class TemplateClassifier(BaseEstimator, ClassifierMixin):
     ----------
     demo_param : str
         A parameter used for demonstation of how to pass and store paramters.
-        Optional, default: 'demo'.
 
     Attributes
     ----------
@@ -147,7 +145,6 @@ class TemplateTransformer(BaseEstimator, TransformerMixin):
     ----------
     demo_param : str
         A parameter used for demonstation of how to pass and store paramters.
-        Optional, default: 'demo'.
 
     Attributes
     ----------

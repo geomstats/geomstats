@@ -20,7 +20,6 @@ from geomstats.geometry.open_hemisphere import OpenHemisphere, OpenHemispheresPr
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-
 class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
     """Manifold of lower triangular matrices with >0 diagonal.
 
@@ -61,10 +60,10 @@ class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Side of hypercube support of the uniform distribution.
-            Optional, default: 1.0
+            0
 
         Returns
         -------
@@ -90,7 +89,6 @@ class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
             Matrix to be checked.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -118,7 +116,6 @@ class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
         diag = gs.vec_to_diag(vec_diag)
         strictly_lower_triangular = gs.tril(point, k=-1)
         return diag + strictly_lower_triangular
-
 
 class CholeskyMetric(RiemannianMetric):
     """Class for Cholesky metric on Cholesky space.
@@ -291,7 +288,6 @@ class CholeskyMetric(RiemannianMetric):
         squared_dist_sl = Matrices.frobenius_product(sl_diff, sl_diff)
         return squared_dist_sl + squared_dist_diag
 
-
 class InvariantPositiveLowerTriangularMatricesMetric(_InvariantMetricMatrix):
     """Invariant metric on the positive lower triangular matrices."""
 
@@ -317,7 +313,6 @@ class InvariantPositiveLowerTriangularMatricesMetric(_InvariantMetricMatrix):
             gs.tril_to_vec(tangent_vec_a),
             gs.matvec(self.metric_mat_at_identity, gs.tril_to_vec(tangent_vec_b)),
         )
-
 
 class UnitNormedRowsPLTDiffeo(Diffeo):
     """A diffeomorphism from UnitNormedRowsPLTDMatrices to OpenHemispheresProduct.
@@ -446,7 +441,6 @@ class UnitNormedRowsPLTDiffeo(Diffeo):
         """
         return self._from_product_to_mat(image_tangent_vec, ones=False)
 
-
 class UnitNormedRowsPLTMatrices(DiffeomorphicManifold):
     """Space of positive lower triangular matrices with unit-normed rows.
 
@@ -493,7 +487,6 @@ class UnitNormedRowsPLTMatrices(DiffeomorphicManifold):
             Point on the manifold.
         atol: float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -516,7 +509,6 @@ class UnitNormedRowsPLTMatrices(DiffeomorphicManifold):
             image_is_tangent,
         )
 
-
 class UnitNormedRowsPLTMatricesPullbackMetric(PullbackDiffeoMetric):
     """Pullback diffeo metric on `UnitNormedRowsPLTMatrices`.
 
@@ -527,7 +519,6 @@ class UnitNormedRowsPLTMatricesPullbackMetric(PullbackDiffeoMetric):
         super().__init__(
             space=space, diffeo=space.diffeo, image_space=space.image_space
         )
-
 
 class PLTUnitDiagMatrices(LevelSet):
     """Lower triangular matrices with unit diagonal.
@@ -643,7 +634,6 @@ class PLTUnitDiagMatrices(LevelSet):
             Number of samples.
         bound : float
             Bound of the interval in which to sample.
-            Optional, default: 1.
 
         Returns
         -------
@@ -652,7 +642,6 @@ class PLTUnitDiagMatrices(LevelSet):
         """
         plt = self.embedding_space.random_point(n_samples, bound=bound)
         return self.projection(plt)
-
 
 class LowerMatrixLog(Diffeo):
     """Matrix logarithm diffeomorphism.
@@ -669,7 +658,6 @@ class LowerMatrixLog(Diffeo):
 
             \log(Z) = \sum_{k=1}^{n-1} \frac{(-1)^{k+1}}{k}
             \left(Z-I_n\right)^k
-
 
         Parameters
         ----------

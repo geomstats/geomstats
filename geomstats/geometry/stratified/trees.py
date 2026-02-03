@@ -7,7 +7,6 @@ Splits are corresponding uniquely to edges in a phylogenetic forest, where, if o
 the edge in the forest, the resulting two-set partition of the labels of the respective
 component of the forest is the corresponding split.
 
-
 Lead author: Jonas Lueg
 """
 
@@ -17,7 +16,6 @@ import random
 
 import geomstats.backend as gs
 from geomstats.exceptions import NotPartialOrder
-
 
 def _pop_random_elem(ls):
     """Pops a random element from a list.
@@ -34,7 +32,6 @@ def _pop_random_elem(ls):
     """
     random_index = random.randint(0, len(ls) - 1)
     return ls.pop(random_index)
-
 
 def generate_splits(labels):
     """Generate random maximal set of compatible splits of set ``labels``.
@@ -88,7 +85,6 @@ def generate_splits(labels):
         splits = updated_splits
     return splits
 
-
 def check_if_separated(labels, splits):
     """Check for each pair of labels if exists split that separates them.
 
@@ -110,7 +106,6 @@ def check_if_separated(labels, splits):
             for u, v in itertools.combinations(labels, 2)
         ]
     )
-
 
 def delete_splits(splits, labels, p_keep, check=True):
     """Delete splits randomly from a set of splits.
@@ -149,7 +144,6 @@ def delete_splits(splits, labels, p_keep, check=True):
             elif check_if_separated(splits=splits_cp, labels=labels):
                 splits = splits_cp
     return splits
-
 
 @functools.total_ordering
 class Split:
@@ -393,7 +387,6 @@ class Split:
         b1 = u.issubset(self.part1) and v.issubset(self.part2)
         b2 = v.issubset(self.part1) and u.issubset(self.part2)
         return b1 or b2
-
 
 class ForestTopology:
     r"""The topology of a forest, using a split-based graph-structure representation.

@@ -194,7 +194,6 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
@@ -268,7 +267,6 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
             associated to dim + 1 outcomes.
         n_samples : int
             Number of points to sample with each set of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------

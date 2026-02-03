@@ -263,7 +263,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         Equipped manifold.
     n_gaussians : int
         Number of Gaussian components in the mix.
-        Optional, default: 8.
     initialisation_method : str
         Choice between initialization method for variances, means and weights.
 
@@ -271,14 +270,11 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
           initial cluster centers.
         - 'kmeans' : will apply Riemannian kmeans to deduce
           variances and means that the EM will use initially.
-        Optional, default: 'random'.
     tol : float
         Convergence tolerance. If the difference of mean distance
         between two steps is lower than tol.
-        Optional, default: 1e-2.
     max_iter : int
         Maximum number of iterations for the gradient descent.
-        Optional, default: 100.
 
     Attributes
     ----------

@@ -7,7 +7,6 @@ import geomstats.backend as gs
 from geomstats.geometry.base import ComplexVectorSpace
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 
-
 class Hermitian(ComplexVectorSpace):
     """Class for Hermitian spaces.
 
@@ -60,7 +59,6 @@ class Hermitian(ComplexVectorSpace):
             Group exponential.
         """
         return tangent_vec + base_point
-
 
 class HermitianMetric(ComplexRiemannianMetric):
     """Class for Hermitian metrics.

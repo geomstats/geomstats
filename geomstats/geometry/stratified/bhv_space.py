@@ -36,7 +36,6 @@ from geomstats.geometry.stratified.trees import (
 )
 from geomstats.geometry.stratified.vectorization import broadcast_lists, vectorize_point
 
-
 def generate_random_tree(n_labels, p_keep=0.9, btol=1e-8):
     """Generate a random instance of ``Tree``.
 
@@ -49,10 +48,9 @@ def generate_random_tree(n_labels, p_keep=0.9, btol=1e-8):
         To be precise, it is not exactly the probability, as some edges cannot be
         deleted since the requirement that two labels are separated by a split might
         be violated otherwise.
-        Optional, default: 0.9.
+        9.
     btol : float
         Tolerance for the boundary of the edge lengths.
-        Optional, default: 1e-08.
 
     Returns
     -------
@@ -69,7 +67,6 @@ def generate_random_tree(n_labels, p_keep=0.9, btol=1e-8):
     lengths = gs.maximum(btol, gs.abs(gs.log(1 - x)))
 
     return Tree(splits, lengths)
-
 
 class TreeTopology(ForestTopology):
     r"""The topology of a tree, using a split-based representation.
@@ -129,7 +126,6 @@ class TreeTopology(ForestTopology):
             Node labels.
         """
         return self.partition[0]
-
 
 class Tree(Point):
     r"""A class for trees, that are phylogenetic trees, elements of the BHV space.
@@ -230,7 +226,6 @@ class Tree(Point):
         """
         return gs.array([self._equal_single(point_, atol) for point_ in point])
 
-
 class TreeBatch(PointBatch):
     """Tree batch."""
 
@@ -253,7 +248,6 @@ class TreeBatch(PointBatch):
         lengths : array-like, shape=[n_points, n_splits]
         """
         return gs.array([point.lengths for point in self])
-
 
 class TreeSpace(PointSet):
     """Class for the Tree space, a point set containing phylogenetic trees.
@@ -312,7 +306,6 @@ class TreeSpace(PointSet):
             The point to be checked.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -350,7 +343,6 @@ class TreeSpace(PointSet):
             return trees[0]
 
         return TreeBatch(trees)
-
 
 class BHVMetric(PointSetMetric):
     """BHV metric for Tree Space for phylogenetic trees.
@@ -428,7 +420,6 @@ class BHVMetric(PointSetMetric):
         return self.geodesic_solver.geodesic(
             initial_point=initial_point, end_point=end_point
         )
-
 
 class GTPSolver:
     """'Geodesic Tree Path' problem solver [OP11]_.

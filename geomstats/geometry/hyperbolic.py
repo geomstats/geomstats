@@ -9,7 +9,6 @@ from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 
-
 class Hyperbolic:
     """Class for the n-dimensional Hyperbolic space.
 
@@ -29,7 +28,7 @@ class Hyperbolic:
         Dimension of the hyperbolic space.
     coords_type : str, {'extrinsic', 'ball', 'half-space'}
         Default coordinates to represent points in hyperbolic space.
-        Optional, default: 'extrinsic'.
+
     """
 
     def __new__(cls, dim, coords_type="extrinsic", equip=True):

@@ -78,7 +78,7 @@ class UniformlySampledDiscretePath:
     ----------
     path : array-like, shape=[..., n_times, *point_shape]
         Discrete path points.
-    interpolator : Interpolator, optional
+    interpolator : Interpolator
         Interpolator instance.
     **interpolator_kwargs : dict
         Additional keyword arguments for interpolator.

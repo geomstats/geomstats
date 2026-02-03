@@ -2,7 +2,6 @@
 
 Lead author: Yann Cabanes.
 
-
 References
 ----------
 .. [Cabanes2022] Yann Cabanes. Multidimensional complex stationary
@@ -27,7 +26,6 @@ from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.spd_matrices import SymMatrixLog, logmh
 from geomstats.integrator import integrate
 from geomstats.vectorization import repeat_out
-
 
 class HPDMatrices(ComplexVectorSpaceOpenSet):
     """Class for the manifold of Hermitian positive definite (HPD) matrices.
@@ -65,7 +63,6 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
             Point to be checked.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -86,7 +83,6 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
             Matrix to project.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -106,10 +102,9 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample in the tangent space.
-            Optional, default: 1.
 
         Returns
         -------
@@ -132,7 +127,7 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
 
@@ -157,7 +152,6 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
         )
 
         return Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
-
 
 class HPDAffineMetric(ComplexRiemannianMetric):
     """Class for the affine-invariant metric on the HPD manifold."""
@@ -304,7 +298,6 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         """
         radius = gs.array(math.inf)
         return repeat_out(self._space.point_ndim, radius, base_point)
-
 
 class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
     """Class for the Bures-Wasserstein metric on the HPD manifold."""
@@ -460,10 +453,9 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         n_steps : int
             Number of steps to use to approximate the solution of the
             ordinary differential equation.
-            Optional, default: 100
+
         step : str, {'euler', 'rk2', 'rk4'}
             Scheme to use in the integration scheme.
-            Optional, default: 'rk4'.
 
         Returns
         -------
@@ -531,7 +523,6 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         eigen_values = gs.linalg.eigvalsh(base_point)
         return eigen_values[..., 0] ** 0.5
 
-
 class HPDEuclideanMetric(ComplexMatricesMetric):
     """Class for the Euclidean metric on the HPD manifold."""
 
@@ -581,7 +572,6 @@ class HPDEuclideanMetric(ComplexMatricesMetric):
         """
         eigen_values = gs.linalg.eigvalsh(base_point)
         return eigen_values[..., 0]
-
 
 class HPDLogEuclideanMetric(PullbackDiffeoMetric):
     """Class for the Log-Euclidean metric on the HPD manifold."""

@@ -45,11 +45,11 @@ class TorchminMinimize(Minimizer):
             The objective function to be minimized.
         x0 : array-like
             Initial guess.
-        fun_jac : callable, optional
+        fun_jac : callable
             Jacobian of fun. Ignored.
-        fun_hess : callable, optional
+        fun_hess : callable
             Hessian of fun. Ignored.
-        hessp : callable, optional
+        hessp : callable
             Ignored.
 
         Returns

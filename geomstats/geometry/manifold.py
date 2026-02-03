@@ -15,7 +15,6 @@ import geomstats.errors
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.quotient_metric import QuotientMetric
 
-
 class Manifold(abc.ABC):
     r"""Class for manifolds.
 
@@ -27,10 +26,9 @@ class Manifold(abc.ABC):
         Shape of one element of the manifold.
     intrinsic : bool
         Coordinate type.
-        Optional, default: True.
+
     equip : bool
         If True, equip space with default metric.
-        Optional, default: True.
 
     Attributes
     ----------
@@ -159,7 +157,6 @@ class Manifold(abc.ABC):
             Point to evaluate.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -179,7 +176,6 @@ class Manifold(abc.ABC):
             Point on the manifold.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -214,10 +210,9 @@ class Manifold(abc.ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         bound : float
             Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
 
         Returns
         -------
@@ -251,7 +246,7 @@ class Manifold(abc.ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
+
         base_point :  array-like, shape={[n_samples, *point_shape], [*point_shape,]}
             Point.
 
@@ -292,7 +287,6 @@ class Manifold(abc.ABC):
             return gs.copy(point)
 
         raise NotImplementedError("`projection` is not implemented yet")
-
 
 class _QuotientStructureRegistry:
     """Registry for quotient structures."""
@@ -439,7 +433,6 @@ class _QuotientStructureRegistry:
                 raise ValueError(f"No mapping for key: {key}")
 
         return out
-
 
 def register_quotient(Space, Metric, GroupAction, FiberBundle, QuotientMetric=None):
     """Register quotient structure.

@@ -13,7 +13,6 @@ ComplexPoincareDisk is the one-dimensional case of Siegel.
 In these one-dimensional manifolds, many simplifications occur compared with
 the multidimensional manifolds since matrices commute in dimension 1.
 
-
 Lead author: Yann Cabanes.
 
 References
@@ -51,7 +50,6 @@ from geomstats.geometry.positive_reals import PositiveReals
 from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 
-
 class ProductPositiveRealsAndComplexPoincareDisks(ProductManifold):
     """Class for the ProductPositiveRealsAndComplexPoincareDisks manifold.
 
@@ -83,7 +81,6 @@ class ProductPositiveRealsAndComplexPoincareDisks(ProductManifold):
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return ProductPositiveRealsAndComplexPoincareDisksMetric
-
 
 class ProductPositiveRealsAndComplexPoincareDisksMetric(ProductRiemannianMetric):
     """Class defining the ProductPositiveRealsAndComplexPoincareDisks metric.

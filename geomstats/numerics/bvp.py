@@ -12,13 +12,13 @@ class ScipySolveBVP:
     Parameters
     ----------
     tol : float
-        Tolerance for solution. Optional, default: 1e-3.
+        Tolerance for solution.
     max_nodes : int
-        Maximum number of mesh nodes. Optional, default: 1000.
-    bc_tol : float, optional
+        Maximum number of mesh nodes.
+    bc_tol : float
         Tolerance for boundary conditions.
     save_result : bool
-        Whether to save result. Optional, default: False.
+        Whether to save result.
     """
 
     def __init__(self, tol=1e-3, max_nodes=1000, bc_tol=None, save_result=False):
@@ -42,9 +42,9 @@ class ScipySolveBVP:
             Initial mesh.
         y : array-like, shape=[n, n_points]
             Initial guess for the solution.
-        fun_jac : callable, optional
+        fun_jac : callable
             Jacobian of fun.
-        bc_jac : callable, optional
+        bc_jac : callable
             Jacobian of bc.
 
         Returns

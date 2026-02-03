@@ -69,7 +69,7 @@ class RiemannianMinimumDistanceToMean(
             Training labels.
         weights : array-like, shape=[n_samples]
             Weights associated to the samples.
-            Optional, default: None, in which case it is equally weighted.
+            If None, it is equally weighted.
 
         Returns
         -------

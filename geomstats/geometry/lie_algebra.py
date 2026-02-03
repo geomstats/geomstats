@@ -18,7 +18,6 @@ from geomstats.geometry.matrices import Matrices
 
 from ._bch_coefficients import BCH_COEFFICIENTS
 
-
 class MatrixLieAlgebra(MatrixVectorSpace, abc.ABC):
     """Class implementing matrix Lie algebra related functions.
 
@@ -58,7 +57,6 @@ class MatrixLieAlgebra(MatrixVectorSpace, abc.ABC):
         order : int
             The order to which the approximation is calculated. Note that this
             is NOT the same as using only e_i with i < order.
-            Optional, default 2.
 
         References
         ----------

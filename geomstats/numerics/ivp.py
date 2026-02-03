@@ -18,7 +18,7 @@ def _merge_scipy_results(results, same_t=False):
     results : list of dict
         List of result dictionaries.
     same_t : bool
-        Whether all results have the same time points. Optional, default: False.
+        Whether all results have the same time points.
 
     Returns
     -------
@@ -188,7 +188,7 @@ class GSIVPIntegrator(ODEIVPIntegrator):
         initial_state : array-like, shape=[..., n_vars, *point_shape]
             Initial state.
         end_time : float
-            Integration end time. Optional, default: 1.0.
+            Integration end time.
 
         Returns
         -------
@@ -222,7 +222,7 @@ class ScipySolveIVP(ODEIVPIntegrator):
     save_result : bool
         If True, result is stored after calling ``integrate`` or ``integrate_t``.
     point_ndim : int
-        Dimension of array representing a point in the space. Optional, default: 1.
+        Dimension of array representing a point in the space.
     **options : dict
         Additional options passed to scipy.integrate.solve_ivp.
     """
@@ -264,7 +264,7 @@ class ScipySolveIVP(ODEIVPIntegrator):
         initial_state : array-like, shape=[..., n_vars, *point_shape]
             Initial state.
         end_time : float
-            Integration end time. Optional, default: 1.0.
+            Integration end time.
 
         Returns
         -------
