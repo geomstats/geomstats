@@ -297,7 +297,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
 
         References
         ----------
-        .. [BHML2015a] Batzies, Hüper, Machado, Leite.
+        .. [BHML2015] Batzies, Hüper, Machado, Leite.
             "Geometric Mean and Geodesic Regression on Grassmannians"
             Linear Algebra and its Applications, 466, 83-101, 2015.
         """
