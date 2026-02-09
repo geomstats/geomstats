@@ -851,7 +851,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         """
         is_vec = gs.ndim(rot_mat) > 2
 
-        trace = gs.trace(rot_mat)
+        trace = gs.einsum("...ii->...", rot_mat)
         trace_num = gs.clip(trace, -1, 3)
         angle = gs.arccos(0.5 * (trace_num - 1))
 
@@ -1491,7 +1491,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             squared_angle < utils.EPSILON, coef_2, (1 - coef_1) / squared_angle_
         )
 
-        outer_ = gs.outer(point, point)
+        outer_ = gs.einsum("...i,...j->...ij", point, point)
         sign = 1.0 if left else -1.0
 
         return (

@@ -601,7 +601,7 @@ class ElasticMetric(RiemannianMetric):
             Term of order 0, and coefficient a0, of the inner-product.
         """
         return self.a0 * gs.sum(
-            gs.dot(tangent_vec_a, tangent_vec_b) * vertex_areas_bp,
+            gs.einsum("...i,...i->...", tangent_vec_a, tangent_vec_b) * vertex_areas_bp,
             axis=-1,
         )
 
@@ -635,7 +635,7 @@ class ElasticMetric(RiemannianMetric):
             Term of order 1, and coefficient a1, of the inner-product.
         """
         return self.a1 * gs.sum(
-            gs.trace(gs.matmul(ginvdga, ginvdgb)) * areas_bp,
+            gs.einsum("...ii->...", gs.matmul(ginvdga, ginvdgb)) * areas_bp,
             axis=-1,
         )
 
@@ -669,7 +669,7 @@ class ElasticMetric(RiemannianMetric):
             Term of order 1, and coefficient b1, of the inner-product.
         """
         return self.b1 * gs.sum(
-            gs.trace(ginvdga) * gs.trace(ginvdgb) * areas_bp,
+            gs.einsum("...ii->...", ginvdga) * gs.einsum("...ii->...", ginvdgb) * areas_bp,
             axis=-1,
         )
 
@@ -706,7 +706,7 @@ class ElasticMetric(RiemannianMetric):
         dna = self._space.normals(point_a) - normals_bp
         dnb = self._space.normals(point_b) - normals_bp
 
-        return self.c1 * gs.sum(gs.dot(dna, dnb) * areas_bp, axis=-1)
+        return self.c1 * gs.sum(gs.einsum("...i,...i->...", dna, dnb) * areas_bp, axis=-1)
 
     def _inner_product_d1(
         self, one_forms_a, one_forms_b, one_forms_bp, areas_bp, ginv_bp
@@ -762,8 +762,8 @@ class ElasticMetric(RiemannianMetric):
         )
 
         return self.d1 * gs.sum(
-            gs.trace(
-                Matrices.mul(
+            gs.einsum(
+                "...ii->...", Matrices.mul(
                     xa_0,
                     ginv_bp,
                     Matrices.transpose(xb_0),
@@ -807,8 +807,8 @@ class ElasticMetric(RiemannianMetric):
         """
         laplacian_at_base_point = self._space.laplacian(base_point)
         return self.a2 * gs.sum(
-            gs.dot(
-                laplacian_at_base_point(tangent_vec_a),
+            gs.einsum(
+                "...i,...i->...", laplacian_at_base_point(tangent_vec_a),
                 laplacian_at_base_point(tangent_vec_b),
             )
             / vertex_areas_bp,

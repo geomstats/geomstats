@@ -72,7 +72,7 @@ class LocalizationTestData(TestData):
             [[gs.cos(angle), -gs.sin(angle)], [gs.sin(angle), gs.cos(angle)]]
         )
 
-        next_position = initial_state[1:] + time_step * gs.matvec(rotation, linear_vel)
+        next_position = initial_state[1:] + time_step * gs.einsum("...ij,...j->...i", rotation, linear_vel)
         expected = gs.concatenate((gs.array([angle]), next_position), axis=0)
 
         data = [
@@ -134,7 +134,7 @@ class LocalizationTestData(TestData):
         rotation = gs.array(
             [[gs.cos(angle), -gs.sin(angle)], [gs.sin(angle), gs.cos(angle)]]
         )
-        expected = gs.matvec(gs.transpose(rotation), gs.array([-0.3, 0.1]))
+        expected = gs.einsum("...ij,...j->...i", gs.transpose(rotation), gs.array([-0.3, 0.1]))
 
         data = [
             dict(

@@ -327,7 +327,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             matrix_m_i = _make_minor(i, matrix_m)
             inv_matrix_m_i = gs.linalg.inv(matrix_m_i)
             b_i = _make_b(i, matrix_m, columns_list)
-            column_r_i = gs.matvec(inv_matrix_m_i, b_i)
+            column_r_i = gs.einsum("...ij,...j->...i", inv_matrix_m_i, b_i)
 
             if column_r_i[i] <= 0:
                 raise ValueError("(r_i)_i <= 0")
@@ -335,7 +335,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         def _make_b(i, matrix, columns_list):
             return gs.array(
-                [-gs.dot(matrix[i, : j + 1], columns_list[j]) for j in range(i)] + [1.0]
+                [-gs.einsum("...i,...i->...", matrix[i, : j + 1], columns_list[j]) for j in range(i)] + [1.0]
             )
 
         n = matrix_m.shape[-1]

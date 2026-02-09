@@ -109,7 +109,7 @@ class NewtonMethod(RootFinder):
 
             y = gs.linalg.solve(fun_jac(xk), fun_xk)
             if self.damped:
-                lambda_xk = gs.sqrt(gs.dot(fun_xk, y))
+                lambda_xk = gs.sqrt(gs.einsum("...i,...i->...", fun_xk, y))
             else:
                 lambda_xk = 0.0
             xk = xk - (1 / (1 + lambda_xk)) * y

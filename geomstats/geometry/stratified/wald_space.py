@@ -631,8 +631,8 @@ def _squared_dist_and_grad_affine(space, topology, ambient_point):
 
         target = space.ambient_space.metric.squared_dist(corr, ambient_point)
 
-        target_grad = 2 * gs.trace(
-            Matrices.mul(
+        target_grad = 2 * gs.einsum(
+            "...ii->...", Matrices.mul(
                 gs.linalg.logm(
                     Matrices.mul(inv_sqrt_ambient_point, corr, inv_sqrt_ambient_point)
                 ),

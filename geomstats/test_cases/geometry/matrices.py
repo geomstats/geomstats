@@ -160,7 +160,7 @@ class MatrixOperationsTestCase(TestCase):
         diag = Matrices.diagonal(mat)
 
         sum_diag = gs.sum(diag, axis=-1)
-        trace = gs.trace(mat)
+        trace = gs.einsum("...ii->...", mat)
         self.assertAllClose(sum_diag, trace, atol=atol)
 
     def test_is_square(self, mat, expected):

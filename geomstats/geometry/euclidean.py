@@ -365,7 +365,7 @@ class CanonicalEuclideanMetric(EuclideanMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        inner_product = gs.dot(tangent_vec_a, tangent_vec_b)
+        inner_product = gs.einsum("...i,...i->...", tangent_vec_a, tangent_vec_b)
         return repeat_out(
             self._space.point_ndim,
             inner_product,

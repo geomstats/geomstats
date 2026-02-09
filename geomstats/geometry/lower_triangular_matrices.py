@@ -207,4 +207,6 @@ class StrictlyLowerTriangularMatrices(LevelSet, MatrixVectorSpace):
             Projected point.
         """
         proj_point = self.embedding_space.projection(point)
-        return proj_point - gs.vec_to_diag(gs.diagonal(proj_point, axis1=-2, axis2=-1))
+        diag_proj = gs.diagonal(proj_point, axis1=-2, axis2=-1)
+        d = diag_proj.shape[-1]
+        return proj_point - gs.einsum("...i,ij->...ij", diag_proj, gs.eye(d, dtype=proj_point.dtype))

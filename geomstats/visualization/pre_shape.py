@@ -154,10 +154,10 @@ class KendallSphere:
         coords_theta = gs.linspace(0.0, 2.0 * gs.pi, n_theta)
         coords_phi = gs.linspace(0.0, gs.pi, n_phi)
 
-        coords_x = gs.to_numpy(0.5 * gs.outer(gs.sin(coords_phi), gs.cos(coords_theta)))
-        coords_y = gs.to_numpy(0.5 * gs.outer(gs.sin(coords_phi), gs.sin(coords_theta)))
+        coords_x = gs.to_numpy(0.5 * gs.einsum("...i,...j->...ij", gs.sin(coords_phi), gs.cos(coords_theta)))
+        coords_y = gs.to_numpy(0.5 * gs.einsum("...i,...j->...ij", gs.sin(coords_phi), gs.sin(coords_theta)))
         coords_z = gs.to_numpy(
-            0.5 * gs.outer(gs.cos(coords_phi), gs.ones_like(coords_theta))
+            0.5 * gs.einsum("...i,...j->...ij", gs.cos(coords_phi), gs.ones_like(coords_theta))
         )
 
         self.ax.plot_surface(
@@ -259,7 +259,7 @@ class KendallSphere:
         exp = S32.quotient.metric.exp(tangent_vec, base_point)
         bp = self.convert_to_spherical_coordinates(base_point)
         exp = self.convert_to_spherical_coordinates(exp)
-        tv = exp - gs.dot(exp, 2.0 * bp) * 2.0 * bp
+        tv = exp - gs.einsum("...i,...i->...", exp, 2.0 * bp) * 2.0 * bp
         tv = tv / gs.linalg.norm(tv) * norm
         self.ax.quiver(bp[0], bp[1], bp[2], tv[0], tv[1], tv[2], **kwargs)
 
@@ -396,8 +396,8 @@ class KendallDisk:
         coords_r = gs.linspace(0.0, gs.pi / 4.0, n_r)
         coords_theta = gs.linspace(0.0, 2.0 * gs.pi, n_theta)
 
-        coords_x = gs.to_numpy(gs.outer(coords_r, gs.cos(coords_theta)))
-        coords_y = gs.to_numpy(gs.outer(coords_r, gs.sin(coords_theta)))
+        coords_x = gs.to_numpy(gs.einsum("...i,...j->...ij", coords_r, gs.cos(coords_theta)))
+        coords_y = gs.to_numpy(gs.einsum("...i,...j->...ij", coords_r, gs.sin(coords_theta)))
 
         self.ax.fill(
             list(coords_x[-1, :]),
@@ -485,13 +485,13 @@ class KendallDisk:
         )
         pole = gs.array([0.0, 0.0, 1.0])
 
-        tv = exp - gs.dot(exp, bp) * bp
+        tv = exp - gs.einsum("...i,...i->...", exp, bp) * bp
         u_tv = tv / gs.linalg.norm(tv)
-        u_r = (gs.dot(pole, bp) * bp - pole) / gs.linalg.norm(
-            gs.dot(pole, bp) * bp - pole
+        u_r = (gs.einsum("...i,...i->...", pole, bp) * bp - pole) / gs.linalg.norm(
+            gs.einsum("...i,...i->...", pole, bp) * bp - pole
         )
         u_th = gs.cross(bp, u_r)
-        x_r, x_th = gs.dot(u_tv, u_r), gs.dot(u_tv, u_th)
+        x_r, x_th = gs.einsum("...i,...i->...", u_tv, u_r), gs.einsum("...i,...i->...", u_tv, u_th)
 
         bp = self.convert_to_planar_coordinates(base_point)
         u_r = bp / gs.linalg.norm(bp)

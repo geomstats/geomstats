@@ -340,7 +340,7 @@ class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
             Tangent vector at base point.
         """
         comp = gs.matmul(tangent_vec, tangent_vec)
-        out_alpha = self.alpha * gs.trace(comp) if self.alpha > gs.atol else 0.0
+        out_alpha = self.alpha * gs.einsum("...ii->...", comp) if self.alpha > gs.atol else 0.0
         out_beta = (
             self.beta * gs.sum(comp, axis=(-2, -1)) if self.beta > gs.atol else 0.0
         )
@@ -720,7 +720,7 @@ class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
         """
         if self.alpha > gs.atol:
             comp = gs.matmul(tangent_vec, tangent_vec)
-            out_alpha = self.alpha * gs.trace(comp)
+            out_alpha = self.alpha * gs.einsum("...ii->...", comp)
         else:
             out_alpha = 0.0
         out_delta = (
@@ -728,7 +728,7 @@ class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
             if self.delta > gs.atol
             else 0.0
         )
-        out_zeta = self.zeta * gs.trace(tangent_vec) ** 2
+        out_zeta = self.zeta * gs.einsum("...ii->...", tangent_vec) ** 2
 
         return out_alpha + out_delta + out_zeta
 

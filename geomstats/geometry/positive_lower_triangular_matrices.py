@@ -115,7 +115,8 @@ class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
         """
         vec_diag = gs.abs(Matrices.diagonal(point))
         vec_diag = gs.where(vec_diag < gs.atol, gs.atol, vec_diag)
-        diag = gs.vec_to_diag(vec_diag)
+        d = vec_diag.shape[-1]
+        diag = gs.einsum("...i,ij->...ij", vec_diag, gs.eye(d, dtype=vec_diag.dtype))
         strictly_lower_triangular = gs.tril(point, k=-1)
         return diag + strictly_lower_triangular
 
@@ -173,7 +174,7 @@ class CholeskyMetric(RiemannianMetric):
         """
         sl_tagnet_vec_a = gs.tril_to_vec(tangent_vec_a, k=-1)
         sl_tagnet_vec_b = gs.tril_to_vec(tangent_vec_b, k=-1)
-        ip_sl = gs.dot(sl_tagnet_vec_a, sl_tagnet_vec_b)
+        ip_sl = gs.einsum("...i,...i->...", sl_tagnet_vec_a, sl_tagnet_vec_b)
         return ip_sl
 
     @classmethod
@@ -231,7 +232,9 @@ class CholeskyMetric(RiemannianMetric):
         diag_product_expm = gs.exp(gs.divide(diag_tangent_vec, diag_base_point))
 
         sl_exp = sl_base_point + sl_tangent_vec
-        diag_exp = gs.vec_to_diag(diag_base_point * diag_product_expm)
+        diag_exp_vec = diag_base_point * diag_product_expm
+        d = diag_exp_vec.shape[-1]
+        diag_exp = gs.einsum("...i,ij->...ij", diag_exp_vec, gs.eye(d, dtype=diag_exp_vec.dtype))
         return sl_exp + diag_exp
 
     def log(self, point, base_point):
@@ -260,7 +263,9 @@ class CholeskyMetric(RiemannianMetric):
         diag_product_logm = gs.log(gs.divide(diag_point, diag_base_point))
 
         sl_log = sl_point - sl_base_point
-        diag_log = gs.vec_to_diag(diag_base_point * diag_product_logm)
+        diag_log_vec = diag_base_point * diag_product_logm
+        d = diag_log_vec.shape[-1]
+        diag_log = gs.einsum("...i,ij->...ij", diag_log_vec, gs.eye(d, dtype=diag_log_vec.dtype))
         return sl_log + diag_log
 
     def squared_dist(self, point_a, point_b):
@@ -313,9 +318,9 @@ class InvariantPositiveLowerTriangularMatricesMetric(_InvariantMetricMatrix):
         if Matrices.is_diagonal(self.metric_mat_at_identity):
             return super().inner_product_at_identity(tangent_vec_a, tangent_vec_b)
 
-        return gs.dot(
-            gs.tril_to_vec(tangent_vec_a),
-            gs.matvec(self.metric_mat_at_identity, gs.tril_to_vec(tangent_vec_b)),
+        return gs.einsum(
+            "...i,...i->...", gs.tril_to_vec(tangent_vec_a),
+            gs.einsum("...ij,...j->...i", self.metric_mat_at_identity, gs.tril_to_vec(tangent_vec_b)),
         )
 
 
@@ -607,9 +612,9 @@ class PLTUnitDiagMatrices(LevelSet):
             Projected point.
         """
         proj_point = self.embedding_space.projection(point)
-        return proj_point + gs.vec_to_diag(
-            1 - gs.diagonal(proj_point, axis1=-2, axis2=-1)
-        )
+        diag_correction = 1 - gs.diagonal(proj_point, axis1=-2, axis2=-1)
+        d = diag_correction.shape[-1]
+        return proj_point + gs.einsum("...i,ij->...ij", diag_correction, gs.eye(d, dtype=proj_point.dtype))
 
     def to_tangent(self, vector, base_point):
         r"""Project a matrix to the tangent space at a base point.
@@ -630,9 +635,9 @@ class PLTUnitDiagMatrices(LevelSet):
             Tangent vector at base point.
         """
         tangent_vec = self.embedding_space.to_tangent(vector, base_point)
-        return tangent_vec - gs.vec_to_diag(
-            gs.diagonal(tangent_vec, axis1=-2, axis2=-1)
-        )
+        diag_tangent = gs.diagonal(tangent_vec, axis1=-2, axis2=-1)
+        d = diag_tangent.shape[-1]
+        return tangent_vec - gs.einsum("...i,ij->...ij", diag_tangent, gs.eye(d, dtype=tangent_vec.dtype))
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample LT^1 matrices by projecting random LT matrices.

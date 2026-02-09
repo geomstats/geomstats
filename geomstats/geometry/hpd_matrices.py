@@ -418,9 +418,9 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         """
         product = gs.matmul(point_a, point_b)
         sqrt_product = gs.linalg.sqrtm(product)
-        trace_a = gs.trace(point_a)
-        trace_b = gs.trace(point_b)
-        trace_prod = gs.trace(sqrt_product)
+        trace_a = gs.einsum("...ii->...", point_a)
+        trace_b = gs.einsum("...ii->...", point_b)
+        trace_prod = gs.einsum("...ii->...", sqrt_product)
 
         squared_dist = gs.real(trace_a + trace_b - 2.0 * trace_prod)
 
