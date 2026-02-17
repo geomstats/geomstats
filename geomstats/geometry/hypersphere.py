@@ -517,19 +517,20 @@ class _Hypersphere(LevelSet):
         if dim == 1:
             tau = 1 + gs.sqrt(1 + 4 * (kappa ** 2))
             rho = (tau - gs.sqrt(2 * tau)) / (2 * kappa)
-            r = (1 + rho ** 2) / (2 * rho)
+            ratio = (1 + rho ** 2) / (2 * rho)
 
             n_accepted, n_iter = 0, 0
             result = []
             while (n_accepted < n_samples) and (n_iter < max_iter):
-                z = gs.cos(gs.pi * gs.random.rand(n_samples - n_accepted))
-                f = (1 + r * z) / (r + z)
-                c = kappa * (r - f)
+                z_samples = gs.cos(gs.pi
+                                   * gs.random.rand(n_samples - n_accepted))
+                f_samples = (1 + ratio * z_samples) / (ratio + z_samples)
+                c_samples = kappa * (ratio - f_samples)
                 u_2 = gs.random.rand(n_samples - n_accepted)
-                mask_1 = (c * (2 - c) - u_2 > 0)
-                mask_2 = (gs.log(c / u_2) + 1 - c >= 0)
+                mask_1 = (c_samples * (2 - c_samples) - u_2 > 0)
+                mask_2 = (gs.log(c_samples / u_2) + 1 - c_samples >= 0)
                 theta = (gs.sign(gs.random.rand(n_samples - n_accepted) - 0.5)
-                         * gs.arccos(f))[mask_1 + mask_2]
+                         * gs.arccos(f_samples))[mask_1 + mask_2]
                 if len(theta) == 0:
                     n_iter += 1
                 else:
