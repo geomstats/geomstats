@@ -31,20 +31,29 @@ class AutoGradientDescentOneStepTestCase(
         base1 = GD._set_init_point(
             self.estimator.space, X, init_point_method="mean-projection"
         )
-        c = 0.8
 
-        loss_auto_func = self.estimator._set_m_estimator_loss()
-        loss_with_base = lambda base: loss_auto_func(
-            points=X, base=base, critical_value=c, loss_and_grad=False
+        self.estimator.set_loss() #loss_auto_func = _set_m_estimator_loss()
+        loss_with_base = self.estimator._set_loss_function_gradientable(
+            points=X, weights=None
         )
+        # loss_with_base = lambda base: loss_auto_func(
+        #     points=X, base=base, critical_value=c, return_grad=False
+        # )
         _, grad_auto = gs.autodiff.value_and_grad(
             loss_with_base, point_ndims=self.estimator.space.point_ndim
         )(base1)
         grad_auto = self.estimator.space.to_tangent(grad_auto, base1)
 
         loss_explicit_func = self.estimator._set_m_estimator_loss()
+        loss_explicit_func.bind(
+            space=self.estimator.space,
+            points=X,
+            critical_value=self.estimator.critical_value,
+            weights=None,
+            autograd=False
+        )
         _, grad_explicit = loss_explicit_func(
-            X, base1, critical_value=c, loss_and_grad=True
+            base1, return_grad=True
         )
 
         k_multiply = (grad_auto / grad_explicit).reshape(-1)
@@ -170,20 +179,21 @@ class MestimatorCustomFunctionDifferentInputArgsTestCase(
     def test_custom_function_different_input_arguments(self, atol):
         """Test custom function input change case"""
         X = self.data_generator.random_point(n_points=20)
-        self.estimator.points = X
-        self.estimator.weights = None
-        self.estimator.set_loss()
-        loss_e, _ = self.estimator.loss_with_base(X[0])
 
-        self.estimator_custom2.points = X
-        self.estimator_custom2.weights = None
+        self.estimator.set_loss()
+        self.estimator._set_loss_function_gradientable(X, None)
+        loss_e, _ = self.estimator.loss_with_base(X[0])
         self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_cw)
+        self.estimator_custom2._set_loss_function_gradientable(X, None)
         loss_cw = self.estimator_custom2.loss_with_base(X[0])
         self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_c)
+        self.estimator_custom2._set_loss_function_gradientable(X, None)
         loss_c = self.estimator_custom2.loss_with_base(X[0])
         self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_w)
+        self.estimator_custom2._set_loss_function_gradientable(X, None)
         loss_w = self.estimator_custom2.loss_with_base(X[0])
         self.estimator_custom2.set_loss(custom_riemannian_cauchy_loss_grad_n)
+        self.estimator_custom2._set_loss_function_gradientable(X, None)
         loss_n = self.estimator_custom2.loss_with_base(X[0])
 
         res = gs.abs(
@@ -215,7 +225,7 @@ def custom_riemannian_cauchy_loss_grad_cw(
         base,
         critical_value=2.3849,
         weights=None,
-        loss_and_grad=False
+        return_grad=False
 ):
     """Compute Riemannian Cauchy loss/gradient."""
     c = critical_value
@@ -224,7 +234,7 @@ def custom_riemannian_cauchy_loss_grad_cw(
     distances = space.metric.norm(logs, base)
     loss, grad = cauchy_m_estimator(logs, distances, weights, c)
 
-    if loss_and_grad:
+    if return_grad:
         return loss, space.to_tangent(grad, base_point=base)
     return loss
 
@@ -234,7 +244,7 @@ def custom_riemannian_cauchy_loss_grad_w(
         points,
         base,
         weights,
-        loss_and_grad=False
+        return_grad=False
 ):
     """Compute Riemannian Cauchy loss/gradient."""
     c = 1
@@ -243,7 +253,7 @@ def custom_riemannian_cauchy_loss_grad_w(
     distances = space.metric.norm(logs, base)
     loss, grad = cauchy_m_estimator(logs, distances, weights, c)
 
-    if loss_and_grad:
+    if return_grad:
         return loss, space.to_tangent(grad, base_point=base)
     return loss
 
@@ -253,7 +263,7 @@ def custom_riemannian_cauchy_loss_grad_c(
         points,
         base,
         critical_value,
-        loss_and_grad=False
+        return_grad=False
 ):
     """Compute Riemannian Cauchy loss/gradient."""
     c = critical_value
@@ -262,7 +272,7 @@ def custom_riemannian_cauchy_loss_grad_c(
     distances = space.metric.norm(logs, base)
     loss, grad = cauchy_m_estimator(logs, distances, weights, c)
 
-    if loss_and_grad:
+    if return_grad:
         return loss, space.to_tangent(grad, base_point=base)
     return loss
 
@@ -271,7 +281,7 @@ def custom_riemannian_cauchy_loss_grad_n(
         space,
         points,
         base,
-        loss_and_grad=False
+        return_grad=False
 ):
     """Compute Riemannian Cauchy loss/gradient."""
     c = 1
@@ -280,6 +290,6 @@ def custom_riemannian_cauchy_loss_grad_n(
     distances = space.metric.norm(logs, base)
     loss, grad = cauchy_m_estimator(logs, distances, weights, c)
 
-    if loss_and_grad:
+    if return_grad:
         return loss, space.to_tangent(grad, base_point=base)
     return loss

@@ -14,7 +14,7 @@ from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.geometric_median import GeometricMedian
 from geomstats.learning.riemannian_robust_m_estimator import (
     RiemannianAutoGradientDescent,
-    RiemannianRobustMestimator,
+    RiemannianRobustMEstimator,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.test_case import autograd_and_torch_only, np_only
@@ -47,13 +47,13 @@ from .data.riemannian_robust_m_estimator import (
 class TestRobustMestimatorSOCoincide(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
     """Test SO matrix/vector coincidence."""
 
-    estimator = RiemannianRobustMestimator(
+    estimator = RiemannianRobustMEstimator(
         SpecialOrthogonal(n=3, point_type="matrix"), 
         critical_value=1,
         m_estimator='huber',
         method='adaptive',
     )
-    other_estimator = RiemannianRobustMestimator(
+    other_estimator = RiemannianRobustMEstimator(
         SpecialOrthogonal(n=3, point_type="vector"),
         critical_value=1,
         m_estimator='huber',
@@ -91,10 +91,10 @@ def estimators_huber_extreme_c(request: pytest.FixtureRequest):
     """Test huber limiting data inputs."""
 
     space = request.param
-    request.cls.estimator = RiemannianRobustMestimator(
+    request.cls.estimator = RiemannianRobustMEstimator(
         space, m_estimator='huber', method='default', init_point_method='mean-projection', critical_value=1e-8)
     request.cls.estimator.set(init_step_size=1e7*5, max_iter=4096, epsilon=1e-16, verbose=True)
-    request.cls.estimator_inf = RiemannianRobustMestimator(
+    request.cls.estimator_inf = RiemannianRobustMEstimator(
         space, m_estimator='huber', method='adaptive', init_point_method='mean-projection', critical_value=1e10)
     request.cls.estimator_inf.set(init_step_size=100, max_iter=4096, epsilon=1e-16)
     request.cls.estimator_frechet_mean = FrechetMean(space)
@@ -124,7 +124,9 @@ def estimators_one_autograd(request: pytest.FixtureRequest):
 
     space, m_estimator = request.param
     c = [1,2,4] if m_estimator == 'hampel' else 1
-    request.cls.estimator = RiemannianRobustMestimator(space, method='autograd', m_estimator=m_estimator, critical_value=c)
+    request.cls.estimator = RiemannianRobustMEstimator(
+        space, method='autograd', m_estimator=m_estimator, critical_value=c
+    )
 
 
 @autograd_and_torch_only
@@ -138,11 +140,11 @@ class TestAutoGradientDescentOnestep(AutoGradientDescentOneStepTestCase, metacla
 @pytest.fixture(
     scope="class",
     params=[
-        (Hypersphere(dim=2),'pseudo_huber'),
+        (Hypersphere(dim=2),'pseudo-huber'),
         (Hypersphere(dim=2),'correntropy'),
         (Hypersphere(dim=2),'logistic'),
         (Hypersphere(dim=2),'lorentzian'),
-        (Hypersphere(dim=random.randint(3, 4)),'pseudo_huber'),
+        (Hypersphere(dim=random.randint(3, 4)),'pseudo-huber'),
         (PoincareHalfSpace(dim=random.randint(2, 3)), "welsch"),
         (SpecialOrthogonal(n=random.randint(2, 3)), "hampel"),
         (SpecialEuclidean(n=random.randint(3, 4)), "cauchy"),
@@ -152,14 +154,14 @@ def estimators_autograd_result(request: pytest.FixtureRequest):
     """Test autograd quality inputs."""
 
     space, m_estimator = request.param
-    request.cls.estimator = RiemannianRobustMestimator(
+    request.cls.estimator = RiemannianRobustMEstimator(
         space,
         method='autograd',
         m_estimator=m_estimator,
         critical_value=1,
         init_point_method='mean-projection'
     )
-    request.cls.estimator_explicit = RiemannianRobustMestimator(
+    request.cls.estimator_explicit = RiemannianRobustMEstimator(
         space,
         method='default',
         m_estimator=m_estimator,
@@ -210,7 +212,7 @@ class TestVarianceEuclidean(VarianceTestCase, metaclass=DataBasedParametrizer):
     scope="class",
     params=[
         (Hypersphere(dim=3),'default'),
-        (Hypersphere(dim=3),'pseudo_huber'),
+        (Hypersphere(dim=3),'pseudo-huber'),
         (Hypersphere(dim=3),'cauchy'),
         (Hypersphere(dim=3),'biweight'),
         (Hypersphere(dim=3),'fair'),
@@ -220,7 +222,7 @@ class TestVarianceEuclidean(VarianceTestCase, metaclass=DataBasedParametrizer):
         (Hypersphere(dim=3),'lorentzian'),
         (Hypersphere(dim=3),'correntropy'),
         (PoincareBall(dim=3),'default'),
-        (PoincareBall(dim=3),'pseudo_huber'),
+        (PoincareBall(dim=3),'pseudo-huber'),
         (PoincareBall(dim=3),'cauchy'),
         (PoincareBall(dim=3),'biweight'),
         (PoincareBall(dim=3),'fair'),
@@ -238,11 +240,11 @@ def estimators_starting_point(request: pytest.FixtureRequest):
 
     cutoff = 2.5 if m_estimator == 'biweight' else 1.5
     
-    request.cls.estimator = RiemannianRobustMestimator(
+    request.cls.estimator = RiemannianRobustMEstimator(
         request.cls.space, m_estimator=m_estimator, method='default', init_point_method='mean-projection', critical_value=cutoff)
-    request.cls.estimator_md = RiemannianRobustMestimator(
+    request.cls.estimator_md = RiemannianRobustMEstimator(
         request.cls.space, m_estimator=m_estimator, method='default', init_point_method='midpoint', critical_value=cutoff)
-    request.cls.estimator_f = RiemannianRobustMestimator(
+    request.cls.estimator_f = RiemannianRobustMEstimator(
         request.cls.space, m_estimator=m_estimator, method='default', init_point_method='first', critical_value=cutoff)
     
     step_size = 5 if m_estimator == 'biweight' else 0.25
@@ -264,13 +266,13 @@ class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metacl
     """Test autograd not working on numpy."""
 
     space = Hypersphere(dim=3)
-    estimator = RiemannianRobustMestimator(
+    estimator = RiemannianRobustMEstimator(
         space, 
         critical_value=None,
         m_estimator='huber',
         method='adaptive',
     )
-    estimator_custom = RiemannianRobustMestimator(
+    estimator_custom = RiemannianRobustMEstimator(
         space, 
         critical_value=None,
         m_estimator='custom',
@@ -282,7 +284,7 @@ class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metacl
 
     def test_custom_m_estimator_loss_not_provided(self):
         X = self.space.random_point(10)
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(ValueError):
             self.estimator_custom.fit(X)
 
     @staticmethod
@@ -302,7 +304,7 @@ class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metacl
             self.estimate_ = self.RGD.minimize(
                 space=self.space,
                 points=self.space.random_point(3),
-                fun=self.basic_loss,
+                loss_grad_fun=self.basic_loss,
                 weights=None,
                 init_point_method='first',
             )
@@ -310,7 +312,7 @@ class TestAutoGradientNotImplementedOnNumpyBackend(BaseEstimatorTestCase, metacl
 
 class TestNotImplementedBlockings(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
     space = Hypersphere(dim=3)
-    estimator = RiemannianRobustMestimator(
+    estimator = RiemannianRobustMEstimator(
         space,
         critical_value=[1,3],
         m_estimator='hampel',
@@ -328,7 +330,7 @@ class TestNotImplementedBlockings(BaseEstimatorTestCase, metaclass=DataBasedPara
     def test_invalid_m_estimator(self):
         """Test invalid m_estimator."""
         with pytest.raises(ValueError):
-            RiemannianRobustMestimator(
+            RiemannianRobustMEstimator(
                 space=self.space,
                 critical_value=1,
                 m_estimator='fault_loss',
@@ -339,7 +341,7 @@ class TestNotImplementedBlockings(BaseEstimatorTestCase, metaclass=DataBasedPara
         """Test hampel loss invalid critical value given(length 1/3 float/int)."""
         X = self.space.random_point(1)
         with pytest.raises(ValueError):
-            estimator_one = RiemannianRobustMestimator(
+            estimator_one = RiemannianRobustMEstimator(
                 space=self.space,
                 critical_value=None,
                 m_estimator='default',
@@ -352,7 +354,7 @@ class TestNotImplementedBlockings(BaseEstimatorTestCase, metaclass=DataBasedPara
         """Test hampel loss invalid critical value given(length 1/3 float/int)."""
         X = self.space.random_point(1)
         with pytest.raises(ValueError):
-            estimator_one_d = RiemannianRobustMestimator(
+            estimator_one_d = RiemannianRobustMEstimator(
                 space=self.space,
                 critical_value=None,
                 m_estimator='default',
@@ -377,14 +379,14 @@ def estimators_custom_and_explicit(request: pytest.FixtureRequest):
 
     request.cls.space = request.param
     
-    request.cls.estimator = RiemannianRobustMestimator(
+    request.cls.estimator = RiemannianRobustMEstimator(
         request.cls.space, m_estimator='cauchy', method='default', init_point_method='mean-projection', critical_value=1)
     request.cls.estimator.set(init_step_size=1, max_iter=4096, epsilon=1e-7, verbose=True)
-    request.cls.estimator_custom = RiemannianRobustMestimator(
+    request.cls.estimator_custom = RiemannianRobustMEstimator(
         request.cls.space, m_estimator='custom', method='default', init_point_method='mean-projection', critical_value=1)
     request.cls.estimator_custom.set(init_step_size=1, max_iter=4096, epsilon=1e-7)
     try:
-        request.cls.estimator_custom2 = RiemannianRobustMestimator(
+        request.cls.estimator_custom2 = RiemannianRobustMEstimator(
             request.cls.space, m_estimator='custom', method='autograd', init_point_method='mean-projection', critical_value=1)
     except NotImplementedError:
         print('autograd test on numpy backend skipped.')
