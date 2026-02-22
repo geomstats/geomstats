@@ -32,13 +32,11 @@ class AutoGradientDescentOneStepTestCase(
             self.estimator.space, X, init_point_method="mean-projection"
         )
 
-        self.estimator.set_loss() #loss_auto_func = _set_m_estimator_loss()
+        self.estimator.set_loss()
         loss_with_base = self.estimator._set_loss_function_gradientable(
             points=X, weights=None
         )
-        # loss_with_base = lambda base: loss_auto_func(
-        #     points=X, base=base, critical_value=c, return_grad=False
-        # )
+
         _, grad_auto = gs.autodiff.value_and_grad(
             loss_with_base, point_ndims=self.estimator.space.point_ndim
         )(base1)

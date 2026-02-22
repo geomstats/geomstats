@@ -289,7 +289,14 @@ class RiemannianAutoGradientDescent(BaseGradientDescent):
             base = space.projection(base + self.perturbation_epsilon)
         return base
 
-    def minimize(self, space, points, loss_grad_fun, weights=None, init_point_method='first'):
+    def minimize(
+        self,
+        space,
+        points,
+        loss_grad_fun,
+        weights=None,
+        init_point_method='first'
+    ):
         """Perform auto grad descent by computing gradient of loss function.
 
         Parameters
@@ -339,8 +346,9 @@ class RiemannianAutoGradientDescent(BaseGradientDescent):
         local_minima_gate = 0
 
         var = riemannian_variance(space, points, current_base, weights=weights)
-        
-        fun = '' if numpy_backend else self._handle_jac(loss_grad_fun, point_ndim=space.point_ndim)
+
+        fun = '' if numpy_backend else self._handle_jac(
+            loss_grad_fun, point_ndim=space.point_ndim)
 
         losses = [current_loss]
         bases = [current_base]
@@ -636,9 +644,9 @@ class AdaptiveGradientDescent(BaseGradientDescent):
         """
         n_points = gs.shape(points)[0]
 
-        tau_max = 1e6 * self.init_step_size if self.init_step_size>1e3 else 1e6
+        tau_max = 1e6 * self.init_step_size if self.init_step_size > 1e3 else 1e6
         tau_mul_up = 1.6511111
-        tau_min = 1e-6 * self.init_step_size if self.init_step_size>1e3 else 1e-6
+        tau_min = 1e-6 * self.init_step_size if self.init_step_size > 1e3 else 1e-6
         tau_mul_down = 0.1
 
         if n_points == 1:
@@ -650,7 +658,7 @@ class AdaptiveGradientDescent(BaseGradientDescent):
         tau = self.init_step_size
         current_iter = 0
         stop_signal = False
-        
+
         current_loss_v, current_gradient_value = loss_grad_fun(base=current_mean)
         current_gradient_value = space.to_tangent(current_gradient_value, current_mean)
         sq_norm_current_gradient_value = space.metric.squared_norm(
@@ -686,12 +694,11 @@ class AdaptiveGradientDescent(BaseGradientDescent):
                     losses.append(next_loss_v)
                     bases.append(next_mean)
                     break
-                else:
-                    current_mean = next_mean
-                    current_gradient_value = next_gradient_value
-                    current_loss_v = next_loss_v
-                    sq_norm_current_gradient_value = sq_norm_next_gradient_value
-                    tau = min(tau_max, tau_mul_up * tau)
+                current_mean = next_mean
+                current_gradient_value = next_gradient_value
+                current_loss_v = next_loss_v
+                sq_norm_current_gradient_value = sq_norm_next_gradient_value
+                tau = min(tau_max, tau_mul_up * tau)
             elif abs(next_loss_v - current_loss_v) < 10*self.epsilon:
                 tau = max(tau_min, tau_mul_down * tau)
             else:
@@ -702,9 +709,11 @@ class AdaptiveGradientDescent(BaseGradientDescent):
                     f'{current_iter}th iteration processing...  ' +
                     f'[{time.time()-tic:.2f} seconds]'
                 )
+                base_curr = [_rounding_array(ee, 3) for ee in current_mean]
+                grad_curr = [_rounding_array(ee, 3) for ee in current_gradient_value]
                 print(
-                    f'base:{[_rounding_array(ee, 3) for ee in current_mean]}, ' +
-                    f'gradient:{[_rounding_array(ee, 3) for ee in current_gradient_value]}, ' +
+                    f'base:{base_curr}, ' +
+                    f'gradient:{grad_curr}, ' +
                     f'step size: {tau:.5f}, ' +
                     f'current loss(grad norm): {sq_norm_current_gradient_value:.2f}' +
                     f'(loss:{current_loss_v:.5f}]'
@@ -742,6 +751,7 @@ class LossBase:
     def bind(self, space, points, weights=None, critical_value=None, autograd=False):
         """Generate empty bind method in parent class."""
         raise NotImplementedError
+
     def __call__(self, base, return_grad=False):
         """Generate empty call in parent class."""
         raise NotImplementedError
@@ -796,12 +806,13 @@ class BaseRiemannianLoss(LossBase):
         return self
 
     def _check_bound(self):
+        """Check if bind done already."""
         if not self._is_bound:
             raise RuntimeError("Loss is not bound: call bind(space, points, weights) first.")
 
     def __call__(self, base, return_grad=False):
         """Check bind, autograd policy, then delegates to subclass(base call).
-        
+
         Parameters
         ----------
         base : array-like, shape=[*metric.shape]
@@ -848,6 +859,7 @@ class RiemannianHuberLoss(BaseRiemannianLoss):
     """
 
     def _call_impl(self, base, return_grad=False):
+        """Compute Loss and optionally gradient."""
         c = self.critical_value
         logs = self.space.metric.log(point=self.points, base_point=base)
         distances = self.space.metric.norm(logs, base_point=base)
@@ -889,6 +901,7 @@ class RiemannianPseudoHuberLoss(BaseRiemannianLoss):
     """
 
     def _call_impl(self, base, return_grad=False):
+        """Compute Loss and optionally gradient."""
         c = self.critical_value
         logs = self.space.metric.log(point=self.points, base_point=base)
         distances = self.space.metric.norm(logs, base_point=base)
@@ -924,6 +937,7 @@ class RiemannianFairLoss(BaseRiemannianLoss):
     """
 
     def _call_impl(self, base, return_grad=False):
+        """Compute Loss and optionally gradient."""
         c = self.critical_value
         logs = self.space.metric.log(point=self.points, base_point=base)
         distances = self.space.metric.norm(logs, base_point=base)
@@ -950,6 +964,7 @@ class RiemannianCauchyLoss(BaseRiemannianLoss):
     """
 
     def _call_impl(self, base, return_grad=False):
+        """Compute Loss and optionally gradient."""
         c = self.critical_value
         logs = self.space.metric.log(point=self.points, base_point=base)
         distances = self.space.metric.norm(logs, base_point=base)
@@ -977,6 +992,7 @@ class RiemannianBiweightLoss(BaseRiemannianLoss):
     """
 
     def _call_impl(self, base, return_grad=False):
+        """Compute Loss and optionally gradient."""
         c = self.critical_value
         logs = self.space.metric.log(point=self.points, base_point=base)
         distances = self.space.metric.norm(logs, base_point=base)
@@ -1010,6 +1026,7 @@ class RiemannianWelschLoss(BaseRiemannianLoss):
     """
 
     def _call_impl(self, base, return_grad=False):
+        """Compute Loss and optionally gradient."""
         c = self.critical_value
         logs = self.space.metric.log(point=self.points, base_point=base)
         distances = self.space.metric.norm(logs, base_point=base)
@@ -1055,6 +1072,7 @@ class RiemannianHampelLoss(BaseRiemannianLoss):
         super().__init__(critical_value=critical_value)
 
     def _call_impl(self, base, return_grad=False):
+        """Compute Loss and optionally gradient."""
         c = self.critical_value
         logs = self.space.metric.log(point=self.points, base_point=base)
         distances = self.space.metric.norm(logs, base_point=base)
@@ -1112,6 +1130,7 @@ class RiemannianCorrentropyLoss(BaseRiemannianLoss):
     """
 
     def _call_impl(self, base, return_grad=False):
+        """Compute Loss and optionally gradient."""
         c = self.critical_value
         logs = self.space.metric.log(point=self.points, base_point=base)
         distances = self.space.metric.norm(logs, base_point=base)
@@ -1139,6 +1158,7 @@ class RiemannianLogisticLoss(BaseRiemannianLoss):
     """
 
     def _call_impl(self, base, return_grad=False):
+        """Compute Loss and optionally gradient."""
         c = self.critical_value
         logs = self.space.metric.log(point=self.points, base_point=base)
         distances = self.space.metric.norm(logs, base_point=base)
@@ -1164,6 +1184,7 @@ class RiemannianLorentzianLoss(BaseRiemannianLoss):
     """
 
     def _call_impl(self, base, return_grad=False):
+        """Compute Loss and optionally gradient."""
         c = self.critical_value
         logs = self.space.metric.log(point=self.points, base_point=base)
         distances = self.space.metric.norm(logs, base_point=base)
@@ -1186,7 +1207,6 @@ class CallableLossAdapter(LossBase):
     Required parameters of given function : space, points.
     It's possible not to have optional parameter names,
       e.g. weights/critical_value/return_grad(or loss_and_grad).
-    
     """
 
     def __init__(self, fun):
@@ -1249,7 +1269,7 @@ class CallableLossAdapter(LossBase):
 
 
 def _safe_signature(fun):
-    """Inspect parameters of function. covers callable, bound method, callable object."""
+    """Inspect parameters of function. covers callable, bind methods."""
     try:
         return inspect.signature(fun)
     except (TypeError, ValueError):
@@ -1270,17 +1290,24 @@ def _call_with_supported_kwargs(fun, **kwargs):
     return fun(**filtered)
 
 
-def squaredLoss(space,points,base,critical_value,weights=None,return_grad=True):
+def squaredLoss(
+        space,
+        points,
+        base,
+        critical_value,
+        weights=None,
+        return_grad=True
+):
     """Compute simple L2 loss to give an example of valid custom function."""
     n = len(points)
-    logs = space.metric.log(points,base)
-    dists = space.metric.dist(points,base)
+    logs = space.metric.log(points, base)
+    dists = space.metric.dist(points, base)
 
     loss = gs.sum(dists**2)/n
     if not return_grad:
         return loss
-    grad = -2*gs.sum(logs,axis=0)/n
-    return loss, space.to_tangent(grad,base)
+    grad = -2 * gs.sum(logs, axis=0)/n
+    return loss, space.to_tangent(grad, base)
 
 
 class RiemannianRobustMEstimator(BaseEstimator):
@@ -1374,7 +1401,7 @@ class RiemannianRobustMEstimator(BaseEstimator):
         self.fun_provided = False
 
     def _set_critical_value(self, critical_value):
-        """Set critical value for each m-estimator by 95% ARE for 1-d Euclidean space."""
+        """Set critical value of M-estimator by 95% ARE for 1-d Euclidean space."""
         critical_value_for_95p_ARE = {
             'default': 1.345,
             'huber': 1.345,
@@ -1432,8 +1459,8 @@ class RiemannianRobustMEstimator(BaseEstimator):
             should be the loss computed in the function.
         To use this attribute on numpy backend, the outputs should be
             (loss, gradient) in the function given.
-        ** For numpy backend, when custom loss function is given, be aware that 
-            critical_value, weights, return_grad=True arguments must be given 
+        ** For numpy backend, when custom loss function is given, be aware that
+            critical_value, weights, return_grad=True arguments must be given
             although arguments are not used. **
         ex) def m_estimator_function(
                     space, points, base, critical_value, weights, return_grad=True
@@ -1442,7 +1469,7 @@ class RiemannianRobustMEstimator(BaseEstimator):
         """
         if fun is not None:
             if hasattr(fun, "bind") and callable(fun):
-                self.fun = fun  # 이미 Loss object라고 가정
+                self.fun = fun
             else:
                 self.fun = CallableLossAdapter(fun)
             self.fun_provided = True
@@ -1457,7 +1484,7 @@ class RiemannianRobustMEstimator(BaseEstimator):
 
     def _set_m_estimator_loss(self):
         """Return Loss_grad function based on given M-estimator name dynamically."""
-        estimator_name = self.m_estimator.replace('-','_').lower()
+        estimator_name = self.m_estimator.replace("-","_").lower()
         if estimator_name == 'default':
             estimator_name = 'huber'
         estimator_name = "".join([p.capitalize() for p in estimator_name.split("_")])
@@ -1476,9 +1503,9 @@ class RiemannianRobustMEstimator(BaseEstimator):
     def _set_loss_function_gradientable(self, points, weights):
         """Set loss function utilizable before fitting.
 
-        Pre-set the base point as the only parameter of the loss function 
+        Pre-set the base point as the only parameter of the loss function
             by making other variables fixed.
-        If autograd not used and custom loss function given, 
+        If autograd not used and custom loss function given,
             all parameters will be used in the gradient descent process.
 
         Parameters
@@ -1519,10 +1546,12 @@ class RiemannianRobustMEstimator(BaseEstimator):
 
         if self.is_autograd_method:
             def loss_with_base(base, return_grad=False):
+                """Compute loss only with base and return loss for autograd."""
                 return self.fun(base, return_grad=return_grad)
             self.loss_with_base = loss_with_base
         else:
             def loss_with_base(base, return_grad=True):
+                """Compute loss only with base and return loss and grad."""
                 return self.fun(base, return_grad=return_grad)
             self.loss_with_base = loss_with_base
         return self.loss_with_base
@@ -1589,5 +1618,3 @@ class RiemannianRobustMEstimator(BaseEstimator):
             init_point_method=self.init_point_method,
         )
         return self
-
-    
