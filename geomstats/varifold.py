@@ -31,7 +31,7 @@ else:
 from geomstats._mesh import Surface
 
 
-class SurfacesKernel:
+class SurfaceKernelPairing:
     """A kernel on surfaces.
 
     Parameters
@@ -47,25 +47,47 @@ class SurfacesKernel:
         tangent_kernel=None,
         signal_kernel=None,
     ):
-        reduction = 1.0
+        factors = []
 
         self._has_position = False
         if position_kernel is not None:
             self._has_position = True
-            reduction *= position_kernel
+            factors.append(position_kernel)
 
         self._has_tangent = False
         if tangent_kernel is not None:
             self._has_tangent = True
-            reduction *= tangent_kernel
+            factors.append(tangent_kernel)
 
         self._has_signal = False
         if signal_kernel is not None:
             self._has_signal = True
-            reduction *= signal_kernel
+            factors.append(signal_kernel)
+
+        if not factors:
+            raise ValueError("At least one kernel must be provided.")
+
+        reduction = factors[0]
+        for factor in factors[1:]:
+            reduction *= factor
 
         area_b = Vj(reduction.new_variable_index(), 1)
-        self._kernel = (reduction * area_b).sum_reduction(axis=1)
+        self._kernel_prod = (reduction * area_b).sum_reduction(axis=1)
+
+    def _get_kernel_prod_args(self, point_a, point_b):
+        kernel_args = ()
+        if self._has_position:
+            kernel_args += (point_a.face_centroids, point_b.face_centroids)
+
+        if self._has_tangent:
+            kernel_args += (point_a.face_normals, point_b.face_normals)
+
+        if self._has_signal:
+            kernel_args += (point_a.signal, point_b.signal)
+
+        kernel_args += (point_b.face_areas,)
+
+        return kernel_args
 
     def __call__(self, point_a, point_b):
         """Evaluate kernel.
@@ -79,18 +101,9 @@ class SurfacesKernel:
         -------
         scalar : float
         """
-        reduction_inputs = ()
-        if self._has_position:
-            reduction_inputs += (point_a.face_centroids, point_b.face_centroids)
+        kernel_args = self._get_kernel_prod_args(point_a, point_b)
 
-        if self._has_tangent:
-            reduction_inputs += (point_a.face_normals, point_b.face_normals)
-
-        if self._has_signal:
-            reduction_inputs += (point_a.signal, point_b.signal)
-
-        reduction_inputs += (point_b.face_areas,)
-        return gs.sum(self._kernel(*reduction_inputs) * point_a.face_areas)
+        return gs.sum(self._kernel_prod(*kernel_args) * point_a.face_areas)
 
 
 def GaussianKernel(sigma=1.0, init_index=0, dim=3):
@@ -236,7 +249,7 @@ class VarifoldMetric:
                 init_index=position_kernel.new_variable_index()
             )
 
-            kernel = SurfacesKernel(position_kernel, tangent_kernel)
+            kernel = SurfaceKernelPairing(position_kernel, tangent_kernel)
 
         self.kernel = kernel
 

@@ -1278,13 +1278,13 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
         from geomstats.varifold import (
             BinetKernel,
             GaussianKernel,
-            SurfacesKernel,
+            SurfaceKernelPairing,
             VarifoldMetric,
         )
 
         position_kernel = GaussianKernel(sigma=1.0, init_index=0)
         tangent_kernel = BinetKernel(init_index=position_kernel.new_variable_index())
-        kernel = SurfacesKernel(
+        kernel = SurfaceKernelPairing(
             position_kernel,
             tangent_kernel,
         )
