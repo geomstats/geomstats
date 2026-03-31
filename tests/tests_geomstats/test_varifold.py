@@ -2,30 +2,19 @@ import pytest
 
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
+import geomstats.varifold.keops.genred as gkeops
+import geomstats.varifold.keops.lazy as lkeops
 from geomstats._mesh import Surface
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.varifold import (
-    BinetKernel_,
-    CauchyKernel_,
-    GaussianKernel_,
     KernelTestCase,
-    LinearKernel_,
-    OrientedGaussianKernel_,
-    UnorientedGaussianKernel_,
     VarifoldMetricTestCase,
     VarifoldRandomDataGenerator,
 )
-from geomstats.varifold import (
-    BinetKernel,
-    CauchyKernel,
-    GaussianKernel,
-    LinearKernel,
-    RestrictedGaussianKernel,
-    VarifoldMetric,
-)
+from geomstats.varifold import VarifoldMetric
 
 from .data.varifold import KernelTestData, VarifoldMetricTestData
 
@@ -60,8 +49,14 @@ def _wrap_kernel(kernel):
 @pytest.fixture(
     scope="class",
     params=[
-        (GaussianKernel(0.5).sum_reduction(axis=1), _wrap_kernel(GaussianKernel_(0.5))),
-        (CauchyKernel(0.7).sum_reduction(axis=1), _wrap_kernel(CauchyKernel_(0.7))),
+        (
+            lkeops.GaussianKernel(0.5).sum_reduction(axis=1),
+            _wrap_kernel(gkeops.GaussianKernel(0.5)),
+        ),
+        (
+            lkeops.CauchyKernel(0.7).sum_reduction(axis=1),
+            _wrap_kernel(gkeops.CauchyKernel(0.7)),
+        ),
     ],
 )
 def position_kernels(request):
@@ -77,15 +72,21 @@ class TestPositionKernel(KernelTestCase, metaclass=DataBasedParametrizer):
 @pytest.fixture(
     scope="class",
     params=[
-        (LinearKernel().sum_reduction(axis=1), _wrap_kernel(LinearKernel_())),
-        (BinetKernel().sum_reduction(axis=1), _wrap_kernel(BinetKernel_())),
         (
-            RestrictedGaussianKernel(0.6, oriented=False).sum_reduction(axis=1),
-            _wrap_kernel(UnorientedGaussianKernel_(0.6)),
+            lkeops.LinearKernel().sum_reduction(axis=1),
+            _wrap_kernel(gkeops.LinearKernel()),
         ),
         (
-            RestrictedGaussianKernel(0.3, oriented=True).sum_reduction(axis=1),
-            _wrap_kernel(OrientedGaussianKernel_(0.3)),
+            lkeops.BinetKernel().sum_reduction(axis=1),
+            _wrap_kernel(gkeops.BinetKernel()),
+        ),
+        (
+            lkeops.RestrictedGaussianKernel(0.6, oriented=False).sum_reduction(axis=1),
+            _wrap_kernel(gkeops.UnorientedGaussianKernel(0.6)),
+        ),
+        (
+            lkeops.RestrictedGaussianKernel(0.3, oriented=True).sum_reduction(axis=1),
+            _wrap_kernel(gkeops.OrientedGaussianKernel(0.3)),
         ),
     ],
 )
@@ -99,9 +100,25 @@ class TestTangentKernel(KernelTestCase, metaclass=DataBasedParametrizer):
     data_generator = RandomDataGenerator_(Hypersphere(dim=2, equip=False))
 
 
-class TestVarifoldMetric(VarifoldMetricTestCase, metaclass=DataBasedParametrizer):
-    space = _DummySpace(VarifoldMetric())
+@pytest.fixture(
+    scope="class",
+    params=[
+        "auto",
+        "backend",
+        "keops_lazy",
+    ],
+)
+def backends(request):
+    request.cls.space = _DummySpace(
+        VarifoldMetric(
+            sigma=1.0,
+            backend=request.param,
+        )
+    )
 
+
+@pytest.mark.usefixtures("backends")
+class TestVarifoldMetric(VarifoldMetricTestCase, metaclass=DataBasedParametrizer):
     _vertices, _faces = data_utils.load_cube()
     _vertices = gs.array(_vertices, dtype=gs.float64)
     _faces = gs.array(_faces)

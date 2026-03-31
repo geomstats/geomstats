@@ -15,3 +15,6 @@ class VarifoldMetricTestData(DistMixinsTestData, TestData):
     skip_vec = True
     trials = 1
     N_RANDOM_POINTS = [1]
+
+    def loss_against_self_is_zero_test_data(self):
+        return self.generate_random_data()
