@@ -31,6 +31,7 @@ from geomstats.numerics.path import (
     UniformlySampledDiscretePath,
     UniformlySampledPathEnergy,
 )
+from geomstats.varifold import VarifoldMetric
 from geomstats.vectorization import get_batch_shape
 
 
@@ -1275,20 +1276,7 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
             Returns a callable that computes the discrepancy term between
             `point` and `another_point`.
         """
-        from geomstats.varifold import (
-            BinetKernel,
-            GaussianKernel,
-            SurfacesKernel,
-            VarifoldMetric,
-        )
-
-        position_kernel = GaussianKernel(sigma=1.0, init_index=0)
-        tangent_kernel = BinetKernel(init_index=position_kernel.new_variable_index())
-        kernel = SurfacesKernel(
-            position_kernel,
-            tangent_kernel,
-        )
-        varifold_metric = VarifoldMetric(kernel)
+        varifold_metric = VarifoldMetric(sigma=1.0)
         return lambda point: varifold_metric.loss(
             point, target_faces=self._total_space.faces
         )
