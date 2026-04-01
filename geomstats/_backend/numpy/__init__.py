@@ -43,6 +43,7 @@ from numpy import (
     logical_or,
     maximum,
     mean,
+    median,
     meshgrid,
     minimum,
     moveaxis,
