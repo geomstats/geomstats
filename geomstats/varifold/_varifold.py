@@ -26,7 +26,7 @@ import logging
 import geomstats.backend as gs
 from geomstats._mesh import Surface
 
-from ._device import gpu_is_available, to_device
+from ._device import gpu_is_available, to_cpu, to_device
 from .kernel import GaussianBinetPairing
 
 
@@ -67,7 +67,7 @@ class KernelInducedMetric(abc.ABC):
         point_a = self.transform(point_a)
         point_b = self.transform(point_b)
 
-        return self.pairing(point_a, point_b)
+        return to_cpu(self.pairing(point_a, point_b))
 
     def squared_dist(self, point_a, point_b):
         """Squared distance.
@@ -86,11 +86,12 @@ class KernelInducedMetric(abc.ABC):
         point_a = self.transform(point_a)
         point_b = self.transform(point_b)
 
-        return (
+        sdist = (
             self.pairing(point_a, point_a)
             - 2 * self.pairing(point_a, point_b)
             + self.pairing(point_b, point_b)
         )
+        return to_cpu(sdist)
 
     def dist(self, point_a, point_b):
         """Squared distance.
