@@ -13,6 +13,9 @@ if gs.__name__.endswith("pytorch"):
     def get_device(array):
         return array.device
 
+    def to_cpu(array):
+        return array.cpu()
+
 
 else:
 
@@ -24,3 +27,6 @@ else:
 
     def get_device(array):
         return "cpu"
+
+    def to_cpu(array):
+        return array
