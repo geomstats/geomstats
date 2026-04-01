@@ -26,26 +26,8 @@ import logging
 import geomstats.backend as gs
 from geomstats._mesh import Surface
 
+from ._device import gpu_is_available, to_device
 from .kernel import GaussianBinetPairing
-
-if gs.__name__.endswith("pytorch"):
-    import torch
-
-    def _gpu_is_available():
-        return torch.cuda.is_available()
-
-    def _to_device(array, device="cuda"):
-        # TODO: check autodiff
-        return array.to(device)
-
-
-else:
-
-    def _gpu_is_available():
-        return False
-
-    def _to_device(array, *args, **kwargs):
-        return array
 
 
 class KernelInducedMetric(abc.ABC):
@@ -187,10 +169,10 @@ class VarifoldMetric(KernelInducedMetric):
         super().__init__(pairing)
 
         self._gpu = False
-        if _gpu_is_available() and (backend == "auto" or backend.endswith("_gpu")):
+        if gpu_is_available() and (backend == "auto" or backend.endswith("_gpu")):
             self._gpu = True
 
-        if backend.endswith("_gpu") and not _gpu_is_available():
+        if backend.endswith("_gpu") and not gpu_is_available():
             logging.info("No GPU available, computing on CPU.")
 
     def transform(self, point):
@@ -216,4 +198,4 @@ class VarifoldMetric(KernelInducedMetric):
         if not self._gpu:
             return arrays
 
-        return [_to_device(array) for array in arrays]
+        return [to_device(array) for array in arrays]
