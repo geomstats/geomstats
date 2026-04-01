@@ -8,6 +8,8 @@ if gs.__name__.endswith("pytorch"):
 else:
     from pykeops.numpy import Genred
 
+from .._device import get_device, to_device
+
 
 def GaussianKernel(sigma):
     r"""Gaussian kernel.
@@ -212,4 +214,6 @@ class GaussianBinetPairing(Pairing):
 
     def kernel_prod(self, *kernel_args):
         """Apply the kernel pairing to a vector."""
-        return self._expr(self._a_param, *kernel_args)
+        a_param = to_device(self._a_param, get_device(kernel_args[0]))
+
+        return self._expr(a_param, *kernel_args)
