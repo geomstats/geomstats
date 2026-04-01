@@ -110,6 +110,7 @@ BACKEND_ATTRIBUTES = {
         "matvec",
         "maximum",
         "mean",
+        "median",
         "meshgrid",
         "minimum",
         "mod",
