@@ -21,11 +21,31 @@ References
 """
 
 import abc
+import logging
 
 import geomstats.backend as gs
 from geomstats._mesh import Surface
 
 from .kernel import GaussianBinetPairing
+
+if gs.__name__.endswith("pytorch"):
+    import torch
+
+    def _gpu_is_available():
+        return torch.cuda.is_available()
+
+    def _to_device(array, device="cuda"):
+        # TODO: check autodiff
+        return array.to(device)
+
+
+else:
+
+    def _gpu_is_available():
+        return False
+
+    def _to_device(array, *args, **kwargs):
+        return array
 
 
 class KernelInducedMetric(abc.ABC):
@@ -150,7 +170,7 @@ class VarifoldMetric(KernelInducedMetric):
     sigma : float
         Positive bandwidth parameter of the Gaussian kernel.
     backend : {"auto", "torch", "keops", "keops_genred", "keops_lazy"}
-        Implementation backend.
+        Implementation backend. Suffix with '_gpu' to control device.
 
         - "auto": Select an implementation automatically (prefers
           a KeOps-based implementation when available, otherwise falls back
@@ -166,6 +186,13 @@ class VarifoldMetric(KernelInducedMetric):
         pairing = GaussianBinetPairing(sigma, backend=backend)
         super().__init__(pairing)
 
+        self._gpu = False
+        if _gpu_is_available() and (backend == "auto" or backend.endswith("_gpu")):
+            self._gpu = True
+
+        if backend.endswith("_gpu") and not _gpu_is_available():
+            logging.info("No GPU available, computing on CPU.")
+
     def transform(self, point):
         """Extract geometric features used by the varifold representation.
 
@@ -180,8 +207,13 @@ class VarifoldMetric(KernelInducedMetric):
         tuple
             Tuple ``(centroids, normals, areas)`` used in the kernel pairing.
         """
-        return (
+        arrays = (
             point.face_centroids,
             point.face_normals,
             point.face_areas,
         )
+
+        if not self._gpu:
+            return arrays
+
+        return [_to_device(array) for array in arrays]

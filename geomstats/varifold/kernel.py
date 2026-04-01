@@ -60,6 +60,9 @@ def GaussianBinetPairing(sigma, backend="auto"):
         has_keops = importlib.util.find_spec("pykeops") is not None
         backend = "keops_genred" if has_keops else "backend"
 
+    if backend.endswith("_gpu"):
+        backend = backend[:-4]
+
     if backend == "keops":
         backend = "keops_genred"
 
