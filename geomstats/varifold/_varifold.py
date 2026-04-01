@@ -21,10 +21,12 @@ References
 """
 
 import abc
+import logging
 
 import geomstats.backend as gs
 from geomstats._mesh import Surface
 
+from ._device import gpu_is_available, to_cpu, to_device
 from .kernel import GaussianBinetPairing
 
 
@@ -65,7 +67,7 @@ class KernelInducedMetric(abc.ABC):
         point_a = self.transform(point_a)
         point_b = self.transform(point_b)
 
-        return self.pairing(point_a, point_b)
+        return to_cpu(self.pairing(point_a, point_b))
 
     def squared_dist(self, point_a, point_b):
         """Squared distance.
@@ -84,11 +86,12 @@ class KernelInducedMetric(abc.ABC):
         point_a = self.transform(point_a)
         point_b = self.transform(point_b)
 
-        return (
+        sdist = (
             self.pairing(point_a, point_a)
             - 2 * self.pairing(point_a, point_b)
             + self.pairing(point_b, point_b)
         )
+        return to_cpu(sdist)
 
     def dist(self, point_a, point_b):
         """Squared distance.
@@ -150,7 +153,7 @@ class VarifoldMetric(KernelInducedMetric):
     sigma : float
         Positive bandwidth parameter of the Gaussian kernel.
     backend : {"auto", "torch", "keops", "keops_genred", "keops_lazy"}
-        Implementation backend.
+        Implementation backend. Suffix with '_gpu' to control device.
 
         - "auto": Select an implementation automatically (prefers
           a KeOps-based implementation when available, otherwise falls back
@@ -166,6 +169,13 @@ class VarifoldMetric(KernelInducedMetric):
         pairing = GaussianBinetPairing(sigma, backend=backend)
         super().__init__(pairing)
 
+        self._gpu = False
+        if gpu_is_available() and (backend == "auto" or backend.endswith("_gpu")):
+            self._gpu = True
+
+        if backend.endswith("_gpu") and not gpu_is_available():
+            logging.info("No GPU available, computing on CPU.")
+
     def transform(self, point):
         """Extract geometric features used by the varifold representation.
 
@@ -180,8 +190,13 @@ class VarifoldMetric(KernelInducedMetric):
         tuple
             Tuple ``(centroids, normals, areas)`` used in the kernel pairing.
         """
-        return (
+        arrays = (
             point.face_centroids,
             point.face_normals,
             point.face_areas,
         )
+
+        if not self._gpu:
+            return arrays
+
+        return [to_device(array) for array in arrays]
