@@ -28,6 +28,7 @@ from torch import (
     less,
     logical_or,
     mean,
+    median,
     meshgrid,
     moveaxis,
     ones,
