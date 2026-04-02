@@ -6,6 +6,13 @@ from geomstats.test.data import TestData
 from ._base import BaseEstimatorTestData, MeanEstimatorMixinsTestData
 
 
+class PointSetFrechetMeanTestData(MeanEstimatorMixinsTestData, BaseEstimatorTestData):
+    atol = 1e-2
+
+    def weighted_mean_two_points_test_data(self):
+        return self.generate_tests([{}])
+
+
 class FrechetMeanTestData(MeanEstimatorMixinsTestData, BaseEstimatorTestData):
     fail_for_autodiff_exceptions = False
 
