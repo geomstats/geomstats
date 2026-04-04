@@ -3,6 +3,8 @@
 Lead author: Yann Cabanes.
 """
 
+import numpy as np
+from sklearn.exceptions import NotFittedError
 from sklearn.neighbors import KNeighborsClassifier
 
 import geomstats.backend as gs
@@ -16,6 +18,85 @@ def wrap(function):
         return function(*new_args, **kwargs)
 
     return wrapped_function
+
+
+class SimpleGeodesicKNearestNeighborsClassifier:
+    """Classifier implementing the k-nearest neighbors vote on geodesic metric spaces.
+
+    Parameters
+    ----------
+    space : PointSet
+        Space equipped with a metric.
+    n_neighbors : int, optional (default = 5)
+        Number of neighbors to use by default.
+    """
+
+    def __init__(self, space, n_neighbors=5):
+        self.space = space
+        self.dist = space.metric.dist
+        self.n_neighbors = n_neighbors
+
+    def fit(self, X, y):
+        """Fit the k-nearest neighbors classifier from the training dataset.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, object)
+            Training data.
+
+        y : array-like of shape (n_samples,)
+            Target values.
+
+        Returns
+        -------
+        self : SimpleGeodesicKNearestNeighborsClassifier
+            The fitted k-nearest neighbors classifier.
+        """
+        self._fit_X = gs.array(X)
+        self._fit_y = gs.array(y)
+        self._is_fitted = True
+        return self
+
+    def predict_one(self, x):
+        """
+        Predict the class labels for one provided data point.
+
+        Parameters
+        ----------
+        X : object
+            Test sample.
+
+        Returns
+        -------
+        y : general label
+            Class labels for one data sample.
+        """
+        if not hasattr(self, "_is_fitted"):
+            raise NotFittedError("Must fit model before predicting.")
+
+        dists = [self.dist(x, xx) for xx in self._fit_X]
+        indices_by_dist = sorted(range(len(dists)), key=lambda k: dists[k])
+
+        labels = self._fit_y[indices_by_dist[: self.n_neighbors]]
+        unique_values, counts = np.unique(labels, return_counts=True)
+
+        return unique_values[np.argmax(counts)]
+
+    def predict(self, X):
+        """
+        Predict the class labels for provided data.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_queries, object)
+            Test samples.
+
+        Returns
+        -------
+        y : ndarray of shape (n_queries,)
+            Class labels for each data sample.
+        """
+        return gs.array([self.predict_one(x) for x in X])
 
 
 class KNearestNeighborsClassifier(KNeighborsClassifier):
