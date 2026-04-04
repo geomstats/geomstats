@@ -280,6 +280,45 @@ class Manifold(abc.ABC):
 
         raise NotImplementedError("`projection` is not implemented yet")
 
+    def __mul__(self, other):
+        """Multiplication operator.
+
+        Parameters
+        ----------
+        Other : manifold
+
+        Returns
+        -------
+        Product Manifold
+        """
+        from .product_manifold import ProductManifold
+
+        if not isinstance(other, Manifold):
+            raise TypeError("Expected a manifold")
+
+        return ProductManifold(factors=(self, other))
+
+    __rmul__ = __mul__
+
+    def __pow__(self, n):
+        """Exponentiation operator.
+
+        Parameters
+        ----------
+        n : int
+            Number of replication of the base manifold.
+
+        Returns
+        -------
+            N-fold Manifold
+        """
+        from .nfold_manifold import NFoldManifold
+
+        if not isinstance(n, int) or n < 1:
+            raise ValueError("Exponent must be a positive integer")
+
+        return NFoldManifold(self, n_copies=n)
+
 
 class _QuotientStructureRegistry:
     """Registry for quotient structures."""
