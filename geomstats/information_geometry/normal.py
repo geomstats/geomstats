@@ -24,7 +24,7 @@ from geomstats.information_geometry.base import (
     ScipyUnivariateRandomVariable,
 )
 from geomstats.vectorization import broadcast_to_multibatch, get_batch_shape, repeat_out
-
+from geomstats.geometry.connection import Connection
 
 class NormalDistributions:
     """Class for the normal distributions.
@@ -918,3 +918,47 @@ class MultivariateNormalDistributionsRandomVariable(ScipyMultivariateRandomVaria
             x, *space._unstack_mean_covariance(point)
         )
         super().__init__(space, rvs, pdf)
+
+class UnivariateNormalAlpha(Connection):
+    """Class for the alpha-connection of univariate normal distributions."""
+
+    def __init__(self, space, alpha):
+        super().__init__(space)
+        self.alpha = alpha
+
+    def christoffels(self, base_point):
+        """Compute the Christoffel symbols at a base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point representing a normal distribution (mean and scale).
+
+        Returns
+        -------
+        christoffels : array-like, shape=[..., 2, 2, 2]
+            Christoffel symbols at base_point.
+            First index is the contravariant one
+        """
+        sigma = base_point[..., 1]
+        alpha = self.alpha
+        alpha_metric_matrix = self._space.metric.metric_matrix(base_point)
+        alpha_metric_inverse_matrix = gs.linalg.inv(alpha_metric_matrix)
+
+        # Initialisation d'un tenseur de zéros (batch_size,i,j,k)
+        christoffels = gs.zeros(base_point.shape[:-1] + (2, 2, 2))
+
+        # k = 0 (mu)
+        # Gamma_{mu, sigma, mu} et Gamma_{sigma, mu, mu}
+        christoffels[..., 0, 1, 0] = -(1 + alpha) / (sigma**3)
+        christoffels[..., 1, 0, 0] = -(1 + alpha) / (sigma**3)
+
+        # k = 1 (sigma)
+        # Gamma_{mu, mu, sigma}
+        christoffels[..., 0, 0, 1] = (1 - alpha) / (sigma**3)
+        # Gamma_{sigma, sigma, sigma}
+        christoffels[..., 1, 1, 1] = -2 * (1 + 2 * alpha) / (sigma**3)
+
+        # Calcul de Gamma^k_{ij} = g^{kl} Gamma_{ijl}
+        christoffels = gs.einsum("...kl,...ijl->...kij", alpha_metric_inverse_matrix, christoffels)
+        return christoffels
