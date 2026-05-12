@@ -12,7 +12,7 @@ import types
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.connection import MetricConnectionView
+from geomstats.geometry.connection import ConnectionFromMetric
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.quotient_metric import QuotientMetric
 
@@ -89,7 +89,7 @@ class Manifold(abc.ABC):
 
             self.metric = Metric
 
-        self.connection = MetricConnectionView(self.metric)
+        self.connection = ConnectionFromMetric(self.metric)
 
         return self
 

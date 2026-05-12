@@ -779,36 +779,47 @@ class Connection(ABC):
         raise NotImplementedError("The injectivity range is not implemented yet.")
 
 
-class MetricConnectionView:
-    """Metric wrapper exposing only connection-related methods."""
+_CONNECTION_METHODS = {
+    "_space",
+    "christoffels",
+    "geodesic_equation",
+    "exp",
+    "log",
+    "riemann_tensor",
+    "curvature",
+    "ricci_tensor",
+    "directional_curvature",
+    "curvature_derivative",
+    "directional_curvature_derivative",
+    "geodesic",
+    "parallel_transport",
+    "injectivity_radius",
+}
 
-    _CON_METHODS = {
-        "_space",
-        "christoffels",
-        "geodesic_equation",
-        "exp",
-        "log",
-        "riemann_tensor",
-        "curvature",
-        "ricci_tensor",
-        "directional_curvature",
-        "curvature_derivative",
-        "directional_curvature_derivative",
-        "geodesic",
-        "parallel_transport",
-        "injectivity_radius",
-    }
+
+def _make_delegated_method(name):
+    def method(self, *args, **kwargs):
+        return getattr(self._metric, name)(*args, **kwargs)
+
+    method.__name__ = name
+    method.__qualname__ = name
+    method.__doc__ = f"Delegate ``{name}`` to the wrapped metric."
+    return method
+
+
+def _delegate_methods(method_names):
+    def decorate(cls):
+        for name in method_names:
+            if name not in cls.__dict__:
+                setattr(cls, name, _make_delegated_method(name))
+        return cls
+
+    return decorate
+
+
+@_delegate_methods(_CONNECTION_METHODS)
+class ConnectionFromMetric:
+    """Metric wrapper exposing only connection-related methods."""
 
     def __init__(self, metric):
         self._metric = metric
-
-    def __getattr__(self, name):
-        """Get attribute."""
-        if name not in self._CON_METHODS:
-            raise AttributeError(f"{name} is not implemented.")
-
-        return getattr(self._metric, name)
-
-    def __dir__(self):
-        """Available connection-related attributes."""
-        return sorted(set(super().__dir__()) | self._CON_METHODS)
