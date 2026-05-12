@@ -19,7 +19,7 @@ from geomstats.learning.frechet_mean import (
 class GroupGradientDescent(BaseGradientDescent):
     """Gradient descent for exponential barycenter."""
 
-    def minimize(self, group, points, weights=None):
+    def minimize(self, space, points, weights=None):
         """Compute the (weighted) group exponential barycenter of `points`.
 
         Parameters
@@ -55,14 +55,14 @@ class GroupGradientDescent(BaseGradientDescent):
             if not (grad_norm > self.epsilon or iteration == 0):
                 break
 
-            inv_mean = group.inverse(mean)
-            centered_points = group.compose(inv_mean, points)
+            inv_mean = space.inverse(mean)
+            centered_points = space.compose(inv_mean, points)
 
-            logs = group.log(point=centered_points)
+            logs = space.log(point=centered_points)
             tangent_mean = self.init_step_size * gs.einsum(
                 "n, nk...->k...", weights / sum_weights, logs
             )
-            mean_next = group.compose(mean, group.exp(tangent_vec=tangent_mean))
+            mean_next = space.compose(mean, space.exp(tangent_vec=tangent_mean))
 
             grad_norm = gs.linalg.norm(tangent_mean)
 

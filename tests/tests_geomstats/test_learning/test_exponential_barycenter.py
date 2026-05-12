@@ -6,7 +6,7 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.exponential_barycenter import (
     ExponentialBarycenter,
-    GradientDescent,
+    GroupGradientDescent,
 )
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.test.parametrizers import DataBasedParametrizer
@@ -67,7 +67,7 @@ class TestAgainstLinearMean(BaseEstimatorTestCase, metaclass=DataBasedParametriz
     def test_against_linear_mean(self, n_samples, atol):
         X = self.data_generator.random_point(n_points=n_samples)
 
-        optimizer = GradientDescent()
+        optimizer = GroupGradientDescent()
         res = optimizer.minimize(self.estimator.space, X)
 
         expected = self.estimator.fit(X).estimate_
