@@ -777,3 +777,50 @@ class Connection(ABC):
             Injectivity radius.
         """
         raise NotImplementedError("The injectivity range is not implemented yet.")
+
+
+_CONNECTION_METHODS = {
+    "_space",
+    "christoffels",
+    "jacobian_christoffels",
+    "geodesic_equation",
+    "exp",
+    "log",
+    "riemann_tensor",
+    "curvature",
+    "ricci_tensor",
+    "directional_curvature",
+    "curvature_derivative",
+    "directional_curvature_derivative",
+    "geodesic",
+    "parallel_transport",
+    "injectivity_radius",
+}
+
+
+def _make_delegated_method(name):
+    def method(self, *args, **kwargs):
+        return getattr(self._metric, name)(*args, **kwargs)
+
+    method.__name__ = name
+    method.__qualname__ = name
+    method.__doc__ = f"Delegate ``{name}`` to the wrapped metric."
+    return method
+
+
+def _delegate_methods(method_names):
+    def decorate(cls):
+        for name in method_names:
+            if name not in cls.__dict__:
+                setattr(cls, name, _make_delegated_method(name))
+        return cls
+
+    return decorate
+
+
+@_delegate_methods(_CONNECTION_METHODS)
+class ConnectionFromMetric:
+    """Metric wrapper exposing only connection-related methods."""
+
+    def __init__(self, metric):
+        self._metric = metric

@@ -12,6 +12,7 @@ import types
 
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.connection import ConnectionFromMetric
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.quotient_metric import QuotientMetric
 
@@ -61,6 +62,24 @@ class Manifold(abc.ABC):
         if equip:
             self.equip_with_metric()
 
+    def equip_with_connection(self, Connection, **connection_kwargs):
+        """Equip manifold with a Riemannian metric.
+
+        Parameters
+        ----------
+        Connection : Connection object
+            If None, default metric will be used.
+        """
+        if hasattr(self, "metric"):
+            raise ValueError("Cannot equip a Riemannian manifold with a connection.")
+
+        if Connection is ConnectionFromMetric:
+            self.connection = Connection(**connection_kwargs)
+        else:
+            self.connection = Connection(self, **connection_kwargs)
+
+        return self
+
     def equip_with_metric(self, Metric=None, **metric_kwargs):
         """Equip manifold with a Riemannian metric.
 
@@ -87,6 +106,8 @@ class Manifold(abc.ABC):
                 )
 
             self.metric = Metric
+
+        self.connection = ConnectionFromMetric(self.metric)
 
         return self
 
