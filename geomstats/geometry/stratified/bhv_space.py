@@ -18,6 +18,7 @@ References
 
 import itertools as it
 
+import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
@@ -246,6 +247,160 @@ class Tree(Point):
             return False
 
         return gs.all(gs.abs(self.lengths - point.lengths) < atol)
+
+    def _smallest_containing(self, target, splits, default):
+        r"""Return the smallest split node that contains the target.
+
+        Helper function to convert split representation to networkx.
+
+        Parameters
+        ----------
+        target : int or tuple
+            If int, finds the smallest split containing that leaf index.
+            If tuple, finds the smallest split strictly containing that split.
+        splits : list of tuple
+            The list of split nodes to search over.
+        default : tuple
+            Node returned if no split contains the target.
+
+        Returns
+        -------
+        best : tuple
+            The smallest split in ``splits`` containing ``target``,
+            or ``default`` if none found.
+        """
+        best, best_size = (
+            default,
+            len(default) if not isinstance(default, str) else float("inf"),
+        )
+        for node in splits:
+            if isinstance(target, (list, tuple, set)):
+                contained = set(target) < set(node)
+            else:
+                contained = target in node
+            if contained and len(node) < best_size:
+                best, best_size = node, len(node)
+        return best
+
+    def _to_networkx(self, root_id=None, pendant_edges=None, leaf_labels=None):
+        r"""Return the networkx representation of the tree for visualisation.
+
+        Parameters
+        ----------
+        root_id : int\in[0,self.topology.n_labels), optional
+            This helps give orientation to networkx graph for visualisation. If None,
+            this function assumes, rather arbitrarily, that the last label is the root.
+        pendant_edges : array-like, shape=[self.topology.n_labels], optional
+            The pendant-edge lengths, a vector containing positive numbers.
+        leaf_labels : array-like, shape=[self.topology.n_labels], optional
+            The labels for the leaves, by index. Default is index.
+        DEBUG : bool, optional
+            If True will print lots.
+
+        Returns
+        -------
+        G : nx.DiGraph
+            Return networkx (nodes and edges) representation of the tree.
+        """
+        if pendant_edges is None:
+            pendant_edges = gs.ones(self.topology.n_labels)
+
+        if root_id is None:
+            root_id = self.topology.n_labels - 1
+
+        if leaf_labels is None:
+            leaf_labels = list(range(self.topology.n_labels))
+
+        leaf_labels = tuple(leaf_labels)
+        sans_root_leaf_labels = "".join(
+            tuple(
+                str(leaf_label)
+                for i, leaf_label in enumerate(leaf_labels)
+                if i != root_id
+            )
+        )
+
+        # order splits by non-root-containing, to put root at top (arbitrary)
+        splits = []
+        for ft_split_pair in self.topology.splits:
+            p1, p2 = ft_split_pair.part1, ft_split_pair.part2
+            if root_id in p2:
+                splits.append(tuple(leaf_labels[i] for i in p1))
+            else:
+                splits.append(tuple(leaf_labels[i] for i in p2))
+
+        # convert splits to networkx
+        G = nx.DiGraph()
+        G.add_nodes_from(leaf_labels)
+        G.add_node(sans_root_leaf_labels)
+
+        # Root pendant edge
+        G.add_node(sans_root_leaf_labels)
+        G.add_edge(
+            leaf_labels[root_id],
+            sans_root_leaf_labels,
+            length=pendant_edges[root_id],
+            weight=len(leaf_labels),
+        )
+
+        # Pendant edges
+        for i, pendant_edge in enumerate(pendant_edges):
+            if i == root_id:
+                continue
+            smallest = self._smallest_containing(
+                leaf_labels[i], splits, sans_root_leaf_labels
+            )
+            G.add_edge(
+                "".join([str(s) for s in smallest]),
+                leaf_labels[i],
+                length=pendant_edge,
+                weight=1,
+            )
+
+        # Splits
+        for split, split_length in zip(splits, self.lengths):
+            smallest = self._smallest_containing(split, splits, sans_root_leaf_labels)
+            G.add_edge(
+                "".join([str(s) for s in smallest]),
+                "".join([str(s) for s in split]),
+                length=split_length,
+                weight=len(split),
+            )
+
+        return G
+
+    def plot(self, root_id=None, pendant_edges=None, leaf_labels=None, ax=None):
+        r"""Plot the networkx representation of the tree.
+
+        Parameters
+        ----------
+        root_id : int\in[0,self.topology.n_labels), optional
+            This helps give orientation to networkx graph for visualisation. If None,
+            this function assumes, rather arbitrarily, that the last label is the root.
+        pendant_edges : array-like, shape=[self.topology.n_labels], optional
+            The pendant edge lengths, a vector containing positive numbers.
+        leaf_labels : array-like, shape=[self.topology.n_labels], optional
+            The labels for the leaves, by index. Default is index.
+        ax : plt axis, optional
+        """
+        if ax is None:
+            ax = plt.gca()
+
+        nx_tree = self._to_networkx(
+            root_id=root_id, pendant_edges=pendant_edges, leaf_labels=leaf_labels
+        )
+        pos = nx.nx_agraph.graphviz_layout(nx_tree, prog="dot", root=root_id)
+        nx.draw(
+            nx_tree,
+            pos,
+            ax=ax,
+            with_labels=True,
+            node_size=100,
+            node_color="skyblue",
+            font_size=10,
+            edge_color="gray",
+        )
+        return ax
 
     @staticmethod
     def _check_valid_lengths(lengths, n_splits):
