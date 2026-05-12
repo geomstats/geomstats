@@ -9,7 +9,7 @@ from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
 from geomstats.learning._template import TransformerMixin
-from geomstats.learning.frechet_mean import FrechetMean, variance
+from geomstats.learning.frechet_mean import FrechetMean, GeneralFrechetMean, variance
 from geomstats.learning.kmeans import RiemannianKMeans
 
 PDF_TOL = 1e-6
@@ -313,9 +313,9 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self.minimum_epochs = minimum_epochs
 
         self.mean_estimator = FrechetMean(space)
-        if isinstance(self.mean_estimator, FrechetMean):
+        if isinstance(self.mean_estimator, GeneralFrechetMean):
             self.mean_estimator.method = "batch"
-            self.mean_estimator.set(
+            self.mean_estimator.optimizer_kwargs.update(
                 max_iter=100,
                 epsilon=1e-4,
                 init_step_size=1.0,
