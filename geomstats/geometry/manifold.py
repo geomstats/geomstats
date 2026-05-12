@@ -62,6 +62,21 @@ class Manifold(abc.ABC):
         if equip:
             self.equip_with_metric()
 
+    def equip_with_connection(self, Connection, **connection_kwargs):
+        """Equip manifold with a Riemannian metric.
+
+        Parameters
+        ----------
+        Connection : Connection object
+            If None, default metric will be used.
+        """
+        if hasattr(self, "metric"):
+            raise ValueError("Cannot equip a Riemannian manifold with a connection.")
+
+        self.connection = Connection(self)
+
+        return self
+
     def equip_with_metric(self, Metric=None, **metric_kwargs):
         """Equip manifold with a Riemannian metric.
 
