@@ -782,6 +782,7 @@ class Connection(ABC):
 _CONNECTION_METHODS = {
     "_space",
     "christoffels",
+    "jacobian_christoffels",
     "geodesic_equation",
     "exp",
     "log",
