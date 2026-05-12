@@ -73,7 +73,10 @@ class Manifold(abc.ABC):
         if hasattr(self, "metric"):
             raise ValueError("Cannot equip a Riemannian manifold with a connection.")
 
-        self.connection = Connection(self)
+        if Connection is ConnectionFromMetric:
+            self.connection = Connection(**connection_kwargs)
+        else:
+            self.connection = Connection(self, **connection_kwargs)
 
         return self
 
