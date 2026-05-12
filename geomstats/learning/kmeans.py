@@ -11,7 +11,7 @@ from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
 from geomstats.learning._template import TransformerMixin
-from geomstats.learning.frechet_mean import FrechetMean
+from geomstats.learning.frechet_mean import FrechetMean, GeneralFrechetMean
 
 
 class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
@@ -77,8 +77,10 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.init_cluster_centers_ = None
 
         self.mean_estimator = FrechetMean(space=space)
-        if isinstance(self.mean_estimator, FrechetMean):
-            self.mean_estimator.set(max_iter=100, init_step_size=1.0)
+        if isinstance(self.mean_estimator, GeneralFrechetMean):
+            self.mean_estimator.optimizer_kwargs.update(
+                max_iter=100, init_step_size=1.0
+            )
 
         self.cluster_centers_ = None
         self.labels_ = None
