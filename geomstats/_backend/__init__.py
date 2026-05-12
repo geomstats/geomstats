@@ -92,6 +92,7 @@ BACKEND_ATTRIBUTES = {
         "hsplit",
         "hstack",
         "imag",
+        "inf",
         "isclose",
         "isnan",
         "is_array",

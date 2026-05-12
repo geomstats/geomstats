@@ -32,6 +32,7 @@ from numpy import (
     greater,
     hsplit,
     hstack,
+    inf,
     int32,
     int64,
     isclose,
