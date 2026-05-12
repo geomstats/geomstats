@@ -5,14 +5,18 @@ Lead author: Nicolas Guigui.
 
 import logging
 
-from sklearn.base import BaseEstimator
-
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.learning.frechet_mean import BaseGradientDescent, LinearMean
+from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
+from geomstats.learning.frechet_mean import (
+    BaseGradientDescent,
+    LinearMean,
+    _BaseMeanEstimator,
+    _scalarmulsum,
+)
 
 
-class GradientDescent(BaseGradientDescent):
+class GroupGradientDescent(BaseGradientDescent):
     """Gradient descent for exponential barycenter."""
 
     def minimize(self, group, points, weights=None):
@@ -75,71 +79,113 @@ class GradientDescent(BaseGradientDescent):
         return mean
 
 
-class ExponentialBarycenter(BaseEstimator):
+class GroupBarycenter(_BaseMeanEstimator):
     """Empirical exponential barycenter for matrix groups.
 
     Parameters
     ----------
     space : LieGroup
         Lie group instance on which the data lie.
+    optimizer_kwargs : dict or None
+        Keyword arguments passed to the optimizer constructor.
+        Optional, default: None.
 
     Attributes
     ----------
     estimate_ : array-like, shape=[dim, dim]
         If fit, exponential barycenter.
+    optimizer_ : object
+        Optimizer instance used during fitting.
     """
 
-    def __new__(cls, space):
-        """Interface for instantiating proper algorithm."""
-        if isinstance(space, Euclidean):
-            return LinearMean(space)
+    # TODO (nguigs): use closed form expression for special euclidean
+    #  group as before PR #537
 
-        return super().__new__(cls)
+    def __init__(self, space, optimizer_kwargs=None):
+        super().__init__(space, optimizer_kwargs=optimizer_kwargs)
 
-    def __init__(self, space):
-        self.space = space
+    def _make_optimizer(self):
+        return GroupGradientDescent(**self.optimizer_kwargs)
 
-        self.optimizer = GradientDescent()
 
-        self.estimate_ = None
+class ConnectionGradientDescent(BaseGradientDescent):
+    """Gradient descent for exponential barycenter."""
 
-    def set(self, **kwargs):
-        """Set optimizer parameters.
+    def minimize(self, space, points, weights=None):
+        """Perform default gradient descent."""
+        n_points = gs.shape(points)[0]
+        if weights is None:
+            weights = gs.ones((n_points,))
 
-        Especially useful for one line instantiations.
-        """
-        for param_name, value in kwargs.items():
-            if not hasattr(self.optimizer, param_name):
-                raise ValueError(f"Unknown parameter {param_name}.")
+        mean = points[0] if self.init_point is None else self.init_point
 
-            setattr(self.optimizer, param_name, value)
-        return self
+        if n_points == 1:
+            return mean
 
-    def fit(self, X, y=None, weights=None):
-        """Compute the empirical weighted exponential barycenter.
+        sum_weights = gs.sum(weights)
 
-        Parameters
-        ----------
-        X : array-like, shape=[n_samples, dim, dim]
-            Training input samples.
-        y : None
-            Target values. Ignored.
-        weights : array-like, shape=[n_samples,]
-            Weights associated to the samples.
-            Optional, default: None, in which case it is equally weighted.
+        norm_old = gs.inf
+        step_size = self.init_step_size
 
-        Returns
-        -------
-        self : object
-            Returns self.
-        """
-        # TODO (nguigs): use closed form expression for special euclidean
-        #  group as before PR #537
+        for _ in range(self.max_iter):
+            logs = space.connection.log(point=points, base_point=mean)
 
-        self.estimate_ = self.optimizer.minimize(
-            group=self.space,
-            points=X,
-            weights=weights,
-        )
+            tangent_mean = _scalarmulsum(weights, logs)
+            tangent_mean /= sum_weights
 
-        return self
+            if gs.amax(gs.abs(tangent_mean)) < self.epsilon:
+                break
+
+            new_mean = space.connection.exp(step_size * tangent_mean, mean)
+
+            norm = gs.linalg.norm(tangent_mean)
+            if norm < norm_old:
+                mean = new_mean
+                norm_old = norm
+            elif norm > norm_old:
+                step_size = step_size / 2.0
+
+        else:
+            logging.warning(
+                "Maximum number of iterations %d reached. The mean may be inaccurate",
+                self.max_iter,
+            )
+
+        return mean
+
+
+class GeneralExponentialBarycenter(_BaseMeanEstimator):
+    """Exponential barycenter.
+
+    Parameters
+    ----------
+    space : Manifold
+        Equipped manifold on which the data lie.
+    optimizer_kwargs : dict or None
+        Keyword arguments passed to the optimizer constructor.
+        Optional, default: None.
+
+    Attributes
+    ----------
+    estimate_ : array-like, shape=[*space.shape]
+        Estimated mean after calling `fit`.
+    optimizer_ : object
+        Optimizer instance used during fitting.
+    """
+
+    def _make_optimizer(self):
+        return ConnectionGradientDescent(**self.optimizer_kwargs)
+
+
+def ExponentialBarycenter(space, *args, **kwargs):
+    """Exponential barycenter."""
+    if isinstance(space, Euclidean):
+        Estimator = LinearMean
+
+    elif isinstance(space, (MatrixLieGroup, LieGroup)):
+        Estimator = GroupBarycenter
+
+    else:
+        Estimator = GeneralExponentialBarycenter
+
+    return Estimator(space, *args, **kwargs)
