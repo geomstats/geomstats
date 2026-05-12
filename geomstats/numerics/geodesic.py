@@ -101,7 +101,7 @@ class ExpODESolver(ExpSolver):
         state_axis = -(self._space.point_ndim + 1)
         initial_state = gs.stack([base_point, tangent_vec], axis=state_axis)
 
-        force = lambda state, _: self._space.metric.geodesic_equation(state)
+        force = lambda state, _: self._space.connection.geodesic_equation(state)
         if t_eval is None:
             return self.integrator.integrate(force, initial_state)
 
@@ -370,7 +370,7 @@ class _LogShootingSolver(LogSolver, ABC):
             Batch shape.
         """
         tangent_vec = gs.reshape(flat_tangent_vec, batch_shape + self._space.shape)
-        delta = self._space.metric.exp(tangent_vec, base_point) - point
+        delta = self._space.connection.exp(tangent_vec, base_point) - point
         return gs.sum(delta**2)
 
 
@@ -538,7 +538,7 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         state = gs.moveaxis(
             gs.reshape(raveled_state, (2,) + self._space.shape + (-1,)), -1, 0
         )
-        new_state = self._space.metric.geodesic_equation(state)
+        new_state = self._space.connection.geodesic_equation(state)
         return gs.moveaxis(gs.reshape(new_state, (-1, raveled_state.shape[0])), -2, -1)
 
     def _jacobian(self, _, raveled_state):
@@ -559,13 +559,13 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         n_nodes = raveled_state.shape[-1]
         position, velocity = gs.transpose(raveled_state[:dim]), raveled_state[dim:]
 
-        dgamma = self._space.metric.jacobian_christoffels(position)
+        dgamma = self._space.connection.jacobian_christoffels(position)
 
         df_dposition = -gs.einsum(
             "j...,...ijkl,k...->il...", velocity, dgamma, velocity
         )
 
-        gamma = self._space.metric.christoffels(position)
+        gamma = self._space.connection.christoffels(position)
         df_dvelocity = -2 * gs.einsum("...ijk,k...->ij...", gamma, velocity)
 
         jac_nw = gs.zeros((dim, dim, raveled_state.shape[1]))
