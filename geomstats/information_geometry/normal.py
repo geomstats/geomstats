@@ -19,12 +19,14 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
 from geomstats.information_geometry.base import (
+    AlphaConnection,
     InformationManifoldMixin,
     ScipyMultivariateRandomVariable,
     ScipyUnivariateRandomVariable,
 )
+from geomstats.numerics.geodesic import ExpODESolver, GSIVPIntegrator
 from geomstats.vectorization import broadcast_to_multibatch, get_batch_shape, repeat_out
-from geomstats.geometry.connection import Connection
+
 
 class NormalDistributions:
     """Class for the normal distributions.
@@ -919,14 +921,19 @@ class MultivariateNormalDistributionsRandomVariable(ScipyMultivariateRandomVaria
         )
         super().__init__(space, rvs, pdf)
 
-class UnivariateNormalAlpha(Connection):
+
+class UnivariateNormalAlpha(AlphaConnection):
     """Class for the alpha-connection of univariate normal distributions."""
 
-    def __init__(self, space, alpha):
-        super().__init__(space)
-        self.alpha = alpha
+    def __init__(self, space, riemannian_manifold, alpha, integrator_kwargs=None):
+        super().__init__(space, riemannian_manifold, alpha)
 
-    def christoffels(self, base_point):
+        integrator_kwargs = integrator_kwargs or dict(step_type="rk4", n_steps=200)
+        self.exp_solver = ExpODESolver(
+            space, integrator=GSIVPIntegrator(**integrator_kwargs)
+        )
+
+    def first_kind_christoffels(self, base_point):
         """Compute the Christoffel symbols at a base point.
 
         Parameters
@@ -942,8 +949,6 @@ class UnivariateNormalAlpha(Connection):
         """
         sigma = base_point[..., 1]
         alpha = self.alpha
-        alpha_metric_matrix = self._space.metric.metric_matrix(base_point)
-        alpha_metric_inverse_matrix = gs.linalg.inv(alpha_metric_matrix)
 
         # Initialisation d'un tenseur de zéros (batch_size,i,j,k)
         christoffels = gs.zeros(base_point.shape[:-1] + (2, 2, 2))
@@ -959,6 +964,4 @@ class UnivariateNormalAlpha(Connection):
         # Gamma_{sigma, sigma, sigma}
         christoffels[..., 1, 1, 1] = -2 * (1 + 2 * alpha) / (sigma**3)
 
-        # Calcul de Gamma^k_{ij} = g^{kl} Gamma_{ijl}
-        christoffels = gs.einsum("...kl,...ijl->...kij", alpha_metric_inverse_matrix, christoffels)
         return christoffels
