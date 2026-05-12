@@ -21,6 +21,7 @@ from torch import (
     float64,
     greater,
     hstack,
+    inf,
     int32,
     int64,
     isnan,
