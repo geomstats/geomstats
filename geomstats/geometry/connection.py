@@ -777,3 +777,38 @@ class Connection(ABC):
             Injectivity radius.
         """
         raise NotImplementedError("The injectivity range is not implemented yet.")
+
+
+class MetricConnectionView:
+    """Metric wrapper exposing only connection-related methods."""
+
+    _CON_METHODS = {
+        "_space",
+        "christoffels",
+        "geodesic_equation",
+        "exp",
+        "log",
+        "riemann_tensor",
+        "curvature",
+        "ricci_tensor",
+        "directional_curvature",
+        "curvature_derivative",
+        "directional_curvature_derivative",
+        "geodesic",
+        "parallel_transport",
+        "injectivity_radius",
+    }
+
+    def __init__(self, metric):
+        self._metric = metric
+
+    def __getattr__(self, name):
+        """Get attribute."""
+        if name not in self._CON_METHODS:
+            raise AttributeError(f"{name} is not implemented.")
+
+        return getattr(self._metric, name)
+
+    def __dir__(self):
+        """Available connection-related attributes."""
+        return sorted(set(super().__dir__()) | self._CON_METHODS)
