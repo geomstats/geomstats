@@ -1,7 +1,18 @@
+from geomstats.geometry.stratified.trees import generate_splits
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.test_case import TestCase
 
-from .data.trees import BaseTopologyTestData, SplitTestData
+from .data.trees import BaseTopologyTestData, GenerateSplitsTestData, SplitTestData
+
+
+class TestGenerateSplits(TestCase, metaclass=DataBasedParametrizer):
+    testing_data = GenerateSplitsTestData()
+
+    def test_len(self, n_labels, n_expected_splits, exclude_singletons=False):
+        labels = list(range(n_labels))
+        splits = generate_splits(labels, exclude_singletons=exclude_singletons)
+
+        self.assertEqual(len(splits), n_expected_splits)
 
 
 class TestSplit(TestCase, metaclass=DataBasedParametrizer):
@@ -40,6 +51,7 @@ class TestSplit(TestCase, metaclass=DataBasedParametrizer):
 
 
 class TestBaseTopology(TestCase, metaclass=DataBasedParametrizer):
+    # TODO: move this to wald?
     testing_data = BaseTopologyTestData()
 
     def test_partition(self, st_a, st_b, expected):
