@@ -366,7 +366,7 @@ class TreeSpace(PointSet):
         x = gs.minimum(gs.maximum(btol, x), 1 - btol)
         lengths = gs.maximum(btol, gs.abs(gs.log(1 - x)))
 
-        return Tree(splits, lengths)
+        return Tree(splits, lengths, n_labels=self.n_labels)
 
     def random_point(self, n_samples=1, p_keep=0.9, btol=1e-8):
         """Sample a random point in Tree space.
