@@ -74,12 +74,21 @@ class TreeTopology(ForestTopology):
 
     def __init__(self, splits, n_labels=None):
         if not splits:
+            if n_labels is None:
+                raise ValueError(
+                    "Cannot make tree with no interior splits and n_labels as None. Please specify the number of labels."
+                )
             super().__init__(
                 partition=(set(range(n_labels)),),
                 split_sets=(splits,),
             )
         else:
             TreeTopology._check_no_pendant_edges(splits)
+            partition = tuple(splits[0].part1.union(splits[0].part2))
+            if n_labels is not None and (len(partition) != n_labels):
+                raise ValueError(
+                    f"Number of labels in splits ({len(partition)}) disagrees with n_labels ({n_labels})."
+                )
             super().__init__(
                 partition=(tuple(splits[0].part1.union(splits[0].part2)),),
                 split_sets=(splits,),
