@@ -27,10 +27,8 @@ from geomstats.information_geometry.base import (
 )
 from geomstats.numerics.geodesic import ExpODESolver, GSIVPIntegrator
 from geomstats.vectorization import broadcast_to_multibatch, get_batch_shape, repeat_out
-from geomstats.geometry.connection import Connection
-from geomstats.information_geometry.alpha_connection import AlphaConnection
-from geomstats.numerics.geodesic import ExpODESolver, LogODESolver, ScipySolveBVP
-from geomstats.numerics.ivp import ScipySolveIVP
+from geomstats.information_geometry.base import AlphaConnection
+from geomstats.numerics.geodesic import ExpODESolver
 
 class NormalDistributions:
     """Class for the normal distributions.
@@ -949,18 +947,14 @@ class UnivariateNormalAlpha(AlphaConnection):
           of the Fisher–Rao metric (first kind),
         - T_{ijk} is the covariant Amari–Chentsov tensor.
     """
+    def __init__(self, space, riemannian_manifold, alpha, integrator_kwargs=None):
+        super().__init__(space, riemannian_manifold, alpha)
 
-    def __init__(self, space, alpha):
-        super().__init__(
-            space=space,
-            riemannian_manifold=space,
-            alpha=alpha,
+        integrator_kwargs = integrator_kwargs or dict(step_type="rk4", n_steps=200)
+        self.exp_solver = ExpODESolver(
+            space, integrator=GSIVPIntegrator(**integrator_kwargs)
         )
-        self._space = space
-        self.log_solver = LogODESolver(
-            space, n_nodes=1000, integrator=ScipySolveBVP(max_nodes=1000)
-        )
-        self.exp_solver = ExpODESolver(space, integrator=ScipySolveIVP(method="LSODA"))
+
 
     def amari_tensor_covariant(self, base_point):
         r"""Compute the covariant Amari–Chentsov tensor T_{ijk}.
@@ -1004,10 +998,10 @@ class UnivariateNormalAlpha(AlphaConnection):
         christoffels : array-like, shape=[..., 2, 2, 2]
             Christoffel symbols of first kind.
         """
-        metric = self._space.metric.metric_matrix(base_point)
+        metric = self._riemannian_manifold.metric.metric_matrix(base_point)
 
         christoffels_second = (
-            self._space.metric.christoffels(base_point)
+            self._riemannian_manifold.metric.christoffels(base_point)
         )
 
         christoffels_first = gs.einsum(
