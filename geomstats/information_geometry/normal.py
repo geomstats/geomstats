@@ -7,6 +7,7 @@ import math
 
 from scipy.stats import multivariate_normal, norm
 
+
 import geomstats.backend as gs
 import geomstats.errors as errors
 from geomstats.geometry.base import VectorSpaceOpenSet
@@ -26,7 +27,10 @@ from geomstats.information_geometry.base import (
 )
 from geomstats.numerics.geodesic import ExpODESolver, GSIVPIntegrator
 from geomstats.vectorization import broadcast_to_multibatch, get_batch_shape, repeat_out
-
+from geomstats.geometry.connection import Connection
+from geomstats.information_geometry.alpha_connection import AlphaConnection
+from geomstats.numerics.geodesic import ExpODESolver, LogODESolver, ScipySolveBVP
+from geomstats.numerics.ivp import ScipySolveIVP
 
 class NormalDistributions:
     """Class for the normal distributions.
@@ -923,45 +927,120 @@ class MultivariateNormalDistributionsRandomVariable(ScipyMultivariateRandomVaria
 
 
 class UnivariateNormalAlpha(AlphaConnection):
-    """Class for the alpha-connection of univariate normal distributions."""
+    r"""Alpha-connection on the manifold of univariate normal distributions.
 
-    def __init__(self, space, riemannian_manifold, alpha, integrator_kwargs=None):
-        super().__init__(space, riemannian_manifold, alpha)
+    This class implements the α-connections associated with the Fisher–Rao
+    metric on the manifold of univariate Gaussian distributions parameterized
+    by:
 
-        integrator_kwargs = integrator_kwargs or dict(step_type="rk4", n_steps=200)
-        self.exp_solver = ExpODESolver(
-            space, integrator=GSIVPIntegrator(**integrator_kwargs)
+        θ = (μ, σ)
+
+    where:
+        μ : mean
+        σ : standard deviation
+
+    The α-Christoffel symbols of the first kind are defined by:
+
+    Γ^{(α)}_{ijk}
+        = Γ^{(0)}_{ijk} - (α / 2) T_{ijk}
+
+    where:
+        - Γ^{(0)}_{ijk} are the Levi-Civita Christoffel symbols
+          of the Fisher–Rao metric (first kind),
+        - T_{ijk} is the covariant Amari–Chentsov tensor.
+    """
+
+    def __init__(self, space, alpha):
+        super().__init__(
+            space=space,
+            riemannian_manifold=space,
+            alpha=alpha,
         )
+        self._space = space
+        self.log_solver = LogODESolver(
+            space, n_nodes=1000, integrator=ScipySolveBVP(max_nodes=1000)
+        )
+        self.exp_solver = ExpODESolver(space, integrator=ScipySolveIVP(method="LSODA"))
 
-    def first_kind_christoffels(self, base_point):
-        """Compute the Christoffel symbols at a base point.
+    def amari_tensor_covariant(self, base_point):
+        r"""Compute the covariant Amari–Chentsov tensor T_{ijk}.
 
         Parameters
         ----------
         base_point : array-like, shape=[..., 2]
-            Point representing a normal distribution (mean and scale).
+            Point representing a normal distribution (μ, σ).
+
+        Returns
+        -------
+        tensor : array-like, shape=[..., 2, 2, 2]
+            Covariant Amari tensor T_{ijk}.
+        """
+        sigma = base_point[..., 1]
+
+        tensor = gs.zeros(base_point.shape[:-1] + (2, 2, 2))
+
+        tensor[..., 0, 0, 1] = 2.0 / sigma**3
+        tensor[..., 0, 1, 0] = 2.0 / sigma**3
+        tensor[..., 1, 0, 0] = 2.0 / sigma**3
+
+        tensor[..., 1, 1, 1] = 8.0 / sigma**3
+
+        return tensor
+
+    def fisher_rao_first_kind_christoffels(self, base_point):
+        r"""Compute Levi-Civita Christoffel symbols of first kind.
+
+        These are the Christoffel symbols associated with the
+        Fisher–Rao metric:
+
+            Γ^{(0)}_{ijk}
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
 
         Returns
         -------
         christoffels : array-like, shape=[..., 2, 2, 2]
-            Christoffel symbols at base_point.
-            First index is the contravariant one
+            Christoffel symbols of first kind.
         """
-        sigma = base_point[..., 1]
-        alpha = self.alpha
+        metric = self._space.metric.metric_matrix(base_point)
 
-        # Initialisation d'un tenseur de zéros (batch_size,i,j,k)
-        christoffels = gs.zeros(base_point.shape[:-1] + (2, 2, 2))
+        christoffels_second = (
+            self._space.metric.christoffels(base_point)
+        )
 
-        # k = 0 (mu)
-        # Gamma_{mu, sigma, mu} et Gamma_{sigma, mu, mu}
-        christoffels[..., 0, 1, 0] = -(1 + alpha) / (sigma**3)
-        christoffels[..., 1, 0, 0] = -(1 + alpha) / (sigma**3)
+        christoffels_first = gs.einsum(
+            "...kl,...lij->...ijk",
+            metric,
+            christoffels_second,
+        )
 
-        # k = 1 (sigma)
-        # Gamma_{mu, mu, sigma}
-        christoffels[..., 0, 0, 1] = (1 - alpha) / (sigma**3)
-        # Gamma_{sigma, sigma, sigma}
-        christoffels[..., 1, 1, 1] = -2 * (1 + 2 * alpha) / (sigma**3)
+        return christoffels_first
 
-        return christoffels
+    def first_kind_christoffels(self, base_point):
+        r"""Compute α-Christoffel symbols of first kind.
+
+        The formula used is:
+
+            Γ^{(α)}_{ijk}
+                = Γ^{(0)}_{ijk}
+                  - (α / 2) T_{ijk}
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+
+        Returns
+        -------
+        christoffels : array-like, shape=[..., 2, 2, 2]
+            α-Christoffel symbols of first kind.
+        """
+        gamma_lc = self.fisher_rao_first_kind_christoffels(
+            base_point
+        )
+
+        amari = self.amari_tensor_covariant(base_point)
+
+        return gamma_lc - (self.alpha / 2.0) * amari
+
