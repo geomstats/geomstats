@@ -1,5 +1,25 @@
+import random
+
 from geomstats.geometry.stratified.trees import ForestTopology, Split
 from geomstats.test.data import TestData
+
+
+class GenerateSplitsTestData(TestData):
+    def len_test_data(self):
+        n = random.randint(6, 9)
+
+        data = [
+            # Three things can be partitioned three ways
+            dict(n_labels=3, n_expected_splits=3, exclude_singletons=False),
+            # No splits for three things with no singleton splits
+            dict(n_labels=3, n_expected_splits=0, exclude_singletons=True),
+            # according to Billera et al. (2001, p.743) there are (2N − 3)!! := 5 · 3 · 1 = 15
+            # different possible choices of compatible subsets E ⊂ fancy_E with |E| = N − 2 = 2.
+            # note: N = n - 1 because they do not count the root as a leaf eventhough it is
+            dict(n_labels=n, n_expected_splits=n - 3, exclude_singletons=True),
+        ]
+
+        return self.generate_tests(data)
 
 
 class SplitTestData(TestData):
