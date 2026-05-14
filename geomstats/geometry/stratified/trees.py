@@ -46,7 +46,6 @@ def generate_splits(labels, exclude_singletons=False):
     exclude_singletons : bool
         If True does not generate singleton splits, which would result in pendant edges.
         Trees do not have pendant edges. There are 2^(N-1) - N - 1 splits, but maximum N-1 compatible.
-        TODO: Can we do this in a way that doesn't require creating all then deleting?
 
     Returns
     -------

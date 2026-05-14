@@ -77,27 +77,32 @@ class TreeTopology(ForestTopology):
         if not splits:
             if n_labels is None:
                 raise ValueError(
-                    "Cannot make tree with no interior splits and n_labels as None."
+                    "Cannot make tree with no interior splits and ``n_labels`` as None."
                 )
-            if n_labels < 4:
-                raise ValueError(
-                    f"BHV space only defined for N >= 4. You tried {n_labels}."
-                )
-            super().__init__(
-                partition=(set(range(n_labels)),),
-                split_sets=(splits,),
-            )
+
+            partition = (set(range(n_labels)),)
+
         else:
-            TreeTopology._check_no_pendant_edges(splits)
-            partition = tuple(splits[0].part1.union(splits[0].part2))
-            if n_labels is not None and (len(partition) != n_labels):
+            self._check_no_pendant_edges(splits)
+            partition = (tuple(splits[0].part1.union(splits[0].part2)),)
+            n_labels_ = len(partition[0])
+
+            if n_labels is not None and (n_labels_ != n_labels):
                 raise ValueError(
                     f"Splits ({len(partition)}) disagrees with n_labels ({n_labels})."
                 )
-            super().__init__(
-                partition=(tuple(splits[0].part1.union(splits[0].part2)),),
-                split_sets=(splits,),
+
+            n_labels = n_labels_
+
+        if n_labels < 4:
+            raise ValueError(
+                f"BHV space only defined for N >= 4. You tried {n_labels}."
             )
+
+        super().__init__(
+            partition=partition,
+            split_sets=(splits,),
+        )
 
     @staticmethod
     def _check_no_pendant_edges(splits):
@@ -185,7 +190,7 @@ class Tree(Point):
     """
 
     def __init__(self, splits, lengths, n_labels=None):
-        Tree._check_valid_lengths(lengths, len(splits))
+        self._check_valid_lengths(lengths, len(splits))
 
         self.topology = TreeTopology(splits=splits, n_labels=n_labels)
         self.lengths = gs.array(
@@ -258,9 +263,8 @@ class Tree(Point):
                 f"Splits and lengths different size. {len(lengths)} != {n_splits}"
             )
 
-        for length in lengths:
-            if length <= 0:
-                raise ValueError(f"Lengths must be positive. {length} is not allowed.")
+        if gs.any(gs.array(lengths) <= 0):
+            raise ValueError("Lengths must be positive.")
 
     @vectorize_point((1, "point"))
     def equal(self, point, atol=gs.atol):
@@ -576,17 +580,12 @@ class GTPSolver:
             The squared distance between the two points.
         """
         point_a, point_b = broadcast_lists(point_a, point_b)
-        sq_dists = gs.array(
+        return gs.array(
             [
                 self._squared_dist_single(point_a_, point_b_)
                 for point_a_, point_b_ in zip(point_a, point_b)
             ]
         )
-
-        if len(sq_dists) == 1:
-            return sq_dists[0]
-
-        return sq_dists
 
     def dist(self, point_a, point_b):
         """Compute the distance between two points.

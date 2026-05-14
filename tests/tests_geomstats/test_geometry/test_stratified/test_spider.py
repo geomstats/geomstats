@@ -8,7 +8,7 @@ from geomstats.test_cases.geometry.stratified.point_set import (
     PointTestCase,
 )
 
-from .data.point_set import PointMetricTestData, PointSetTestData, PointTestData
+from .data.point_set import PointSetMetricTestData, PointSetTestData, PointTestData
 
 
 class TestSpiderPoint(PointTestCase, metaclass=DataBasedParametrizer):
@@ -26,4 +26,4 @@ class TestSpider(PointSetTestCase, metaclass=DataBasedParametrizer):
 class TestSpiderMetric(PointSetMetricTestCase, metaclass=DataBasedParametrizer):
     _n_rays = random.randint(2, 4)
     space = Spider(_n_rays, equip=True)
-    testing_data = PointMetricTestData()
+    testing_data = PointSetMetricTestData()

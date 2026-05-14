@@ -9,7 +9,7 @@ from geomstats.geometry.stratified.wald_space import (
 )
 from geomstats.test.data import TestData
 
-from .point_set import PointMetricTestData
+from .point_set import PointSetMetricTestData
 
 
 class MakePartitionsTestData(TestData):
@@ -68,7 +68,7 @@ class Wald3TestData(TestData):
         return self.generate_tests(data)
 
 
-class WaldSpaceMetricTestData(PointMetricTestData):
+class WaldSpaceMetricTestData(PointSetMetricTestData):
     tolerances = {
         "dist_point_to_itself_is_zero": {"atol": 1e-3},
         "geodesic_bvp_reverse": {"atol": 1e-4},
