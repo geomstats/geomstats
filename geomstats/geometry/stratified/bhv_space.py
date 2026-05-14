@@ -47,7 +47,8 @@ class TreeTopology(ForestTopology):
         Pendant edges (i.e., singleton splits) are not permitted.
     n_labels : int, optional
         Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
-        Needed to instantiate star tree at origin, as labels cannot be inferred from empty split set.
+        Needed to instantiate star tree at origin, as labels cannot be inferred
+        from empty split set.
 
     Attributes
     ----------
@@ -76,7 +77,7 @@ class TreeTopology(ForestTopology):
         if not splits:
             if n_labels is None:
                 raise ValueError(
-                    "Cannot make tree with no interior splits and n_labels as None. Please specify the number of labels."
+                    "Cannot make tree with no interior splits and n_labels as None."
                 )
             super().__init__(
                 partition=(set(range(n_labels)),),
@@ -87,7 +88,7 @@ class TreeTopology(ForestTopology):
             partition = tuple(splits[0].part1.union(splits[0].part2))
             if n_labels is not None and (len(partition) != n_labels):
                 raise ValueError(
-                    f"Number of labels in splits ({len(partition)}) disagrees with n_labels ({n_labels})."
+                    f"Splits ({len(partition)}) disagrees with n_labels ({n_labels})."
                 )
             super().__init__(
                 partition=(tuple(splits[0].part1.union(splits[0].part2)),),
@@ -135,10 +136,30 @@ class TreeTopology(ForestTopology):
 class Tree(Point):
     r"""A class for unrooted phylogenetic trees, which are elements of the BHV space.
 
-    An unrooted phylogenetic tree is represented by a list of splits and a vector of their corresponding lengths.
-    Only interior edges are permitted; a tree with N leaves has 2^N - N - 2 possible interior edge splits.
-    Pendant edges can be represented by taking the cartesian product of BHV space with Euclidean space.
-    Rooted trees with N leaves can be represented as unrooted trees with N+1 leaves, assigning the root to 0.
+    Following Semple and Steel 2003 and Lueg, 2023, an unrooted phylogenetic tree an
+    unrooted phylogenetic tree is a tuple of edge splits and edge lengths; T=(E,l)
+    where E ⊂ e\_compatible$ and l∈(0,∞)^{|E|}$. Such a tree has N labels,
+    L_0={0, 1,...,N-1}. Those N labels yield a set of possible edges, e = {A|B : L_0=A⋃B,
+    |A|,|B|≥ 2}$. Note that this definition excludes pendant edges (those touching a
+    leaf), yielding |e| = 2^{N-1} - N - 3 possible interior edges of which a maximum
+    of N-3 are compatible at once. BHV space is defined for N≥4, as any less will not
+    yield any interior edges and thus be boringly Euclidean.
+
+    People working with phylogenetic trees might have additional requirements, and the
+    way the code is now set up allows these to be added on top of the existing class
+    structure, rather than needing to set up weird internal modifications. The possible
+    additional constraints concern pendant edges and roots.
+        - Pendant edges: No pendant edges is now the default, because often it is the
+        distance between splits that matters in phylogenetic trees, not the distance
+        between the split and the leaf, because the leaf is at an arbitrary time, the
+        present. Too add lengths to the pendant edges we will create a space that is the
+        Cartesian product of BHV space and Euclidean space of dimension N. Geodesics in
+        this new space are just geodesics in pendant-less BHV space, with extra straight
+        line segments in (0,∞)^N added on.
+        - Roots: Unrooted is the default. There is a bijection between unrooted
+        phylogenetic trees with N labels and rooted ones with N−1 labels (just add a leaf,
+        label it 0, and call it a day). We can add more explicit support for this during
+        class construction in a subsequent PR.
 
     Parameters
     ----------
