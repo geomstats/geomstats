@@ -79,6 +79,10 @@ class TreeTopology(ForestTopology):
                 raise ValueError(
                     "Cannot make tree with no interior splits and n_labels as None."
                 )
+            if n_labels < 4:
+                raise ValueError(
+                    f"BHV space only defined for N >= 4. You tried {n_labels}."
+                )
             super().__init__(
                 partition=(set(range(n_labels)),),
                 split_sets=(splits,),
