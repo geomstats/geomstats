@@ -2,6 +2,8 @@ import geomstats.backend as gs
 from geomstats.geometry.stratified.bhv_space import Split, Tree
 from geomstats.test.data import TestData
 
+from .point_set import PointSetMetricTestData
+
 
 class TreeTopologyTestData(TestData):
     def raises_empty_splits_test_data(self):
@@ -63,6 +65,11 @@ class TreeTestData(TestData):
         ]
 
         return self.generate_tests(data)
+
+
+class BHVMetricTestData(PointSetMetricTestData):
+    def raise_geodesic_out_bound_test_data(self):
+        return self.generate_random_data()
 
 
 class BHVMetric5TestData(TestData):

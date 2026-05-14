@@ -11,8 +11,13 @@ from geomstats.test_cases.geometry.stratified.point_set import (
     PointTestCase,
 )
 
-from .data.bhv_space import BHVMetric5TestData, TreeTestData, TreeTopologyTestData
-from .data.point_set import PointMetricTestData, PointSetTestData, PointTestData
+from .data.bhv_space import (
+    BHVMetric5TestData,
+    BHVMetricTestData,
+    TreeTestData,
+    TreeTopologyTestData,
+)
+from .data.point_set import PointSetTestData, PointTestData
 
 
 class TestTreeTopology(TestCase, metaclass=DataBasedParametrizer):
@@ -51,7 +56,7 @@ class TestTree(TestCase, metaclass=DataBasedParametrizer):
             Tree(splits, lengths)
 
     def test_raise_nonpositive_length(self, splits, invalid_lengths):
-        expected_error_message = "Lengths must be positive. .* is not allowed."
+        expected_error_message = "Lengths must be positive."
 
         self.test_raises_error(splits, invalid_lengths, expected_error_message)
 
@@ -73,8 +78,6 @@ class TestTreeAsPoint(PointTestCase, metaclass=DataBasedParametrizer):
 
 
 class TestTreeSpace(PointSetTestCase, metaclass=DataBasedParametrizer):
-    # TODO: test checking inability to instantiate N-labels < 4?
-
     _n_labels = random.randint(4, 5)
     space = TreeSpace(n_labels=_n_labels, equip=False)
 
@@ -83,12 +86,25 @@ class TestTreeSpace(PointSetTestCase, metaclass=DataBasedParametrizer):
 
 @np_only
 class TestBHVMetric(PointSetMetricTestCase, metaclass=DataBasedParametrizer):
-    # TODO: add geodesic illegal actions?
-
     _n_labels = random.randint(4, 5)
     space = TreeSpace(n_labels=_n_labels, equip=True)
 
-    testing_data = PointMetricTestData()
+    testing_data = BHVMetricTestData()
+
+    @pytest.mark.random
+    def test_raise_geodesic_out_bound(self, n_points):
+        initial_point = self.data_generator.random_point(n_points)
+        end_point = self.data_generator.random_point(n_points)
+        geodesic = self.space.metric.geodesic(
+            initial_point=initial_point, end_point=end_point
+        )
+
+        expected_error_message = "Geodesics only exist for 0<=t<=1.*"
+        with pytest.raises(ValueError, match=expected_error_message):
+            geodesic(-1)
+
+        with pytest.raises(ValueError, match=expected_error_message):
+            geodesic(1.1)
 
 
 @pytest.mark.smoke
