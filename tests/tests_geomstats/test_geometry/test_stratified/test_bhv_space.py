@@ -1,7 +1,6 @@
-import random
-
 import pytest
-
+pytest.importorskip("networkx")
+import random
 from geomstats.geometry.stratified.bhv_space import TreeSpace
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.test_case import np_only
