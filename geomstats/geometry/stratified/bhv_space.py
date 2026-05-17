@@ -369,7 +369,14 @@ class Tree(Point):
 
         return G
 
-    def plot(self, root_id=None, pendant_edges=None, leaf_labels=None, ax=None):
+    def plot(
+        self,
+        root_id=None,
+        pendant_edges=None,
+        show_edge_weights=False,
+        leaf_labels=None,
+        ax=None,
+    ):
         r"""Plot the networkx representation of the tree.
 
         Parameters
@@ -400,6 +407,10 @@ class Tree(Point):
             font_size=10,
             edge_color="gray",
         )
+
+        if show_edge_weights:
+            edge_labels = nx.get_edge_attributes(nx_tree, "length")
+            nx.draw_networkx_edge_labels(nx_tree, pos, edge_labels=edge_labels, ax=ax)
         return ax
 
     @staticmethod
