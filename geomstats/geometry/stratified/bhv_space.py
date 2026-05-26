@@ -248,6 +248,34 @@ class Tree(Point):
 
         return gs.all(gs.abs(self.lengths - point.lengths) < atol)
 
+    def _orient_splits_away_from_root(self, ref_id):
+        r"""Orient each split by keeping the side away from a reference leaf.
+
+        The topology stores splits as unordered bipartitions of the leaf index set.
+        To obtain a rooted cluster representation, this method chooses
+        ``ref_id`` as a reference leaf and, for every split ``A | B``, keeps the
+        part that does not contain ``ref_id``. The resulting subsets are the
+        clusters separated from the root by the corresponding internal edges.
+
+        Parameters
+        ----------
+        ref_id : int
+            Index of the reference leaf used to orient the splits. Must satisfy
+            ``0 <= ref_id < self.topology.n_labels``.
+
+        Returns
+        -------
+        oriented_splits : list[tuple]
+            List of rooted clusters, one per split in ``self.topology.splits``.
+        """
+        oriented_splits = []
+        for bipartition in self.topology.splits:
+            part1, part2 = bipartition.part1, bipartition.part2
+            oriented_split = part1 if ref_id in part2 else part2
+            oriented_splits.append(oriented_split)
+
+        return oriented_splits
+
     def _smallest_containing(self, target, splits, default):
         r"""Return the smallest split node that contains the target.
 
@@ -278,96 +306,112 @@ class Tree(Point):
                 contained = set(target) < set(node)
             else:
                 contained = target in node
+
             if contained and len(node) < best_size:
                 best, best_size = node, len(node)
+
         return best
 
     def _to_networkx(self, root_id=None, pendant_edges=None, leaf_labels=None):
-        r"""Return the networkx representation of the tree for visualisation.
+        r"""Convert a split-encoded tree to a rooted NetworkX directed graph.
+
+        The tree topology is represented by its non-trivial splits. Since the
+        original split representation is unrooted, this method first chooses a
+        reference leaf, ``root_id``, and orients every split away from that leaf.
+        Equivalently, for each bipartition ``A | B``, it keeps the side that does
+        not contain ``root_id``.
+
+        The NetworkX graph is then built from this rooted cluster representation:
+
+        1. A top internal node is created for the cluster containing all leaves
+        except the root leaf.
+        2. The root leaf is connected to this top cluster by its pendant edge.
+        3. For every non-root leaf, the method finds the smallest cluster
+        containing that leaf and connects the cluster to the leaf by the
+        corresponding pendant edge.
+        4. For every internal split/cluster, the method finds the smallest strict
+        cluster containing it and connects the parent cluster to the child
+        cluster by the corresponding internal edge length.
+
+        Thus, directed edges are oriented from the chosen root leaf toward the
+        rest of the tree, and then from larger clusters to smaller clusters/leaves.
+        The resulting graph is intended primarily for visualization.
 
         Parameters
         ----------
-        root_id : int\in[0,self.topology.n_labels), optional
-            This helps give orientation to networkx graph for visualisation. If None,
-            this function assumes, rather arbitrarily, that the last label is the root.
-        pendant_edges : array-like, shape=[self.topology.n_labels], optional
+        root_id : int
+            Index of the leaf used to orient the otherwise unrooted split
+            representation. Must satisfy ``0 <= root_id < self.topology.n_labels``.
+            If None, the last leaf is used.
+        pendant_edges : array-like, shape=[self.topology.n_labels]
             The pendant-edge lengths, a vector containing positive numbers.
-        leaf_labels : array-like, shape=[self.topology.n_labels], optional
+            If None, all pendant-edge lengths are set to one.
+        leaf_labels : array-like, shape=[self.topology.n_labels]
             The labels for the leaves, by index. Default is index.
-        DEBUG : bool, optional
-            If True will print lots.
 
         Returns
         -------
         G : nx.DiGraph
             Return networkx (nodes and edges) representation of the tree.
         """
+
+        def _indices_to_node_str(indices, labels):
+            return "".join(str(labels[index]) for index in sorted(indices))
+
         if pendant_edges is None:
             pendant_edges = gs.ones(self.topology.n_labels)
 
         if root_id is None:
-            root_id = self.topology.n_labels - 1
+            root_id = 0
 
         if leaf_labels is None:
-            leaf_labels = list(range(self.topology.n_labels))
-
+            leaf_labels = range(self.topology.n_labels)
         leaf_labels = tuple(leaf_labels)
-        sans_root_leaf_labels = "".join(
-            tuple(
-                str(leaf_label)
-                for i, leaf_label in enumerate(leaf_labels)
-                if i != root_id
-            )
+
+        maximal_cluster = tuple(
+            i for i in range(self.topology.n_labels) if i != root_id
         )
+        maximal_labels_str = _indices_to_node_str(maximal_cluster, leaf_labels)
 
-        # order splits by non-root-containing, to put root at top (arbitrary)
-        splits = []
-        for ft_split_pair in self.topology.splits:
-            p1, p2 = ft_split_pair.part1, ft_split_pair.part2
-            if root_id in p2:
-                splits.append(tuple(leaf_labels[i] for i in p1))
-            else:
-                splits.append(tuple(leaf_labels[i] for i in p2))
+        oriented_splits = self._orient_splits_away_from_root(root_id)
 
-        # convert splits to networkx
-        G = nx.DiGraph()
-        G.add_nodes_from(leaf_labels)
-        G.add_node(sans_root_leaf_labels)
+        nx_graph = nx.DiGraph()
+        nx_graph.add_nodes_from(leaf_labels)
+        nx_graph.add_node(maximal_labels_str)
 
-        # Root pendant edge
-        G.add_node(sans_root_leaf_labels)
-        G.add_edge(
+        nx_graph.add_edge(
             leaf_labels[root_id],
-            sans_root_leaf_labels,
+            maximal_labels_str,
             length=pendant_edges[root_id],
             weight=len(leaf_labels),
         )
 
-        # Pendant edges
-        for i, pendant_edge in enumerate(pendant_edges):
-            if i == root_id:
+        for index, pendant_edge in enumerate(pendant_edges):
+            if index == root_id:
                 continue
+
             smallest = self._smallest_containing(
-                leaf_labels[i], splits, sans_root_leaf_labels
+                index, oriented_splits, maximal_cluster
             )
-            G.add_edge(
-                "".join([str(s) for s in smallest]),
-                leaf_labels[i],
+            nx_graph.add_edge(
+                _indices_to_node_str(smallest, leaf_labels),
+                leaf_labels[index],
                 length=pendant_edge,
                 weight=1,
             )
 
-        # Splits
-        for split, split_length in zip(splits, self.lengths):
-            smallest = self._smallest_containing(split, splits, sans_root_leaf_labels)
-            G.add_edge(
-                "".join([str(s) for s in smallest]),
-                "".join([str(s) for s in split]),
+        for split, split_length in zip(oriented_splits, self.lengths):
+            smallest = self._smallest_containing(
+                split, oriented_splits, maximal_cluster
+            )
+            nx_graph.add_edge(
+                _indices_to_node_str(smallest, leaf_labels),
+                _indices_to_node_str(split, leaf_labels),
                 length=split_length,
                 weight=len(split),
             )
 
-        return G
+        return nx_graph
 
     def plot(self, root_id=None, pendant_edges=None, leaf_labels=None, ax=None):
         r"""Plot the networkx representation of the tree.
