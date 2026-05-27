@@ -20,6 +20,7 @@ from sklearn.linear_model import LinearRegression as _LinearRegression
 from sklearn.metrics import r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
+from sklearn.utils import check_array
 from sklearn.utils.validation import validate_data
 
 import geomstats.backend as gs
@@ -248,16 +249,20 @@ class PCA(GetParamsMixin, ModelAdapter):
 
 
 @contextmanager
-def temporary_attr(obj, name, value):
-    old_value = getattr(obj, name)
-    setattr(obj, name, value)
+def temporary_attrs(objs, names, values):
+    old_values = []
+    for obj, name, value in zip(objs, names, values):
+        old_values.append(getattr(obj, name))
+        setattr(obj, name, value)
+
     try:
         yield
     finally:
-        setattr(obj, name, old_value)
+        for obj, name, old_value in zip(objs, names, old_values):
+            setattr(obj, name, old_value)
 
 
-def validate_data_without_check_array(
+def validate_data_skip_check_array(
     _estimator,
     /,
     X="no_validation",
@@ -278,29 +283,94 @@ def validate_data_without_check_array(
     )
 
 
+def check_array_allow_nd(
+    array,
+    accept_sparse=False,
+    *,
+    accept_large_sparse=True,
+    dtype="numeric",
+    order=None,
+    copy=False,
+    force_writeable=False,
+    ensure_all_finite=True,
+    ensure_non_negative=False,
+    ensure_2d=True,
+    allow_nd=False,
+    ensure_min_samples=1,
+    ensure_min_features=1,
+    estimator=None,
+    input_name="",
+):
+    return check_array(
+        array,
+        accept_sparse=accept_sparse,
+        accept_large_sparse=accept_large_sparse,
+        dtype=dtype,
+        order=order,
+        copy=copy,
+        force_writeable=force_writeable,
+        ensure_all_finite=ensure_all_finite,
+        ensure_non_negative=ensure_non_negative,
+        ensure_2d=ensure_2d,
+        allow_nd=True,
+        ensure_min_samples=ensure_min_samples,
+        ensure_min_features=ensure_min_features,
+        estimator=estimator,
+        input_name=input_name,
+    )
+
+
 class ObjectValidationMixin:
-    """Mixin to bypass sklearn array validation for object data.
+    """Mixin to run selected estimator methods with patched validation helpers.
 
-    This mixin is intended for sklearn wrappers that operate on non-vectorial
-    objects, such as graphs and trees. It intercepts
-    selected public methods and executes them under a temporary patch of the
-    sklearn module-level ``validate_data`` function.
+    This mixin is intended for sklearn-compatible estimators that operate on
+    object-valued data rather than numeric feature arrays, for example graphs,
+    trees, meshes, or other non-vectorial objects.
 
-    Subclasses must define ``_object_validation_module`` as the sklearn module
-    where ``validate_data`` is looked up, and ``_object_validation_methods`` as
-    the public methods that should run under the patched validation context.
+    When validation bypassing is enabled, selected public methods are wrapped so
+    that their execution occurs inside ``_object_validation_context``. The
+    context temporarily replaces configured attributes on configured modules,
+    typically sklearn's module-level ``validate_data`` helper, with object-aware
+    alternatives.
+
+    Subclasses must configure the patch through:
+
+    - ``_object_validation_modules``: module object or sequence of module objects
+      whose attributes should be temporarily patched.
+    - ``_object_validation_names``: attribute name or sequence of attribute names
+      to patch on those modules.
+    - ``_object_validation_values``: replacement value or sequence of replacement
+      values.
+    - ``_object_validation_methods``: public method names that should run under
+      the patched context.
+
+    The wrapping is applied dynamically through ``__getattribute__`` and only to
+    public callable attributes listed in ``_object_validation_methods``. Private
+    attributes and methods are never wrapped.
     """
 
-    _object_validation_module = None
-    _object_validation_methods = {}
+    _object_validation_modules = None
+    _object_validation_names = None
+    _object_validation_values = None
+    _object_validation_methods = ()
+    _skip_validation = False
 
     @contextmanager
     def _object_validation_context(self):
-        module = super().__getattribute__("_object_validation_module")
-        with temporary_attr(module, "validate_data", validate_data_without_check_array):
+        """Temporarily install object-aware validation helpers.
+
+        The configured module attributes are restored when the context exits,
+        including when the wrapped method raises an exception.
+        """
+        modules = super().__getattribute__("_object_validation_modules")
+        names = super().__getattribute__("_object_validation_names")
+        values = super().__getattribute__("_object_validation_values")
+
+        with temporary_attrs(modules, names, values):
             yield
 
     def __getattribute__(self, name):
+        """Wrap selected public methods in the object-validation context."""
         attr = super().__getattribute__(name)
 
         if name.startswith("_") or not self._skip_validation:
