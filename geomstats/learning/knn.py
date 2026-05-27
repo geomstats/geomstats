@@ -1,16 +1,15 @@
-"""The KNN classifier on manifolds.
+"""The KNN classifier on manifolds."""
 
-Lead author: Yann Cabanes.
-"""
-
-import numpy as np
-from sklearn.exceptions import NotFittedError
+import sklearn.neighbors._base as nb
 from sklearn.neighbors import KNeighborsClassifier
 
 import geomstats.backend as gs
+from geomstats.geometry.manifold import Manifold
+
+from ._sklearn import ObjectValidationMixin
 
 
-def wrap(function):
+def _np_to_backend(function):
     """Wrap a function to first convert args to arrays."""
 
     def wrapped_function(*args, **kwargs):
@@ -20,86 +19,7 @@ def wrap(function):
     return wrapped_function
 
 
-class SimpleGeodesicKNearestNeighborsClassifier:
-    """Classifier implementing the k-nearest neighbors vote on geodesic metric spaces.
-
-    Parameters
-    ----------
-    space : PointSet
-        Space equipped with a metric.
-    n_neighbors : int, optional (default = 5)
-        Number of neighbors to use by default.
-    """
-
-    def __init__(self, space, n_neighbors=5):
-        self.space = space
-        self.dist = space.metric.dist
-        self.n_neighbors = n_neighbors
-
-    def fit(self, X, y):
-        """Fit the k-nearest neighbors classifier from the training dataset.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, object)
-            Training data.
-
-        y : array-like of shape (n_samples,)
-            Target values.
-
-        Returns
-        -------
-        self : SimpleGeodesicKNearestNeighborsClassifier
-            The fitted k-nearest neighbors classifier.
-        """
-        self._fit_X = gs.array(X)
-        self._fit_y = gs.array(y)
-        self._is_fitted = True
-        return self
-
-    def predict_one(self, x):
-        """
-        Predict the class labels for one provided data point.
-
-        Parameters
-        ----------
-        X : object
-            Test sample.
-
-        Returns
-        -------
-        y : general label
-            Class labels for one data sample.
-        """
-        if not hasattr(self, "_is_fitted"):
-            raise NotFittedError("Must fit model before predicting.")
-
-        dists = [self.dist(x, xx) for xx in self._fit_X]
-        indices_by_dist = sorted(range(len(dists)), key=lambda k: dists[k])
-
-        labels = self._fit_y[indices_by_dist[: self.n_neighbors]]
-        unique_values, counts = np.unique(labels, return_counts=True)
-
-        return unique_values[np.argmax(counts)]
-
-    def predict(self, X):
-        """
-        Predict the class labels for provided data.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_queries, object)
-            Test samples.
-
-        Returns
-        -------
-        y : ndarray of shape (n_queries,)
-            Class labels for each data sample.
-        """
-        return gs.array([self.predict_one(x) for x in X])
-
-
-class KNearestNeighborsClassifier(KNeighborsClassifier):
+class KNearestNeighborsClassifier(ObjectValidationMixin, KNeighborsClassifier):
     """Classifier implementing the k-nearest neighbors vote on manifolds.
 
     Parameters
@@ -147,6 +67,16 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
     neighbors/_classification.py#L25
     """
 
+    _object_validation_module = nb
+    _object_validation_methods = {
+        "fit",
+        "predict",
+        "predict_proba",
+        "kneighbors",
+        "radius_neighbors",
+        "score",
+    }
+
     def __init__(
         self,
         space,
@@ -156,7 +86,13 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
     ):
         self.space = space
 
-        distance = wrap(space.metric.dist)
+        array_repr = isinstance(space, Manifold)
+        self._skip_validation = not array_repr
+
+        distance = space.metric.dist
+        if array_repr and not gs.__name__.endswith("numpy"):
+            distance = _np_to_backend(distance)
+
         super().__init__(
             n_neighbors=n_neighbors,
             weights=weights,

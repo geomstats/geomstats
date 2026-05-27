@@ -10,6 +10,8 @@ when it is strictly necessary.
 """
 
 import os
+from contextlib import contextmanager
+from functools import wraps
 
 from sklearn.base import RegressorMixin as _RegressorMixin
 from sklearn.compose import TransformedTargetRegressor
@@ -18,6 +20,7 @@ from sklearn.linear_model import LinearRegression as _LinearRegression
 from sklearn.metrics import r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
+from sklearn.utils.validation import validate_data
 
 import geomstats.backend as gs
 
@@ -242,3 +245,74 @@ class PCA(GetParamsMixin, ModelAdapter):
             random_state=random_state,
         )
         super().__init__(pca)
+
+
+@contextmanager
+def temporary_attr(obj, name, value):
+    old_value = getattr(obj, name)
+    setattr(obj, name, value)
+    try:
+        yield
+    finally:
+        setattr(obj, name, old_value)
+
+
+def validate_data_without_check_array(
+    _estimator,
+    /,
+    X="no_validation",
+    y="no_validation",
+    reset=True,
+    validate_separately=False,
+    skip_check_array=False,
+    **check_params,
+):
+    return validate_data(
+        _estimator,
+        X=X,
+        y=y,
+        reset=reset,
+        validate_separately=validate_separately,
+        skip_check_array=True,
+        **check_params,
+    )
+
+
+class ObjectValidationMixin:
+    """Mixin to bypass sklearn array validation for object data.
+
+    This mixin is intended for sklearn wrappers that operate on non-vectorial
+    objects, such as graphs and trees. It intercepts
+    selected public methods and executes them under a temporary patch of the
+    sklearn module-level ``validate_data`` function.
+
+    Subclasses must define ``_object_validation_module`` as the sklearn module
+    where ``validate_data`` is looked up, and ``_object_validation_methods`` as
+    the public methods that should run under the patched validation context.
+    """
+
+    _object_validation_module = None
+    _object_validation_methods = {}
+
+    @contextmanager
+    def _object_validation_context(self):
+        module = super().__getattribute__("_object_validation_module")
+        with temporary_attr(module, "validate_data", validate_data_without_check_array):
+            yield
+
+    def __getattribute__(self, name):
+        attr = super().__getattribute__(name)
+
+        if name.startswith("_") or not self._skip_validation:
+            return attr
+
+        wrapped_names = super().__getattribute__("_object_validation_methods")
+        if name not in wrapped_names or not callable(attr):
+            return attr
+
+        @wraps(attr)
+        def wrapped(*args, **kwargs):
+            with self._object_validation_context():
+                return attr(*args, **kwargs)
+
+        return wrapped
