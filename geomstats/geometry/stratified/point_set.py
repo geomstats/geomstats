@@ -57,6 +57,11 @@ class PointBatch(ABC, list):
             [collection_point.equal(point, atol) for collection_point in self]
         )
 
+    @property
+    def shape(self):
+        """Batch shape."""
+        return (len(self),)
+
 
 class PointSet(ABC):
     r"""Class for a set of points of type Point."""

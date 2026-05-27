@@ -1,14 +1,20 @@
-"""The KNN classifier on manifolds.
+"""The KNN classifier on manifolds."""
 
-Lead author: Yann Cabanes.
-"""
-
+import sklearn.metrics.pairwise as mp
+import sklearn.neighbors._base as nb
 from sklearn.neighbors import KNeighborsClassifier
 
 import geomstats.backend as gs
+from geomstats.geometry.manifold import Manifold
+
+from ._sklearn import (
+    ObjectValidationMixin,
+    check_array_allow_nd,
+    validate_data_skip_check_array,
+)
 
 
-def wrap(function):
+def _fn_np_args_to_backend(function):
     """Wrap a function to first convert args to arrays."""
 
     def wrapped_function(*args, **kwargs):
@@ -18,7 +24,7 @@ def wrap(function):
     return wrapped_function
 
 
-class KNearestNeighborsClassifier(KNeighborsClassifier):
+class KNearestNeighborsClassifier(ObjectValidationMixin, KNeighborsClassifier):
     """Classifier implementing the k-nearest neighbors vote on manifolds.
 
     Parameters
@@ -66,6 +72,11 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
     neighbors/_classification.py#L25
     """
 
+    _object_validation_methods = {
+        "fit",
+        "kneighbors",
+    }
+
     def __init__(
         self,
         space,
@@ -75,7 +86,16 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
     ):
         self.space = space
 
-        distance = wrap(space.metric.dist)
+        array_repr = isinstance(space, Manifold)
+        self._skip_validation = not array_repr or space.point_ndim > 1
+
+        if self._skip_validation:
+            self._set_validation(array_repr)
+
+        distance = space.metric.dist
+        if array_repr and not gs.__name__.endswith("numpy"):
+            distance = _fn_np_args_to_backend(distance)
+
         super().__init__(
             n_neighbors=n_neighbors,
             weights=weights,
@@ -83,3 +103,16 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
             metric=distance,
             n_jobs=n_jobs,
         )
+
+    def _set_validation(self, array_repr):
+        if array_repr:
+            self._object_validation_modules = (nb, mp)
+            self._object_validation_names = ("validate_data", "check_array")
+            self._object_validation_values = (
+                validate_data_skip_check_array,
+                check_array_allow_nd,
+            )
+        else:
+            self._object_validation_modules = (nb,)
+            self._object_validation_names = ("validate_data",)
+            self._object_validation_values = (validate_data_skip_check_array,)
