@@ -59,6 +59,7 @@ class PointBatch(ABC, list):
 
     @property
     def shape(self):
+        """Batch shape."""
         return (len(self),)
 
 
