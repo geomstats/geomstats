@@ -1,6 +1,21 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
+from ._base import BaseEstimatorTestData
+
+
+class NeighborClassifierTestData(BaseEstimatorTestData):
+    trials = 1
+
+    def predict_train_test_data(self):
+        return self.generate_random_data()
+
+    def predict_proba_train_test_data(self):
+        return self.generate_random_data()
+
+    def score_is_one_test_data(self):
+        return self.generate_random_data()
+
 
 class KNearestNeighborsClassifierEuclideanTestData(TestData):
     def predict_test_data(self):
