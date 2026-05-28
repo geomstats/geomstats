@@ -759,25 +759,6 @@ class Connection(ABC):
             "use the ladder_parallel_transport instead."
         )
 
-    def injectivity_radius(self, base_point=None):
-        """Compute the radius of the injectivity domain.
-
-        This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base
-        point onto its image.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., {dim, [n, m]}]
-            Point on the manifold.
-
-        Returns
-        -------
-        radius : array-like, shape=[...,]
-            Injectivity radius.
-        """
-        raise NotImplementedError("The injectivity range is not implemented yet.")
-
 
 _CONNECTION_METHODS = {
     "_space",
@@ -794,7 +775,6 @@ _CONNECTION_METHODS = {
     "directional_curvature_derivative",
     "geodesic",
     "parallel_transport",
-    "injectivity_radius",
 }
 
 

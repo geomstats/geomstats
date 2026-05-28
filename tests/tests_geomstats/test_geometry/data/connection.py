@@ -67,9 +67,6 @@ class ConnectionTestData(GeodesicBVPMixinsTestData, TestData):
     def parallel_transport_ivp_transported_is_tangent_test_data(self):
         return self.generate_random_data()
 
-    def injectivity_radius_vec_test_data(self):
-        return self.generate_vec_data()
-
 
 class ConnectionComparisonTestData(TestData):
     def christoffels_random_test_data(self):
@@ -109,9 +106,6 @@ class ConnectionComparisonTestData(TestData):
         return self.generate_random_data()
 
     def parallel_transport_bvp_random_test_data(self):
-        return self.generate_random_data()
-
-    def injectivity_radius_random_test_data(self):
         return self.generate_random_data()
 
 

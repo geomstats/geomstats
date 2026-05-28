@@ -347,6 +347,10 @@ class RiemannianMetricTestCase(DistTestCaseMixins, ConnectionTestCase):
             atol=atol,
         )
 
+    def test_injectivity_radius(self, base_point, expected, atol):
+        res = self.space.metric.injectivity_radius(base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
 
 class RiemannianMetricComparisonTestCase(ConnectionComparisonTestCase):
     def test_metric_matrix(self, base_point, atol):
@@ -550,3 +554,14 @@ class RiemannianMetricComparisonTestCase(ConnectionComparisonTestCase):
         base_point = self.data_generator.random_point(n_points)
 
         self.test_scalar_curvature(base_point, atol)
+
+    def test_injectivity_radius(self, base_point, atol):
+        res = self.space.metric.injectivity_radius(base_point)
+        res_ = self.other_space.metric.injectivity_radius(base_point)
+        self.assertAllClose(res, res_, atol=atol)
+
+    @pytest.mark.random
+    def test_injectivity_radius_random(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+
+        self.test_injectivity_radius(base_point, atol)
