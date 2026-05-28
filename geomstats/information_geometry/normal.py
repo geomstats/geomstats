@@ -7,6 +7,7 @@ import math
 
 from scipy.stats import multivariate_normal, norm
 
+
 import geomstats.backend as gs
 import geomstats.errors as errors
 from geomstats.geometry.base import VectorSpaceOpenSet
@@ -19,12 +20,15 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
 from geomstats.information_geometry.base import (
+    AlphaConnection,
     InformationManifoldMixin,
     ScipyMultivariateRandomVariable,
     ScipyUnivariateRandomVariable,
 )
+from geomstats.numerics.geodesic import ExpODESolver, GSIVPIntegrator
 from geomstats.vectorization import broadcast_to_multibatch, get_batch_shape, repeat_out
-
+from geomstats.information_geometry.base import AlphaConnection
+from geomstats.numerics.geodesic import ExpODESolver
 
 class NormalDistributions:
     """Class for the normal distributions.
@@ -918,3 +922,119 @@ class MultivariateNormalDistributionsRandomVariable(ScipyMultivariateRandomVaria
             x, *space._unstack_mean_covariance(point)
         )
         super().__init__(space, rvs, pdf)
+
+
+class UnivariateNormalAlpha(AlphaConnection):
+    r"""Alpha-connection on the manifold of univariate normal distributions.
+
+    This class implements the α-connections associated with the Fisher–Rao
+    metric on the manifold of univariate Gaussian distributions parameterized
+    by:
+
+        θ = (μ, σ)
+
+    where:
+        μ : mean
+        σ : standard deviation
+
+    The α-Christoffel symbols of the first kind are defined by:
+
+    Γ^{(α)}_{ijk}
+        = Γ^{(0)}_{ijk} - (α / 2) T_{ijk}
+
+    where:
+        - Γ^{(0)}_{ijk} are the Levi-Civita Christoffel symbols
+          of the Fisher–Rao metric (first kind),
+        - T_{ijk} is the covariant Amari–Chentsov tensor.
+    """
+    def __init__(self, space, riemannian_manifold, alpha, integrator_kwargs=None):
+        super().__init__(space, riemannian_manifold, alpha)
+
+        integrator_kwargs = integrator_kwargs or dict(step_type="rk4", n_steps=200)
+        self.exp_solver = ExpODESolver(
+            space, integrator=GSIVPIntegrator(**integrator_kwargs)
+        )
+
+
+    def amari_tensor_covariant(self, base_point):
+        r"""Compute the covariant Amari–Chentsov tensor T_{ijk}.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point representing a normal distribution (μ, σ).
+
+        Returns
+        -------
+        tensor : array-like, shape=[..., 2, 2, 2]
+            Covariant Amari tensor T_{ijk}.
+        """
+        sigma = base_point[..., 1]
+
+        tensor = gs.zeros(base_point.shape[:-1] + (2, 2, 2))
+
+        tensor[..., 0, 0, 1] = 2.0 / sigma**3
+        tensor[..., 0, 1, 0] = 2.0 / sigma**3
+        tensor[..., 1, 0, 0] = 2.0 / sigma**3
+
+        tensor[..., 1, 1, 1] = 8.0 / sigma**3
+
+        return tensor
+
+    def fisher_rao_first_kind_christoffels(self, base_point):
+        r"""Compute Levi-Civita Christoffel symbols of first kind.
+
+        These are the Christoffel symbols associated with the
+        Fisher–Rao metric:
+
+            Γ^{(0)}_{ijk}
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+
+        Returns
+        -------
+        christoffels : array-like, shape=[..., 2, 2, 2]
+            Christoffel symbols of first kind.
+        """
+        metric = self._riemannian_manifold.metric.metric_matrix(base_point)
+
+        christoffels_second = (
+            self._riemannian_manifold.metric.christoffels(base_point)
+        )
+
+        christoffels_first = gs.einsum(
+            "...kl,...lij->...ijk",
+            metric,
+            christoffels_second,
+        )
+
+        return christoffels_first
+
+    def first_kind_christoffels(self, base_point):
+        r"""Compute α-Christoffel symbols of first kind.
+
+        The formula used is:
+
+            Γ^{(α)}_{ijk}
+                = Γ^{(0)}_{ijk}
+                  - (α / 2) T_{ijk}
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+
+        Returns
+        -------
+        christoffels : array-like, shape=[..., 2, 2, 2]
+            α-Christoffel symbols of first kind.
+        """
+        gamma_lc = self.fisher_rao_first_kind_christoffels(
+            base_point
+        )
+
+        amari = self.amari_tensor_covariant(base_point)
+
+        return gamma_lc - (self.alpha / 2.0) * amari
+
