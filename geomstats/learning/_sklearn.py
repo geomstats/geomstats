@@ -13,6 +13,7 @@ import os
 from contextlib import contextmanager
 from functools import wraps
 
+from sklearn import set_config
 from sklearn.base import RegressorMixin as _RegressorMixin
 from sklearn.compose import TransformedTargetRegressor
 from sklearn.decomposition import PCA as _PCA
@@ -26,6 +27,11 @@ from sklearn.utils.validation import validate_data
 import geomstats.backend as gs
 
 SCIPY_ARRAY_API = True if os.environ.get("SCIPY_ARRAY_API", False) == "1" else False
+
+
+def _enable_array_dispatch():
+    if gs.__name__.endswith("pytorch"):
+        set_config(array_api_dispatch=True)
 
 
 class RegressorMixin(_RegressorMixin):

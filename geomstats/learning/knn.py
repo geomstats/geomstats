@@ -4,24 +4,16 @@ import sklearn.metrics.pairwise as mp
 import sklearn.neighbors._base as nb
 from sklearn.neighbors import KNeighborsClassifier
 
-import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 
 from ._sklearn import (
     ObjectValidationMixin,
+    _enable_array_dispatch,
     check_array_allow_nd,
     validate_data_skip_check_array,
 )
 
-
-def _fn_np_args_to_backend(function):
-    """Wrap a function to first convert args to arrays."""
-
-    def wrapped_function(*args, **kwargs):
-        new_args = map(gs.from_numpy, args)
-        return function(*new_args, **kwargs)
-
-    return wrapped_function
+_enable_array_dispatch()
 
 
 class KNearestNeighborsClassifier(ObjectValidationMixin, KNeighborsClassifier):
@@ -68,8 +60,7 @@ class KNearestNeighborsClassifier(ObjectValidationMixin, KNeighborsClassifier):
     References
     ----------
     This algorithm uses the scikit-learn library:
-    https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/
-    neighbors/_classification.py#L25
+    https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/neighbors/_classification.py#L25
     """
 
     _object_validation_methods = {
@@ -92,15 +83,11 @@ class KNearestNeighborsClassifier(ObjectValidationMixin, KNeighborsClassifier):
         if self._skip_validation:
             self._set_validation(array_repr)
 
-        distance = space.metric.dist
-        if array_repr and not gs.__name__.endswith("numpy"):
-            distance = _fn_np_args_to_backend(distance)
-
         super().__init__(
             n_neighbors=n_neighbors,
             weights=weights,
             algorithm="brute",
-            metric=distance,
+            metric=space.metric.dist,
             n_jobs=n_jobs,
         )
 
