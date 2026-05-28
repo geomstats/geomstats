@@ -18,6 +18,7 @@ References
 
 import itertools as it
 
+import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
@@ -246,6 +247,204 @@ class Tree(Point):
             return False
 
         return gs.all(gs.abs(self.lengths - point.lengths) < atol)
+
+    def _orient_splits_away_from_root(self, ref_id):
+        r"""Orient each split by keeping the side away from a reference leaf.
+
+        The topology stores splits as unordered bipartitions of the leaf index set.
+        To obtain a rooted cluster representation, this method chooses
+        ``ref_id`` as a reference leaf and, for every split ``A | B``, keeps the
+        part that does not contain ``ref_id``. The resulting subsets are the
+        clusters separated from the root by the corresponding internal edges.
+
+        Parameters
+        ----------
+        ref_id : int
+            Index of the reference leaf used to orient the splits. Must satisfy
+            ``0 <= ref_id < self.topology.n_labels``.
+
+        Returns
+        -------
+        oriented_splits : list[tuple]
+            List of rooted clusters, one per split in ``self.topology.splits``.
+        """
+        oriented_splits = []
+        for bipartition in self.topology.splits:
+            part1, part2 = bipartition.part1, bipartition.part2
+            oriented_split = part1 if ref_id in part2 else part2
+            oriented_splits.append(oriented_split)
+
+        return oriented_splits
+
+    def _smallest_containing(self, target, splits, default):
+        r"""Return the smallest split node that contains the target.
+
+        Helper function to convert split representation to networkx.
+
+        Parameters
+        ----------
+        target : int or tuple
+            If int, finds the smallest split containing that leaf index.
+            If tuple, finds the smallest split strictly containing that split.
+        splits : list of tuple
+            The list of split nodes to search over.
+        default : tuple
+            Node returned if no split contains the target.
+
+        Returns
+        -------
+        best : tuple
+            The smallest split in ``splits`` containing ``target``,
+            or ``default`` if none found.
+        """
+        best, best_size = (
+            default,
+            len(default) if not isinstance(default, str) else float("inf"),
+        )
+        for node in splits:
+            if isinstance(target, (list, tuple, set)):
+                contained = set(target) < set(node)
+            else:
+                contained = target in node
+
+            if contained and len(node) < best_size:
+                best, best_size = node, len(node)
+
+        return best
+
+    def _to_networkx(self, root_id=None, pendant_edges=None, leaf_labels=None):
+        r"""Convert a split-encoded tree to a rooted NetworkX directed graph.
+
+        The tree topology is represented by its non-trivial splits. Since the
+        original split representation is unrooted, this method first chooses a
+        reference leaf, ``root_id``, and orients every split away from that leaf.
+        Equivalently, for each bipartition ``A | B``, it keeps the side that does
+        not contain ``root_id``.
+
+        The NetworkX graph is then built from this rooted cluster representation:
+
+        1. A top internal node is created for the cluster containing all leaves
+        except the root leaf.
+        2. The root leaf is connected to this top cluster by its pendant edge.
+        3. For every non-root leaf, the method finds the smallest cluster
+        containing that leaf and connects the cluster to the leaf by the
+        corresponding pendant edge.
+        4. For every internal split/cluster, the method finds the smallest strict
+        cluster containing it and connects the parent cluster to the child
+        cluster by the corresponding internal edge length.
+
+        Thus, directed edges are oriented from the chosen root leaf toward the
+        rest of the tree, and then from larger clusters to smaller clusters/leaves.
+        The resulting graph is intended primarily for visualization.
+
+        Parameters
+        ----------
+        root_id : int
+            Index of the leaf used to orient the otherwise unrooted split
+            representation. Must satisfy ``0 <= root_id < self.topology.n_labels``.
+            If None, the last leaf is used.
+        pendant_edges : array-like, shape=[self.topology.n_labels]
+            The pendant-edge lengths, a vector containing positive numbers.
+            If None, all pendant-edge lengths are set to one.
+        leaf_labels : array-like, shape=[self.topology.n_labels]
+            The labels for the leaves, by index. Default is index.
+
+        Returns
+        -------
+        G : nx.DiGraph
+            Return networkx (nodes and edges) representation of the tree.
+        """
+
+        def _indices_to_node_str(indices, labels):
+            return "".join(str(labels[index]) for index in sorted(indices))
+
+        if pendant_edges is None:
+            pendant_edges = gs.ones(self.topology.n_labels)
+
+        if root_id is None:
+            root_id = 0
+
+        if leaf_labels is None:
+            leaf_labels = range(self.topology.n_labels)
+        leaf_labels = tuple(leaf_labels)
+
+        maximal_cluster = tuple(
+            i for i in range(self.topology.n_labels) if i != root_id
+        )
+        maximal_labels_str = _indices_to_node_str(maximal_cluster, leaf_labels)
+
+        oriented_splits = self._orient_splits_away_from_root(root_id)
+
+        nx_graph = nx.DiGraph()
+        nx_graph.add_nodes_from(leaf_labels)
+        nx_graph.add_node(maximal_labels_str)
+
+        nx_graph.add_edge(
+            leaf_labels[root_id],
+            maximal_labels_str,
+            length=pendant_edges[root_id],
+            weight=len(leaf_labels),
+        )
+
+        for index, pendant_edge in enumerate(pendant_edges):
+            if index == root_id:
+                continue
+
+            smallest = self._smallest_containing(
+                index, oriented_splits, maximal_cluster
+            )
+            nx_graph.add_edge(
+                _indices_to_node_str(smallest, leaf_labels),
+                leaf_labels[index],
+                length=pendant_edge,
+                weight=1,
+            )
+
+        for split, split_length in zip(oriented_splits, self.lengths):
+            smallest = self._smallest_containing(
+                split, oriented_splits, maximal_cluster
+            )
+            nx_graph.add_edge(
+                _indices_to_node_str(smallest, leaf_labels),
+                _indices_to_node_str(split, leaf_labels),
+                length=split_length,
+                weight=len(split),
+            )
+
+        return nx_graph
+
+    def plot(self, root_id=None, pendant_edges=None, leaf_labels=None, ax=None):
+        r"""Plot the networkx representation of the tree.
+
+        Parameters
+        ----------
+        root_id : int\in[0,self.topology.n_labels), optional
+            This helps give orientation to networkx graph for visualisation. If None,
+            this function assumes, rather arbitrarily, that the last label is the root.
+        pendant_edges : array-like, shape=[self.topology.n_labels], optional
+            The pendant edge lengths, a vector containing positive numbers.
+        leaf_labels : array-like, shape=[self.topology.n_labels], optional
+            The labels for the leaves, by index. Default is index.
+        ax : plt axis, optional
+        """
+        if ax is None:
+            ax = plt.gca()
+
+        nx_tree = self._to_networkx(
+            root_id=root_id, pendant_edges=pendant_edges, leaf_labels=leaf_labels
+        )
+        pos = nx.nx_agraph.graphviz_layout(nx_tree, prog="dot", root=root_id)
+        nx.draw(
+            nx_tree,
+            pos,
+            ax=ax,
+            with_labels=True,
+            node_size=100,
+            node_color="skyblue",
+            font_size=10,
+            edge_color="gray",
+        )
+        return ax
 
     @staticmethod
     def _check_valid_lengths(lengths, n_splits):
