@@ -83,6 +83,9 @@ class RiemannianMetricTestData(DistMixinsTestData, ConnectionTestData):
     def parallel_transport_bvp_norm_test_data(self):
         return self.generate_random_data()
 
+    def injectivity_radius_vec_test_data(self):
+        return self.generate_vec_data()
+
 
 class RiemannianMetricComparisonTestData(ConnectionComparisonTestData):
     def metric_matrix_random_test_data(self):
@@ -122,6 +125,9 @@ class RiemannianMetricComparisonTestData(ConnectionComparisonTestData):
         return self.generate_random_data()
 
     def scalar_curvature_random_test_data(self):
+        return self.generate_random_data()
+
+    def injectivity_radius_random_test_data(self):
         return self.generate_random_data()
 
 

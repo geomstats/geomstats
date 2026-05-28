@@ -382,10 +382,6 @@ class ConnectionTestCase(GeodesicBVPTestCaseMixins, TestCase):
 
         self.assertAllEqual(res, expected)
 
-    def test_injectivity_radius(self, base_point, expected, atol):
-        res = self.space.metric.injectivity_radius(base_point)
-        self.assertAllClose(res, expected, atol=atol)
-
 
 class ConnectionComparisonTestCase(TestCase):
     def setup_method(self):
@@ -666,14 +662,3 @@ class ConnectionComparisonTestCase(TestCase):
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         self.test_parallel_transport_bvp(base_point, end_point, tangent_vec, atol)
-
-    def test_injectivity_radius(self, base_point, atol):
-        res = self.space.metric.injectivity_radius(base_point)
-        res_ = self.other_space.metric.injectivity_radius(base_point)
-        self.assertAllClose(res, res_, atol=atol)
-
-    @pytest.mark.random
-    def test_injectivity_radius_random(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-
-        self.test_injectivity_radius(base_point, atol)
