@@ -406,12 +406,12 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         return _squared_dist(point_a, point_b)
 
     def injectivity_radius(self, base_point=None):
-        """Compute the radius of the injectivity domain.
+        r"""Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
         diffeomorphism from the open ball of radius r centered at the base
         point onto its image.
-        In this case it is Pi / 2 everywhere.
+        In this case it is :math:`\pi / \sqrt(2)` everywhere.
 
         Parameters
         ----------
@@ -431,7 +431,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
             ArXiv:2011.13699 [Cs, Math], November 27, 2020.
             https://arxiv.org/abs/2011.13699.
         """
-        radius = gs.array(gs.pi / 2)
+        radius = gs.array(gs.pi / gs.sqrt(2))
         return repeat_out(self._space.point_ndim, radius, base_point)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
