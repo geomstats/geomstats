@@ -8,6 +8,7 @@ from geomstats.geometry.manifold import Manifold
 
 from ._sklearn import (
     ObjectValidationMixin,
+    OutputToBackendMixin,
     _enable_array_dispatch,
     check_array_allow_nd,
     validate_data_skip_check_array,
@@ -16,7 +17,9 @@ from ._sklearn import (
 _enable_array_dispatch()
 
 
-class KNearestNeighborsClassifier(ObjectValidationMixin, KNeighborsClassifier):
+class KNearestNeighborsClassifier(
+    OutputToBackendMixin, ObjectValidationMixin, KNeighborsClassifier
+):
     """Classifier implementing the k-nearest neighbors vote on manifolds.
 
     Parameters
@@ -63,6 +66,11 @@ class KNearestNeighborsClassifier(ObjectValidationMixin, KNeighborsClassifier):
     https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/neighbors/_classification.py#L25
     """
 
+    _output_to_backend_methods = (
+        "kneighbors",
+        "predict",
+        "predict_proba",
+    )
     _object_validation_methods = {
         "fit",
         "kneighbors",

@@ -13,6 +13,7 @@ import os
 from contextlib import contextmanager
 from functools import wraps
 
+import numpy as np
 from sklearn import set_config
 from sklearn.base import RegressorMixin as _RegressorMixin
 from sklearn.compose import TransformedTargetRegressor
@@ -392,3 +393,36 @@ class ObjectValidationMixin:
                 return attr(*args, **kwargs)
 
         return wrapped
+
+
+class OutputToBackendMixin:
+    """Mixin converting selected NumPy outputs to the active Geomstats backend."""
+
+    _output_to_backend_methods = ()
+
+    def __getattribute__(self, name):
+        attr = super().__getattribute__(name)
+
+        if name.startswith("_") or gs.__name__.endswith("numpy"):
+            return attr
+
+        methods = super().__getattribute__("_output_to_backend_methods")
+        if name not in methods or not callable(attr):
+            return attr
+
+        @wraps(attr)
+        def wrapped(*args, **kwargs):
+            return self._output_to_backend(attr(*args, **kwargs))
+
+        return wrapped
+
+    def _output_to_backend(self, results):
+        def convert(result):
+            if isinstance(result, np.ndarray):
+                return gs.from_numpy(result)
+            return result
+
+        if isinstance(results, tuple):
+            return tuple(convert(item) for item in results)
+
+        return convert(results)
