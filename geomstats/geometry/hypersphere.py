@@ -474,12 +474,18 @@ class _Hypersphere(LevelSet):
         """Sample with the von Mises-Fisher distribution.
 
         This distribution corresponds to the maximum entropy distribution
-        given a mean. In dimension 2, a closed form expression is available.
+        given a mean. In dimension 1, rejection sampling is used according to
+        [BF79]. In dimension 2, a closed form expression is available.
         In larger dimension, rejection sampling is used according to [Wood94]_
 
         References
         ----------
         https://en.wikipedia.org/wiki/Von_Mises-Fisher_distribution
+
+        .. [BF79]   Best, D. J. and Fisher, N. I. "Efficient Simulation of
+                    the von Mises Distribution." Appl. Statist. 28(2),
+                    pp. 152--157, 1979.
+                    https://doi.org/10.2307/2346732.
 
         .. [W1994]   Wood, Andrew T. A. “Simulation of the von Mises Fisher
                       Distribution.” Communications in Statistics - Simulation
@@ -509,9 +515,37 @@ class _Hypersphere(LevelSet):
         """
         dim = self.dim
         if dim == 1:
-            raise NotImplementedError("Not implemented for dim == 1")
+            tau = 1 + gs.sqrt(1 + 4 * (kappa ** 2))
+            rho = (tau - gs.sqrt(2 * tau)) / (2 * kappa)
+            ratio = (1 + rho ** 2) / (2 * rho)
 
-        if dim == 2:
+            n_accepted, n_iter = 0, 0
+            result = []
+            while (n_accepted < n_samples) and (n_iter < max_iter):
+                z_samples = gs.cos(gs.pi
+                                   * gs.random.rand(n_samples - n_accepted))
+                f_samples = (1 + ratio * z_samples) / (ratio + z_samples)
+                c_samples = kappa * (ratio - f_samples)
+                u_2 = gs.random.rand(n_samples - n_accepted)
+                mask_1 = (c_samples * (2 - c_samples) - u_2 > 0)
+                mask_2 = (gs.log(c_samples / u_2) + 1 - c_samples >= 0)
+                theta = (gs.sign(gs.random.rand(n_samples - n_accepted) - 0.5)
+                         * gs.arccos(f_samples))[mask_1 + mask_2]
+                if len(theta) == 0:
+                    n_iter += 1
+                else:
+                    n_accepted += len(theta)
+                    result.append(self.angle_to_extrinsic(theta[..., None]))
+                    n_iter += 1
+
+            if n_accepted < n_samples:
+                logging.warning(
+                    "Maximum number of iteration reached in rejection "
+                    "sampling before n_samples were accepted."
+                )
+            sample = gs.concatenate(result)
+
+        elif dim == 2:
             angle = 2.0 * gs.pi * gs.random.rand(n_samples)
             angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
             unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
