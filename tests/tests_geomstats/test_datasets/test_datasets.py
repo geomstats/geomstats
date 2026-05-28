@@ -1,5 +1,9 @@
+import os
+import tempfile
+
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
+from geomstats.datasets._dhoom import DhoomError
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks import Landmarks
@@ -197,3 +201,71 @@ class TestDatasets(TestCase):
         vertices, faces = data_utils.load_cube()
         assert vertices.shape == (8, 3)
         assert faces.shape == (12, 3)
+
+    def test_load_dhoom_cities_equivalence(self):
+        """Test that load_dhoom of cities.dhoom matches load_cities semantically."""
+        sphere = Hypersphere(dim=2)
+        raw = data_utils.load_dhoom(data_utils.CITIES_DHOOM_PATH)
+
+        self.assertEqual(len(raw), 50)
+        self.assertTrue("lat" in raw[0])
+        self.assertTrue("lng" in raw[0])
+        self.assertEqual(raw[0]["city"], "Tokyo")
+
+        lat_lng = gs.array(
+            [[row["lat"] / 180 * gs.pi, row["lng"] / 180 * gs.pi] for row in raw]
+        )
+        colat = gs.pi / 2 - lat_lng[:, 0]
+        colat = gs.expand_dims(colat, axis=1)
+        lng = gs.expand_dims(lat_lng[:, 1] + gs.pi, axis=1)
+        spherical = gs.concatenate([colat, lng], axis=1)
+        extrinsic = sphere.spherical_to_extrinsic(spherical)
+
+        self.assertAllClose(gs.shape(extrinsic), (50, 3))
+        self.assertAllClose(
+            extrinsic[0], gs.array([0.61993792, -0.52479018, 0.58332859])
+        )
+        self.assertTrue(gs.all(sphere.belongs(extrinsic)))
+
+    def test_load_dhoom_smaller_than_json(self):
+        """Test that cities.dhoom is smaller on disk than cities.json."""
+        dhoom_bytes = os.path.getsize(data_utils.CITIES_DHOOM_PATH)
+        json_bytes = os.path.getsize(data_utils.CITIES_PATH)
+        self.assertTrue(dhoom_bytes < json_bytes)
+
+    def test_save_dhoom_load_dhoom_roundtrip(self):
+        """Test that save_dhoom followed by load_dhoom recovers the original."""
+        original = [
+            {"id": 1, "name": "alpha", "value": 1.5},
+            {"id": 2, "name": "beta", "value": 2.5},
+            {"id": 3, "name": "gamma", "value": 3.5},
+        ]
+        with tempfile.NamedTemporaryFile(
+            suffix=".dhoom", mode="w", delete=False, encoding="utf-8"
+        ) as tf:
+            tmp_path = tf.name
+        try:
+            data_utils.save_dhoom(original, tmp_path)
+            recovered = data_utils.load_dhoom(tmp_path)
+            self.assertEqual(recovered, original)
+        finally:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+
+    def test_load_dhoom_malformed_raises(self):
+        """Test that loading a malformed DHOOM file raises DhoomError."""
+        with tempfile.NamedTemporaryFile(
+            suffix=".dhoom", mode="w", delete=False, encoding="utf-8"
+        ) as tf:
+            tf.write("this is not valid dhoom syntax")
+            bad_path = tf.name
+        try:
+            raised = False
+            try:
+                data_utils.load_dhoom(bad_path)
+            except DhoomError:
+                raised = True
+            self.assertTrue(raised)
+        finally:
+            if os.path.exists(bad_path):
+                os.unlink(bad_path)

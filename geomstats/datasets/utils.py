@@ -16,6 +16,7 @@ import pandas as pd
 
 import geomstats.backend as gs
 from geomstats.datasets._base import FigshareMetadata, download_figshare_zip
+from geomstats.datasets._dhoom import DhoomError, decode, encode  # noqa: F401
 from geomstats.datasets.prepare_graph_data import Graph
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
@@ -24,6 +25,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 MODULE_PATH = os.path.dirname(__file__)
 DATA_PATH = os.path.join(MODULE_PATH, "data")
 CITIES_PATH = os.path.join(DATA_PATH, "cities", "cities.json")
+CITIES_DHOOM_PATH = os.path.join(DATA_PATH, "cities", "cities.dhoom")
 CONNECTOMES_PATH = os.path.join(DATA_PATH, "connectomes/train_FNC.csv")
 CONNECTOMES_LABELS_PATH = os.path.join(DATA_PATH, "connectomes/train_labels.csv")
 
@@ -465,3 +467,84 @@ def load_cube():
     vertices = np.load(CUBE_VERTICES)
     faces = np.load(CUBE_FACES)
     return vertices, faces
+
+
+def load_dhoom(path):
+    """Load a DHOOM file as a Python value.
+
+    DHOOM (Davis Human-readable Optimized Object Markup) is a compact,
+    human-readable serialization format for structured data, designed
+    around fiber-bundle decomposition of homogeneous collections. It is
+    a lossless drop-in replacement for JSON that typically produces
+    smaller files for record-oriented data. See the references below
+    for the format specification.
+
+    Parameters
+    ----------
+    path : str
+        Path to a ``.dhoom`` file.
+
+    Returns
+    -------
+    value : list, dict, or scalar
+        The decoded Python value. For arrays of records (the common case
+        for geomstats datasets), this is a ``list`` of ``dict``, equivalent
+        to ``json.load`` on the JSON form of the same data. Numeric values
+        are returned as ``int`` or ``float``; conversion to a backend array
+        (e.g. ``gs.array``) is left to the caller.
+
+    Raises
+    ------
+    DhoomError
+        If the file is not valid DHOOM.
+
+    Notes
+    -----
+    The DHOOM encoder names every bundle. When the original data is a bare
+    array (no enclosing object), the encoder uses the implicit bundle name
+    ``"data"``, and the decoder returns ``{"data": [...]}``. This loader
+    transparently unwraps that single ``"data"`` key so that
+    ``load_dhoom(save_dhoom(my_list, path))`` returns ``my_list``.
+
+    References
+    ----------
+    .. [1] DHOOM format specification, v0.5. https://dhoom.dev
+    """
+    with open(path, encoding="utf-8") as dhoom_file:
+        decoded = decode(dhoom_file.read())
+
+    if (
+        isinstance(decoded, dict)
+        and list(decoded.keys()) == ["data"]
+        and isinstance(decoded["data"], list)
+    ):
+        return decoded["data"]
+    return decoded
+
+
+def save_dhoom(value, path):
+    """Save a Python value to a DHOOM file.
+
+    Parameters
+    ----------
+    value : list or dict
+        Data to serialize. A bare ``list`` is encoded as the implicit
+        ``"data"`` bundle and round-trips to itself via :func:`load_dhoom`.
+        A ``dict`` with exactly one key whose value is a ``list`` is encoded
+        as a named bundle (the key becomes the bundle name).
+    path : str
+        Path to write the ``.dhoom`` file. The file is written as UTF-8.
+
+    Raises
+    ------
+    DhoomError
+        If ``value`` is not encodable as a DHOOM document (e.g. a scalar
+        or a dict with multiple top-level keys).
+
+    References
+    ----------
+    .. [1] DHOOM format specification, v0.5. https://dhoom.dev
+    """
+    encoded = encode(value)
+    with open(path, "w", encoding="utf-8") as dhoom_file:
+        dhoom_file.write(encoded)
