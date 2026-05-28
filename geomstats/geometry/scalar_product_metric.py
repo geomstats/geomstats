@@ -52,7 +52,14 @@ def _wrap_attr(scaling_factor, func):
 class _ScaledMethodsRegistry:
     """Class to hold lists of methods and their scaling functions."""
 
-    _SQRT_LIST = ["norm", "dist", "dist_broadcast", "dist_pairwise", "diameter"]
+    _SQRT_LIST = [
+        "norm",
+        "dist",
+        "dist_broadcast",
+        "dist_pairwise",
+        "diameter",
+        "injectivity_radius",
+    ]
     _LINEAR_LIST = [
         "metric_matrix",
         "inner_product",
