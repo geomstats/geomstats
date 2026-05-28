@@ -155,3 +155,5 @@ venv/
 
 #ignore benchmarks generated timings
 benchmarks/*.json
+
+CLAUDE.md
