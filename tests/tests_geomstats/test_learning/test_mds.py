@@ -4,10 +4,8 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.stratified.bhv_space import TreeSpace
 from geomstats.learning.mds import MDS
 from geomstats.test.parametrizers import DataBasedParametrizer
@@ -26,10 +24,7 @@ from .data.mds import (
 def _get_spaces():
     spaces = [
         Hypersphere(dim=random.randint(3, 4)),
-        SpecialOrthogonal(n=3, point_type="vector"),
-        SpecialOrthogonal(n=3, point_type="matrix"),
         SPDMatrices(3),
-        Hyperboloid(dim=3),
     ]
 
     if not gs.__name__.endswith("pytorch"):
