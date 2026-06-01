@@ -362,7 +362,6 @@ def smacof(
     >>> np.round(stress, 6).item()
     3.2e-05
     """
-
     if n_init == "warn":
         warnings.warn(
             "The default value of `n_init` will change from 8 to 1 in 1.9.",

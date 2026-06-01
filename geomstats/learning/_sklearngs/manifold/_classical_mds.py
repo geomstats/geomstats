@@ -1,6 +1,4 @@
-"""
-Classical multi-dimensional scaling (classical MDS).
-"""
+"""Classical multi-dimensional scaling (classical MDS)."""
 
 # Authors: The scikit-learn developers
 # SPDX-License-Identifier: BSD-3-Clause
@@ -156,7 +154,6 @@ class ClassicalMDS(BaseEstimator):
         X_new : ndarray of shape (n_samples, n_components)
             The embedding coordinates.
         """
-
         X = validate_data(self, X)
 
         if self.metric == "precomputed":

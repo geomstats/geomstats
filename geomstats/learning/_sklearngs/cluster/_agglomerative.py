@@ -14,6 +14,8 @@ from sklearn.cluster._agglomerative import (
     paired_distances,
 )
 
+import geomstats.backend as gs
+
 
 def linkage_tree(
     X,
