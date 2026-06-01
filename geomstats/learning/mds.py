@@ -8,7 +8,7 @@ import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 
 from ._sklearn import (
-    ObjectValidationMixin,
+    SklearnInteropMixin,
     _enable_array_dispatch,
     check_array_allow_nd,
     validate_data_skip_check_array,
@@ -44,7 +44,7 @@ def pairwise_dists(points, dist_fnc):
     return pairwise_dist_matrix
 
 
-class MDS(ObjectValidationMixin, _MDS):
+class MDS(SklearnInteropMixin, _MDS):
     r"""Multidimensional scaling (MDS).
 
     MDS is used to translate pairwise distances of N objects into
@@ -76,7 +76,7 @@ class MDS(ObjectValidationMixin, _MDS):
     https://scikit-learn.org/stable/modules/generated/sklearn.manifold.MDS.html
     """
 
-    _object_validation_methods = {
+    _patched_methods = {
         "fit_transform",
     }
 
@@ -97,7 +97,7 @@ class MDS(ObjectValidationMixin, _MDS):
     ):
         self.space = space
 
-        self._set_validation(space)
+        self._set_interop(space)
 
         super().__init__(
             n_components=n_components,
@@ -114,36 +114,45 @@ class MDS(ObjectValidationMixin, _MDS):
             normalized_stress=normalized_stress,
         )
 
-    def _set_validation(self, space):
+    def _set_interop(self, space):
         array_repr = isinstance(space, Manifold)
         backend_fix = gs.__name__.endswith("pytorch")
-        self._skip_validation = not array_repr or space.point_ndim > 1 or backend_fix
-        if not self._skip_validation:
+
+        self._use_sklearn_patches = (
+            not array_repr or space.point_ndim > 1 or backend_fix
+        )
+
+        if not self._use_sklearn_patches:
             return
 
-        modules = []
-        names = []
-        values = []
+        patches = []
+
         if backend_fix:
-            modules.extend([_mds, _mds])
-            names.extend(["smacof", "ClassicalMDS"])
-            values.extend([smacof, ClassicalMDS])
-
-        if array_repr and space.point_ndim > 1:
-            modules.extend([_mds, mp])
-            names.extend(["validate_data", "check_array"])
-            values.extend([validate_data_skip_check_array, check_array_allow_nd])
-
-        if not array_repr:
-            modules.extend([_mds, _mds])
-            names.extend(["validate_data", "pairwise_distances"])
-            values.extend(
+            patches.extend(
                 [
-                    validate_data_skip_check_array,
-                    lambda X, metric: pairwise_dists(X, metric),
+                    (_mds, "smacof", smacof),
+                    (_mds, "ClassicalMDS", ClassicalMDS),
                 ]
             )
 
-        self._object_validation_modules = tuple(modules)
-        self._object_validation_names = tuple(names)
-        self._object_validation_values = tuple(values)
+        if array_repr and space.point_ndim > 1:
+            patches.extend(
+                [
+                    (_mds, "validate_data", validate_data_skip_check_array),
+                    (mp, "check_array", check_array_allow_nd),
+                ]
+            )
+
+        if not array_repr:
+            patches.extend(
+                [
+                    (_mds, "validate_data", validate_data_skip_check_array),
+                    (
+                        _mds,
+                        "pairwise_distances",
+                        lambda X, metric: pairwise_dists(X, metric),
+                    ),
+                ]
+            )
+
+        self._sklearn_patches = tuple(patches)

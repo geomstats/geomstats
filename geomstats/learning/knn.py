@@ -7,8 +7,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from geomstats.geometry.manifold import Manifold
 
 from ._sklearn import (
-    ObjectValidationMixin,
     OutputToBackendMixin,
+    SklearnInteropMixin,
     _enable_array_dispatch,
     check_array_allow_nd,
     validate_data_skip_check_array,
@@ -18,7 +18,7 @@ _enable_array_dispatch()
 
 
 class KNearestNeighborsClassifier(
-    OutputToBackendMixin, ObjectValidationMixin, KNeighborsClassifier
+    OutputToBackendMixin, SklearnInteropMixin, KNeighborsClassifier
 ):
     """Classifier implementing the k-nearest neighbors vote on manifolds.
 
@@ -71,7 +71,7 @@ class KNearestNeighborsClassifier(
         "predict",
         "predict_proba",
     )
-    _object_validation_methods = {
+    _patched_methods = {
         "fit",
         "kneighbors",
     }
@@ -85,11 +85,7 @@ class KNearestNeighborsClassifier(
     ):
         self.space = space
 
-        array_repr = isinstance(space, Manifold)
-        self._skip_validation = not array_repr or space.point_ndim > 1
-
-        if self._skip_validation:
-            self._set_validation(array_repr)
+        self._set_interop(space)
 
         super().__init__(
             n_neighbors=n_neighbors,
@@ -99,15 +95,21 @@ class KNearestNeighborsClassifier(
             n_jobs=n_jobs,
         )
 
-    def _set_validation(self, array_repr):
+    def _set_interop(self, space):
+        array_repr = isinstance(space, Manifold)
+        self._use_sklearn_patches = not array_repr or space.point_ndim > 1
+
+        if not self._use_sklearn_patches:
+            return
+
         if array_repr:
-            self._object_validation_modules = (nb, mp)
-            self._object_validation_names = ("validate_data", "check_array")
-            self._object_validation_values = (
-                validate_data_skip_check_array,
-                check_array_allow_nd,
-            )
+            patches = [
+                (nb, "validate_data", validate_data_skip_check_array),
+                (mp, "check_array", check_array_allow_nd),
+            ]
         else:
-            self._object_validation_modules = (nb,)
-            self._object_validation_names = ("validate_data",)
-            self._object_validation_values = (validate_data_skip_check_array,)
+            patches = [
+                (nb, "validate_data", validate_data_skip_check_array),
+            ]
+
+        self._sklearn_patches = tuple(patches)

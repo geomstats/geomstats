@@ -327,51 +327,39 @@ def check_array_allow_nd(
     )
 
 
-class ObjectValidationMixin:
-    """Mixin to run selected estimator methods with patched validation helpers.
+class SklearnInteropMixin:
+    """Mixin to patch sklearn validation and backend-sensitive routines.
 
     This mixin is intended for sklearn-compatible estimators that operate on
-    object-valued data rather than numeric feature arrays, for example graphs,
-    trees, meshes, or other non-vectorial objects.
+    data not natively supported by sklearn validation utilities, such as
+    manifold-valued objects, higher-dimensional array representations, or
+    backend tensors requiring custom dispatch.
 
-    When validation bypassing is enabled, selected public methods are wrapped so
-    that their execution occurs inside ``_object_validation_context``. The
-    context temporarily replaces configured attributes on configured modules,
-    typically sklearn's module-level ``validate_data`` helper, with object-aware
-    alternatives.
+    Subclasses configure the behavior by setting:
 
-    Subclasses must configure the patch through:
+    - `_sklearn_patches`: triples of `(module, name, value)` describing temporary
+    attribute replacements to apply.
+    - `_patched_methods`: public method names that should run under the patch
+    context.
+    - `_use_sklearn_patches`: whether the patches should be active for this
+    instance.
 
-    - ``_object_validation_modules``: module object or sequence of module objects
-      whose attributes should be temporarily patched.
-    - ``_object_validation_names``: attribute name or sequence of attribute names
-      to patch on those modules.
-    - ``_object_validation_values``: replacement value or sequence of replacement
-      values.
-    - ``_object_validation_methods``: public method names that should run under
-      the patched context.
-
-    The wrapping is applied dynamically through ``__getattribute__`` and only to
-    public callable attributes listed in ``_object_validation_methods``. Private
-    attributes and methods are never wrapped.
+    The patches are applied only while one of the patched methods is executing.
     """
 
-    _object_validation_modules = None
-    _object_validation_names = None
-    _object_validation_values = None
-    _object_validation_methods = ()
-    _skip_validation = False
+    _sklearn_patches = ()
+    _patched_methods = ()
+    _use_sklearn_patches = False
 
     @contextmanager
-    def _object_validation_context(self):
+    def _patch_context(self):
         """Temporarily install object-aware validation helpers.
 
         The configured module attributes are restored when the context exits,
         including when the wrapped method raises an exception.
         """
-        modules = super().__getattribute__("_object_validation_modules")
-        names = super().__getattribute__("_object_validation_names")
-        values = super().__getattribute__("_object_validation_values")
+        patches = super().__getattribute__("_sklearn_patches")
+        modules, names, values = zip(*patches)
 
         with temporary_attrs(modules, names, values):
             yield
@@ -380,16 +368,16 @@ class ObjectValidationMixin:
         """Wrap selected public methods in the object-validation context."""
         attr = super().__getattribute__(name)
 
-        if name.startswith("_") or not self._skip_validation:
+        if name.startswith("_") or not self._use_sklearn_patches:
             return attr
 
-        wrapped_names = super().__getattribute__("_object_validation_methods")
+        wrapped_names = super().__getattribute__("_patched_methods")
         if name not in wrapped_names or not callable(attr):
             return attr
 
         @wraps(attr)
         def wrapped(*args, **kwargs):
-            with self._object_validation_context():
+            with self._patch_context():
                 return attr(*args, **kwargs)
 
         return wrapped

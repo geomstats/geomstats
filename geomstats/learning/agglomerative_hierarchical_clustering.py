@@ -5,15 +5,13 @@ from sklearn.cluster import AgglomerativeClustering
 
 import geomstats.backend as gs
 
-from ._sklearn import ObjectValidationMixin, _enable_array_dispatch
+from ._sklearn import SklearnInteropMixin, _enable_array_dispatch
 from ._sklearngs.cluster._agglomerative import linkage_tree
 
 _enable_array_dispatch()
 
 
-class AgglomerativeHierarchicalClustering(
-    ObjectValidationMixin, AgglomerativeClustering
-):
+class AgglomerativeHierarchicalClustering(SklearnInteropMixin, AgglomerativeClustering):
     """The Agglomerative Hierarchical Clustering on manifolds.
 
     Recursively merges the pair of clusters that minimally increases
@@ -91,7 +89,7 @@ class AgglomerativeHierarchicalClustering(
     https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/cluster/_agglomerative.py#L656
     """
 
-    _object_validation_methods = {
+    _patched_methods = {
         "fit",
     }
 
@@ -117,9 +115,7 @@ class AgglomerativeHierarchicalClustering(
 
         self.space = space
 
-        self._skip_validation = gs.__name__.endswith("pytorch")
-        if self._skip_validation:
-            self._set_validation()
+        self._set_interop()
 
         super().__init__(
             n_clusters=n_clusters,
@@ -131,7 +127,11 @@ class AgglomerativeHierarchicalClustering(
             distance_threshold=distance_threshold,
         )
 
-    def _set_validation(self):
-        self._object_validation_modules = (ca,)
-        self._object_validation_names = ("linkage_tree",)
-        self._object_validation_values = (linkage_tree,)
+    def _set_interop(self):
+        self._use_sklearn_patches = gs.__name__.endswith("pytorch")
+
+        if not self._use_sklearn_patches:
+            return
+
+        patches = [(ca, "linkage_tree", linkage_tree)]
+        self._sklearn_patches = tuple(patches)
