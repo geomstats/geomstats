@@ -13,10 +13,11 @@ import os
 from contextlib import contextmanager
 from functools import wraps
 
+import numpy as np
+from sklearn import set_config
 from sklearn.base import RegressorMixin as _RegressorMixin
 from sklearn.compose import TransformedTargetRegressor
 from sklearn.decomposition import PCA as _PCA
-from sklearn.linear_model import LinearRegression as _LinearRegression
 from sklearn.metrics import r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
@@ -26,6 +27,11 @@ from sklearn.utils.validation import validate_data
 import geomstats.backend as gs
 
 SCIPY_ARRAY_API = True if os.environ.get("SCIPY_ARRAY_API", False) == "1" else False
+
+
+def _enable_array_dispatch():
+    if gs.__name__.endswith("pytorch"):
+        set_config(array_api_dispatch=True)
 
 
 class RegressorMixin(_RegressorMixin):
@@ -193,27 +199,6 @@ class ModelAdapter(Pipeline):
         return out
 
 
-class LinearRegression(GetParamsMixin, ModelAdapter):
-    """Ordinary least squares Linear Regression.
-
-    See https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html
-    for details.
-    """
-
-    def __init__(
-        self,
-        *,
-        fit_intercept=True,
-        copy_X=True,
-        n_jobs=None,
-        positive=False,
-    ):
-        regressor = _LinearRegression(
-            fit_intercept=fit_intercept, copy_X=copy_X, n_jobs=n_jobs, positive=positive
-        )
-        super().__init__(regressor)
-
-
 class PCA(GetParamsMixin, ModelAdapter):
     """Principal component analysis (PCA).
 
@@ -320,51 +305,39 @@ def check_array_allow_nd(
     )
 
 
-class ObjectValidationMixin:
-    """Mixin to run selected estimator methods with patched validation helpers.
+class SklearnInteropMixin:
+    """Mixin to patch sklearn validation and backend-sensitive routines.
 
     This mixin is intended for sklearn-compatible estimators that operate on
-    object-valued data rather than numeric feature arrays, for example graphs,
-    trees, meshes, or other non-vectorial objects.
+    data not natively supported by sklearn validation utilities, such as
+    manifold-valued objects, higher-dimensional array representations, or
+    backend tensors requiring custom dispatch.
 
-    When validation bypassing is enabled, selected public methods are wrapped so
-    that their execution occurs inside ``_object_validation_context``. The
-    context temporarily replaces configured attributes on configured modules,
-    typically sklearn's module-level ``validate_data`` helper, with object-aware
-    alternatives.
+    Subclasses configure the behavior by setting:
 
-    Subclasses must configure the patch through:
+    - `_sklearn_patches`: triples of `(module, name, value)` describing temporary
+    attribute replacements to apply.
+    - `_patched_methods`: public method names that should run under the patch
+    context.
+    - `_use_sklearn_patches`: whether the patches should be active for this
+    instance.
 
-    - ``_object_validation_modules``: module object or sequence of module objects
-      whose attributes should be temporarily patched.
-    - ``_object_validation_names``: attribute name or sequence of attribute names
-      to patch on those modules.
-    - ``_object_validation_values``: replacement value or sequence of replacement
-      values.
-    - ``_object_validation_methods``: public method names that should run under
-      the patched context.
-
-    The wrapping is applied dynamically through ``__getattribute__`` and only to
-    public callable attributes listed in ``_object_validation_methods``. Private
-    attributes and methods are never wrapped.
+    The patches are applied only while one of the patched methods is executing.
     """
 
-    _object_validation_modules = None
-    _object_validation_names = None
-    _object_validation_values = None
-    _object_validation_methods = ()
-    _skip_validation = False
+    _sklearn_patches = ()
+    _patched_methods = ()
+    _use_sklearn_patches = False
 
     @contextmanager
-    def _object_validation_context(self):
+    def _patch_context(self):
         """Temporarily install object-aware validation helpers.
 
         The configured module attributes are restored when the context exits,
         including when the wrapped method raises an exception.
         """
-        modules = super().__getattribute__("_object_validation_modules")
-        names = super().__getattribute__("_object_validation_names")
-        values = super().__getattribute__("_object_validation_values")
+        patches = super().__getattribute__("_sklearn_patches")
+        modules, names, values = zip(*patches)
 
         with temporary_attrs(modules, names, values):
             yield
@@ -373,16 +346,245 @@ class ObjectValidationMixin:
         """Wrap selected public methods in the object-validation context."""
         attr = super().__getattribute__(name)
 
-        if name.startswith("_") or not self._skip_validation:
+        if name.startswith("_") or not self._use_sklearn_patches:
             return attr
 
-        wrapped_names = super().__getattribute__("_object_validation_methods")
+        wrapped_names = super().__getattribute__("_patched_methods")
         if name not in wrapped_names or not callable(attr):
             return attr
 
         @wraps(attr)
         def wrapped(*args, **kwargs):
-            with self._object_validation_context():
+            with self._patch_context():
                 return attr(*args, **kwargs)
 
         return wrapped
+
+
+class OutputToBackendMixin:
+    """Mixin converting selected NumPy outputs to the active Geomstats backend."""
+
+    _output_to_backend_methods = ()
+
+    def __getattribute__(self, name):
+        attr = super().__getattribute__(name)
+
+        if name.startswith("_") or gs.__name__.endswith("numpy"):
+            return attr
+
+        methods = super().__getattribute__("_output_to_backend_methods")
+        if name not in methods or not callable(attr):
+            return attr
+
+        @wraps(attr)
+        def wrapped(*args, **kwargs):
+            return self._output_to_backend(attr(*args, **kwargs))
+
+        return wrapped
+
+    def _output_to_backend(self, results):
+        def convert(result):
+            if isinstance(result, np.ndarray):
+                return gs.from_numpy(result)
+            return result
+
+        if isinstance(results, tuple):
+            return tuple(convert(item) for item in results)
+
+        return convert(results)
+
+
+class EuclideanInputMixin:
+    """Mixin flattening Euclidean structured inputs for sklearn estimators.
+
+    Public methods accept inputs with shape ``(n_samples, *space.shape)``.
+    The wrapped sklearn estimator receives inputs with shape
+    ``(n_samples, prod(space.shape))``.
+
+    Subclasses may override ``_reshape_fitted_attrs`` to expose fitted attributes
+    reshaped back to ``space.shape``.
+    """
+
+    _reshape_X_methods = ("fit", "predict", "score")
+    _reshaped_attr_suffix = "_reshaped_"
+
+    def _input_shape(self, X=None):
+        if self.space is not None:
+            return self.space.shape
+
+        if X is not None:
+            return X.shape[1:]
+
+    def _flatten_X(self, X):
+        """Flatten structured inputs to sklearn's 2D convention."""
+        point_shape = self._input_shape(X)
+
+        if X.shape[1:] != point_shape:
+            raise ValueError(
+                f"Expected X with shape (n_samples, {point_shape}), " f"got {X.shape}."
+            )
+
+        return X.reshape((X.shape[0], -1))
+
+    def _reshape_fitted_attrs(self):
+        """Expose reshaped aliases for fitted sklearn attributes.
+
+        Subclasses can override this method. The default does nothing.
+        """
+        return None
+
+    def _set_reshaped_attr(self, name, value):
+        """Set a reshaped alias for a fitted sklearn attribute.
+
+        Examples
+        --------
+        ``name="coef_"`` creates ``coef_point_``.
+        ``name="cluster_centers_"`` creates ``cluster_centers_point_``.
+        """
+        if not name.endswith("_"):
+            raise ValueError(
+                f"Expected fitted sklearn attribute ending in '_', got {name!r}."
+            )
+
+        alias = f"{name[:-1]}{self._reshaped_attr_suffix}"
+        setattr(self, alias, value)
+
+    def __getattribute__(self, name):
+        attr = super().__getattribute__(name)
+
+        if name.startswith("_"):
+            return attr
+
+        method_names = super().__getattribute__("_reshape_X_methods")
+        if name not in method_names or not callable(attr):
+            return attr
+
+        @wraps(attr)
+        def wrapped(X, *args, **kwargs):
+            out = attr(self._flatten_X(X), *args, **kwargs)
+
+            if name == "fit":
+                self._reshape_fitted_attrs()
+
+            return out
+
+        return wrapped
+
+
+class EuclideanInputOutputMixin:
+    """Mixin flattening Euclidean-valued inputs and outputs for sklearn.
+
+    Public methods use structured arrays:
+
+    - ``X.shape == (n_samples, *space.shape)``
+    - ``y.shape == (n_samples, *output_shape)``
+
+    Internally, sklearn receives flat arrays:
+
+    - ``X_flat.shape == (n_samples, prod(space.shape))``
+    - ``y_flat.shape == (n_samples, prod(output_shape))``
+
+    Predictions are reshaped back to ``(n_samples, *output_shape)``.
+    """
+
+    _reshape_X_methods = ("predict",)
+    _reshape_X_y_methods = ("fit",)
+    _reshape_output_methods = ("predict",)
+    _reshaped_attr_suffix = "_reshaped_"
+
+    def _input_shape(self, X=None):
+        if self.space is not None:
+            return self.space.shape
+
+        if X is not None:
+            return X.shape[1:]
+
+    def _flatten_X(self, X):
+        """Flatten structured inputs to sklearn's 2D convention."""
+        input_shape = self._input_shape(X)
+
+        if X.shape[1:] != input_shape:
+            raise ValueError(
+                f"Expected X with shape (n_samples, {input_shape}), " f"got {X.shape}."
+            )
+
+        return X.reshape((X.shape[0], -1))
+
+    def _flatten_y(self, y):
+        """Flatten structured outputs to sklearn's target convention."""
+        output_shape = self.image_space.shape
+
+        if y.shape[1:] != output_shape:
+            raise ValueError(
+                f"Expected y with shape (n_samples, {output_shape}), " f"got {y.shape}."
+            )
+
+        return y.reshape((y.shape[0], -1))
+
+    def _reshape_y(self, y):
+        """Reshape flat sklearn predictions back to image_space.shape."""
+        output_shape = self.image_space.shape
+
+        return y.reshape((y.shape[0], *output_shape))
+
+    def _set_reshaped_attr(self, name, value):
+        """Set a reshaped alias for a fitted sklearn attribute.
+
+        Examples
+        --------
+        ``coef_`` becomes ``coef_reshaped_``.
+        """
+        if not name.endswith("_"):
+            raise ValueError(
+                f"Expected fitted sklearn attribute ending in '_', got {name!r}."
+            )
+
+        alias = f"{name[:-1]}{self._reshaped_attr_suffix}"
+        setattr(self, alias, value)
+
+    def _reshape_fitted_attrs(self):
+        """Expose reshaped aliases for fitted sklearn attributes."""
+        return None
+
+    def __getattribute__(self, name):
+        attr = super().__getattribute__(name)
+
+        if name.startswith("_") or not callable(attr):
+            return attr
+
+        reshape_X_methods = super().__getattribute__("_reshape_X_methods")
+        reshape_X_y_methods = super().__getattribute__("_reshape_X_y_methods")
+        reshape_output_methods = super().__getattribute__("_reshape_output_methods")
+
+        if name in reshape_X_y_methods:
+
+            @wraps(attr)
+            def wrapped_X_y(X, y, *args, **kwargs):
+                out = attr(
+                    self._flatten_X(X),
+                    self._flatten_y(y),
+                    *args,
+                    **kwargs,
+                )
+
+                if name == "fit":
+                    self._reshape_fitted_attrs()
+
+                return out
+
+            return wrapped_X_y
+
+        if name in reshape_X_methods:
+
+            @wraps(attr)
+            def wrapped_X(X, *args, **kwargs):
+                out = attr(self._flatten_X(X), *args, **kwargs)
+
+                if name in reshape_output_methods:
+                    out = self._reshape_y(out)
+
+                return out
+
+            return wrapped_X
+
+        return attr

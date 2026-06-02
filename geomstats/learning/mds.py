@@ -1,18 +1,33 @@
 """Multidimensional scaling (MDS)."""
 
+import sklearn.manifold._mds as _mds
+import sklearn.metrics.pairwise as mp
 from sklearn.manifold import MDS as _MDS
 
 import geomstats.backend as gs
+from geomstats.geometry.manifold import Manifold
+
+from ._sklearn import (
+    SklearnInteropMixin,
+    _enable_array_dispatch,
+    check_array_allow_nd,
+    validate_data_skip_check_array,
+)
+from ._sklearngs.manifold._classical_mds import ClassicalMDS
+from ._sklearngs.manifold._mds import smacof
+
+_enable_array_dispatch()
 
 
-def pairwise_dists(space, points):
+def pairwise_dists(points, dist_fnc):
     """Compute the pairwise distance between points.
 
     Parameters
     ----------
-    space : Manifold or PointSet
     points : array-like, shape=[n_samples, dim]
         Set of points in the manifold.
+    space : Manifold or PointSet
+
 
     Returns
     -------
@@ -23,13 +38,13 @@ def pairwise_dists(space, points):
 
     pairwise_dist_matrix = gs.zeros((n_samples, n_samples))
     for i in range(n_samples - 1):
-        dists = space.metric.dist(points[i], points[i + 1 :])
+        dists = dist_fnc(points[i], points[i + 1 :])
         pairwise_dist_matrix[i, i + 1 :] = dists
         pairwise_dist_matrix[i + 1 :, i] = dists
     return pairwise_dist_matrix
 
 
-class MDS(_MDS):
+class MDS(SklearnInteropMixin, _MDS):
     r"""Multidimensional scaling (MDS).
 
     MDS is used to translate pairwise distances of N objects into
@@ -61,6 +76,10 @@ class MDS(_MDS):
     https://scikit-learn.org/stable/modules/generated/sklearn.manifold.MDS.html
     """
 
+    _patched_methods = {
+        "fit_transform",
+    }
+
     def __init__(
         self,
         space,
@@ -78,6 +97,8 @@ class MDS(_MDS):
     ):
         self.space = space
 
+        self._set_interop(space)
+
         super().__init__(
             n_components=n_components,
             metric_mds=metric_mds,
@@ -88,31 +109,50 @@ class MDS(_MDS):
             eps=eps,
             n_jobs=n_jobs,
             random_state=random_state,
-            metric="precomputed",
+            metric=space.metric.dist,
             metric_params=metric_params,
             normalized_stress=normalized_stress,
         )
 
-    def fit_transform(self, X, y=None, init=None):
-        """Fit the data and return the embedded coordinates.
+    def _set_interop(self, space):
+        array_repr = isinstance(space, Manifold)
+        backend_fix = gs.__name__.endswith("pytorch")
 
-        Parameters
-        ----------
-        X : array-like, shape=[n_samples, *metric.shape]
-            Training input samples.
-        y: ignored
-            Not used, present for API consistency by convention.
-        init : ndarray of shape (n_samples, n_components), default=None
-            Starting configuration of the embedding to initialize the SMACOF
-            algorithm. By default, the algorithm is initialized with a randomly
-            chosen array. DON'T USE
+        self._use_sklearn_patches = (
+            not array_repr or space.point_ndim > 1 or backend_fix
+        )
 
-        Returns
-        -------
-        X_new : array-like, shape=[n_samples, n_components]
-            X transformed in the new space.
-        """
-        dissimilarity_matrix = pairwise_dists(self.space, X)
-        self.embedding_ = gs.from_numpy(super().fit_transform(dissimilarity_matrix))
-        self.dissimilarity_matrix_ = gs.from_numpy(dissimilarity_matrix)
-        return self.embedding_
+        if not self._use_sklearn_patches:
+            return
+
+        patches = []
+
+        if backend_fix:
+            patches.extend(
+                [
+                    (_mds, "smacof", smacof),
+                    (_mds, "ClassicalMDS", ClassicalMDS),
+                ]
+            )
+
+        if array_repr and space.point_ndim > 1:
+            patches.extend(
+                [
+                    (_mds, "validate_data", validate_data_skip_check_array),
+                    (mp, "check_array", check_array_allow_nd),
+                ]
+            )
+
+        if not array_repr:
+            patches.extend(
+                [
+                    (_mds, "validate_data", validate_data_skip_check_array),
+                    (
+                        _mds,
+                        "pairwise_distances",
+                        lambda X, metric: pairwise_dists(X, metric),
+                    ),
+                ]
+            )
+
+        self._sklearn_patches = tuple(patches)

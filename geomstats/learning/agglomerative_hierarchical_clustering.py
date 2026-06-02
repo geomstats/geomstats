@@ -1,14 +1,17 @@
-"""The Agglomerative Hierarchical Clustering (AHC) on manifolds.
+"""The Agglomerative Hierarchical Clustering (AHC) on manifolds."""
 
-Lead author: Yann Cabanes.
-"""
-
+import sklearn.cluster._agglomerative as ca
 from sklearn.cluster import AgglomerativeClustering
 
 import geomstats.backend as gs
 
+from ._sklearn import SklearnInteropMixin, _enable_array_dispatch
+from ._sklearngs.cluster._agglomerative import linkage_tree
 
-class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
+_enable_array_dispatch()
+
+
+class AgglomerativeHierarchicalClustering(SklearnInteropMixin, AgglomerativeClustering):
     """The Agglomerative Hierarchical Clustering on manifolds.
 
     Recursively merges the pair of clusters that minimally increases
@@ -83,9 +86,12 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
     References
     ----------
     This algorithm uses the scikit-learn library:
-    https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/cluster
-    /_agglomerative.py#L656
+    https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/cluster/_agglomerative.py#L656
     """
+
+    _patched_methods = {
+        "fit",
+    }
 
     def __init__(
         self,
@@ -98,8 +104,6 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
         distance_threshold=None,
     ):
         def affinity(data):
-            data = gs.from_numpy(data)
-
             n_samples = data.shape[0]
             affinity_matrix = gs.zeros([n_samples, n_samples])
             for i_sample in range(1, n_samples):
@@ -111,6 +115,8 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
 
         self.space = space
 
+        self._set_interop()
+
         super().__init__(
             n_clusters=n_clusters,
             metric=affinity,
@@ -120,3 +126,12 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
             linkage=linkage,
             distance_threshold=distance_threshold,
         )
+
+    def _set_interop(self):
+        self._use_sklearn_patches = gs.__name__.endswith("pytorch")
+
+        if not self._use_sklearn_patches:
+            return
+
+        patches = [(ca, "linkage_tree", linkage_tree)]
+        self._sklearn_patches = tuple(patches)

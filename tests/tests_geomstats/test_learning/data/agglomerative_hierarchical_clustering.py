@@ -9,9 +9,6 @@ from geomstats.test.data import TestData
 
 class AgglomerativeHierarchicalClusteringTestData(TestData):
     def fit_two_clusters_test_data(self):
-        euclidean = Euclidean(dim=2)
-        sphere = Hypersphere(dim=2)
-
         data = [
             dict(
                 dataset=gs.array(
@@ -25,7 +22,7 @@ class AgglomerativeHierarchicalClusteringTestData(TestData):
                     ]
                 ),
                 estimator=AgglomerativeHierarchicalClustering(
-                    euclidean,
+                    Euclidean(dim=2),
                     n_clusters=2,
                 ),
                 expected=gs.array([1, 1, 1, 0, 0, 0]),
@@ -42,7 +39,7 @@ class AgglomerativeHierarchicalClusteringTestData(TestData):
                     ]
                 ),
                 estimator=AgglomerativeHierarchicalClustering(
-                    sphere,
+                    Hypersphere(dim=2),
                     n_clusters=2,
                 ),
                 expected=gs.array([1, 1, 1, 0, 0, 0]),

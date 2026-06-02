@@ -10,7 +10,8 @@ from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
-from geomstats.learning._sklearn import PCA, LinearRegression
+from geomstats.learning._sklearn import PCA
+from geomstats.learning.euclidean import LinearRegression
 from geomstats.learning.frechet_mean import FrechetMean
 
 
@@ -352,7 +353,8 @@ class _AACRegression(BaseEstimator):
 
         self.total_space_estimator_kwargs = total_space_estimator_kwargs or {}
         self.total_space_estimator = LinearRegression(
-            **self.total_space_estimator_kwargs
+            image_space=self.space,
+            **self.total_space_estimator_kwargs,
         )
         self.n_iter_ = None
         self.aligned_y_ = None

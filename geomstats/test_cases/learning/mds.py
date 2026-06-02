@@ -10,7 +10,7 @@ from geomstats.vectorization import repeat_point
 
 class PairwiseDistsTestCase(TestCase):
     def test_dists(self, points, expected, atol):
-        pairwise_dist_matrix = pairwise_dists(self.space, points)
+        pairwise_dist_matrix = pairwise_dists(points, self.space.metric.dist)
         self.assertAllClose(
             pairwise_dist_matrix,
             expected,
@@ -27,13 +27,13 @@ class PairwiseDistsTestCase(TestCase):
     @pytest.mark.random
     def test_symmetric(self, n_points, atol):
         points = self.space.random_point(n_samples=n_points)
-        pairwise_dist_matrix = pairwise_dists(self.space, points)
+        pairwise_dist_matrix = pairwise_dists(points, self.space.metric.dist)
         self.assertAllClose(pairwise_dist_matrix, pairwise_dist_matrix.T, atol=atol)
 
     @pytest.mark.random
     def test_matrix_indices(self, n_points, atol):
         points = self.space.random_point(n_samples=n_points)
-        pairwise_dist_matrix = pairwise_dists(self.space, points)
+        pairwise_dist_matrix = pairwise_dists(points, self.space.metric.dist)
 
         rand_i, rand_j = (
             random.randint(0, n_points - 1),

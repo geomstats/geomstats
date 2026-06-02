@@ -60,7 +60,7 @@ class PointBatch(ABC, list):
     @property
     def shape(self):
         """Batch shape."""
-        return (len(self),)
+        return (len(self), 1)
 
 
 class PointSet(ABC):
