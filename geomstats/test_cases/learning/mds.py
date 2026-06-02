@@ -48,20 +48,20 @@ class PairwiseDistsTestCase(TestCase):
 
 class MDSTestCase(BaseEstimatorTestCase):
     @pytest.mark.random
-    def test_minimal_fit(self):
-        n_points = random.randint(3, 5)
-        n_components = self.estimator.n_components
+    def test_fit_runs(self, n_samples):
+        X = self.data_generator.random_point(n_points=n_samples)
 
-        X = self.data_generator.random_point(n_points=n_points)
         self.estimator.fit(X)
         embeddings = self.estimator.embedding_
-        self.assertAllEqual(embeddings.shape, (n_points, n_components))
-
-    @pytest.mark.random
-    def test_minimal_fit_transform(self):
-        n_points = random.randint(3, 5)
         n_components = self.estimator.n_components
 
-        X = self.data_generator.random_point(n_points=n_points)
+        self.assertAllEqual(embeddings.shape, (n_samples, n_components))
+
+    @pytest.mark.random
+    def test_fit_transform_runs(self, n_samples):
+        X = self.data_generator.random_point(n_points=n_samples)
+
         embeddings = self.estimator.fit_transform(X)
-        self.assertAllEqual(embeddings.shape, (n_points, n_components))
+        n_components = self.estimator.n_components
+
+        self.assertAllEqual(embeddings.shape, (n_samples, n_components))
