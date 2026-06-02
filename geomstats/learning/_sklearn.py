@@ -400,20 +400,57 @@ class EuclideanInputMixin:
     Public methods accept inputs with shape ``(n_samples, *space.shape)``.
     The wrapped sklearn estimator receives inputs with shape
     ``(n_samples, prod(space.shape))``.
-
-    Subclasses may override ``_reshape_fitted_attrs`` to expose fitted attributes
-    reshaped back to ``space.shape``.
     """
 
     _reshape_X_methods = ("fit", "predict")
     _reshaped_attr_suffix = "_reshaped_"
 
+    def __init_subclass__(cls, **kwargs):
+        """Metaprogramming hook to wrap methods once at class definition time."""
+        super().__init_subclass__(**kwargs)
+
+        for method_name in cls._reshape_X_methods:
+            if hasattr(cls, method_name):
+                original_method = getattr(cls, method_name)
+                setattr(
+                    cls, method_name, cls._wrap_reshape(original_method, method_name)
+                )
+
+    @classmethod
+    def _wrap_reshape(cls, method, method_name):
+        """Flattens inputs and triggers attribute reshaping on fit."""
+
+        @wraps(method)
+        def wrapped(self, X, *args, **kwargs):
+            if method_name == "fit":
+                if getattr(self, "space", None) is not None:
+                    self.input_shape_ = self.space.shape
+                else:
+                    self.input_shape_ = X.shape[1:]
+
+            X_flat = self._flatten_X(X)
+            out = method(self, X_flat, *args, **kwargs)
+
+            if method_name == "fit":
+                self._reshape_fitted_attrs()
+
+            return out
+
+        return wrapped
+
     def _input_shape(self, X=None):
-        if self.space is not None:
+        if getattr(self, "space", None) is not None:
             return self.space.shape
+
+        if hasattr(self, "input_shape_"):
+            return self.input_shape_
 
         if X is not None:
             return X.shape[1:]
+
+        raise ValueError(
+            "Input shape could not be determined. Pass X or set self.space."
+        )
 
     def _flatten_X(self, X):
         """Flatten structured inputs to sklearn's 2D convention."""
@@ -421,26 +458,17 @@ class EuclideanInputMixin:
 
         if X.shape[1:] != point_shape:
             raise ValueError(
-                f"Expected X with shape (n_samples, {point_shape}), " f"got {X.shape}."
+                f"Expected X with shape (n_samples, {point_shape}), got {X.shape}."
             )
 
         return X.reshape((X.shape[0], -1))
 
     def _reshape_fitted_attrs(self):
-        """Expose reshaped aliases for fitted sklearn attributes.
-
-        Subclasses can override this method. The default does nothing.
-        """
+        """Expose reshaped aliases for fitted sklearn attributes."""
         return None
 
     def _set_reshaped_attr(self, name, value):
-        """Set a reshaped alias for a fitted sklearn attribute.
-
-        Examples
-        --------
-        ``name="coef_"`` creates ``coef_point_``.
-        ``name="cluster_centers_"`` creates ``cluster_centers_point_``.
-        """
+        """Set a reshaped alias for a fitted sklearn attribute."""
         if not name.endswith("_"):
             raise ValueError(
                 f"Expected fitted sklearn attribute ending in '_', got {name!r}."
@@ -449,42 +477,15 @@ class EuclideanInputMixin:
         alias = f"{name[:-1]}{self._reshaped_attr_suffix}"
         setattr(self, alias, value)
 
-    def __getattribute__(self, name):
-        attr = super().__getattribute__(name)
-
-        if name.startswith("_"):
-            return attr
-
-        method_names = super().__getattribute__("_reshape_X_methods")
-        if name not in method_names or not callable(attr):
-            return attr
-
-        @wraps(attr)
-        def wrapped(X, *args, **kwargs):
-            out = attr(self._flatten_X(X), *args, **kwargs)
-
-            if name == "fit":
-                self._reshape_fitted_attrs()
-
-            return out
-
-        return wrapped
-
 
 class EuclideanInputOutputMixin:
-    """Mixin flattening Euclidean-valued inputs and outputs for sklearn.
+    """Mixin flattening Euclidean-valued inputs and outputs for sklearn estimators.
 
     Public methods use structured arrays:
+    - X.shape == (n_samples, *space.shape)
+    - y.shape == (n_samples, *image_space.shape)
 
-    - ``X.shape == (n_samples, *space.shape)``
-    - ``y.shape == (n_samples, *output_shape)``
-
-    Internally, sklearn receives flat arrays:
-
-    - ``X_flat.shape == (n_samples, prod(space.shape))``
-    - ``y_flat.shape == (n_samples, prod(output_shape))``
-
-    Predictions are reshaped back to ``(n_samples, *output_shape)``.
+    Internally, sklearn receives flat arrays.
     """
 
     _reshape_X_methods = ("predict",)
@@ -492,99 +493,114 @@ class EuclideanInputOutputMixin:
     _reshape_output_methods = ("predict",)
     _reshaped_attr_suffix = "_reshaped_"
 
-    def _input_shape(self, X=None):
-        if self.space is not None:
-            return self.space.shape
+    def __init_subclass__(cls, **kwargs):
+        """Metaprogramming hook to wrap lookups once at class definition time."""
+        super().__init_subclass__(**kwargs)
 
-        if X is not None:
-            return X.shape[1:]
+        all_methods = set(cls._reshape_X_methods) | set(cls._reshape_X_y_methods)
 
-    def _flatten_X(self, X):
-        """Flatten structured inputs to sklearn's 2D convention."""
-        input_shape = self._input_shape(X)
-
-        if X.shape[1:] != input_shape:
-            raise ValueError(
-                f"Expected X with shape (n_samples, {input_shape}), " f"got {X.shape}."
-            )
-
-        return X.reshape((X.shape[0], -1))
-
-    def _flatten_y(self, y):
-        """Flatten structured outputs to sklearn's target convention."""
-        output_shape = self.image_space.shape
-
-        if y.shape[1:] != output_shape:
-            raise ValueError(
-                f"Expected y with shape (n_samples, {output_shape}), " f"got {y.shape}."
-            )
-
-        return y.reshape((y.shape[0], -1))
-
-    def _reshape_y(self, y):
-        """Reshape flat sklearn predictions back to image_space.shape."""
-        output_shape = self.image_space.shape
-
-        return y.reshape((y.shape[0], *output_shape))
-
-    def _set_reshaped_attr(self, name, value):
-        """Set a reshaped alias for a fitted sklearn attribute.
-
-        Examples
-        --------
-        ``coef_`` becomes ``coef_reshaped_``.
-        """
-        if not name.endswith("_"):
-            raise ValueError(
-                f"Expected fitted sklearn attribute ending in '_', got {name!r}."
-            )
-
-        alias = f"{name[:-1]}{self._reshaped_attr_suffix}"
-        setattr(self, alias, value)
-
-    def _reshape_fitted_attrs(self):
-        """Expose reshaped aliases for fitted sklearn attributes."""
-        return None
-
-    def __getattribute__(self, name):
-        attr = super().__getattribute__(name)
-
-        if name.startswith("_") or not callable(attr):
-            return attr
-
-        reshape_X_methods = super().__getattribute__("_reshape_X_methods")
-        reshape_X_y_methods = super().__getattribute__("_reshape_X_y_methods")
-        reshape_output_methods = super().__getattribute__("_reshape_output_methods")
-
-        if name in reshape_X_y_methods:
-
-            @wraps(attr)
-            def wrapped_X_y(X, y, *args, **kwargs):
-                out = attr(
-                    self._flatten_X(X),
-                    self._flatten_y(y),
-                    *args,
-                    **kwargs,
+        for method_name in all_methods:
+            if hasattr(cls, method_name):
+                original_method = getattr(cls, method_name)
+                setattr(
+                    cls, method_name, cls._wrap_reshape(original_method, method_name)
                 )
 
-                if name == "fit":
+    @classmethod
+    def _wrap_reshape(cls, method, method_name):
+        """Map structured spaces to flat representations and back."""
+        if method_name in cls._reshape_X_y_methods:
+
+            @wraps(method)
+            def wrapped_X_y(self, X, y, *args, **kwargs):
+                self.input_shape_ = (
+                    self.space.shape if getattr(self, "space", None) else X.shape[1:]
+                )
+                self.output_shape_ = (
+                    self.image_space.shape
+                    if getattr(self, "image_space", None)
+                    else y.shape[1:]
+                )
+
+                X_flat = self._flatten_X(X)
+                y_flat = self._flatten_y(y)
+
+                out = method(self, X_flat, y_flat, *args, **kwargs)
+
+                if method_name == "fit":
                     self._reshape_fitted_attrs()
 
                 return out
 
             return wrapped_X_y
 
-        if name in reshape_X_methods:
+        elif method_name in cls._reshape_X_methods:
 
-            @wraps(attr)
-            def wrapped_X(X, *args, **kwargs):
-                out = attr(self._flatten_X(X), *args, **kwargs)
+            @wraps(method)
+            def wrapped_X(self, X, *args, **kwargs):
+                X_flat = self._flatten_X(X)
+                out = method(self, X_flat, *args, **kwargs)
 
-                if name in reshape_output_methods:
+                if method_name in self._reshape_output_methods:
                     out = self._reshape_y(out)
 
                 return out
 
             return wrapped_X
 
-        return attr
+        return method
+
+    def _input_shape(self, X=None):
+        if getattr(self, "space", None) is not None:
+            return self.space.shape
+        if hasattr(self, "input_shape_"):
+            return self.input_shape_
+        if X is not None:
+            return X.shape[1:]
+        raise ValueError("Input shape undetermined. Pass X or set self.space.")
+
+    def _output_shape(self, y=None):
+        if getattr(self, "image_space", None) is not None:
+            return self.image_space.shape
+        if hasattr(self, "output_shape_"):
+            return self.output_shape_
+        if y is not None:
+            return y.shape[1:]
+        raise ValueError("Output shape undetermined. Pass y or set self.image_space.")
+
+    def _flatten_X(self, X):
+        """Flatten structured inputs to sklearn's 2D convention."""
+        input_shape = self._input_shape(X)
+        if X.shape[1:] != input_shape:
+            raise ValueError(
+                f"Expected X shape (n_samples, {input_shape}), got {X.shape}."
+            )
+        return X.reshape((X.shape[0], -1))
+
+    def _flatten_y(self, y):
+        """Flatten structured outputs to sklearn's target convention."""
+        output_shape = self._output_shape(y)
+        if y.shape[1:] != output_shape:
+            raise ValueError(
+                f"Expected y shape (n_samples, {output_shape}), got {y.shape}."
+            )
+
+        return y.reshape((y.shape[0], -1))
+
+    def _reshape_y(self, y):
+        """Reshape flat sklearn predictions back to image_space shape."""
+        output_shape = self._output_shape()
+        return y.reshape((y.shape[0], *output_shape))
+
+    def _set_reshaped_attr(self, name, value):
+        """Set a reshaped alias for a fitted sklearn attribute."""
+        if not name.endswith("_"):
+            raise ValueError(
+                f"Expected fitted sklearn attribute ending in '_', got {name!r}."
+            )
+        alias = f"{name[:-1]}{self._reshaped_attr_suffix}"
+        setattr(self, alias, value)
+
+    def _reshape_fitted_attrs(self):
+        """Expose reshaped aliases for fitted sklearn attributes."""
+        return None
