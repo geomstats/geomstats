@@ -218,6 +218,10 @@ class LinearRegression(MultiOutputMixin, RegressorMixin, LinearModel):
                     delayed(optimize.nnls)(X, y[:, j]) for j in range(y.shape[1])
                 )
                 self.coef_ = np.vstack([out[0] for out in outs])
+
+            # TODO (L): backend issue
+            self.coef_ = gs.from_numpy(self.coef_)
+
         elif sp.issparse(X):
             if has_sw:
 

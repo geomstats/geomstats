@@ -405,7 +405,7 @@ class EuclideanInputMixin:
     reshaped back to ``space.shape``.
     """
 
-    _reshape_X_methods = ("fit", "predict", "score")
+    _reshape_X_methods = ("fit", "predict")
     _reshaped_attr_suffix = "_reshaped_"
 
     def _input_shape(self, X=None):
