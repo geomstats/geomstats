@@ -408,9 +408,16 @@ class EuclideanInputMixin:
     _reshape_X_methods = ("fit", "predict", "score")
     _reshaped_attr_suffix = "_reshaped_"
 
+    def _input_shape(self, X=None):
+        if self.space is not None:
+            return self.space.shape
+
+        if X is not None:
+            return X.shape[1:]
+
     def _flatten_X(self, X):
         """Flatten structured inputs to sklearn's 2D convention."""
-        point_shape = self.space.shape
+        point_shape = self._input_shape(X)
 
         if X.shape[1:] != point_shape:
             raise ValueError(
@@ -485,9 +492,16 @@ class EuclideanInputOutputMixin:
     _reshape_output_methods = ("predict",)
     _reshaped_attr_suffix = "_reshaped_"
 
+    def _input_shape(self, X=None):
+        if self.space is not None:
+            return self.space.shape
+
+        if X is not None:
+            return X.shape[1:]
+
     def _flatten_X(self, X):
         """Flatten structured inputs to sklearn's 2D convention."""
-        input_shape = self.space.shape
+        input_shape = self._input_shape(X)
 
         if X.shape[1:] != input_shape:
             raise ValueError(

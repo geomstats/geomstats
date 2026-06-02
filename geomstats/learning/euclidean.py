@@ -55,7 +55,7 @@ class VectorValuedLinearRegression(EuclideanInputMixin, _LinearRegression):
 
     def __init__(
         self,
-        space,
+        space=None,
         *,
         fit_intercept=True,
         copy_X=True,
@@ -73,10 +73,12 @@ class VectorValuedLinearRegression(EuclideanInputMixin, _LinearRegression):
         )
 
     def _reshape_fitted_attrs(self):
-        coef = gs.reshape(
-            self.coef_,
-            (*self.coef_.shape[:-1], *self.space.shape),
-        )
+        coef = self.coef_
+        if (input_shape := self._input_shape()) is not None:
+            coef = gs.reshape(
+                coef,
+                (*coef.shape[:-1], *input_shape),
+            )
         self._set_reshaped_attr("coef_", coef)
 
 
@@ -125,8 +127,8 @@ class TensorValuedLinearRegression(EuclideanInputOutputMixin, _LinearRegression)
 
     def __init__(
         self,
-        space,
-        image_space,
+        space=None,
+        image_space=None,
         *,
         fit_intercept=True,
         copy_X=True,
@@ -135,6 +137,9 @@ class TensorValuedLinearRegression(EuclideanInputOutputMixin, _LinearRegression)
         positive=False,
     ):
         self.space = space
+
+        if image_space is None:
+            raise ValueError("Need to define ``image_space``.")
         self.image_space = image_space
 
         super().__init__(
@@ -146,22 +151,17 @@ class TensorValuedLinearRegression(EuclideanInputOutputMixin, _LinearRegression)
         )
 
     def _reshape_fitted_attrs(self):
+        input_shape = self._input_shape() or (-1,)
+
         coef = gs.reshape(
             self.coef_,
-            (*self.image_space.shape, *self.space.shape),
+            (*self.image_space.shape, *input_shape),
         )
         self._set_reshaped_attr("coef_", coef)
 
         if self.fit_intercept:
             intercept = gs.reshape(self.intercept_, self.image_space.shape)
             self._set_reshaped_attr("intercept_", intercept)
-
-    def _reshape_fitted_attrs(self):
-        coef = gs.reshape(self.coef_, (*self.image_space.shape, *self.space.shape))
-        intercept = gs.reshape(self.intercept_, self.image_space.shape)
-
-        self._set_reshaped_attr("coef_", coef)
-        self._set_reshaped_attr("intercept_", intercept)
 
     def score(self, X, y, sample_weight=None):
         """Return the coefficient of determination R^2 of the prediction.
@@ -179,7 +179,7 @@ class TensorValuedLinearRegression(EuclideanInputOutputMixin, _LinearRegression)
         return r2_score(y, y_pred, sample_weight=sample_weight)
 
 
-def LinearRegression(space, image_space=None, **kwargs):
+def LinearRegression(space=None, image_space=None, **kwargs):
     """Create a linear regression estimator for structured Euclidean data.
 
     This factory returns a linear regression estimator adapted to the geometry of

@@ -353,7 +353,8 @@ class _AACRegression(BaseEstimator):
 
         self.total_space_estimator_kwargs = total_space_estimator_kwargs or {}
         self.total_space_estimator = LinearRegression(
-            self.space, **self.total_space_estimator_kwargs
+            image_space=self.space,
+            **self.total_space_estimator_kwargs,
         )
         self.n_iter_ = None
         self.aligned_y_ = None
