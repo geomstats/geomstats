@@ -18,7 +18,6 @@ from sklearn import set_config
 from sklearn.base import RegressorMixin as _RegressorMixin
 from sklearn.compose import TransformedTargetRegressor
 from sklearn.decomposition import PCA as _PCA
-from sklearn.linear_model import LinearRegression as _LinearRegression
 from sklearn.metrics import r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
@@ -198,27 +197,6 @@ class ModelAdapter(Pipeline):
             return gs.from_numpy(out)
 
         return out
-
-
-class LinearRegression(GetParamsMixin, ModelAdapter):
-    """Ordinary least squares Linear Regression.
-
-    See https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html
-    for details.
-    """
-
-    def __init__(
-        self,
-        *,
-        fit_intercept=True,
-        copy_X=True,
-        n_jobs=None,
-        positive=False,
-    ):
-        regressor = _LinearRegression(
-            fit_intercept=fit_intercept, copy_X=copy_X, n_jobs=n_jobs, positive=positive
-        )
-        super().__init__(regressor)
 
 
 class PCA(GetParamsMixin, ModelAdapter):
@@ -414,3 +392,73 @@ class OutputToBackendMixin:
             return tuple(convert(item) for item in results)
 
         return convert(results)
+
+
+class EuclideanInputMixin:
+    """Mixin flattening Euclidean structured inputs for sklearn estimators.
+
+    Public methods accept inputs with shape ``(n_samples, *space.shape)``.
+    The wrapped sklearn estimator receives inputs with shape
+    ``(n_samples, prod(space.shape))``.
+
+    Subclasses may override ``_reshape_attrs`` to expose fitted attributes
+    reshaped back to ``space.shape``.
+    """
+
+    _reshape_input_methods = ("fit", "predict", "score")
+    _reshaped_attr_suffix = "_reshaped_"
+
+    def _flatten_X(self, X):
+        """Flatten structured inputs to sklearn's 2D convention."""
+        point_shape = self.space.shape
+
+        if X.shape[1:] != point_shape:
+            raise ValueError(
+                f"Expected X with shape (n_samples, {point_shape}), " f"got {X.shape}."
+            )
+
+        return X.reshape((X.shape[0], -1))
+
+    def _reshape_attrs(self):
+        """Expose reshaped aliases for fitted sklearn attributes.
+
+        Subclasses can override this method. The default does nothing.
+        """
+        return None
+
+    def _set_reshaped_attr(self, name, value):
+        """Set a reshaped alias for a fitted sklearn attribute.
+
+        Examples
+        --------
+        ``name="coef_"`` creates ``coef_point_``.
+        ``name="cluster_centers_"`` creates ``cluster_centers_point_``.
+        """
+        if not name.endswith("_"):
+            raise ValueError(
+                f"Expected fitted sklearn attribute ending in '_', got {name!r}."
+            )
+
+        alias = f"{name[:-1]}{self._reshaped_attr_suffix}"
+        setattr(self, alias, value)
+
+    def __getattribute__(self, name):
+        attr = super().__getattribute__(name)
+
+        if name.startswith("_"):
+            return attr
+
+        method_names = super().__getattribute__("_reshape_input_methods")
+        if name not in method_names or not callable(attr):
+            return attr
+
+        @wraps(attr)
+        def wrapped(X, *args, **kwargs):
+            out = attr(self._flatten_X(X), *args, **kwargs)
+
+            if name == "fit":
+                self._reshape_attrs()
+
+            return out
+
+        return wrapped
