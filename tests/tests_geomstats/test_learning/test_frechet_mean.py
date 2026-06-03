@@ -11,6 +11,7 @@ from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.minkowski import Minkowski
+from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.stratified.bhv_space import TreeSpace
@@ -20,7 +21,9 @@ from geomstats.learning.frechet_mean import (
     GradientDescent,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.learning._base import BaseEstimatorTestCase
+from geomstats.test_cases.learning._base import (
+    BaseEstimatorTestCase,
+)
 from geomstats.test_cases.learning.frechet_mean import (
     BatchGradientDescentTestCase,
     CircularMeanTestCase,
@@ -37,6 +40,7 @@ from .data.frechet_mean import (
     FrechetMeanTestData,
     LinearMeanEuclideaTestData,
     PointSetFrechetMeanTestData,
+    SturmMeanTestData,
     VarianceEuclideanTestData,
     VarianceTestData,
 )
@@ -45,39 +49,57 @@ from .data.frechet_mean import (
 @pytest.fixture(
     scope="class",
     params=[
-        (Hypersphere(dim=random.randint(3, 4)), "default"),
-        (Hypersphere(dim=random.randint(3, 4)), "adaptive"),
-        (SpecialOrthogonal(n=3, point_type="vector"), "default"),
-        (SpecialOrthogonal(n=3, point_type="vector"), "adaptive"),
-        (SpecialOrthogonal(n=3, point_type="matrix"), "default"),
-        (SpecialOrthogonal(n=3, point_type="matrix"), "adaptive"),
-        (SPDMatrices(3), "default"),
-        (Hyperboloid(dim=3), "default"),
-        (Hypersphere(dim=random.randint(3, 4)), "sturms"),
-        (SpecialOrthogonal(n=3, point_type="vector"), "sturms"),
+        (Hypersphere(dim=random.randint(3, 4)), "default", None),
+        (Hypersphere(dim=random.randint(3, 4)), "adaptive", None),
+        (SPDMatrices(random.randint(3, 4)), "default", None),
+        (SPDMatrices(random.randint(3, 4)), "adaptive", None),
     ],
 )
 def estimators(request):
-    space, method = request.param
-    if method == "sturms":
-        request.cls.estimator = FrechetMean(space, algorithm=method)
-        request.cls.atol = 1e-2
-    else:
-        request.cls.estimator = FrechetMean(space, method=method)
-        request.cls.atol = 1e-6
+    space, method, kwargs = request.param
+    kwargs = kwargs or {}
+    request.cls.estimator = FrechetMean(space, method=method, **kwargs)
+
+
+@pytest.mark.usefixtures("estimators")
+class TestFrechetMean(FrechetMeanTestCase, metaclass=DataBasedParametrizer):
+    testing_data = FrechetMeanTestData()
 
 
 @pytest.fixture(
     scope="class",
-    params=[(TreeSpace(n_labels=5), "cyclic"), (TreeSpace(n_labels=5), "stochastic")],
+    params=[
+        (PoincareBall(dim=random.randint(3, 4)), dict(max_iter=100)),
+        (
+            PoincareBall(dim=random.randint(3, 4)),
+            dict(sample_method="stochastic", max_iter=500),
+        ),
+    ],
+)
+def estimators_for_sturm(request):
+    space, kwargs = request.param
+    kwargs = kwargs or {}
+    request.cls.estimator = FrechetMean(space, method="sturms", **kwargs)
+
+
+@pytest.mark.usefixtures("estimators_for_sturm")
+class TestSturmsMean(FrechetMeanTestCase, metaclass=DataBasedParametrizer):
+    testing_data = SturmMeanTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (TreeSpace(n_labels=5), "cyclic"),
+        (TreeSpace(n_labels=5), "stochastic"),
+    ],
 )
 def pointset_estimators(request):
     space, sample_method = request.param
 
     request.cls.estimator = FrechetMean(
-        space, algorithm="sturms", sample_method=sample_method
+        space, method="sturms", sample_method=sample_method
     )
-    request.cls.atol = 1e-2
 
 
 @pytest.mark.usefixtures("pointset_estimators")
@@ -85,11 +107,6 @@ class TestPointSetFrechetMean(
     PointSetFrechetMeanTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = PointSetFrechetMeanTestData()
-
-
-@pytest.mark.usefixtures("estimators")
-class TestFrechetMean(FrechetMeanTestCase, metaclass=DataBasedParametrizer):
-    testing_data = FrechetMeanTestData()
 
 
 class TestFrechetMeanSOCoincide(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
@@ -123,7 +140,6 @@ class TestFrechetMeanSOCoincide(BaseEstimatorTestCase, metaclass=DataBasedParame
 def linear_mean_estimators(request):
     space = request.param
     request.cls.estimator = FrechetMean(space)
-    request.cls.atol = 1e-6
 
 
 @pytest.mark.usefixtures("linear_mean_estimators")
@@ -162,7 +178,6 @@ class TestElasticMean(ElasticMeanTestCase, metaclass=DataBasedParametrizer):
 class TestCircularMean(CircularMeanTestCase, metaclass=DataBasedParametrizer):
     space = Hypersphere(dim=1)
     estimator = FrechetMean(space)
-    atol = 1e-6
 
     testing_data = CircularMeanTestData()
 
@@ -176,7 +191,6 @@ class TestCircularMean(CircularMeanTestCase, metaclass=DataBasedParametrizer):
 )
 def variance_estimators(request):
     request.cls.space = request.param
-    request.cls.atol = 1e-6
 
 
 @pytest.mark.usefixtures("variance_estimators")

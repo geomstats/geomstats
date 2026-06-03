@@ -741,8 +741,8 @@ class SturmsMean(BaseEstimator):
         mean_estimate = self._sample_next(X, weights, 0)
         prev_mean_estimate = mean_estimate
 
-        prev_mean_movements = [np.inf for _ in range(self.window_length)]
-        convergence = np.inf
+        prev_mean_movements = [gs.inf for _ in range(self.window_length)]
+        convergence = gs.inf
 
         for i in range(1, self.max_iter):
             sampled_point = self._sample_next(X, weights, i)
@@ -907,7 +907,8 @@ def FrechetMean(space, **kwargs):
     elif _is_elastic_metric(space.metric):
         Estimator = ElasticMean
 
-    elif _is_bhv_metric(space.metric):
+    elif kwargs.get("method") == "sturms" or _is_bhv_metric(space.metric):
+        kwargs.pop("method", None)
         Estimator = SturmsMean
 
     else:
