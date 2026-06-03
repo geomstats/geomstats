@@ -4,9 +4,9 @@ import sklearn.cluster._agglomerative as ca
 from sklearn.cluster import AgglomerativeClustering
 
 import geomstats.backend as gs
+from geomstats._sklearngs.cluster._agglomerative import linkage_tree
 
 from ._sklearn import SklearnInteropMixin
-from ._sklearngs.cluster._agglomerative import linkage_tree
 
 
 class AgglomerativeHierarchicalClustering(SklearnInteropMixin, AgglomerativeClustering):

@@ -1,7 +1,9 @@
 import geomstats.backend as gs
+from geomstats._sklearngs.linear_model._base import (
+    LinearRegression as _LinearRegression,
+)
 
 from ._sklearn import EuclideanInputMixin, EuclideanInputOutputMixin
-from ._sklearngs.linear_model._base import LinearRegression as _LinearRegression
 
 
 class VectorValuedLinearRegression(EuclideanInputMixin, _LinearRegression):

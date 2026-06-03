@@ -5,6 +5,8 @@ import sklearn.metrics.pairwise as mp
 from sklearn.manifold import MDS as _MDS
 
 import geomstats.backend as gs
+from geomstats._sklearngs.manifold._classical_mds import ClassicalMDS
+from geomstats._sklearngs.manifold._mds import smacof
 from geomstats.geometry.manifold import Manifold
 
 from ._sklearn import (
@@ -12,8 +14,6 @@ from ._sklearn import (
     check_array_allow_nd,
     validate_data_skip_check_array,
 )
-from ._sklearngs.manifold._classical_mds import ClassicalMDS
-from ._sklearngs.manifold._mds import smacof
 
 
 def pairwise_dists(points, dist_fnc):
