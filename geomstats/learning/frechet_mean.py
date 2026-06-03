@@ -680,15 +680,6 @@ class SturmsMean(BaseEstimator):
         window_length=50,
         verbose=False,
     ):
-        if sample_method == "cyclic":
-            self._sample_next = self._sample_next_cyclic
-            self._step_length = self._step_length_cyclic
-        elif sample_method == "stochastic":
-            self._sample_next = self._sample_next_stochastic
-            self._step_length = self._step_length_stochastic
-        else:
-            raise ValueError(f"Sample method {sample_method} is not supported.")
-
         self.sample_method = sample_method
 
         self.max_iter = max_iter
@@ -732,6 +723,16 @@ class SturmsMean(BaseEstimator):
         self : object
             Returns self.
         """
+        if self.sample_method == "cyclic":
+            self._sample_next = self._sample_next_cyclic
+            self._step_length = self._step_length_cyclic
+
+        elif self.sample_method == "stochastic":
+            self._sample_next = self._sample_next_stochastic
+            self._step_length = self._step_length_stochastic
+        else:
+            raise ValueError(f"Sample method {self.sample_method} is not supported.")
+
         n_points = gs.shape(X)[0]
         if weights is None:
             weights = gs.ones((n_points,))
