@@ -102,6 +102,8 @@ convention = "numpy"
 [tool.ruff.lint.per-file-ignores]
 "*/__init__.py" = ["F401", "D104"]
 "geomstats/_backend/*" = ["F401"]
+"geomstats/_sklearngs/**/*.py" = ["D401"]
+"geomstats/_scipygs/**/*.py" = ["D401"]
 "geomstats/test_cases/*" = ["D"]
 "geomstats/test/*" = ["D"]
 "geomstats/visualization/*" = ["D101", "D102"]

@@ -32,8 +32,8 @@ class EyePairwiseDistsTestData(TestData):
 
 
 class MDSTestData(BaseEstimatorTestData):
-    def minimal_fit_test_data(self):
+    def fit_runs_test_data(self):
         return self.generate_random_data()
 
-    def minimal_fit_transform_test_data(self):
+    def fit_transform_runs_test_data(self):
         return self.generate_random_data()

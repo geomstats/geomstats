@@ -34,6 +34,7 @@ jobs:
     env:
       GEOMSTATS_BACKEND: ${{matrix.geomstats-backend}}
       JUPYTER_PLATFORM_DIRS: 1
+      SCIPY_ARRAY_API: ${{ matrix.geomstats-backend == 'pytorch' && '1' || '' }}
 
     steps:
       - uses: actions/checkout@v4

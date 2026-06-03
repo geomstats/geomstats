@@ -38,7 +38,6 @@ class KNearestNeighborsClassifierTestCase(BaseEstimatorTestCase):
         prob_at_label = probs[gs.arange(len(X_test)), labels]
         self.assertAllClose(prob_at_label, expected_at_label, atol=atol)
 
-    @pytest.mark.random
     def test_score(self, X_train, y_train, X_test, y_test, expected, atol):
         self.estimator.fit(X_train, y_train)
 

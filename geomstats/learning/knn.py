@@ -4,27 +4,19 @@ import sklearn.metrics.pairwise as mp
 import sklearn.neighbors._base as nb
 from sklearn.neighbors import KNeighborsClassifier
 
-import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 
 from ._sklearn import (
-    ObjectValidationMixin,
+    OutputToBackendMixin,
+    SklearnInteropMixin,
     check_array_allow_nd,
     validate_data_skip_check_array,
 )
 
 
-def _fn_np_args_to_backend(function):
-    """Wrap a function to first convert args to arrays."""
-
-    def wrapped_function(*args, **kwargs):
-        new_args = map(gs.from_numpy, args)
-        return function(*new_args, **kwargs)
-
-    return wrapped_function
-
-
-class KNearestNeighborsClassifier(ObjectValidationMixin, KNeighborsClassifier):
+class KNearestNeighborsClassifier(
+    OutputToBackendMixin, SklearnInteropMixin, KNeighborsClassifier
+):
     """Classifier implementing the k-nearest neighbors vote on manifolds.
 
     Parameters
@@ -68,11 +60,15 @@ class KNearestNeighborsClassifier(ObjectValidationMixin, KNeighborsClassifier):
     References
     ----------
     This algorithm uses the scikit-learn library:
-    https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/
-    neighbors/_classification.py#L25
+    https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/neighbors/_classification.py#L25
     """
 
-    _object_validation_methods = {
+    _output_to_backend_methods = (
+        "kneighbors",
+        "predict",
+        "predict_proba",
+    )
+    _patched_methods = {
         "fit",
         "kneighbors",
     }
@@ -86,33 +82,31 @@ class KNearestNeighborsClassifier(ObjectValidationMixin, KNeighborsClassifier):
     ):
         self.space = space
 
-        array_repr = isinstance(space, Manifold)
-        self._skip_validation = not array_repr or space.point_ndim > 1
-
-        if self._skip_validation:
-            self._set_validation(array_repr)
-
-        distance = space.metric.dist
-        if array_repr and not gs.__name__.endswith("numpy"):
-            distance = _fn_np_args_to_backend(distance)
+        self._set_interop(space)
 
         super().__init__(
             n_neighbors=n_neighbors,
             weights=weights,
             algorithm="brute",
-            metric=distance,
+            metric=space.metric.dist,
             n_jobs=n_jobs,
         )
 
-    def _set_validation(self, array_repr):
+    def _set_interop(self, space):
+        array_repr = isinstance(space, Manifold)
+        self._use_sklearn_patches = not array_repr or space.point_ndim > 1
+
+        if not self._use_sklearn_patches:
+            return
+
         if array_repr:
-            self._object_validation_modules = (nb, mp)
-            self._object_validation_names = ("validate_data", "check_array")
-            self._object_validation_values = (
-                validate_data_skip_check_array,
-                check_array_allow_nd,
-            )
+            patches = [
+                (nb, "validate_data", validate_data_skip_check_array),
+                (mp, "check_array", check_array_allow_nd),
+            ]
         else:
-            self._object_validation_modules = (nb,)
-            self._object_validation_names = ("validate_data",)
-            self._object_validation_values = (validate_data_skip_check_array,)
+            patches = [
+                (nb, "validate_data", validate_data_skip_check_array),
+            ]
+
+        self._sklearn_patches = tuple(patches)
