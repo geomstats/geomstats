@@ -366,23 +366,29 @@ class OutputToBackendMixin:
 
     _output_to_backend_methods = ()
 
-    def __getattribute__(self, name):
-        attr = super().__getattribute__(name)
+    def __init_subclass__(cls, **kwargs):
+        """Metaprogramming hook to conditionally wrap methods at class definition time."""
+        super().__init_subclass__(**kwargs)
 
-        if name.startswith("_") or gs.__name__.endswith("numpy"):
-            return attr
+        if gs.__name__.endswith("numpy"):
+            return
 
-        methods = super().__getattribute__("_output_to_backend_methods")
-        if name not in methods or not callable(attr):
-            return attr
+        for method_name in cls._output_to_backend_methods:
+            if hasattr(cls, method_name):
+                original_method = getattr(cls, method_name)
+                setattr(cls, method_name, cls._wrap_backend_conversion(original_method))
 
-        @wraps(attr)
-        def wrapped(*args, **kwargs):
-            return self._output_to_backend(attr(*args, **kwargs))
+    @classmethod
+    def _wrap_backend_conversion(cls, method):
+        @wraps(method)
+        def wrapped(self, *args, **kwargs):
+            return self._output_to_backend(method(self, *args, **kwargs))
 
         return wrapped
 
     def _output_to_backend(self, results):
+        """Convert underlying NumPy arrays to the framework's active backend."""
+
         def convert(result):
             if isinstance(result, np.ndarray):
                 return gs.from_numpy(result)
