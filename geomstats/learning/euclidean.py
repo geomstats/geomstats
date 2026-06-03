@@ -1,3 +1,17 @@
+"""Linear regression estimators for structured Euclidean data.
+
+This module defines estimators for regression between Euclidean spaces. Inputs
+and outputs may be vectors or higher-order tensors; structured data are
+flattened before fitting and reshaped back according to their spaces.
+
+It also provides a :class:`LinearRegression` factory that selects the
+appropriate estimator from the domain and image spaces.
+
+The wrapped scikit-learn estimator attributes are preserved as returned by
+scikit-learn. Shape-aware versions of selected fitted attributes are stored
+separately, for example as ``coef_reshaped_``.
+"""
+
 import geomstats.backend as gs
 from geomstats._sklearngs.linear_model._base import (
     LinearRegression as _LinearRegression,
