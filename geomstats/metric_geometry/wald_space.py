@@ -22,19 +22,19 @@ import geomstats.backend as gs
 from geomstats.geometry.hermitian_matrices import powermh
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import SPDMatrices
-from geomstats.geometry.stratified.point_set import (
+from geomstats.metric_geometry.point_set import (
     Point,
     PointBatch,
     PointSet,
     PointSetMetric,
 )
-from geomstats.geometry.stratified.trees import (
+from geomstats.metric_geometry.trees import (
     ForestTopology,
     Split,
     delete_splits,
     generate_splits,
 )
-from geomstats.geometry.stratified.vectorization import (
+from geomstats.metric_geometry.vectorization import (
     _manipulate_output,
     broadcast_lists,
     vectorize_point,

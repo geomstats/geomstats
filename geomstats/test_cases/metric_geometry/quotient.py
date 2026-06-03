@@ -4,7 +4,7 @@ import geomstats.backend as gs
 from geomstats.test.random import RandomDataGenerator, get_random_times
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
-from geomstats.test_cases.geometry.stratified.point_set import (
+from geomstats.test_cases.metric_geometry.point_set import (
     PointSetMetricWithArrayTestCase,
 )
 

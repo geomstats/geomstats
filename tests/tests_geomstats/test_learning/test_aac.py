@@ -3,11 +3,11 @@ import random
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.stratified.graph_space import (
+from geomstats.learning.aac import _AACGGPCA, AAC, _AACFrechetMean, _AACRegression
+from geomstats.metric_geometry.graph_space import (
     GraphSpace,
     _GeodesicToPointAligner,
 )
-from geomstats.learning.aac import _AACGGPCA, AAC, _AACFrechetMean, _AACRegression
 from geomstats.test.parametrizers import DataBasedParametrizer, Parametrizer
 from geomstats.test.test_case import TestCase
 from geomstats.test_cases.learning._base import (

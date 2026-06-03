@@ -5,13 +5,13 @@ Lead authors: Anna Calissano & Jonas Lueg
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.stratified.point_set import (
+from geomstats.metric_geometry.point_set import (
     Point,
     PointBatch,
     PointSet,
     PointSetMetric,
 )
-from geomstats.geometry.stratified.vectorization import broadcast_lists, vectorize_point
+from geomstats.metric_geometry.vectorization import broadcast_lists, vectorize_point
 
 
 class SpiderPoint(Point):

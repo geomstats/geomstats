@@ -3,7 +3,7 @@ import pytest
 import geomstats.backend as gs
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
-from geomstats.test_cases.geometry.stratified.point_set import PointTestCase
+from geomstats.test_cases.metric_geometry.point_set import PointTestCase
 
 
 class RandomGroveDataGenerator(RandomDataGenerator):

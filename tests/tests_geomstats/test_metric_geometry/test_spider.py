@@ -1,8 +1,8 @@
 import random
 
-from geomstats.geometry.stratified.spider import Spider
+from geomstats.metric_geometry.spider import Spider
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.stratified.point_set import (
+from geomstats.test_cases.metric_geometry.point_set import (
     PointSetMetricTestCase,
     PointSetTestCase,
     PointTestCase,

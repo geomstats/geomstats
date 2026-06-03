@@ -3,7 +3,7 @@ import random
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.stratified.wald_space import (
+from geomstats.metric_geometry.wald_space import (
     NaiveProjectionGeodesicSolver,
     SuccessiveProjectionGeodesicSolver,
     WaldSpace,
@@ -13,11 +13,11 @@ from geomstats.geometry.stratified.wald_space import (
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase, torch_only
-from geomstats.test_cases.geometry.stratified.point_set import (
+from geomstats.test_cases.metric_geometry.point_set import (
     PointSetMetricTestCase,
     PointSetTestCase,
 )
-from geomstats.test_cases.geometry.stratified.wald_space import (
+from geomstats.test_cases.metric_geometry.wald_space import (
     RandomGroveDataGenerator,
     WaldGeodesicSolverTestCase,
     WaldTestCase,

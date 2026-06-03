@@ -20,7 +20,7 @@ References
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.stratified.bhv_space import Split, Tree, TreeSpace
+from geomstats.metric_geometry.bhv_space import Split, Tree, TreeSpace
 
 
 def main():

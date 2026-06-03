@@ -1,4 +1,4 @@
-from geomstats.geometry.stratified.trees import generate_splits
+from geomstats.metric_geometry.trees import generate_splits
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.test_case import TestCase
 

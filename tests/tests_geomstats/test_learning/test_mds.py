@@ -6,8 +6,8 @@ import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
-from geomstats.geometry.stratified.bhv_space import TreeSpace
 from geomstats.learning.mds import MDS
+from geomstats.metric_geometry.bhv_space import TreeSpace
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.learning.mds import (
     MDSTestCase,

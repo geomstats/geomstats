@@ -1,5 +1,5 @@
 import geomstats.backend as gs
-from geomstats.geometry.stratified.bhv_space import Split, Tree
+from geomstats.metric_geometry.bhv_space import Split, Tree
 from geomstats.test.data import TestData
 
 from .point_set import PointSetMetricTestData
