@@ -5,10 +5,8 @@ from sklearn.cluster import AgglomerativeClustering
 
 import geomstats.backend as gs
 
-from ._sklearn import SklearnInteropMixin, _enable_array_dispatch
+from ._sklearn import SklearnInteropMixin
 from ._sklearngs.cluster._agglomerative import linkage_tree
-
-_enable_array_dispatch()
 
 
 class AgglomerativeHierarchicalClustering(SklearnInteropMixin, AgglomerativeClustering):

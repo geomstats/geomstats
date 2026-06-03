@@ -9,12 +9,9 @@ from geomstats.geometry.manifold import Manifold
 from ._sklearn import (
     OutputToBackendMixin,
     SklearnInteropMixin,
-    _enable_array_dispatch,
     check_array_allow_nd,
     validate_data_skip_check_array,
 )
-
-_enable_array_dispatch()
 
 
 class KNearestNeighborsClassifier(

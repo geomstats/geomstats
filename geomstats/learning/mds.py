@@ -9,14 +9,11 @@ from geomstats.geometry.manifold import Manifold
 
 from ._sklearn import (
     SklearnInteropMixin,
-    _enable_array_dispatch,
     check_array_allow_nd,
     validate_data_skip_check_array,
 )
 from ._sklearngs.manifold._classical_mds import ClassicalMDS
 from ._sklearngs.manifold._mds import smacof
-
-_enable_array_dispatch()
 
 
 def pairwise_dists(points, dist_fnc):
