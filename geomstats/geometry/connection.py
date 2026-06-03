@@ -279,8 +279,8 @@ class Connection(ABC):
         spaces and of order two in general while Schild's ladder is a first
         order approximation [GP2020]_. Both schemes are available on any affine
         connection manifolds whose exponential and logarithm maps are
-        implemented. `tangent_vec` is transported along the geodesic starting
-        at the `base_point` with initial tangent vector `direction`.
+        implemented. ``tangent_vec`` is transported along the geodesic starting
+        at the ``base_point`` with initial tangent vector ``direction``.
 
         Parameters
         ----------
@@ -424,11 +424,11 @@ class Connection(ABC):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         tangent_vec_b : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         tangent_vec_c : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         base_point :  array-like, shape=[..., dim]
             Point on the manifold.
 
@@ -436,7 +436,7 @@ class Connection(ABC):
         -------
         curvature : array-like, shape=[..., dim]
             curvature(X, Y, Z, P)[..., l] = dx^l(R(X, Y)Z)
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         """
         riemann = self.riemann_tensor(base_point)
         curvature = gs.einsum(
@@ -473,7 +473,7 @@ class Connection(ABC):
     def directional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the directional curvature (tidal force operator).
 
-        For two tangent vectors at `base_point` :math:`P`:
+        For two tangent vectors at ``base_point`` :math:`P`:
 
         - :math:`X|_P = tangent\_vec\_a`,
         - :math:`Y|_P = tangent\_vec\_b`,
@@ -486,16 +486,16 @@ class Connection(ABC):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         tangent_vec_b : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         base_point :  array-like, shape=[..., dim]
             Base-point on the manifold.
 
         Returns
         -------
         directional_curvature : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         """
         return self.curvature(tangent_vec_b, tangent_vec_a, tangent_vec_b, base_point)
 
@@ -509,7 +509,7 @@ class Connection(ABC):
     ):
         r"""Compute the covariant derivative of the curvature.
 
-        For four tangent vectors at `base_point` :math:`P`:
+        For four tangent vectors at ``base_point`` :math:`P`:
 
         - :math:`H|_P = tangent\_vec\_a`,
         - :math:`X|_P = tangent\_vec\_b`,
@@ -522,13 +522,13 @@ class Connection(ABC):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         tangent_vec_b : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         tangent_vec_c : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         tangent_vec_d : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         base_point :  array-like, shape=[..., dim]
             Point on the manifold.
 
@@ -546,22 +546,22 @@ class Connection(ABC):
     ):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For tangent vector fields at `base_point` :math:`P`:
+        For tangent vector fields at ``base_point`` :math:`P`:
 
         - :math:`X|_P = tangent\_vec\_a`,
         - :math:`Y|_P = tangent\_vec\_b`,
 
-        the covariant derivative (in the direction `X`)
+        the covariant derivative (in the direction ``X``)
         :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
-        directional curvature (in the direction `Y`)
+        directional curvature (in the direction ``Y``)
         :math:`R_Y(X) = R(Y, X) Y`
-        is a quadratic tensor in `X` and `Y` that
+        is a quadratic tensor in ``X`` and ``Y`` that
         plays an important role in the computation of the moments of the
         empirical Fréchet mean.
 
         References
         ----------
-        .. [Pennec] Pennec, Xavier. Curvature effects on the empirical mean in
+        .. [P2019] Pennec, Xavier. Curvature effects on the empirical mean in
             Riemannian and affine Manifolds: a non-asymptotic high
             concentration expansion in the small-sample regime. Preprint. 2019.
             https://arxiv.org/abs/1906.07418
@@ -731,7 +731,7 @@ class Connection(ABC):
         r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector
-        along the geodesic between two points `base_point` and `end_point`
+        along the geodesic between two points ``base_point`` and ``end_point``
         or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`.
 
@@ -752,28 +752,55 @@ class Connection(ABC):
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., {dim, [n, m]}]
-            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+            Transported tangent vector at ``exp_(base_point)(tangent_vec_b)``.
         """
         raise NotImplementedError(
             "The closed-form solution of parallel transport is not known, "
             "use the ladder_parallel_transport instead."
         )
 
-    def injectivity_radius(self, base_point=None):
-        """Compute the radius of the injectivity domain.
 
-        This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base
-        point onto its image.
+_CONNECTION_METHODS = {
+    "_space",
+    "christoffels",
+    "jacobian_christoffels",
+    "geodesic_equation",
+    "exp",
+    "log",
+    "riemann_tensor",
+    "curvature",
+    "ricci_tensor",
+    "directional_curvature",
+    "curvature_derivative",
+    "directional_curvature_derivative",
+    "geodesic",
+    "parallel_transport",
+}
 
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., {dim, [n, m]}]
-            Point on the manifold.
 
-        Returns
-        -------
-        radius : array-like, shape=[...,]
-            Injectivity radius.
-        """
-        raise NotImplementedError("The injectivity range is not implemented yet.")
+def _make_delegated_method(name):
+    def method(self, *args, **kwargs):
+        return getattr(self._metric, name)(*args, **kwargs)
+
+    method.__name__ = name
+    method.__qualname__ = name
+    method.__doc__ = f"Delegate ``{name}`` to the wrapped metric."
+    return method
+
+
+def _delegate_methods(method_names):
+    def decorate(cls):
+        for name in method_names:
+            if name not in cls.__dict__:
+                setattr(cls, name, _make_delegated_method(name))
+        return cls
+
+    return decorate
+
+
+@_delegate_methods(_CONNECTION_METHODS)
+class ConnectionFromMetric:
+    """Metric wrapper exposing only connection-related methods."""
+
+    def __init__(self, metric):
+        self._metric = metric

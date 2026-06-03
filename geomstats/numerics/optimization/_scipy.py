@@ -12,7 +12,7 @@ from ._optimization import Minimizer, RootFinder
 class ScipyMinimize(Minimizer):
     """Wrapper for scipy.optimize.minimize.
 
-    Only `autodiff_jac` and `autodiff_hess` differ from scipy: if True, then
+    Only ``autodiff_jac`` and ``autodiff_hess`` differ from scipy: if True, then
     automatic differentiation is used to compute jacobian and/or hessian.
 
     Check out
@@ -124,7 +124,7 @@ class ScipyMinimize(Minimizer):
 class ScipyRoot(RootFinder):
     """Wrapper for scipy.optimize.root.
 
-    Only `autodiff_jac` differs from scipy: if True, then
+    Only ``autodiff_jac`` differs from scipy: if True, then
     automatic differentiation is used to compute jacobian.
     """
 

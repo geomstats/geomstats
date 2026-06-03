@@ -13,7 +13,7 @@ class PointSetTestData(TestData):
         return self.generate_random_data()
 
 
-class PointMetricTestData(DistMixinsTestData, TestData):
+class PointSetMetricTestData(DistMixinsTestData, TestData):
     skip_vec = True
 
     def geodesic_boundary_points_test_data(self):

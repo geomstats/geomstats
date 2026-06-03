@@ -186,6 +186,8 @@ class ComplexMatrixVectorSpaceTestCase(ComplexVectorSpaceTestCase):
 
 
 class LevelSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
+    # TODO: need to develop ``intrinsic_after_extrinsic``
+    # and ``extrinsic_after_intrinsic``
     # TODO: need to develop `intrinsic_after_extrinsic` and `extrinsic_after_intrinsic`
     # TODO: class to handle `extrinsinc-intrinsic` mixins?
 

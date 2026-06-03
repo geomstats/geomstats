@@ -3,11 +3,11 @@ r"""Wrapped Gaussian Process.
 Lead author: Arthur Pignet
 
 Extension of Gaussian Processes to Riemannian Manifolds,
-introduced in [Mallasto]_.
+introduced in [MF2018]_.
 
 References
 ----------
-.. [Mallasto] Mallasto, A. and Feragen, A.
+.. [MF2018] Mallasto, A. and Feragen, A.
     “Wrapped gaussian process regression on riemannian manifolds.”
     IEEE/CVF Conference on Computer Vision and Pattern Recognition
     (2018)
@@ -24,7 +24,7 @@ from geomstats.learning._sklearn import RegressorMixin
 class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
     r"""Wrapped Gaussian Process.
 
-    The implementation is based on the algorithm 4 of [1]_.
+    The implementation is based on the algorithm 4 of [MF2018]_.
 
     Parameters
     ----------
@@ -35,7 +35,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
 
     References
     ----------
-    .. [1] Mallasto, A. and Feragen, A. Wrapped gaussian process
+    .. [MF2018] Mallasto, A. and Feragen, A. Wrapped gaussian process
         regression on riemannian manifolds. In 2018 IEEE/CVF
         Conference on Computer Vision and Pattern Recognition
     """
@@ -152,12 +152,12 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         y_std : ndarray of shape (n_samples,) or (n_samples, n_targets), optional
             Standard deviation of predictive distribution at query points in
             the tangent space.
-            Only returned when `return_std` is True.
+            Only returned when ``return_std`` is True.
         y_cov : ndarray of shape (n_samples, n_samples) or \
                 (n_samples, n_samples, n_targets), optional
             Covariance of joint predictive distribution a query points
             in the tangent space.
-            Only returned when `return_cov` is True.
+            Only returned when ``return_cov`` is True.
             In the case where the target is matrix valued,
             return the covariance of the vectorized prediction.
         """

@@ -45,6 +45,18 @@ class RandomDataGenerator:
         return tangent_vec / self.amplitude
 
 
+class RandomDatasetGenerator:
+    def __init__(self, space, image_space=None):
+        self.space = space
+        self.image_space = image_space
+
+    def random_point(self, n_points=1):
+        return self.space.random_point(n_points)
+
+    def random_image_point(self, n_points=1):
+        return self.image_space.random_point(n_points)
+
+
 class VectorSpaceRandomDataGenerator(RandomDataGenerator):
     def point_to_project(self, n_points=1):
         return self.random_point(n_points)

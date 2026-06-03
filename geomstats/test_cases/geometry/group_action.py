@@ -78,7 +78,7 @@ class PermutationGroup:
 class GroupActionTestCase(TestCase):
     """Group action test case.
 
-    Requires: `group_action`, `space`, `group`.
+    Requires: ``group_action``, ``space``, ``group``.
     """
 
     def setup_method(self):

@@ -1523,7 +1523,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         return random_point
 
     def lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the lie bracket of two tangent vectors.
+        r"""Compute the lie bracket of two tangent vectors.
 
         For matrix Lie groups with tangent vectors A,B at the same base point P
         this is given by (translate to identity, compute commutator, go back)

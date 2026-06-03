@@ -8,11 +8,6 @@ from geomstats._mesh import Surface
 from geomstats.test.test_case import TestCase
 from geomstats.test_cases.geometry.mixins import DistTestCaseMixins
 
-if gs.__name__.endswith("pytorch"):
-    from pykeops.torch import Genred
-else:
-    from pykeops.numpy import Genred
-
 
 class VarifoldRandomDataGenerator:
     def __init__(self, point, amplitude=2.0, max_vertices_removal=2):
@@ -61,116 +56,19 @@ class KernelTestCase(TestCase):
 
 
 class VarifoldMetricTestCase(DistTestCaseMixins, TestCase):
-    pass
+    @pytest.mark.random
+    def test_loss_against_self_is_zero(self, n_points, atol):
+        """Check distance is symmetric.
 
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
+        point = self.data_generator.random_point(n_points)
 
-def GaussianKernel_(sigma):
-    expr = Genred(
-        "Exp(-SqDist(x,y)*a)",
-        [
-            "a=Pm(1)",
-            "x=Vi(3)",
-            "y=Vj(3)",
-        ],
-        reduction_op="Sum",
-        axis=1,
-    )
-    a_param = 1 / gs.array([sigma]) ** 2
-
-    def kernel_eval(point_a, point_b):
-        return expr(a_param, point_a, point_b)
-
-    return kernel_eval
-
-
-def CauchyKernel_(sigma):
-    expr = Genred(
-        "IntCst(1)/(IntCst(1)+SqDist(x,y)*a)",
-        [
-            "a=Pm(1)",
-            "x=Vi(3)",
-            "y=Vj(3)",
-        ],
-        reduction_op="Sum",
-        axis=1,
-    )
-    a_param = 1 / gs.array([sigma]) ** 2
-
-    def kernel_eval(point_a, point_b):
-        return expr(a_param, point_a, point_b)
-
-    return kernel_eval
-
-
-def LinearKernel_():
-    expr = Genred(
-        "(u|v)",
-        [
-            "u=Vi(3)",
-            "v=Vj(3)",
-        ],
-        reduction_op="Sum",
-        axis=1,
-    )
-
-    def kernel_eval(point_a, point_b):
-        return expr(point_a, point_b)
-
-    return kernel_eval
-
-
-def BinetKernel_():
-    expr = Genred(
-        "Square((u|v))",
-        [
-            "u=Vi(3)",
-            "v=Vj(3)",
-        ],
-        reduction_op="Sum",
-        axis=1,
-    )
-
-    def kernel_eval(point_a, point_b):
-        return expr(point_a, point_b)
-
-    return kernel_eval
-
-
-def OrientedGaussianKernel_(sigma=1.0):
-    expr = Genred(
-        "Exp(IntCst(2)*b*((u|v)-IntCst(1)))",
-        [
-            "b=Pm(1)",
-            "u=Vi(3)",
-            "v=Vj(3)",
-        ],
-        reduction_op="Sum",
-        axis=1,
-    )
-
-    a_param = 1 / gs.array([sigma]) ** 2
-
-    def kernel_eval(point_a, point_b):
-        return expr(a_param, point_a, point_b)
-
-    return kernel_eval
-
-
-def UnorientedGaussianKernel_(sigma=1.0):
-    expr = Genred(
-        "Exp(IntCst(2)*b*(Square((u|v))-IntCst(1)))",
-        [
-            "b=Pm(1)",
-            "u=Vi(3)",
-            "v=Vj(3)",
-        ],
-        reduction_op="Sum",
-        axis=1,
-    )
-
-    a_param = 1 / gs.array([sigma]) ** 2
-
-    def kernel_eval(point_a, point_b):
-        return expr(a_param, point_a, point_b)
-
-    return kernel_eval
+        loss = self.space.metric.loss(point)
+        loss_at_point = loss(point.vertices)
+        self.assertAllClose(0.0, loss_at_point)

@@ -292,11 +292,11 @@ class _Hypersphere(LevelSet):
         tangent_vec : array-like, shape=[..., 3]
             Tangent vector to the sphere, in spherical coordinates.
         base_point : array-like, shape=[..., 3]
-            Point on the sphere. Unused if `base_point_spherical` is given.
+            Point on the sphere. Unused if ``base_point_spherical`` is given.
             Optional, default : None.
         base_point_spherical : array-like, shape=[..., 2]
             Point on the sphere, in spherical coordinates. Either
-            `base_point` or `base_point_spherical` must be given.
+            ``base_point`` or ``base_point_spherical`` must be given.
             Optional, default : None.
 
         Returns
@@ -481,7 +481,7 @@ class _Hypersphere(LevelSet):
         ----------
         https://en.wikipedia.org/wiki/Von_Mises-Fisher_distribution
 
-        .. [Wood94]   Wood, Andrew T. A. “Simulation of the von Mises Fisher
+        .. [W1994]   Wood, Andrew T. A. “Simulation of the von Mises Fisher
                       Distribution.” Communications in Statistics - Simulation
                       and Computation, June 27, 2007.
                       https://doi.org/10.1080/03610919408813161.
@@ -607,7 +607,7 @@ class _Hypersphere(LevelSet):
 
         References
         ----------
-        .. [Hau18]  Hauberg, Soren. “Directional Statistics with the
+        .. [H2018]  Hauberg, Soren. “Directional Statistics with the
                     Spherical Normal Distribution.”
                     In 2018 21st International Conference on Information
                     Fusion (FUSION), 704–11, 2018.
@@ -832,7 +832,7 @@ class HypersphereMetric(RiemannianMetric):
         r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector
-        along the geodesic between two points `base_point` and `end_point`
+        along the geodesic between two points ``base_point`` and ``end_point``
         or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`.
 
@@ -848,14 +848,14 @@ class HypersphereMetric(RiemannianMetric):
             Optional, default : None.
         end_point : array-like, shape=[..., dim + 1]
             Point on the hypersphere. Point to transport to. Unused if
-            `tangent_vec_b` is given.
+            ``tangent_vec_b`` is given.
             Optional, default : None.
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., dim + 1]
             Transported tangent vector at
-            `end_point=exp_(base_point)(tangent_vec_b)`.
+            ``end_point=exp_(base_point)(tangent_vec_b)``.
         """
         if direction is None:
             if end_point is not None:
@@ -939,18 +939,18 @@ class HypersphereMetric(RiemannianMetric):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         tangent_vec_b : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         tangent_vec_c : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         base_point :  array-like, shape=[..., dim]
             Point on the hypersphere.
 
         Returns
         -------
         curvature : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         """
         if self._space.dim == 1:
             raise NotImplementedError("Curvature is not implemented for the circle.")

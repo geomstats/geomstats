@@ -1,24 +1,22 @@
-"""The KNN classifier on manifolds.
+"""The KNN classifier on manifolds."""
 
-Lead author: Yann Cabanes.
-"""
-
+import sklearn.metrics.pairwise as mp
+import sklearn.neighbors._base as nb
 from sklearn.neighbors import KNeighborsClassifier
 
-import geomstats.backend as gs
+from geomstats.geometry.manifold import Manifold
+
+from ._sklearn import (
+    OutputToBackendMixin,
+    SklearnInteropMixin,
+    check_array_allow_nd,
+    validate_data_skip_check_array,
+)
 
 
-def wrap(function):
-    """Wrap a function to first convert args to arrays."""
-
-    def wrapped_function(*args, **kwargs):
-        new_args = map(gs.from_numpy, args)
-        return function(*new_args, **kwargs)
-
-    return wrapped_function
-
-
-class KNearestNeighborsClassifier(KNeighborsClassifier):
+class KNearestNeighborsClassifier(
+    OutputToBackendMixin, SklearnInteropMixin, KNeighborsClassifier
+):
     """Classifier implementing the k-nearest neighbors vote on manifolds.
 
     Parameters
@@ -62,9 +60,18 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
     References
     ----------
     This algorithm uses the scikit-learn library:
-    https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/
-    neighbors/_classification.py#L25
+    https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/neighbors/_classification.py#L25
     """
+
+    _output_to_backend_methods = (
+        "kneighbors",
+        "predict",
+        "predict_proba",
+    )
+    _patched_methods = {
+        "fit",
+        "kneighbors",
+    }
 
     def __init__(
         self,
@@ -75,11 +82,31 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
     ):
         self.space = space
 
-        distance = wrap(space.metric.dist)
+        self._set_interop(space)
+
         super().__init__(
             n_neighbors=n_neighbors,
             weights=weights,
             algorithm="brute",
-            metric=distance,
+            metric=space.metric.dist,
             n_jobs=n_jobs,
         )
+
+    def _set_interop(self, space):
+        array_repr = isinstance(space, Manifold)
+        self._use_sklearn_patches = not array_repr or space.point_ndim > 1
+
+        if not self._use_sklearn_patches:
+            return
+
+        if array_repr:
+            patches = [
+                (nb, "validate_data", validate_data_skip_check_array),
+                (mp, "check_array", check_array_allow_nd),
+            ]
+        else:
+            patches = [
+                (nb, "validate_data", validate_data_skip_check_array),
+            ]
+
+        self._sklearn_patches = tuple(patches)

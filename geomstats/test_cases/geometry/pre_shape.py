@@ -28,21 +28,21 @@ def integrability_tensor_alt(total_space, tangent_vec_a, tangent_vec_b, base_poi
     total_space : Manifold
         Total space with fiber bundle structure.
     tangent_vec_a : array-like, shape=[..., k_landmarks, ambient_dim]
-        Tangent vector at `base_point`.
+        Tangent vector at ``base_point``.
     tangent_vec_b : array-like, shape=[..., k_landmarks, ambient_dim]
-        Tangent vector at `base_point`.
+        Tangent vector at ``base_point``.
     base_point : array-like, shape=[..., k_landmarks, ambient_dim]
         Point of the total space.
 
     Returns
     -------
     vector : array-like, shape=[..., k_landmarks, ambient_dim]
-        Tangent vector at `base_point`, result of the A tensor applied to
-        `tangent_vec_a` and `tangent_vec_b`.
+        Tangent vector at ``base_point``, result of the A tensor applied to
+        ``tangent_vec_a`` and ``tangent_vec_b``.
 
     References
     ----------
-    .. [ONeill]  O’Neill, Barrett. The Fundamental Equations of a
+    .. [ON1966]  O’Neill, Barrett. The Fundamental Equations of a
         Submersion, Michigan Mathematical Journal 13, no. 4
         (December 1966): 459–69. https://doi.org/10.1307/mmj/1028999604.
     """
@@ -209,7 +209,7 @@ class PreShapeBundleTestCase(FiberBundleTestCase):
 
     @pytest.mark.random
     def test_integrability_tensor_identity_1(self, n_points, atol):
-        """Test integrability tensor identity.
+        r"""Test integrability tensor identity.
 
         The integrability tensor A_X E is skew-symmetric with respect to the
         pre-shape metric, :math:`< A_X E, F> + <E, A_X F> = 0`. By
@@ -233,10 +233,10 @@ class PreShapeBundleTestCase(FiberBundleTestCase):
 
     @pytest.mark.random
     def test_integrability_tensor_identity_2(self, n_points, atol):
-        """Test integrability tensor identity.
+        r"""Test integrability tensor identity.
 
         The integrability tensor is also alternating (:math:`A_X Y =
-        - A_Y X`)  for horizontal vector fields :math:'X,Y',  and it is
+        - A_Y X`)  for horizontal vector fields :math:`X,Y`,  and it is
         exchanging horizontal and vertical vector spaces.
         """
         base_point = self.data_generator.random_point(n_points)
@@ -683,7 +683,7 @@ class PreShapeBundleTestCase(FiberBundleTestCase):
     def test_iterated_integrability_tensor_derivative_parallel_optimized(
         self, n_points, atol
     ):
-        """Test optimized iterated integrability tensor derivatives.
+        r"""Test optimized iterated integrability tensor derivatives.
 
         The optimized version of the iterated integrability tensor
         :math:`A_X A_Y A_X Y`, computed with the horizontal lift of
@@ -823,7 +823,7 @@ class KendallShapeMetricTestCase(QuotientMetricTestCase):
 
     @pytest.mark.random
     def test_curvature_bianchi_identity(self, n_points, atol):
-        """First Bianchi identity on curvature in pre-shape space.
+        r"""First Bianchi identity on curvature in pre-shape space.
 
         :math:`R(X,Y)Z + R(Y,Z)X + R(Z,X)Y = 0`.
         """

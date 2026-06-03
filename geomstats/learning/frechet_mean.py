@@ -7,7 +7,6 @@ import abc
 import logging
 import math
 
-import numpy as np
 from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
@@ -17,7 +16,7 @@ from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.hypersphere import HypersphereMetric
 from geomstats.geometry.stratified.bhv_space import BHVMetric
 
-ELASTIC_METRICS = [SRVMetric, ElasticMetric]
+ELASTIC_METRICS = (SRVMetric, ElasticMetric)
 
 
 def _is_linear_metric(metric):
@@ -779,96 +778,50 @@ class SturmsMean(BaseEstimator):
         return self
 
 
-class FrechetMean(BaseEstimator):
-    r"""Empirical Frechet mean.
+class _BaseMeanEstimator(BaseEstimator, abc.ABC):
+    """Base class for mean estimators on manifolds.
+
+    This class implements the common estimator interface shared by
+    manifold-valued mean estimators. Subclasses are responsible for
+    defining the optimization procedure through `_make_optimizer`.
 
     Parameters
     ----------
     space : Manifold
-        Equipped manifold.
-    method : str, {\'default\', \'adaptive\', \'batch\', \'sturms\'}
-        Gradient descent method.
-        The `adaptive` method uses a Levenberg-Marquardt style adaptation of
-        the learning rate. The `batch` method is similar to the default
-        method but for batches of equal length of samples. In this case,
-        samples must be of shape [n_samples, n_batch, *space.shape].
-        Optional, default: \'default\'.
-    algorithm : str, {\'gradient_descent\',  \'sturms\'}
-        Gradient descent is the default algorithm. Sturm's algorithm is an
-        iterative approach to calculating the mean of points in a geodesic
-        metric space, without the use of log or exp.
-        Optional, default: \'gradient_descent\'.
+        Equipped manifold on which the data lie.
+    optimizer_kwargs : dict or None
+        Keyword arguments passed to the optimizer constructor.
+        Optional, default: None.
 
     Attributes
     ----------
     estimate_ : array-like, shape=[*space.shape]
-        If fit, Frechet mean.
+        Estimated mean after calling `fit`.
+    optimizer_ : object
+        Optimizer instance used during fitting.
 
     Notes
     -----
-    * Required metric methods for general case:
-        * `log`, `exp`, `squared_norm` (for convergence criteria)
-    * Required metric methods for Sturm's algorithm:
-        * `geodesic`
+    Subclasses must implement `_make_optimizer`.
     """
 
-    def __new__(cls, space, algorithm="gradient_descent", **kwargs):
-        """Interface for instantiating proper algorithm."""
-        if algorithm == "sturms" or _is_bhv_metric(space.metric):
-            return SturmsMean(space, **kwargs)
-
-        if isinstance(space.metric, HypersphereMetric) and space.dim == 1:
-            return CircleMean(space, **kwargs)
-
-        elif _is_linear_metric(space.metric):
-            return LinearMean(space, **kwargs)
-
-        elif _is_elastic_metric(space.metric):
-            return ElasticMean(space, **kwargs)
-
-        return super().__new__(cls)
-
-    def __init__(self, space, method="default"):
+    def __init__(self, space, method="default", optimizer_kwargs=None):
         self.space = space
-
-        self._method = None
         self.method = method
+        self.optimizer_kwargs = optimizer_kwargs or {}
 
         self.estimate_ = None
+        self.optimizer_ = None
 
-    def set(self, **kwargs):
-        """Set optimizer parameters.
+    @abc.abstractmethod
+    def _make_optimizer(self):
+        """Create optimizer instance.
 
-        Especially useful for one line instantiations.
+        Returns
+        -------
+        optimizer : object
+            Optimizer implementing a `minimize` method.
         """
-        for param_name, value in kwargs.items():
-            if not hasattr(self.optimizer, param_name):
-                raise ValueError(f"Unknown parameter {param_name}.")
-
-            setattr(self.optimizer, param_name, value)
-        return self
-
-    @property
-    def method(self):
-        """Gradient descent method."""
-        return self._method
-
-    @method.setter
-    def method(self, value):
-        """Gradient descent method."""
-        error.check_parameter_accepted_values(
-            value, "method", ["default", "adaptive", "batch"]
-        )
-        if value == self._method:
-            return
-
-        self._method = value
-        MAP_OPTIMIZER = {
-            "default": GradientDescent,
-            "adaptive": AdaptiveGradientDescent,
-            "batch": BatchGradientDescent,
-        }
-        self.optimizer = MAP_OPTIMIZER[value]()
 
     def fit(self, X, y=None, weights=None):
         """Compute the empirical weighted Frechet mean.
@@ -888,9 +841,76 @@ class FrechetMean(BaseEstimator):
         self : object
             Returns self.
         """
-        self.estimate_ = self.optimizer.minimize(
+        self.optimizer_ = self._make_optimizer()
+
+        self.estimate_ = self.optimizer_.minimize(
             space=self.space,
             points=X,
             weights=weights,
         )
         return self
+
+
+class GeneralFrechetMean(_BaseMeanEstimator):
+    r"""Empirical Frechet mean.
+
+    Parameters
+    ----------
+    space : Manifold
+        Equipped manifold.
+    method : str, {\'default\', \'adaptive\', \'batch\'}
+        Gradient descent method.
+        The `adaptive` method uses a Levenberg-Marquardt style adaptation of
+        the learning rate. The `batch` method is similar to the default
+        method but for batches of equal length of samples. In this case,
+        samples must be of shape [n_samples, n_batch, *space.shape].
+        Optional, default: \'default\'.
+
+    Attributes
+    ----------
+    estimate_ : array-like, shape=[*space.shape]
+        Estimated mean after calling `fit`.
+    optimizer_ : object
+        Optimizer instance used during fitting.
+
+    Notes
+    -----
+    * Required metric methods for general case:
+        * `log`, `exp`, `squared_norm` (for convergence criteria)
+    """
+
+    def _make_optimizer(self):
+        """Gradient descent method."""
+        error.check_parameter_accepted_values(
+            self.method, "method", ["default", "adaptive", "batch"]
+        )
+
+        MAP_OPTIMIZER = {
+            "default": GradientDescent,
+            "adaptive": AdaptiveGradientDescent,
+            "batch": BatchGradientDescent,
+        }
+        return MAP_OPTIMIZER[self.method](**self.optimizer_kwargs)
+
+
+def FrechetMean(space, **kwargs):
+    r"""Empirical Frechet mean.
+
+    Interface for instantiating proper algorithm.
+    """
+    if isinstance(space.metric, HypersphereMetric) and space.dim == 1:
+        Estimator = CircleMean
+
+    elif _is_linear_metric(space.metric):
+        Estimator = LinearMean
+
+    elif _is_elastic_metric(space.metric):
+        Estimator = ElasticMean
+
+    elif _is_bhv_metric(space.metric):
+        Estimator = SturmsMean
+
+    else:
+        Estimator = GeneralFrechetMean
+
+    return Estimator(space, **kwargs)

@@ -153,7 +153,7 @@ def repeat_out_multiple_ndim(
 ):
     """Repeat out after finding batch shape.
 
-    Differs from `repeat_out` by accepting two sets of point_ndim arrays.
+    Differs from ``repeat_out`` by accepting two sets of point_ndim arrays.
 
     Parameters
     ----------

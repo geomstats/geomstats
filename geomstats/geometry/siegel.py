@@ -185,12 +185,12 @@ class SiegelMetric(ComplexRiemannianMetric):
     """Class for the Siegel metric."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the Siegel inner-product.
+        r"""Compute the Siegel inner-product.
 
         Compute the inner-product of tangent_vec_a and tangent_vec_b
         at point base_point using the Siegel Riemannian metric.
-        The expression of the inner product between the vectors `v` and `w`
-        at point `O` is :math:`<v, w>_{O}
+        The expression of the inner product between the vectors ``v`` and ``w``
+        at point ``O`` is :math:`<v, w>_{O}
         = 1/2 * trace((I - O O^{H})^{-1} v (I - O^{H} O)^{-1} w^{H})
         + 1/2 * trace((I - O O^{H})^{-1} w (I - O^{H} O)^{-1} v^{H})
         = Re(trace((I - O O^{H})^{-1} v (I - O^{H} O)^{-1} w^{H}))`
@@ -550,7 +550,7 @@ class SiegelMetric(ComplexRiemannianMetric):
     def sectional_curvature(
         self, tangent_vec_a, tangent_vec_b, base_point=None, atol=gs.atol
     ):
-        """Compute the sectional curvature.
+        r"""Compute the sectional curvature.
 
         For two orthonormal tangent vectors at a base point :math:`x,y`,
         the sectional curvature is defined by :math:`<R(x, y)x,

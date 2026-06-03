@@ -198,9 +198,9 @@ class RiemannianMetric(Connection, ABC):
         Parameters
         ----------
         cotangent_vec_a : array-like, shape=[..., dim]
-            Cotangent vector at `base_point`.
+            Cotangent vector at ``base_point``.
         cotangent_vet_b : array-like, shape=[..., dim]
-            Cotangent vector at `base_point`.
+            Cotangent vector at ``base_point``.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
 
@@ -585,16 +585,16 @@ class RiemannianMetric(Connection, ABC):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         tangent_vec_b : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
+            Tangent vector at ``base_point``.
         base_point : array-like, shape=[..., dim]
             Point in the manifold.
 
         Returns
         -------
         sectional_curvature : array-like, shape=[...,]
-            Sectional curvature at `base_point`.
+            Sectional curvature at ``base_point``.
         """
         curvature = self.curvature(
             tangent_vec_a, tangent_vec_b, tangent_vec_b, base_point
@@ -627,3 +627,22 @@ class RiemannianMetric(Connection, ABC):
         ricci_tensor = self.ricci_tensor(base_point)
         cometric_matrix = self.cometric_matrix(base_point)
         return gs.einsum("...ij, ...ij -> ...", cometric_matrix, ricci_tensor)
+
+    def injectivity_radius(self, base_point=None):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., {dim, [n, m]}]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        raise NotImplementedError("The injectivity range is not implemented yet.")

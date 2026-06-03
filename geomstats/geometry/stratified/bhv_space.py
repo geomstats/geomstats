@@ -18,6 +18,7 @@ References
 
 import itertools as it
 
+import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
@@ -37,39 +38,18 @@ from geomstats.geometry.stratified.trees import (
 from geomstats.geometry.stratified.vectorization import broadcast_lists, vectorize_point
 
 
-def generate_random_tree(n_labels, p_keep=0.9, btol=1e-8):
-    """Generate a random instance of ``Tree``.
-
-    Parameters
-    ----------
-    p_keep : float between 0 and 1
-        The probability that a sampled edge is kept and not deleted randomly.
-        To be precise, it is not exactly the probability, as some edges cannot be
-        deleted since the requirement that two labels are separated by a split might
-        be violated otherwise.
-        Defaults to 0.9
-    btol: float
-        Tolerance for the boundary of the edge lengths. Defaults to 1e-08.
-    """
-    labels = list(range(n_labels))
-
-    initial_splits = generate_splits(labels)
-    splits = delete_splits(initial_splits, labels, p_keep, check=False)
-
-    x = gs.random.uniform(size=(len(splits),), low=0, high=1)
-    x = gs.minimum(gs.maximum(btol, x), 1 - btol)
-    lengths = gs.maximum(btol, gs.abs(gs.log(1 - x)))
-
-    return Tree(splits, lengths)
-
-
 class TreeTopology(ForestTopology):
-    r"""The topology of a tree, using a split-based representation.
+    r"""The topology of a tree with only interior edges, using a split-based representation.
 
     Parameters
     ----------
     splits : list[Split]
         The structure of the tree in form of a set of splits of the set of labels.
+        Pendant edges (i.e., singleton splits) are not permitted.
+    n_labels : int, optional
+        Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
+        Needed to instantiate star tree at origin, as labels cannot be inferred
+        from empty split set.
 
     Attributes
     ----------
@@ -94,11 +74,51 @@ class TreeTopology(ForestTopology):
         ``False``.
     """
 
-    def __init__(self, splits):
+    def __init__(self, splits, n_labels=None):
+        if not splits:
+            if n_labels is None:
+                raise ValueError(
+                    "Cannot make tree with no interior splits and ``n_labels`` as None."
+                )
+
+            partition = (set(range(n_labels)),)
+
+        else:
+            self._check_no_pendant_edges(splits)
+            partition = (tuple(splits[0].part1.union(splits[0].part2)),)
+            n_labels_ = len(partition[0])
+
+            if n_labels is not None and (n_labels_ != n_labels):
+                raise ValueError(
+                    f"Splits ({len(partition)}) disagrees with n_labels ({n_labels})."
+                )
+
+            n_labels = n_labels_
+
+        if n_labels < 4:
+            raise ValueError(
+                f"BHV space only defined for N >= 4. You tried {n_labels}."
+            )
+
         super().__init__(
-            partition=(tuple(splits[0].part1.union(splits[0].part2)),),
+            partition=partition,
             split_sets=(splits,),
         )
+
+    @staticmethod
+    def _check_no_pendant_edges(splits):
+        """Verify that there are no pendant edges (i.e., singleton splits).
+
+        Parameters
+        ----------
+        splits : list[Split]
+            The structure of the tree in form of a set of splits of the set of labels.
+        """
+        for split in splits:
+            if len(split.part1) == 1 or len(split.part2) == 1:
+                raise ValueError(
+                    f"Pendant edges / singleton splits like {split} are not allowed."
+                )
 
     @property
     def splits(self):
@@ -124,12 +144,32 @@ class TreeTopology(ForestTopology):
 
 
 class Tree(Point):
-    r"""A class for trees, that are phylogenetic trees, elements of the BHV space.
+    r"""A class for unrooted phylogenetic trees, which are elements of the BHV space.
 
-    A tree is essentially a phylogenetic tree with edges having length greater
-    than zero.
-    The representation of the tree is via splits, the edge lengths are stored in
-    a vector.
+    Following Semple and Steel 2003 and Lueg, 2023, an unrooted phylogenetic tree an
+    unrooted phylogenetic tree is a tuple of edge splits and edge lengths; T=(E,l)
+    where E ⊂ e\_compatible$ and l∈(0,∞)^{|E|}$. Such a tree has N labels,
+    L_0={0, 1,...,N-1}. Those N labels yield a set of possible edges, e = {A|B : L_0=A⋃B,
+    |A|,|B|≥ 2}$. Note that this definition excludes pendant edges (those touching a
+    leaf), yielding |e| = 2^{N-1} - N - 3 possible interior edges of which a maximum
+    of N-3 are compatible at once. BHV space is defined for N≥4, as any less will not
+    yield any interior edges and thus be boringly Euclidean.
+
+    People working with phylogenetic trees might have additional requirements, and the
+    way the code is now set up allows these to be added on top of the existing class
+    structure, rather than needing to set up weird internal modifications. The possible
+    additional constraints concern pendant edges and roots.
+        - Pendant edges: No pendant edges is now the default, because often it is the
+        distance between splits that matters in phylogenetic trees, not the distance
+        between the split and the leaf, because the leaf is at an arbitrary time, the
+        present. Too add lengths to the pendant edges we will create a space that is the
+        Cartesian product of BHV space and Euclidean space of dimension N. Geodesics in
+        this new space are just geodesics in pendant-less BHV space, with extra straight
+        line segments in (0,∞)^N added on.
+        - Roots: Unrooted is the default. There is a bijection between unrooted
+        phylogenetic trees with N labels and rooted ones with N−1 labels (just add a leaf,
+        label it 0, and call it a day). We can add more explicit support for this during
+        class construction in a subsequent PR.
 
     Parameters
     ----------
@@ -137,6 +177,10 @@ class Tree(Point):
         The structure of the tree in form of a set of splits of the set of labels.
     lengths : array-like, shape=[n_splits]
         The edge lengths of the splits, a vector containing positive numbers.
+    n_labels : int, optional
+        Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
+        Needed to instantiate star tree at origin, as labels cannot be inferred from empty split set.
+
 
     Attributes
     ----------
@@ -146,8 +190,10 @@ class Tree(Point):
         The edge lengths of the splits, a vector containing positive numbers.
     """
 
-    def __init__(self, splits, lengths):
-        self.topology = TreeTopology(splits=splits)
+    def __init__(self, splits, lengths, n_labels=None):
+        self._check_valid_lengths(lengths, len(splits))
+
+        self.topology = TreeTopology(splits=splits, n_labels=n_labels)
         self.lengths = gs.array(
             [
                 length
@@ -201,6 +247,223 @@ class Tree(Point):
             return False
 
         return gs.all(gs.abs(self.lengths - point.lengths) < atol)
+
+    def _orient_splits_away_from_root(self, ref_id):
+        r"""Orient each split by keeping the side away from a reference leaf.
+
+        The topology stores splits as unordered bipartitions of the leaf index set.
+        To obtain a rooted cluster representation, this method chooses
+        ``ref_id`` as a reference leaf and, for every split ``A | B``, keeps the
+        part that does not contain ``ref_id``. The resulting subsets are the
+        clusters separated from the root by the corresponding internal edges.
+
+        Parameters
+        ----------
+        ref_id : int
+            Index of the reference leaf used to orient the splits. Must satisfy
+            ``0 <= ref_id < self.topology.n_labels``.
+
+        Returns
+        -------
+        oriented_splits : list[tuple]
+            List of rooted clusters, one per split in ``self.topology.splits``.
+        """
+        oriented_splits = []
+        for bipartition in self.topology.splits:
+            part1, part2 = bipartition.part1, bipartition.part2
+            oriented_split = part1 if ref_id in part2 else part2
+            oriented_splits.append(oriented_split)
+
+        return oriented_splits
+
+    def _smallest_containing(self, target, splits, default):
+        r"""Return the smallest split node that contains the target.
+
+        Helper function to convert split representation to networkx.
+
+        Parameters
+        ----------
+        target : int or tuple
+            If int, finds the smallest split containing that leaf index.
+            If tuple, finds the smallest split strictly containing that split.
+        splits : list of tuple
+            The list of split nodes to search over.
+        default : tuple
+            Node returned if no split contains the target.
+
+        Returns
+        -------
+        best : tuple
+            The smallest split in ``splits`` containing ``target``,
+            or ``default`` if none found.
+        """
+        best, best_size = (
+            default,
+            len(default) if not isinstance(default, str) else float("inf"),
+        )
+        for node in splits:
+            if isinstance(target, (list, tuple, set)):
+                contained = set(target) < set(node)
+            else:
+                contained = target in node
+
+            if contained and len(node) < best_size:
+                best, best_size = node, len(node)
+
+        return best
+
+    def _to_networkx(self, root_id=None, pendant_edges=None, leaf_labels=None):
+        r"""Convert a split-encoded tree to a rooted NetworkX directed graph.
+
+        The tree topology is represented by its non-trivial splits. Since the
+        original split representation is unrooted, this method first chooses a
+        reference leaf, ``root_id``, and orients every split away from that leaf.
+        Equivalently, for each bipartition ``A | B``, it keeps the side that does
+        not contain ``root_id``.
+
+        The NetworkX graph is then built from this rooted cluster representation:
+
+        1. A top internal node is created for the cluster containing all leaves
+        except the root leaf.
+        2. The root leaf is connected to this top cluster by its pendant edge.
+        3. For every non-root leaf, the method finds the smallest cluster
+        containing that leaf and connects the cluster to the leaf by the
+        corresponding pendant edge.
+        4. For every internal split/cluster, the method finds the smallest strict
+        cluster containing it and connects the parent cluster to the child
+        cluster by the corresponding internal edge length.
+
+        Thus, directed edges are oriented from the chosen root leaf toward the
+        rest of the tree, and then from larger clusters to smaller clusters/leaves.
+        The resulting graph is intended primarily for visualization.
+
+        Parameters
+        ----------
+        root_id : int
+            Index of the leaf used to orient the otherwise unrooted split
+            representation. Must satisfy ``0 <= root_id < self.topology.n_labels``.
+            If None, the last leaf is used.
+        pendant_edges : array-like, shape=[self.topology.n_labels]
+            The pendant-edge lengths, a vector containing positive numbers.
+            If None, all pendant-edge lengths are set to one.
+        leaf_labels : array-like, shape=[self.topology.n_labels]
+            The labels for the leaves, by index. Default is index.
+
+        Returns
+        -------
+        G : nx.DiGraph
+            Return networkx (nodes and edges) representation of the tree.
+        """
+
+        def _indices_to_node_str(indices, labels):
+            return "".join(str(labels[index]) for index in sorted(indices))
+
+        if pendant_edges is None:
+            pendant_edges = gs.ones(self.topology.n_labels)
+
+        if root_id is None:
+            root_id = 0
+
+        if leaf_labels is None:
+            leaf_labels = range(self.topology.n_labels)
+        leaf_labels = tuple(leaf_labels)
+
+        maximal_cluster = tuple(
+            i for i in range(self.topology.n_labels) if i != root_id
+        )
+        maximal_labels_str = _indices_to_node_str(maximal_cluster, leaf_labels)
+
+        oriented_splits = self._orient_splits_away_from_root(root_id)
+
+        nx_graph = nx.DiGraph()
+        nx_graph.add_nodes_from(leaf_labels)
+        nx_graph.add_node(maximal_labels_str)
+
+        nx_graph.add_edge(
+            leaf_labels[root_id],
+            maximal_labels_str,
+            length=pendant_edges[root_id],
+            weight=len(leaf_labels),
+        )
+
+        for index, pendant_edge in enumerate(pendant_edges):
+            if index == root_id:
+                continue
+
+            smallest = self._smallest_containing(
+                index, oriented_splits, maximal_cluster
+            )
+            nx_graph.add_edge(
+                _indices_to_node_str(smallest, leaf_labels),
+                leaf_labels[index],
+                length=pendant_edge,
+                weight=1,
+            )
+
+        for split, split_length in zip(oriented_splits, self.lengths):
+            smallest = self._smallest_containing(
+                split, oriented_splits, maximal_cluster
+            )
+            nx_graph.add_edge(
+                _indices_to_node_str(smallest, leaf_labels),
+                _indices_to_node_str(split, leaf_labels),
+                length=split_length,
+                weight=len(split),
+            )
+
+        return nx_graph
+
+    def plot(self, root_id=None, pendant_edges=None, leaf_labels=None, ax=None):
+        r"""Plot the networkx representation of the tree.
+
+        Parameters
+        ----------
+        root_id : int\in[0,self.topology.n_labels), optional
+            This helps give orientation to networkx graph for visualisation. If None,
+            this function assumes, rather arbitrarily, that the last label is the root.
+        pendant_edges : array-like, shape=[self.topology.n_labels], optional
+            The pendant edge lengths, a vector containing positive numbers.
+        leaf_labels : array-like, shape=[self.topology.n_labels], optional
+            The labels for the leaves, by index. Default is index.
+        ax : plt axis, optional
+        """
+        if ax is None:
+            ax = plt.gca()
+
+        nx_tree = self._to_networkx(
+            root_id=root_id, pendant_edges=pendant_edges, leaf_labels=leaf_labels
+        )
+        pos = nx.nx_agraph.graphviz_layout(nx_tree, prog="dot", root=root_id)
+        nx.draw(
+            nx_tree,
+            pos,
+            ax=ax,
+            with_labels=True,
+            node_size=100,
+            node_color="skyblue",
+            font_size=10,
+            edge_color="gray",
+        )
+        return ax
+
+    @staticmethod
+    def _check_valid_lengths(lengths, n_splits):
+        """Verify edge lengths are in (0, infinity).
+
+        Parameters
+        ----------
+        lengths : array-like, shape=[n_splits]
+            The edge lengths of the splits, a vector containing positive numbers.
+        len_splits : int
+            Number of splits.
+        """
+        if len(lengths) != n_splits:
+            raise ValueError(
+                f"Splits and lengths different size. {len(lengths)} != {n_splits}"
+            )
+
+        if gs.any(gs.array(lengths) <= 0):
+            raise ValueError("Lengths must be positive.")
 
     @vectorize_point((1, "point"))
     def equal(self, point, atol=gs.atol):
@@ -257,6 +520,10 @@ class TreeSpace(PointSet):
     """
 
     def __init__(self, n_labels, equip=True):
+        if n_labels < 4:
+            raise ValueError(
+                f"BHV space only defined for N >= 4. You tried {n_labels}."
+            )
         self.n_labels = n_labels
         super().__init__(equip)
 
@@ -281,7 +548,7 @@ class TreeSpace(PointSet):
         belongs : bool
             Boolean denoting if point belongs to Tree space.
         """
-        if point.topology.n_labels != self.n_labels:
+        if not isinstance(point, Tree) or (point.topology.n_labels != self.n_labels):
             return False
         return gs.all(point.lengths > -atol)
 
@@ -304,6 +571,31 @@ class TreeSpace(PointSet):
         """
         return gs.array([self._belongs_single(point_, atol) for point_ in point])
 
+    def _generate_random_tree(self, p_keep=0.9, btol=1e-8):
+        r"""Generate a random instance of ``Tree``.
+
+        Parameters
+        ----------
+        p_keep : float between 0 and 1
+            The probability that a sampled edge is kept and not deleted randomly.
+            To be precise, it is not exactly the probability, as some edges cannot be
+            deleted since the requirement that two labels are separated by a split might
+            be violated otherwise.
+            Defaults to 0.9
+        btol: float
+            Tolerance for the boundary of the edge lengths. Defaults to 1e-08.
+        """
+        labels = list(range(self.n_labels))
+
+        initial_splits = generate_splits(labels, exclude_singletons=True)
+        splits = delete_splits(initial_splits, labels, p_keep, check=False)
+
+        x = gs.random.uniform(size=(len(splits),), low=0, high=1)
+        x = gs.minimum(gs.maximum(btol, x), 1 - btol)
+        lengths = gs.maximum(btol, gs.abs(gs.log(1 - x)))
+
+        return Tree(splits, lengths, n_labels=self.n_labels)
+
     def random_point(self, n_samples=1, p_keep=0.9, btol=1e-8):
         """Sample a random point in Tree space.
 
@@ -311,6 +603,8 @@ class TreeSpace(PointSet):
         ----------
         n_samples : int
             Number of samples. Defaults to 1.
+        exclude_pendant_edges : bool
+            Phylogenetic trees do not usually have lengths on pendant (external) edges (ie, those touching a leaf).
         p_keep : float between 0 and 1
             The probability that a sampled edge is kept and not deleted randomly.
             To be precise, it is not exactly the probability, as some edges cannot be
@@ -326,7 +620,11 @@ class TreeSpace(PointSet):
             Points sampled in Tree space.
         """
         trees = [
-            generate_random_tree(self.n_labels, p_keep, btol) for _ in range(n_samples)
+            self._generate_random_tree(
+                p_keep=p_keep,
+                btol=btol,
+            )
+            for _ in range(n_samples)
         ]
 
         if n_samples == 1:
@@ -444,14 +742,9 @@ class GTPSolver:
         squared_dist : array-like, shape=[...]
             The squared distance between the two points.
         """
-        sp_a = {
-            split: length
-            for split, length in zip(point_a.topology.splits, point_a.lengths)
-        }
-        sp_b = {
-            split: length
-            for split, length in zip(point_b.topology.splits, point_b.lengths)
-        }
+        sp_a = dict(zip(point_a.topology.splits, point_a.lengths))
+        sp_b = dict(zip(point_b.topology.splits, point_b.lengths))
+
         common_a, common_b, supports = self._trees_with_common_support(
             sp_a,
             sp_b,
@@ -486,17 +779,12 @@ class GTPSolver:
             The squared distance between the two points.
         """
         point_a, point_b = broadcast_lists(point_a, point_b)
-        sq_dists = gs.array(
+        return gs.array(
             [
                 self._squared_dist_single(point_a_, point_b_)
                 for point_a_, point_b_ in zip(point_a, point_b)
             ]
         )
-
-        if len(sq_dists) == 1:
-            return sq_dists[0]
-
-        return sq_dists
 
     def dist(self, point_a, point_b):
         """Compute the distance between two points.
@@ -546,13 +834,17 @@ class GTPSolver:
         }
 
         def geodesic_t(t):
+            if (t < 0) or (t > 1):
+                raise ValueError(f"Geodesics only exist for 0<=t<=1. You tried {t}.")
+
             if t == 0.0:
                 return initial_point
-            elif t == 1.0:
+            if t == 1.0:
                 return end_point
 
             t_ratio = t / (1 - t)
             splits_t = {s: (1 - t) * common_a[s] + t * common_b[s] for s in common_a}
+
             for part, (supp_a, supp_b) in supports.items():
                 index = gs.argmax([t_ratio <= _r for _r in ratios[part] + [np.inf]])
                 splits_t_a = {
@@ -572,11 +864,13 @@ class GTPSolver:
                 for split, length in splits_t.items()
                 if length > self.tol
             ]
-            tree_t = Tree(
+
+            if len(splits_lengths) == 0:
+                return Tree((), [], n_labels=self.n_labels)
+            return Tree(
                 splits=[sl[0] for sl in splits_lengths],
                 lengths=[sl[1] for sl in splits_lengths],
             )
-            return tree_t
 
         def geodesic_(t):
             if isinstance(t, (float, int)):
@@ -761,7 +1055,7 @@ class GTPSolver:
         weights_a = {split: splits_a[split] ** 2 for split in splits_a}
         weights_b = {split: splits_b[split] ** 2 for split in splits_b}
         while 1:
-            new_support_a, new_support_b = tuple(), tuple()
+            new_support_a, new_support_b = (), ()
             for pair_a, pair_b in zip(old_support_a, old_support_b):
                 pair_a_w = {s: weights_a[s] for s in pair_a}
                 pair_b_w = {s: weights_b[s] for s in pair_b}
@@ -776,8 +1070,7 @@ class GTPSolver:
                     new_support_b += (d1, d2)
             if len(new_support_a) == len(old_support_a):
                 return new_support_a, new_support_b
-            else:
-                old_support_a, old_support_b = new_support_a, new_support_b
+            old_support_a, old_support_b = new_support_a, new_support_b
 
     @staticmethod
     def _solve_extension_problem(sq_splits_a, sq_splits_b):

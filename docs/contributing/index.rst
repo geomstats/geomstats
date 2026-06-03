@@ -274,82 +274,211 @@ notebooks
 Testing
 ========
 
-Test Driven Development
--------------------------
-
 High-quality `unit testing <https://en.wikipedia.org/wiki/Unit_testing>`_
-is a corner-stone of the geomstats development process.
-The tests consist of classes appropriately named, located in the `tests`
-subdirectory, that check the validity of the algorithms and the
-different options of the code.
+is a corner-stone of the geomstats development process. We require **90% test
+coverage** for new code, which is automatically verified when you submit a PR.
+
+.. note::
+   **New to testing in geomstats?** Start with the :ref:`testing-guide` for a
+   beginner-friendly introduction. It covers everything you need to write your
+   first tests without understanding the full testing infrastructure.
 
 
-TDD with pytest
------------------
+Testing Documentation
+---------------------
 
-Geomstats uses the `pytest` Python tool for testing different functions and features.
-Install the test requirements using:
+We have comprehensive testing documentation to help you:
 
-    .. code-block:: bash 
+- **:ref:`testing-guide`** - *Start here!* Beginner-friendly guide for writing
+  tests. Learn how to write simple, direct tests for bug fixes and new features.
+
+- **:ref:`testing-architecture`** - Detailed explanation of geomstats' three-layer
+  testing architecture. Read this when you need to understand how comprehensive
+  testing works, or when adding a new geometric space.
+
+- **:ref:`testing-reference`** - Quick reference and cheat sheet. Useful for
+  looking up syntax, patterns, and common commands.
+
+
+Quick Start: Running Tests
+---------------------------
+
+Install test requirements:
+
+    .. code-block:: bash
 
       $ pip install -e .[test]
 
-By convention all test functions should be located in files with file names
-that start with `test_`. For example a unit test that exercises the Python
-addition functionality can be written as follows:
+Run all tests:
 
-    .. code-block:: bash 
+    .. code-block:: bash
 
-      # test_add.py
+      $ pytest tests
 
-      def add(x, y):
-         return x + y
+Run tests for a specific file:
 
-      def test_capital_case():
-         assert add(4, 5) == 9
+    .. code-block:: bash
 
-Use an `assert` statement to check that the function under test returns
-the correct output. Then run the test using:
+      $ pytest tests/tests_geomstats/test_geometry/test_special_orthogonal.py
 
-    .. code-block:: bash 
+Run only fast smoke tests:
 
-      $ pytest test_add.py
+    .. code-block:: bash
+
+      $ pytest -m smoke
+
+Check test coverage:
+
+    .. code-block:: bash
+
+      $ pytest --cov=geomstats tests/
 
 
-.. _run-tests-geomstats
+Quick Start: Writing a Simple Test
+-----------------------------------
 
-Writing tests for geomstats
-----------------------------
+For bug fixes or simple features, you can write tests directly:
 
-For each function `my_fun` that you implement in a given `my_module.py`, 
-you should add the corresponding test
-function `test_my_fun` in the file `test_my_module.py`. 
+    .. code-block:: python
 
-We expect code coverage of new features to be at least 90%, which is 
-automatically verified by the `codecov` software when you submit a PR. 
-You should also add `test_my_fun_vect` tests to ensure that your code 
-is vectorized.
+      # tests/tests_geomstats/test_geometry/test_my_space.py
 
-Running tests
+      import pytest
+      import geomstats.backend as gs
+      from geomstats.geometry.my_space import MySpace
+
+      def test_my_bugfix():
+          """Test that issue #123 is fixed."""
+          space = MySpace(dim=3)
+          point = gs.array([1.0, 2.0, 3.0])
+
+          result = space.my_function(point)
+          expected = gs.array([2.0, 4.0, 6.0])
+
+          gs.testing.assert_allclose(result, expected)
+
+Then run your test:
+
+    .. code-block:: bash
+
+      $ pytest tests/tests_geomstats/test_geometry/test_my_space.py::test_my_bugfix
+
+**See :ref:`testing-guide` for more examples and patterns.**
+
+
+Test Driven Development
+-------------------------
+
+Geomstats follows Test Driven Development (TDD) principles:
+
+1. Write tests before or alongside your code
+2. Ensure tests fail initially (red)
+3. Implement the feature/fix (green)
+4. Refactor while keeping tests passing
+5. Maintain 90% coverage minimum
+
+The tests are located in the `tests` subdirectory and check the validity of
+algorithms and different options of the code.
+
+
+Testing Requirements for Pull Requests
+---------------------------------------
+
+Before submitting a PR, ensure:
+
+#. **All tests pass** - Run ``pytest tests/`` locally
+#. **Coverage is ≥90%** - Check with ``pytest --cov=geomstats tests/``
+#. **Tests pass on all backends** - NumPy, PyTorch, Autograd (if applicable)
+#. **Tests are well-named** - Use descriptive names like ``test_belongs_returns_true_for_valid_point``
+#. **Tests have docstrings** - Explain what property or behavior you're testing
+#. **Vectorization is tested** - For numerical operations, test batch processing
+
+See :ref:`testing-guide` for detailed requirements and examples.
+
+
+When to Use Which Testing Approach
+-----------------------------------
+
+**Use simple, direct tests for:**
+
+- Bug fixes (add a regression test)
+- Edge cases and corner cases
+- Quick validation of specific behaviors
+- Learning and experimentation
+
+**Use the three-layer architecture for:**
+
+- Adding a new geometric space with standard operations
+- Comprehensive testing across multiple spaces
+- Tests requiring vectorization validation
+- Contributing core geometry functionality
+
+**Not sure?** Start simple! You can always refactor to the advanced architecture
+later if needed. See :ref:`testing-guide` for guidance on choosing the right approach.
+
+
+Running Tests
 --------------
 
-First, run the tests related to your changes. For example, if you changed
-something in `geomstats/spd_matrices_space.py`, you can run tests by file name:
+Test a specific function:
 
-    .. code-block:: bash 
+    .. code-block:: bash
 
-      $ pytest tests/tests_geomstats/test_spd_matrices.py
+      $ pytest tests/tests_geomstats/test_geometry/test_my_space.py::test_my_function
 
-Then run the tests of the whole codebase to check that your feature is
-not breaking anything:
+Test an entire module:
 
-    .. code-block:: bash 
+    .. code-block:: bash
 
-      $ pytest tests/test_geomstats/
+      $ pytest tests/tests_geomstats/test_geometry/test_my_space.py
 
-This way, further modifications on the code base are guaranteed
-to be consistent with the desired behavior. Merging your PR 
-should not break any test.
+Test with a specific backend:
+
+    .. code-block:: bash
+
+      $ GEOMSTATS_BACKEND=pytorch pytest tests/
+
+Run tests with verbose output:
+
+    .. code-block:: bash
+
+      $ pytest -v tests/
+
+Run tests and show print statements:
+
+    .. code-block:: bash
+
+      $ pytest -s tests/tests_geomstats/test_geometry/test_my_space.py
+
+For more commands and options, see :ref:`testing-reference`.
+
+
+Understanding the Testing Infrastructure
+-----------------------------------------
+
+Geomstats has a sophisticated testing infrastructure that may initially seem
+complex. The good news: **you don't need to understand it all to contribute!**
+
+For simple contributions (bug fixes, small features, edge cases), write tests
+directly in test files using standard pytest patterns. See :ref:`testing-guide`
+for examples.
+
+For more advanced contributions (new geometric spaces, comprehensive test suites),
+the three-layer architecture provides powerful automation:
+
+1. **Test Data Layer** - Defines what to test (input values, expected outputs)
+2. **Test Case Layer** - Defines how to test (reusable test logic)
+3. **Concrete Test Layer** - Defines where to test (specific space instances)
+
+This architecture enables:
+
+- Automatic vectorization testing for batch operations
+- Code reuse across 41+ geometric spaces
+- Backend-agnostic test definitions
+- Parametrized testing without duplication
+
+**Learn more:** See :ref:`testing-architecture` for a detailed explanation of
+how this system works and when to use it.
 
 
 Workflow of a contribution 
@@ -1011,3 +1140,16 @@ Labelling and assigning the issue
 
 Part of triaging also involves labeling issues by their types, modules they belong to or even their priority.
 See :ref:`new-contributors` on what labels can be applied to issues.
+
+
+Detailed Testing Documentation
+================================
+
+For comprehensive guidance on testing, see these dedicated guides:
+
+.. toctree::
+   :maxdepth: 1
+
+   testing_guide
+   testing_architecture
+   testing_reference

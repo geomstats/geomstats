@@ -179,7 +179,7 @@ class Stiefel(LevelSet):
         """Project a close enough matrix to the Stiefel manifold.
 
         A singular value decomposition is used, and all singular values are
-        set to 1 [Absil]_
+        set to 1 [AM2008]_
 
         Parameters
         ----------
@@ -192,7 +192,7 @@ class Stiefel(LevelSet):
 
         References
         ----------
-        .. [Absil] Absil, Pierre-Antoine, and Jérôme Malick.
+        .. [AM2008] Absil, Pierre-Antoine, and Jérôme Malick.
             “Projection-like Retractions on Matrix Manifolds.”
             SIAM Journal on Optimization 22, no. 1 (January 2012):
             135–58. https://doi.org/10.1137/100802529.
@@ -287,7 +287,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
     @staticmethod
     def retraction(tangent_vec, base_point):
-        """Compute the retraction of a tangent vector.
+        r"""Compute the retraction of a tangent vector.
 
         This computation is based on the QR-decomposition.
 
@@ -351,7 +351,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         return matrix_r
 
     def lifting(self, point, base_point):
-        """Compute the lifting of a point.
+        r"""Compute the lifting of a point.
 
         This computation is based on the QR-decomposion.
 

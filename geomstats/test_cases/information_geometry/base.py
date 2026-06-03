@@ -21,7 +21,9 @@ class InformationManifoldMixinTestCase(TestCase):
         self.assertEqual(res.shape, expected_shape)
 
     def _check_sample_belongs_to_support(self, sample, atol):
-        raise NotImplementedError("Need to define `_check_sample_belongs_to_support`.")
+        raise NotImplementedError(
+            "Need to define ``_check_sample_belongs_to_support``."
+        )
 
     @pytest.mark.random
     def test_sample_belongs_to_support(self, n_points, n_samples, atol):

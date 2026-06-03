@@ -111,8 +111,8 @@ def from_vector_to_diagonal_matrix(vector, num_diag=0):
     Returns
     -------
     diagonals : array-like, shape=[m, n, n]
-        3-dimensional array where the `i`-th n-by-n array `diagonals[i, :, :]`
-        is a diagonal matrix containing the `i`-th row of `vector`.
+        3-dimensional array where the ``i``-th n-by-n array ``diagonals[i, :, :]``
+        is a diagonal matrix containing the ``i``-th row of ``vector``.
     """
     num_columns = gs.shape(vector)[-1]
     identity = gs.eye(num_columns, dtype=vector.dtype)
@@ -173,7 +173,7 @@ def taylor_exp_even_func(point, taylor_function, order=5, tol=EPSILON):
 
 
 def flip_determinant(matrix, det):
-    """Change sign of the determinant if it is negative.
+    r"""Change sign of the determinant if it is negative.
 
     For a batch of matrices, multiply the matrices which have negative
     determinant by a diagonal matrix :math:`diag(1,...,1,-1)` from the right.
