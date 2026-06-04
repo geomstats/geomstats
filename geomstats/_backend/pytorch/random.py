@@ -9,12 +9,21 @@ from torch.distributions.multivariate_normal import (
 from ._dtype import _allow_complex_dtype, _modify_func_default_dtype
 
 
-def choice(x, a):
-    """Generate a random sample from an array of given size."""
-    if _torch.is_tensor(x):
-        return x[_torch.randint(len(x), (a,))]
+def choice(x, a, p=None):
+    """Generate a random sample from a tensor along axis 0."""
+    if not _torch.is_tensor(x):
+        return x
 
-    return x
+    if p is None:
+        idx = _torch.randint(len(x), (a,), device=x.device)
+    else:
+        idx = _torch.multinomial(
+            _torch.as_tensor(p, device=x.device),
+            num_samples=a,
+            replacement=True,
+        )
+
+    return x[idx]
 
 
 def seed(*args, **kwargs):
