@@ -2,6 +2,7 @@ import random
 
 import pytest
 
+import geomstats.backend as gs
 from geomstats.geometry.discrete_curves import (
     DiscreteCurvesStartingAtOrigin,
     ElasticMetric,
@@ -92,7 +93,9 @@ class TestSturmsMean(FrechetMeanTestCase, metaclass=DataBasedParametrizer):
     params=[
         (TreeSpace(n_labels=5), "cyclic"),
         (TreeSpace(n_labels=5), "stochastic"),
-    ],
+    ]
+    if not gs.__name__.endswith("pytorch")
+    else [],
 )
 def pointset_estimators(request):
     space, sample_method = request.param

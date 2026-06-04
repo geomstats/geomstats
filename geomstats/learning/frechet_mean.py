@@ -755,7 +755,7 @@ class SturmsMean(BaseEstimator):
             prev_mean_movements.append(
                 self.space.metric.dist(prev_mean_estimate, mean_estimate)
             )
-            convergence = gs.mean(prev_mean_movements)
+            convergence = gs.mean(gs.asarray(prev_mean_movements))
 
             prev_mean_estimate = mean_estimate
 
