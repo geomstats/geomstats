@@ -4,7 +4,7 @@ import random
 
 import pytest
 
-from geomstats.geometry.stratified.graph_space import (
+from geomstats.metric_geometry.graph_space import (
     ExhaustiveAligner,
     FAQAligner,
     GraphSpace,
@@ -14,16 +14,16 @@ from geomstats.geometry.stratified.graph_space import (
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.matrices import MatricesTestCase
-from geomstats.test_cases.geometry.stratified.graph_space import (
+from geomstats.test_cases.metric_geometry.graph_space import (
     PointToGeodesicAlignerTestCase,
 )
-from geomstats.test_cases.geometry.stratified.quotient import (
+from geomstats.test_cases.metric_geometry.quotient import (
     AlignerAlgorithmCmpTestCase,
     AlignerAlgorithmTestCase,
     QuotientMetricWithArrayTestCase,
 )
 
-from ..data.matrices import MatricesTestData
+from ..test_geometry.data.matrices import MatricesTestData
 from .data.graph_space import GraphAlignerCmpTestData, PointToGeodesicAlignerTestData
 from .data.quotient import AlignerAlgorithmTestData, QuotientMetricWithArrayTestData
 

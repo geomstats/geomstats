@@ -19,7 +19,7 @@ from geomstats.geometry.fiber_bundle import AlignerAlgorithm
 from geomstats.geometry.group_action import PermutationAction
 from geomstats.geometry.manifold import register_quotient
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from geomstats.geometry.stratified.quotient import Aligner, QuotientMetric
+from geomstats.metric_geometry.quotient import Aligner, QuotientMetric
 from geomstats.numerics.optimization import ScipyMinimize
 from geomstats.vectorization import check_is_batch, get_batch_shape
 

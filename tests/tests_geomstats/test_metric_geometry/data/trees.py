@@ -1,6 +1,6 @@
 import random
 
-from geomstats.geometry.stratified.trees import ForestTopology, Split
+from geomstats.metric_geometry.trees import ForestTopology, Split
 from geomstats.test.data import TestData
 
 

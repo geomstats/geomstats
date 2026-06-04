@@ -1,6 +1,6 @@
 from geomstats.test.data import TestData
 
-from ...data.mixins import DistMixinsTestData, GeodesicBVPMixinsTestData
+from ...test_geometry.data.mixins import DistMixinsTestData, GeodesicBVPMixinsTestData
 
 
 class PointTestData(TestData):

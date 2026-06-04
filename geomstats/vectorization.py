@@ -6,7 +6,7 @@ This abstracts the backend type.
 import math
 
 import geomstats.backend as gs
-from geomstats.geometry.stratified.point_set import Point
+from geomstats.metric_geometry.point_set import Point
 
 
 def _get_max_ndim_point(*point):

@@ -2,8 +2,8 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDEuclideanMetric
-from geomstats.geometry.stratified.trees import ForestTopology, Split
-from geomstats.geometry.stratified.wald_space import (
+from geomstats.metric_geometry.trees import ForestTopology, Split
+from geomstats.metric_geometry.wald_space import (
     _AMBIENT_METRIC_TO_SQUARED_DIST_GRAD,
     Wald,
 )

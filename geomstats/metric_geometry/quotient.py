@@ -3,7 +3,7 @@
 from abc import ABC
 
 import geomstats.backend as gs
-from geomstats.geometry.stratified.point_set import PointSetMetric
+from geomstats.metric_geometry.point_set import PointSetMetric
 
 
 class Aligner(ABC):

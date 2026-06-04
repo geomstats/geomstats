@@ -2,10 +2,10 @@ import random
 
 import pytest
 
-from geomstats.geometry.stratified.bhv_space import Tree, TreeSpace, TreeTopology
+from geomstats.metric_geometry.bhv_space import Tree, TreeSpace, TreeTopology
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.test_case import TestCase, np_only
-from geomstats.test_cases.geometry.stratified.point_set import (
+from geomstats.test_cases.metric_geometry.point_set import (
     PointSetMetricTestCase,
     PointSetTestCase,
     PointTestCase,
