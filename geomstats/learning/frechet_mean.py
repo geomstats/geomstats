@@ -14,8 +14,9 @@ import geomstats.errors as error
 from geomstats.geometry.discrete_curves import ElasticMetric, SRVMetric
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.hypersphere import HypersphereMetric
+from geomstats.geometry.stratified.bhv_space import BHVMetric
 
-ELASTIC_METRICS = [SRVMetric, ElasticMetric]
+ELASTIC_METRICS = (SRVMetric, ElasticMetric)
 
 
 def _is_linear_metric(metric):
@@ -24,6 +25,10 @@ def _is_linear_metric(metric):
 
 def _is_elastic_metric(metric):
     return isinstance(metric, tuple(ELASTIC_METRICS))
+
+
+def _is_bhv_metric(metric):
+    return isinstance(metric, BHVMetric)
 
 
 def _scalarmul(scalar, array):
@@ -601,6 +606,178 @@ class CircleMean(BaseEstimator):
         return self
 
 
+class SturmsMean(BaseEstimator):
+    """Frechet mean using Sturm's algorithm.
+
+    Some geodesic metric spaces (like BHV) do not have an exp, and can
+    therefore not use gradient-descent-like optimisation. Sturm's Algorithm
+    works by iteratively computing geodesics between data points and an
+    updated estimate on the previous geodesic, without log or exp.
+
+    The stochastic algorithm follows [S2003]_, Definition 4.6, while the cyclic
+    algorithm in Hadamard spaces follows [B2014]_, Definitions 3.3 and 3.5; see
+    [NTY2017]_ for a simpler presentation of both. Weighted deterministic walks
+    for Karcher means in Hadamard spaces are studied in [LP2014]_. Extensions of
+    the cyclic-order construction of [B2014]_ to other classes of geodesic spaces
+    are given in [OP2015]_.
+
+    The computation of the mean goes as follows:
+        - Initialise mean estimate, i=0
+        - Sample point
+        - Compute geodesic between mean estimate and sampled point
+        - Compute new mean estimate 1/(i+2) of the way down geodesic
+        - Rinse, repeat
+
+    Converges to the true mean under Law of Large Numbers, provided underlying space
+    has non-positive curvature.
+
+    Parameters
+    ----------
+    space : Manifold
+        Equipped manifold.
+    sample_method: str, {cyclic | stochastic}
+        Algorithm type for sequence creation.
+    max_iter : int, optional
+        Maximum number of iterations.
+    epsilon : float, optional
+        Tolerance for stopping iterative computation.
+    window_length : int, optional
+        Sliding window size for convergence computation.
+
+    Attributes
+    ----------
+    estimate_ : array-like, shape=[*space.shape]
+        If fit, Frechet mean.
+
+    References
+    ----------
+    .. [S2003] Sturm, K.-T., 2003. Probability measures on metric spaces of nonpositive
+        curvature, in: Auscher, P., Coulhon, T., Grigor’yan, A. (Eds.), .
+        American Mathematical Society, Providence, Rhode Island, pp. 357–390.
+        https://doi.org/10.1090/conm/338/06080
+    .. [B2014] Bačák, M., 2014. Computing Medians and Means in Hadamard Spaces.
+        SIAM J. Optim. 24, 1542–1566. https://doi.org/10.1137/140953393
+    .. [NTY2017] Nye, T.M.W., Tang, X., Weyenberg, G., Yoshida, R., 2017.
+        Principal component analysis and the locus of the Fréchet mean in
+        the space of phylogenetic trees. Biometrika 104, 901–922.
+        https://doi.org/10.1093/biomet/asx047
+    .. [LP2014] Lim, Y., Pálfia, M., 2014. Weighted deterministic walks for
+        the least squares mean on Hadamard spaces.
+        Bulletin of the London Mathematical Society 46, 561–570.
+        https://doi.org/10.1112/blms/bdu008
+    .. [OP2015] Ohta, S., Pálfia, M., 2015. Discrete-time gradient flows and law of
+        large numbers in Alexandrov spaces.
+        https://doi.org/10.48550/arXiv.1402.1629
+    """
+
+    def __init__(
+        self,
+        space,
+        sample_method="cyclic",
+        max_iter=1000,
+        epsilon=1e-4,
+        window_length=50,
+        verbose=False,
+    ):
+        self.sample_method = sample_method
+
+        self.max_iter = max_iter
+        self.epsilon = epsilon
+        self.window_length = window_length
+        self.verbose = verbose
+
+        self.space = space
+        self.estimate_ = None
+
+    def _sample_next_cyclic(self, X, weights, k):
+        return X[k % len(X)]
+
+    def _sample_next_stochastic(self, X, weights, k):
+        return gs.random.choice(X, 1, p=weights)[0]
+
+    def _step_length_cyclic(self, weights, k):
+        n_weights = len(weights)
+        cycles, remainder = divmod(k, n_weights)
+        total_weight_so_far = (cycles * 1.0) + gs.sum(weights[:remainder])
+        return weights[k % n_weights] / total_weight_so_far
+
+    def _step_length_stochastic(self, weights, k):
+        return 1 / (k + 1)
+
+    def fit(self, X, y=None, weights=None):
+        """Compute the weighted mean for geodesic metric spaces.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_samples, *metric.shape]
+            Training input samples.
+        y : None
+            Target values. Ignored.
+        weights : array-like, shape=[n_samples,]
+            Weights associated to the samples.
+            Optional, default: None, in which case it is equally weighted.
+
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
+        if self.sample_method == "cyclic":
+            self._sample_next = self._sample_next_cyclic
+            self._step_length = self._step_length_cyclic
+
+        elif self.sample_method == "stochastic":
+            self._sample_next = self._sample_next_stochastic
+            self._step_length = self._step_length_stochastic
+        else:
+            raise ValueError(f"Sample method {self.sample_method} is not supported.")
+
+        n_points = gs.shape(X)[0]
+        if weights is None:
+            weights = gs.ones((n_points,))
+
+        weights = weights / gs.sum(weights)
+
+        mean_estimate = self._sample_next(X, weights, 0)
+        prev_mean_estimate = mean_estimate
+
+        prev_mean_movements = [gs.inf for _ in range(self.window_length)]
+        convergence = gs.inf
+
+        for i in range(1, self.max_iter):
+            sampled_point = self._sample_next(X, weights, i)
+
+            geodesic = self.space.metric.geodesic(mean_estimate, sampled_point)
+            step_length = self._step_length(weights, i)
+            mean_estimate = geodesic(step_length)[0]
+
+            prev_mean_movements.pop(0)
+            prev_mean_movements.append(
+                self.space.metric.dist(prev_mean_estimate, mean_estimate)
+            )
+            convergence = gs.mean(gs.asarray(prev_mean_movements))
+
+            prev_mean_estimate = mean_estimate
+
+            if self.verbose:
+                print(convergence, prev_mean_movements)
+
+            if convergence < self.epsilon:
+                break
+        else:
+            logging.warning(
+                f"Maximum number of iterations {self.max_iter} reached. The mean may be inaccurate."
+            )
+
+        if i < 2 * len(X):
+            logging.warning(
+                f"Sampled <2*sample_size={2 * len(X)}. Due to stochastic nature, not guaranteed to have sampled all points. The mean may be inaccurate."
+            )
+
+        self.estimate_ = mean_estimate
+        return self
+
+
 class _BaseMeanEstimator(BaseEstimator, abc.ABC):
     """Base class for mean estimators on manifolds.
 
@@ -729,6 +906,10 @@ def FrechetMean(space, **kwargs):
 
     elif _is_elastic_metric(space.metric):
         Estimator = ElasticMean
+
+    elif kwargs.get("method") == "sturms" or _is_bhv_metric(space.metric):
+        kwargs.pop("method", None)
+        Estimator = SturmsMean
 
     else:
         Estimator = GeneralFrechetMean

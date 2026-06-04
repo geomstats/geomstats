@@ -16,6 +16,17 @@ class FrechetMeanTestData(MeanEstimatorMixinsTestData, BaseEstimatorTestData):
         return self.generate_tests([{}])
 
 
+class SturmMeanTestData(BaseEstimatorTestData):
+    fail_for_autodiff_exceptions = False
+
+    def logs_at_mean_test_data(self):
+        return self.generate_tests([{"atol": 1e-1}])
+
+
+class PointSetFrechetMeanTestData(MeanEstimatorMixinsTestData, BaseEstimatorTestData):
+    pass
+
+
 class FrechetMeanSOCoincideTestData(BaseEstimatorTestData):
     def estimate_coincide_test_data(self):
         return self.generate_random_data()

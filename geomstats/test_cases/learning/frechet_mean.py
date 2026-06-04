@@ -22,7 +22,7 @@ class FrechetMeanTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
         logs = self.estimator.space.metric.log(X, mean)
 
         result = gs.linalg.norm(logs[1] + logs[0])
-        self.assertAllClose(result, gs.array(0.0), atol)
+        self.assertAllClose(result, gs.array(0.0), atol=atol)
 
     @pytest.mark.random
     def test_weighted_mean_two_points(self, atol):
@@ -36,6 +36,11 @@ class FrechetMeanTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
             weights[1] / gs.sum(weights) * space.metric.log(X[1], X[0]), X[0]
         )
         self.assertAllClose(mean, expected, atol=atol)
+
+
+class PointSetFrechetMeanTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
+    def _self_assert_same_point(self, point, point_, atol):
+        self.assertTrue(gs.all(point.equal(point_, atol=atol)))
 
 
 class ElasticMeanTestCase(FrechetMeanTestCase):
