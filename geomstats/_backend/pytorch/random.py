@@ -6,7 +6,7 @@ from torch.distributions.multivariate_normal import (
     MultivariateNormal as _MultivariateNormal,
 )
 
-from ._dtype import _allow_complex_dtype, _modify_func_default_dtype
+from ._dtype import _allow_complex_dtype
 
 
 def choice(x, a, p=None):
@@ -45,7 +45,6 @@ def uniform(low=0.0, high=1.0, size=(1,), dtype=None):
     return (high - low) * rand(*size, dtype=dtype) + low
 
 
-@_modify_func_default_dtype(copy=False, kw_only=True)
 @_allow_complex_dtype
 def multivariate_normal(mean, cov, size=(1,)):
     if not hasattr(size, "__iter__"):

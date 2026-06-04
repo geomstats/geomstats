@@ -1,36 +1,43 @@
 import numpy as _np
-
-from geomstats._backend._dtype_utils import (
-    _dyn_update_dtype,
-    _modify_func_default_dtype,
-    get_default_cdtype,
-    get_default_dtype,
+from numpy import (
+    array,
+    eye,
+    zeros,
 )
 
-from .._shared_numpy._common import (
-    _add_default_dtype_by_casting,
-    _allow_complex_dtype,
-    _box_binary_scalar,
-    _box_unary_scalar,
-    _cast_fout_to_input_dtype,
-    _cast_out_from_dtype,
-    _cast_out_to_input_dtype,
-    _get_wider_dtype,
-    _is_boolean,
-    _is_iterable,
-    as_dtype,
-    atol,
-    cast,
-    convert_to_wider_dtype,
-    is_array,
-    is_bool,
-    is_complex,
-    is_floating,
-    rtol,
-    set_default_dtype,
-    to_ndarray,
-)
+atol = 1e-8
+rtol = 1e-5
 
-array = _cast_out_from_dtype(target=_np.array, dtype_pos=1)
-eye = _modify_func_default_dtype(target=_np.eye)
-zeros = _dyn_update_dtype(target=_np.zeros, dtype_pos=1)
+
+def is_array(x):
+    return type(x) is _np.ndarray
+
+
+def to_ndarray(x, to_ndim, axis=0, dtype=None):
+    x = _np.asarray(x, dtype=dtype)
+
+    if x.ndim > to_ndim:
+        raise ValueError("The ndim cannot be adapted properly.")
+
+    while x.ndim < to_ndim:
+        x = _np.expand_dims(x, axis=axis)
+
+    return x
+
+
+def _is_boolean(x):
+    if isinstance(x, bool):
+        return True
+    if isinstance(x, (tuple, list)):
+        return _is_boolean(x[0])
+    if isinstance(x, _np.ndarray):
+        return x.dtype == bool
+    return False
+
+
+def _is_iterable(x):
+    if isinstance(x, (list, tuple)):
+        return True
+    if isinstance(x, _np.ndarray):
+        return x.ndim > 0
+    return False

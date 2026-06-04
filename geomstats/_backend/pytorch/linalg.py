@@ -16,7 +16,7 @@ from torch.linalg import (
 )
 from torch.linalg import matrix_exp as expm
 
-from .._backend_config import np_atol as atol
+from ..numpy import atol
 from ..numpy import linalg as _gsnplinalg
 from ._dtype import _cast_out_to_input_dtype
 

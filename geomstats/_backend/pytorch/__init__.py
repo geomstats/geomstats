@@ -50,14 +50,12 @@ from torch import broadcast_tensors as broadcast_arrays
 from torch import repeat_interleave as repeat
 from torch.special import gammaln as _gammaln
 
-from .._backend_config import pytorch_atol as atol
-from .._backend_config import pytorch_rtol as rtol
 from . import (
     autodiff,  # NOQA
     linalg,  # NOQA
     random,  # NOQA
 )
-from ._common import array, cast, from_numpy
+from ._common import array, atol, cast, from_numpy, rtol
 from ._dtype import (
     _add_default_dtype_by_casting,
     _box_binary_scalar,

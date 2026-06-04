@@ -1,6 +1,9 @@
 import numpy as _np
 import torch as _torch
 
+atol = 1e-6
+rtol = 1e-5
+
 
 def from_numpy(x):
     if _torch.is_tensor(x):
