@@ -14,7 +14,7 @@ import geomstats.errors as error
 from geomstats.geometry.discrete_curves import ElasticMetric, SRVMetric
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.hypersphere import HypersphereMetric
-from geomstats.geometry.stratified.bhv_space import BHVMetric
+from geomstats.metric_geometry.bhv_space import BHVMetric
 
 ELASTIC_METRICS = (SRVMetric, ElasticMetric)
 

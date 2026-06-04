@@ -23,7 +23,7 @@ from geomstats.test_cases.metric_geometry.quotient import (
     QuotientMetricWithArrayTestCase,
 )
 
-from ..data.matrices import MatricesTestData
+from ..test_geometry.data.matrices import MatricesTestData
 from .data.graph_space import GraphAlignerCmpTestData, PointToGeodesicAlignerTestData
 from .data.quotient import AlignerAlgorithmTestData, QuotientMetricWithArrayTestData
 

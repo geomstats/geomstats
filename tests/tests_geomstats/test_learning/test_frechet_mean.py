@@ -15,12 +15,12 @@ from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.geometry.stratified.bhv_space import TreeSpace
 from geomstats.learning.frechet_mean import (
     BatchGradientDescent,
     FrechetMean,
     GradientDescent,
 )
+from geomstats.metric_geometry.bhv_space import TreeSpace
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.learning._base import (
     BaseEstimatorTestCase,
