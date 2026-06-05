@@ -47,7 +47,6 @@ from numpy import (
     greater,
     hsplit,
     hstack,
-    imag,
     inf,
     int32,
     int64,
@@ -73,7 +72,6 @@ from numpy import (
     power,
     prod,
     quantile,
-    real,
     repeat,
     reshape,
     searchsorted,
@@ -155,6 +153,22 @@ def to_numpy(x):
 
 def from_numpy(x):
     return x
+
+
+def imag(x):
+    out = _np.imag(x)
+    if hasattr(x, "dtype"):
+        return out
+
+    return array(out)
+
+
+def real(x):
+    out = _np.real(x)
+    if hasattr(x, "dtype"):
+        return out
+
+    return array(out)
 
 
 def squeeze(x, axis=None):
