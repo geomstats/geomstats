@@ -588,13 +588,32 @@ def divide(a, b, ignore_div_zero=False):
     return _torch.nan_to_num(quo, nan=0.0, posinf=0.0, neginf=0.0)
 
 
-def ravel_tril_indices(n, k=0, m=None):
-    if m is None:
-        size = (n, n)
-    else:
-        size = (n, m)
-    idxs = _np.tril_indices(n, k, m)
-    return _torch.from_numpy(_np.ravel_multi_index(idxs, size))
+def ravel_multi_index(multi_index, dims):
+    """Torch equivalent of np.ravel_multi_index(..., order='C').
+
+    Parameters
+    ----------
+    multi_index : tuple[torch.Tensor]
+        Coordinate tensors, e.g. (rows, cols).
+    dims : tuple[int]
+        Shape of the target array.
+
+    Returns
+    -------
+    flat_indices : torch.Tensor
+        Indices into the flattened array.
+    """
+    if len(multi_index) != len(dims):
+        raise ValueError("multi_index and dims must have the same length.")
+
+    flat_index = _torch.zeros_like(multi_index[0])
+    stride = 1
+
+    for idx, dim in zip(reversed(multi_index), reversed(dims)):
+        flat_index = flat_index + idx * stride
+        stride *= dim
+
+    return flat_index
 
 
 def sort(a, axis=-1):

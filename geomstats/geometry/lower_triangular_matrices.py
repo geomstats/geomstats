@@ -34,7 +34,9 @@ class LowerTriangularMatrices(MatrixVectorSpace):
         basis : array-like, shape=[dim, n, n]
             Basis matrices of the space.
         """
-        tril_idxs = gs.ravel_tril_indices(self.n)
+        rows, cols = gs.tril_indices(self.n)
+        tril_idxs = gs.ravel_multi_index((rows, cols), (self.n, self.n))
+
         vector_bases = gs.cast(
             gs.one_hot(tril_idxs, self.n * self.n),
             dtype=gs.get_default_dtype(),
@@ -170,7 +172,9 @@ class StrictlyLowerTriangularMatrices(LevelSet, MatrixVectorSpace):
         basis : array-like, shape=[dim, n, n]
             Basis matrices of the space.
         """
-        tril_idxs = gs.ravel_tril_indices(self.n, k=-1)
+        rows, cols = gs.tril_indices(self.n, k=-1)
+        tril_idxs = gs.ravel_multi_index((rows, cols), (self.n, self.n))
+
         vector_bases = gs.cast(
             gs.one_hot(tril_idxs, self.n * self.n),
             dtype=gs.get_default_dtype(),

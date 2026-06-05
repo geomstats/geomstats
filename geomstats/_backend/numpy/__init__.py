@@ -72,6 +72,7 @@ from numpy import (
     power,
     prod,
     quantile,
+    ravel_multi_index,
     repeat,
     reshape,
     searchsorted,
@@ -298,15 +299,6 @@ def divide(a, b, ignore_div_zero=False):
 
     wider_dtype, _ = _get_wider_dtype([a, b])
     return _np.divide(a, b, out=zeros(a.shape, dtype=wider_dtype), where=b != 0)
-
-
-def ravel_tril_indices(n, k=0, m=None):
-    if m is None:
-        size = (n, n)
-    else:
-        size = (n, m)
-    idxs = _np.tril_indices(n, k, m)
-    return _np.ravel_multi_index(idxs, size)
 
 
 def matmul(*args, **kwargs):

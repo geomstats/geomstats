@@ -124,7 +124,7 @@ BACKEND_ATTRIBUTES = {
         "power",
         "prod",
         "quantile",
-        "ravel_tril_indices",
+        "ravel_multi_index",
         "real",
         "repeat",
         "reshape",
