@@ -49,7 +49,6 @@ BACKEND_ATTRIBUTES = {
         "array_from_sparse",
         "asarray",
         "as_dtype",
-        "assignment_by_sum",
         "atol",
         "broadcast_arrays",
         "broadcast_to",
