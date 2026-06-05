@@ -1,5 +1,3 @@
-import random
-
 import pytest
 
 import geomstats.backend as gs
@@ -60,9 +58,6 @@ class HypersphereExtrinsicTestData(LevelSetTestData):
         "random_von_mises_fisher_sample_kappa": {"atol": 1e-1},
         "random_riemannian_normal_frechet_mean": {"atol": 1e-1},
     }
-
-    def replace_values_test_data(self):
-        return self.generate_tests([dict(n_points=random.randint(2, 10))])
 
     def random_von_mises_fisher_sample_mean_test_data(self):
         n_samples = 1000
