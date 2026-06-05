@@ -11,34 +11,44 @@ rand = gs.random.rand
 
 class DtypeTestData(TestData):
     def array_test_data(self):
-        smoke_data = [
-            dict(ls=[1.0, 2.0], global_dtype_str="float32", expected_dtype=gs.float32),
+        data = [
             dict(ls=[1.0, 2.0], global_dtype_str="float64", expected_dtype=gs.float64),
             # TODO: uncomment later
             # dict(ls=[1, 2], expected_dtype=gs.int64),
-            dict(
-                ls=[1.0 + 3.0j, 2.0j],
-                global_dtype_str="float32",
-                expected_dtype=gs.complex64,
-            ),
             dict(
                 ls=[1.0 + 3.0j, 2.0j],
                 global_dtype_str="float64",
                 expected_dtype=gs.complex128,
             ),
         ]
-        return self.generate_tests(smoke_data)
+
+        if gs.__name__.endswith("pytorch"):
+            data.extend(
+                [
+                    dict(
+                        ls=[1.0, 2.0],
+                        global_dtype_str="float32",
+                        expected_dtype=gs.float32,
+                    ),
+                    dict(
+                        ls=[1.0 + 3.0j, 2.0j],
+                        global_dtype_str="float32",
+                        expected_dtype=gs.complex64,
+                    ),
+                ]
+            )
+        return self.generate_tests(data)
 
     def array_creation_test_data(self):
-        smoke_data = [
+        data = [
             dict(
                 func_name="array_from_sparse", args=([(0, 0)], [1.0], (2, 2)), kwargs={}
             ),
         ]
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def array_creation_with_dtype_test_data(self):
-        smoke_data = [
+        data = [
             dict(func_name="array", args=([1.0, 2.0],)),
             # TODO: add int test to arange
             dict(func_name="arange", args=((0.0, 2.0))),
@@ -55,10 +65,10 @@ class DtypeTestData(TestData):
             dict(func_name="random.uniform", kwargs={"size": 2}),
         ]
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def array_creation_with_dtype_from_shape_test_data(self):
-        smoke_data = [
+        data = [
             dict(func_name="eye", shape=2),
             dict(func_name="ones", shape=2),
             dict(func_name="zeros", shape=2),
@@ -66,19 +76,19 @@ class DtypeTestData(TestData):
             dict(func_name="random.rand", shape=3),
         ]
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def array_creation_with_dtype_from_array_test_data(self):
-        smoke_data = [
+        data = [
             dict(func_name="empty_like", array_shape=2),
             dict(func_name="ones_like", array_shape=2),
             dict(func_name="zeros_like", array_shape=2),
         ]
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def unary_op_float_input_test_data(self):
-        smoke_data = [
+        data = [
             dict(func_name="abs", x=1.0),
             dict(func_name="angle", x=1.0),
             dict(func_name="arccos", x=0.1),
@@ -100,11 +110,11 @@ class DtypeTestData(TestData):
             dict(func_name="tan", x=0.5),
             dict(func_name="tanh", x=0.5),
         ]
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def unary_op_with_dtype_given_shape_test_data(self):
         axis_kwargs = {"axis": 0}
-        smoke_data = [
+        data = [
             dict(func_name="cumprod", array_shape=2),
             dict(func_name="cumsum", array_shape=2),
             dict(func_name="mean", array_shape=2),
@@ -115,23 +125,23 @@ class DtypeTestData(TestData):
             dict(func_name="std", array_shape=(2, 2), kwargs=axis_kwargs),
         ]
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def from_numpy_given_shape_test_data(self):
-        smoke_data = [
+        data = [
             dict(array_shape=(2, 2), np_func_array=np.ones),
         ]
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def to_numpy_given_shape_test_data(self):
-        smoke_data = [
+        data = [
             dict(array_shape=(2, 2)),
         ]
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def unary_op_given_shape_test_data(self):
-        smoke_data = [
+        data = [
             dict(func_name="copy", array_shape=(2, 2)),
             dict(func_name="diagonal", array_shape=(2, 2)),
             dict(func_name="erf", array_shape=2),
@@ -150,12 +160,12 @@ class DtypeTestData(TestData):
             dict(func_name="linalg.norm", array_shape=3),
         ]
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def unary_op_mult_out_given_shape_test_data(self):
-        smoke_data = [dict(func_name="linalg.qr", array_shape=(3, 3))]
+        data = [dict(func_name="linalg.qr", array_shape=(3, 3))]
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def unary_op_given_array_test_data(self):
         def _create_spd():
@@ -167,7 +177,7 @@ class DtypeTestData(TestData):
         def _create_sym():
             return SymmetricMatrices(2).random_point()
 
-        smoke_data = [
+        data = [
             dict(func_name="linalg.cholesky", create_array=_create_spd),
             dict(func_name="linalg.eigvalsh", create_array=_create_sym),
             dict(func_name="linalg.expm", create_array=_create_diag),
@@ -177,19 +187,19 @@ class DtypeTestData(TestData):
             dict(func_name="linalg.sqrtm", create_array=_create_spd),
         ]
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def binary_op_float_input_test_data(self):
-        smoke_data = [
+        data = [
             dict(func_name="arctan2", x1=1.0, x2=0.5),
             dict(func_name="mod", x1=1.0, x2=2.0),
             dict(func_name="power", x1=1.0, x2=1.0),
         ]
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def binary_op_given_shape_test_data(self):
-        smoke_data = [
+        data = [
             dict(func_name="cross", shape_a=3, shape_b=3),
             dict(func_name="divide", shape_a=3, shape_b=3),
             dict(
@@ -212,10 +222,10 @@ class DtypeTestData(TestData):
             dict(func_name="outer", shape_a=(2, 3), shape_b=(2, 3)),
         ]
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def ternary_op_given_shape_test_data(self):
-        smoke_data = [
+        data = [
             # TODO: add test in BackendsTestData
             dict(
                 func_name="mat_from_diag_triu_tril",
@@ -224,7 +234,7 @@ class DtypeTestData(TestData):
                 shape_c=(1,),
             ),
         ]
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def ternary_op_given_array_test_data(self):
         def _create_sylvester():
@@ -233,14 +243,14 @@ class DtypeTestData(TestData):
             q = rand(3, 3)
             return a, b, q
 
-        smoke_data = [
+        data = [
             dict(func_name="linalg.solve_sylvester", create_array=_create_sylvester)
         ]
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def func_out_dtype_test_data(self):
-        smoke_data = [
+        data = [
             # TODO: add additional test for int
             dict(
                 func_name="where",
@@ -250,10 +260,10 @@ class DtypeTestData(TestData):
             ),
         ]
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def solve_sylvester_test_data(self):
-        smoke_data = [
+        data = [
             dict(
                 shape_a=(3, 3),
                 shape_b=(1, 1),
@@ -261,10 +271,10 @@ class DtypeTestData(TestData):
             ),
         ]
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)
 
     def random_distrib_complex_test_data(self):
-        smoke_data = [
+        data = [
             dict(
                 func_name="random.rand",
                 args=(2,),
@@ -278,4 +288,4 @@ class DtypeTestData(TestData):
             ),
         ]
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(data)

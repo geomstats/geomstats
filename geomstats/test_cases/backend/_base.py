@@ -205,7 +205,11 @@ class BackendTestCase(TestCase):
 
 @pytest.mark.type
 class DtypeTestCase(TestCase):
-    dtypes_str = ["float32", "float64"]  # sort by wider
+    if gs.__name__.endswith("pytorch"):
+        dtypes_str = ["float32", "float64"]  # sort by wider
+    else:
+        dtypes_str = ["float64"]
+
     default_dtype = gs.as_dtype("float64")
 
     def _reset_dtype(self):

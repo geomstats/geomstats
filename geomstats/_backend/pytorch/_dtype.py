@@ -1,18 +1,13 @@
 import functools
 
 import torch as _torch
-from torch import complex64, complex128, float32, float64
+from torch import complex64, complex128, float32, float64, get_default_dtype
 
-from geomstats._backend import _backend_config as _config
 from geomstats._backend._dtype_utils import (
     _MAP_FLOAT_TO_COMPLEX,
-    _modify_func_default_dtype,
     _pre_add_default_dtype_by_casting,
     _pre_allow_complex_dtype,
     _pre_cast_out_to_input_dtype,
-    _update_default_dtypes,
-    get_default_cdtype,
-    get_default_dtype,
 )
 
 from ._common import cast
@@ -56,20 +51,29 @@ def set_default_dtype(value):
     value : str
         Possible values are "float32" as "float64".
     """
-    _config.DEFAULT_DTYPE = as_dtype(value)
-    _config.DEFAULT_COMPLEX_DTYPE = as_dtype(_MAP_FLOAT_TO_COMPLEX.get(value))
-    _torch.set_default_dtype(_config.DEFAULT_DTYPE)
+    _torch.set_default_dtype(as_dtype(value))
 
-    _update_default_dtypes()
-
-    return _config.DEFAULT_DTYPE
+    return get_default_dtype()
 
 
-_add_default_dtype_by_casting = _pre_add_default_dtype_by_casting(cast)
+_add_default_dtype_by_casting = _pre_add_default_dtype_by_casting(
+    cast, get_default_dtype
+)
 _cast_out_to_input_dtype = _pre_cast_out_to_input_dtype(
     cast, is_floating, is_complex, as_dtype, _dtype_as_str
 )
-_allow_complex_dtype = _pre_allow_complex_dtype(cast, _COMPLEX_DTYPES)
+_allow_complex_dtype = _pre_allow_complex_dtype(
+    cast, _COMPLEX_DTYPES, get_default_dtype
+)
+
+
+def _get_default_dtype_name():
+    return str(_torch.get_default_dtype()).removeprefix("torch.")
+
+
+def get_default_cdtype():
+    """Get backend default complex dtype."""
+    return as_dtype(_MAP_FLOAT_TO_COMPLEX.get(_get_default_dtype_name()))
 
 
 def _preserve_input_dtype(target=None):
