@@ -191,34 +191,6 @@ def ndim(x):
     return x.ndim
 
 
-def get_slice(x, indices):
-    """Return a slice of an array, following Numpy's style.
-
-    Parameters
-    ----------
-    x : array-like, shape=[dim]
-        Initial array.
-    indices : iterable(iterable(int))
-        Indices which are kept along each axis, starting from 0.
-
-    Returns
-    -------
-    slice : array-like
-        Slice of x given by indices.
-
-    Notes
-    -----
-    This follows Numpy's convention: indices are grouped by axis.
-
-    Examples
-    --------
-    >>> a = np.array(range(30)).reshape(3,10)
-    >>> get_slice(a, ((0, 2), (8, 9)))
-    array([8, 29])
-    """
-    return x[indices]
-
-
 def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     if multiple_args:
         return _np.vectorize(pyfunc, signature=signature)(*x)

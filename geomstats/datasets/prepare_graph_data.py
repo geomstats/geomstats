@@ -284,9 +284,7 @@ class HyperbolicEmbedding:
 
                     negative_index = gs.expand_dims(gs.flatten(negative_index), axis=-1)
 
-                    negative_index = gs.get_slice(
-                        negative_sampling_table, negative_index
-                    )
+                    negative_index = negative_sampling_table[negative_index]
 
                     example_embedding = embeddings[gs.cast(one_path, dtype=gs.int64)]
 
@@ -295,10 +293,9 @@ class HyperbolicEmbedding:
                     ):
                         context_embedding = embeddings[one_context_i]
 
-                        negative_embedding = gs.get_slice(
-                            embeddings,
-                            gs.squeeze(gs.cast(one_negative_i, dtype=gs.int64)),
-                        )
+                        negative_embedding = embeddings[
+                            gs.squeeze(gs.cast(one_negative_i, dtype=gs.int64))
+                        ]
 
                         total_loss_, g_ex = self.loss(
                             example_embedding, context_embedding, negative_embedding

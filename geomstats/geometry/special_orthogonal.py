@@ -880,9 +880,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         max_line_index = gs.argmax(norm_line, axis=-1)
 
         if is_vec:
-            selected_line = gs.get_slice(
-                vector_outer, (range(rot_mat.shape[0]), max_line_index)
-            )
+            selected_line = vector_outer[(range(rot_mat.shape[0]), max_line_index)]
         else:
             selected_line = vector_outer[..., max_line_index]
         signs = gs.sign(selected_line)

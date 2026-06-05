@@ -146,8 +146,6 @@ class DtypeTestData(TestData):
             dict(func_name="diagonal", array_shape=(2, 2)),
             dict(func_name="erf", array_shape=2),
             dict(func_name="flatten", array_shape=(2, 2)),
-            # TODO: add test in BackendsTestData
-            dict(func_name="get_slice", array_shape=(2, 2), kwargs={"indices": [(0,)]}),
             dict(func_name="trace", array_shape=(2, 2)),
             dict(func_name="tril", array_shape=(2, 2)),
             dict(func_name="tril", array_shape=(2, 2), kwargs={"k": -1}),

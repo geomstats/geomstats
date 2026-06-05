@@ -84,7 +84,6 @@ BACKEND_ATTRIBUTES = {
         "gamma",
         "get_default_dtype",
         "get_default_cdtype",
-        "get_slice",
         "greater",
         "has_autodiff",
         "hsplit",
