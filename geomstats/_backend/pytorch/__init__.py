@@ -515,56 +515,6 @@ def _is_iterable(x):
     return False
 
 
-def assignment(x, values, indices, axis=0):
-    """Assign values at given indices of an array.
-
-    Parameters
-    ----------
-    x: array-like, shape=[dim]
-        Initial array.
-    values: {float, list(float)}
-        Value or list of values to be assigned.
-    indices: {int, tuple, list(int), list(tuple)}
-        Single int or tuple, or list of ints or tuples of indices where value
-        is assigned.
-        If the length of the tuples is shorter than ndim(x), values are
-        assigned to each copy along axis.
-    axis: int, optional
-        Axis along which values are assigned, if vectorized.
-
-    Returns
-    -------
-    x_new : array-like, shape=[dim]
-        Copy of x with the values assigned at the given indices.
-
-    Notes
-    -----
-    If a single value is provided, it is assigned at all the indices.
-    If a list is given, it must have the same length as indices.
-    """
-    x_new = copy(x)
-
-    use_vectorization = hasattr(indices, "__len__") and len(indices) < ndim(x)
-    if _is_boolean(indices):
-        x_new[indices] = values
-        return x_new
-    zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
-    len_indices = len(indices) if _is_iterable(indices) else 1
-    if zip_indices:
-        indices = tuple(zip(*indices))
-    if not use_vectorization:
-        if not zip_indices:
-            len_indices = len(indices) if _is_iterable(indices) else 1
-        len_values = len(values) if _is_iterable(values) else 1
-        if len_values > 1 and len_values != len_indices:
-            raise ValueError("Either one value or as many values as indices")
-        x_new[indices] = values
-    else:
-        indices = tuple(list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
-        x_new[indices] = values
-    return x_new
-
-
 def assignment_by_sum(x, values, indices, axis=0):
     """Add values at given indices of an array.
 

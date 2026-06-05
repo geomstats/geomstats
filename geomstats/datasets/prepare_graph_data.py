@@ -310,13 +310,7 @@ class HyperbolicEmbedding:
                         valeur = self.manifold.metric.exp(
                             -self.lr * g_ex, example_to_update
                         )
-
-                        embeddings = gs.assignment(
-                            embeddings,
-                            valeur,
-                            gs.expand_dims(one_path, axis=-1),
-                            axis=1,
-                        )
+                        embeddings[one_path, :] = valeur
 
             logging.info(
                 f"iteration {epoch} loss_value {sum(total_loss, 0) / len(total_loss)}",
