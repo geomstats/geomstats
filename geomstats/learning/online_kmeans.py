@@ -121,7 +121,7 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
         random_indices = gs.random.randint(
             low=0, high=n_samples, size=(self.n_clusters,)
         )
-        cluster_centers = gs.get_slice(X, random_indices)
+        cluster_centers = X[random_indices]
 
         gap = 1.0
 
@@ -129,12 +129,12 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
             step_size = gs.floor(gs.array((iteration + 1) / self.n_repetitions)) + 1
 
             random_index = gs.random.randint(low=0, high=n_samples, size=(1,))
-            point = gs.get_slice(X, random_index)[0]
+            point = X[random_index][0]
 
             index_to_update = self.space.metric.closest_neighbor_index(
                 point, cluster_centers
             )
-            center_to_update = gs.copy(gs.get_slice(cluster_centers, index_to_update))
+            center_to_update = gs.copy(cluster_centers[index_to_update])
 
             tangent_vec_update = self.space.metric.log(
                 point=point, base_point=center_to_update

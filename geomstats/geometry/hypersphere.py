@@ -8,7 +8,6 @@ Lead author: Nina Miolane.
 
 import logging
 import math
-from itertools import product
 
 from scipy.stats import beta
 
@@ -414,11 +413,6 @@ class _Hypersphere(LevelSet):
             "Intrinsic coordinates are only implemented in dimension 1 and 2."
         )
 
-    def _replace_values(self, samples, new_samples, indcs):
-        replaced_indices = [i for i, is_replaced in enumerate(indcs) if is_replaced]
-        value_indices = list(product(replaced_indices, range(self.dim + 1)))
-        return gs.assignment(samples, gs.flatten(new_samples), value_indices)
-
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in the hypersphere from the uniform distribution.
 
@@ -455,12 +449,12 @@ class _Hypersphere(LevelSet):
         samples = gs.random.normal(size=size)
         while True:
             norms = gs.linalg.norm(samples, axis=1)
-            indcs = gs.isclose(norms, 0.0, atol=gs.atol)
-            num_bad_samples = gs.sum(indcs)
+            mask = gs.isclose(norms, 0.0, atol=gs.atol)
+            num_bad_samples = gs.sum(mask)
             if num_bad_samples == 0:
                 break
-            new_samples = gs.random.normal(size=(num_bad_samples, self.dim + 1))
-            samples = self._replace_values(samples, new_samples, indcs)
+
+            samples[mask] = gs.random.normal(size=(num_bad_samples, self.dim + 1))
 
         samples = gs.einsum("..., ...i->...i", 1 / norms, samples)
         if n_samples == 1:

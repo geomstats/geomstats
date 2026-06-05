@@ -1,5 +1,3 @@
-import random
-
 import pytest
 import scipy
 
@@ -367,28 +365,6 @@ class HypersphereExtrinsicTestCase(LevelSetTestCase):
         estimator.fit(sample)
 
         return estimator.estimate_
-
-    @pytest.mark.random
-    def test_replace_values(self, n_points, atol):
-        points = self.data_generator.random_point(n_points)
-        new_points = self.data_generator.random_point(n_points)
-
-        n_indices = random.randint(1, n_points)
-        indices_int = [
-            (index,) for index in random.sample(range(0, n_points), n_indices)
-        ]
-        if n_indices:
-            indices = gs.array_from_sparse(
-                indices_int, [True for _ in range(n_indices)], (n_points,)
-            )
-        else:
-            indices = gs.zeros(n_points, dtype=bool)
-
-        replaced_points = self.space._replace_values(
-            points, new_points[indices], indices
-        )
-
-        self.assertAllClose(replaced_points[indices], new_points[indices], atol=atol)
 
     @pytest.mark.random
     def test_random_von_mises_fisher_sample_mean(
