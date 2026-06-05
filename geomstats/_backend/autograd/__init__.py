@@ -26,7 +26,6 @@ from autograd.numpy import (
     complex128,
     concatenate,
     conj,
-    copy,
     cos,
     cosh,
     cross,
@@ -166,6 +165,10 @@ def to_numpy(x):
 
 def from_numpy(x):
     return x
+
+
+def copy(x):
+    return _np.array(x, copy=True)
 
 
 def imag(x):
