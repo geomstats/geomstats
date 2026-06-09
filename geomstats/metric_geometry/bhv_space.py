@@ -131,6 +131,18 @@ class TreeTopology(ForestTopology):
         """
         return self.split_sets[0]
 
+    def topology_key(self):
+        """To allow hash comparison of topologies.
+
+        Returns
+        -------
+        split_key : frozenset version of splits
+            frozenset version of splits.
+        """
+        return frozenset(
+            frozenset([frozenset(s.part1), frozenset(s.part2)]) for s in self.splits
+        )
+
     @property
     def labels(self):
         """Node labels.
@@ -413,7 +425,14 @@ class Tree(Point):
 
         return nx_graph
 
-    def plot(self, root_id=None, pendant_edges=None, leaf_labels=None, ax=None):
+    def plot(
+        self,
+        root_id=None,
+        pendant_edges=None,
+        show_edge_weights=False,
+        leaf_labels=None,
+        ax=None,
+    ):
         r"""Plot the networkx representation of the tree.
 
         Parameters
@@ -444,6 +463,10 @@ class Tree(Point):
             font_size=10,
             edge_color="gray",
         )
+
+        if show_edge_weights:
+            edge_labels = nx.get_edge_attributes(nx_tree, "length")
+            nx.draw_networkx_edge_labels(nx_tree, pos, edge_labels=edge_labels, ax=ax)
         return ax
 
     @staticmethod
