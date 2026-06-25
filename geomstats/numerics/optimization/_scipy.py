@@ -52,10 +52,17 @@ class ScipyMinimize(Minimizer):
 
     def _handle_jac(self, fun, fun_jac):
         if fun_jac is not None:
-            fun_ = lambda x: gs.to_numpy(fun(gs.from_numpy(x)))
-            fun_jac_ = fun_jac
             if callable(fun_jac):
+                fun_ = lambda x: gs.to_numpy(fun(gs.from_numpy(x)))
                 fun_jac_ = lambda x: fun_jac(gs.from_numpy(x))
+
+            else:
+
+                def fun_(x):
+                    val, grad = fun(gs.from_numpy(x))
+                    return gs.to_numpy(val), grad
+
+                fun_jac_ = fun_jac
 
             return fun_, fun_jac_
 
