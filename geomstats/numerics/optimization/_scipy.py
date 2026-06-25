@@ -52,7 +52,7 @@ class ScipyMinimize(Minimizer):
 
     def _handle_jac(self, fun, fun_jac):
         if fun_jac is not None:
-            fun_ = lambda x: fun(gs.from_numpy(x))
+            fun_ = lambda x: gs.to_numpy(fun(gs.from_numpy(x)))
             fun_jac_ = fun_jac
             if callable(fun_jac):
                 fun_jac_ = lambda x: fun_jac(gs.from_numpy(x))
@@ -61,10 +61,14 @@ class ScipyMinimize(Minimizer):
 
         if self.autodiff_jac:
             jac = True
-            fun_ = lambda x: gs.autodiff.value_and_grad(fun)(gs.from_numpy(x))
+
+            def fun_(x):
+                val, grad = gs.autodiff.value_and_grad(fun)(gs.from_numpy(x))
+                return gs.to_numpy(val), grad
+
         else:
             jac = fun_jac
-            fun_ = lambda x: fun(gs.from_numpy(x))
+            fun_ = lambda x: gs.to_numpy(fun(gs.from_numpy(x)))
 
         return fun_, jac
 
