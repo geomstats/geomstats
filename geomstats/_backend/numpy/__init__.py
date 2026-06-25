@@ -184,10 +184,6 @@ def flatten(x):
     return x.flatten()
 
 
-def one_hot(labels, num_classes):
-    return eye(num_classes, dtype=_np.dtype("uint8"))[labels]
-
-
 def ndim(x):
     return x.ndim
 

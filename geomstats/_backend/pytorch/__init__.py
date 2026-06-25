@@ -132,12 +132,6 @@ def to_numpy(x):
     return x.numpy()
 
 
-def one_hot(labels, num_classes):
-    if not _torch.is_tensor(labels):
-        labels = _torch.LongTensor(labels)
-    return _torch.nn.functional.one_hot(labels, num_classes).type(_torch.uint8)
-
-
 def argmax(a, **kwargs):
     if a.dtype == _torch.bool:
         return _torch.as_tensor(_np.argmax(a.data.numpy(), **kwargs))

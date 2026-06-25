@@ -114,7 +114,6 @@ BACKEND_ATTRIBUTES = {
         "mod",
         "moveaxis",
         "ndim",
-        "one_hot",
         "ones",
         "ones_like",
         "outer",
