@@ -105,7 +105,12 @@ class ScipyMinimize(Minimizer):
         hessp : callable
         """
         fun_, jac = self._handle_jac(fun, fun_jac)
-        hess = self._handle_hess(fun, fun_hess)
+
+        fun_for_hess = fun
+        if fun_jac is not None and not callable(fun_jac):
+            fun_for_hess = lambda x: fun(x)[0]
+
+        hess = self._handle_hess(fun_for_hess, fun_hess)
 
         result = scipy.optimize.minimize(
             fun_,
