@@ -247,3 +247,18 @@ class AlphaConnection(Connection):
             "...kl, ...ijl -> ...kij", cometric_matrix, first_kind_christoffels
         )
         return second_kind_christoffels
+    
+    def jacobian_christoffels(self, base_point):
+        r"""Compute the Jacobian of the Christoffel symbols.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        matrix : array-like, shape=[..., dim, dim, dim, dim]
+            Jacobian of the Christoffel symbols.
+        """
+        raise NotImplementedError

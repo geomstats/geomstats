@@ -25,10 +25,9 @@ from geomstats.information_geometry.base import (
     ScipyMultivariateRandomVariable,
     ScipyUnivariateRandomVariable,
 )
-from geomstats.numerics.geodesic import ExpODESolver, GSIVPIntegrator
+from geomstats.numerics.geodesic import ExpODESolver, GSIVPIntegrator, LogODESolver, ScipySolveBVP
 from geomstats.vectorization import broadcast_to_multibatch, get_batch_shape, repeat_out
 from geomstats.information_geometry.base import AlphaConnection
-from geomstats.numerics.geodesic import ExpODESolver
 
 class NormalDistributions:
     """Class for the normal distributions.
@@ -947,13 +946,18 @@ class UnivariateNormalAlpha(AlphaConnection):
           of the Fisher–Rao metric (first kind),
         - T_{ijk} is the covariant Amari–Chentsov tensor.
     """
-    def __init__(self, space, riemannian_manifold, alpha, integrator_kwargs=None):
+    def __init__(self, space, riemannian_manifold, alpha, ivp_kwargs=None, bvp_kwargs=None):
         super().__init__(space, riemannian_manifold, alpha)
 
-        integrator_kwargs = integrator_kwargs or dict(step_type="rk4", n_steps=200)
+        ivp_kwargs = ivp_kwargs or dict(step_type="rk4", n_steps=200)
+        bvp_kwargs = bvp_kwargs or dict(tol=1e-3, max_nodes=1000)
+
         self.exp_solver = ExpODESolver(
-            space, integrator=GSIVPIntegrator(**integrator_kwargs)
+            space, integrator=GSIVPIntegrator(**ivp_kwargs)
         )
+        self.log_solver = LogODESolver(
+            space, integrator=ScipySolveBVP(**bvp_kwargs)
+    )
 
 
     def amari_tensor_covariant(self, base_point):
@@ -1037,4 +1041,32 @@ class UnivariateNormalAlpha(AlphaConnection):
         amari = self.amari_tensor_covariant(base_point)
 
         return gamma_lc - (self.alpha / 2.0) * amari
+
+
+    def jacobian_christoffels(self, base_point):
+        '''
+        Compute the Jacobian of the Christoffel symbols.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point representing a normal distribution (μ, σ).
+
+        Returns
+        -------
+        jac : array-like, shape=[..., 2, 2, 2, 2]
+            Jacobian of the Christoffel symbols.
+        '''
+        sigma = base_point[..., 1]
+        alpha = self.alpha
+        batch_shape = base_point.shape[:-1]
+
+        jac = gs.zeros(batch_shape + (2, 2, 2, 2))
+
+        jac[..., 0, 0, 1, 1] = (1 + alpha) / sigma**2
+        jac[..., 0, 1, 0, 1] = (1 + alpha) / sigma**2
+        jac[..., 1, 0, 0, 1] = -(1 - alpha) / (2 * sigma**2)
+        jac[..., 1, 1, 1, 1] = (1 + 2 * alpha) / sigma**2
+
+        return jac
 

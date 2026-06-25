@@ -2,12 +2,15 @@ import random
 
 import pytest
 
+import geomstats.backend as gs
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 from geomstats.information_geometry.normal import (
     DiagonalNormalDistributionsRandomVariable,
     MultivariateNormalDistributionsRandomVariable,
     NormalDistributions,
     SharedMeanNormalDistributionsRandomVariable,
+    UnivariateNormalDistributions,
+    UnivariateNormalAlpha,
     UnivariateNormalDistributionsRandomVariable,
     UnivariateNormalToPoincareHalfSpaceDiffeo,
 )
@@ -66,6 +69,86 @@ class TestUnivariateNormalMetric(
 
     testing_data = UnivariateNormalMetricTestData()
 
+
+def test_univariate_normal_alpha_connection_without_metric():
+    space = NormalDistributions(sample_dim=1, equip=False)
+    space.equip_with_connection(UnivariateNormalAlpha, alpha=0.0)
+
+    assert not hasattr(space, "metric")
+    assert space.connection._space is space
+
+    base_point = gs.array([0.2, 1.1])
+    tangent_vec = gs.array([0.05, -0.02])
+
+    end_point = space.exp(tangent_vec, base_point)
+    assert end_point.shape == (2,)
+
+    geodesic = space.geodesic(
+        initial_point=base_point, initial_tangent_vec=tangent_vec
+    )
+    path = geodesic(gs.array([0.0, 1.0]))
+    assert path.shape == (2, 2)
+
+
+@pytest.mark.parametrize("alpha", [-1.0, -0.5, 0.0, 0.5, 1.0])
+@pytest.mark.parametrize("base_point", [
+    [0.0, 1.0],
+    [1.0, 2.0],
+    [0.5, 1.5],
+    [-1.0, 0.8],
+])
+@pytest.mark.parametrize("end_point", [
+    [0.1, 0.9],
+    [0.3, 1.2],
+    [0.4, 1.0],
+    [-0.5, 0.7],
+])
+def test_alpha_geodesic_exp_log_inverse(alpha,base_point,end_point):
+    riemannian_manifold = UnivariateNormalDistributions()
+    space = UnivariateNormalDistributions(equip=False)
+    space.equip_with_connection(
+        UnivariateNormalAlpha,
+        riemannian_manifold=riemannian_manifold,
+        alpha=alpha)
+    
+    base_point = gs.array(base_point)
+    end_point = gs.array(end_point)
+
+    tangent_vec = space.connection.log(end_point, base_point)
+    new_end_point = space.connection.exp(tangent_vec, base_point)
+
+    assert gs.allclose(end_point, new_end_point, atol=1e-4)
+
+
+@pytest.mark.parametrize("alpha", [-1.0, -0.5, 0.0, 0.5, 1.0])
+@pytest.mark.parametrize("base_point", [
+    [0.0, 1.0],
+    [1.0, 2.0],
+    [0.5, 1.5],
+    [-1.0, 0.8],
+])
+@pytest.mark.parametrize("tang_vect", [
+    [0.1, -0.1],
+    [0.2, 0.3],
+    [0.4, -0.2],
+    [-0.3, 0.5],
+])
+def test_alpha_geodesic_log_exp_inverse(alpha,base_point,tang_vect):
+    riemannian_manifold = UnivariateNormalDistributions()
+    space = UnivariateNormalDistributions(equip=False)
+
+    space.equip_with_connection(
+        UnivariateNormalAlpha,
+        riemannian_manifold=riemannian_manifold,
+        alpha=alpha)
+    
+    base_point = gs.array(base_point)
+    tang_vect = gs.array(tang_vect)
+
+    end_point = space.connection.exp(tang_vect, base_point)
+    new_tang_vect = space.connection.log(end_point, base_point)
+
+    assert gs.allclose(tang_vect, new_tang_vect, atol=1e-4)
 
 @pytest.fixture(
     scope="class",
