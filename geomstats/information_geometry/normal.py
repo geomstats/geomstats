@@ -1056,6 +1056,9 @@ class UnivariateNormalAlpha(AlphaConnection):
         -------
         jac : array-like, shape=[..., 2, 2, 2, 2]
             Jacobian of the Christoffel symbols.
+            
+            The last index is the differenciation variable: 
+            jac[..., k, i, j, l] = \partial_l \Gamma^k_{ij}
         '''
         sigma = base_point[..., 1]
         alpha = self.alpha
