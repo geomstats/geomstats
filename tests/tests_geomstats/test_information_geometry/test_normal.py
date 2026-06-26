@@ -70,24 +70,50 @@ class TestUnivariateNormalMetric(
     testing_data = UnivariateNormalMetricTestData()
 
 
-def test_univariate_normal_alpha_connection_without_metric():
-    space = NormalDistributions(sample_dim=1, equip=False)
-    space.equip_with_connection(UnivariateNormalAlpha, alpha=0.0)
+def test_alpha0_geodesic_matches_fisher_rao():
+    """Alpha-geodesic at alpha=0 must coincide with the Fisher-Rao geodesic.
 
-    assert not hasattr(space, "metric")
-    assert space.connection._space is space
+    When alpha=0 the alpha-connection is the Levi-Civita connection of the
+    Fisher-Rao metric, so exp, log and full geodesic paths must be the same.
+    """
+    riemannian_manifold = UnivariateNormalDistributions()
+
+    space_alpha = UnivariateNormalDistributions(equip=False)
+    space_alpha.equip_with_connection(
+        UnivariateNormalAlpha,
+        riemannian_manifold=riemannian_manifold,
+        alpha=0.0,
+    )
+
+    space_fr = UnivariateNormalDistributions()
 
     base_point = gs.array([0.2, 1.1])
     tangent_vec = gs.array([0.05, -0.02])
+    times = gs.linspace(0.0, 1.0, 5)
 
-    end_point = space.exp(tangent_vec, base_point)
-    assert end_point.shape == (2,)
+    end_alpha = space_alpha.connection.exp(tangent_vec, base_point)
+    end_fr = space_fr.metric.exp(tangent_vec, base_point)
+    assert gs.allclose(end_alpha, end_fr, atol=1e-4), (
+        f"exp does not match: alpha={end_alpha}, fisher-rao={end_fr}"
+    )
 
-    geodesic = space.geodesic(
+    log_alpha = space_alpha.connection.log(end_fr, base_point)
+    log_fr = space_fr.metric.log(end_fr, base_point)
+    assert gs.allclose(log_alpha, log_fr, atol=1e-4), (
+        f"log does not match: alpha={log_alpha}, fisher-rao={log_fr}"
+    )
+
+    geo_alpha = space_alpha.connection.geodesic(
         initial_point=base_point, initial_tangent_vec=tangent_vec
     )
-    path = geodesic(gs.array([0.0, 1.0]))
-    assert path.shape == (2, 2)
+    geo_fr = space_fr.metric.geodesic(
+        initial_point=base_point, initial_tangent_vec=tangent_vec
+    )
+    path_alpha = geo_alpha(times)
+    path_fr = geo_fr(times)
+    assert gs.allclose(path_alpha, path_fr, atol=1e-4), (
+        f"geodesic path does not match:\nalpha={path_alpha}\nfisher-rao={path_fr}"
+    )
 
 
 @pytest.mark.parametrize("alpha", [-1.0, -0.5, 0.0, 0.5, 1.0])
