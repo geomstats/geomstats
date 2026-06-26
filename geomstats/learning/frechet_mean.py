@@ -698,7 +698,7 @@ class SturmsMean(BaseEstimator):
     def _step_length_cyclic(self, weights, k):
         n_weights = len(weights)
         cycles, remainder = divmod(k, n_weights)
-        total_weight_so_far = (cycles * 1.0) + gs.sum(weights[:remainder])
+        total_weight_so_far = (cycles * 1.0) + gs.sum(weights[: remainder + 1])
         return weights[k % n_weights] / total_weight_so_far
 
     def _step_length_stochastic(self, weights, k):
