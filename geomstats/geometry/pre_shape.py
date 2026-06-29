@@ -289,10 +289,10 @@ class PreShapeBundle(FiberBundle):
         skew : array-like, shape=[..., ambient_dim, ambient_dim]
             Vertical component of `tangent_vec`.
         """
-        transposed_point = Matrices.transpose(base_point)
+        transposed_point = gs.transpose(base_point)
         left_term = gs.matmul(transposed_point, base_point)
-        alignment = gs.matmul(Matrices.transpose(tangent_vec), base_point)
-        right_term = alignment - Matrices.transpose(alignment)
+        alignment = gs.matmul(gs.transpose(tangent_vec), base_point)
+        right_term = alignment - gs.transpose(alignment)
         skew = gs.linalg.solve_sylvester(left_term, left_term, right_term)
 
         vertical = -gs.matmul(base_point, skew)
@@ -317,7 +317,7 @@ class PreShapeBundle(FiberBundle):
         is_tangent : bool
             Boolean denoting if tangent vector is horizontal.
         """
-        product = gs.matmul(Matrices.transpose(tangent_vec), base_point)
+        product = gs.matmul(gs.transpose(tangent_vec), base_point)
         is_tangent = self._total_space.is_tangent(tangent_vec, base_point, atol)
         is_symmetric = Matrices.is_symmetric(product, atol)
         return gs.logical_and(is_tangent, is_symmetric)
@@ -362,16 +362,16 @@ class PreShapeBundle(FiberBundle):
             in Kendall shape spaces. Unpublished.
         """
         hor_x = self.horizontal_projection(tangent_vec_x, base_point)
-        p_top = Matrices.transpose(base_point)
+        p_top = gs.transpose(base_point)
         p_top_p = gs.matmul(p_top, base_point)
 
         def sylv_p(mat_b):
             """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
-                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b)
+                p_top_p, p_top_p, mat_b - gs.transpose(mat_b)
             )
 
-        e_top_hor_x = gs.matmul(Matrices.transpose(tangent_vec_e), hor_x)
+        e_top_hor_x = gs.matmul(gs.transpose(tangent_vec_e), hor_x)
         sylv_e_top_hor_x = sylv_p(e_top_hor_x)
 
         p_top_e = gs.matmul(p_top, tangent_vec_e)
@@ -452,16 +452,16 @@ class PreShapeBundle(FiberBundle):
         if not gs.all(self._total_space.is_tangent(nabla_x_e, base_point)):
             raise ValueError("Vector nabla_x_e is not tangent")
 
-        p_top = Matrices.transpose(base_point)
+        p_top = gs.transpose(base_point)
         p_top_p = gs.matmul(p_top, base_point)
-        e_top = Matrices.transpose(tangent_vec_e)
-        x_top = Matrices.transpose(horizontal_vec_x)
-        y_top = Matrices.transpose(horizontal_vec_y)
+        e_top = gs.transpose(tangent_vec_e)
+        x_top = gs.transpose(horizontal_vec_x)
+        y_top = gs.transpose(horizontal_vec_y)
 
         def sylv_p(mat_b):
             """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
-                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b)
+                p_top_p, p_top_p, mat_b - gs.transpose(mat_b)
             )
 
         omega_ep = sylv_p(gs.matmul(p_top, tangent_vec_e))
@@ -546,17 +546,17 @@ class PreShapeBundle(FiberBundle):
         if not gs.all(self.is_horizontal(horizontal_vec_z, base_point)):
             raise ValueError("Tangent vector z is not horizontal")
 
-        p_top = Matrices.transpose(base_point)
+        p_top = gs.transpose(base_point)
         p_top_p = gs.matmul(p_top, base_point)
 
         def sylv_p(mat_b):
             """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
-                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b)
+                p_top_p, p_top_p, mat_b - gs.transpose(mat_b)
             )
 
-        z_top = Matrices.transpose(horizontal_vec_z)
-        y_top = Matrices.transpose(horizontal_vec_y)
+        z_top = gs.transpose(horizontal_vec_z)
+        y_top = gs.transpose(horizontal_vec_y)
         omega_yz = sylv_p(gs.matmul(z_top, horizontal_vec_y))
         a_y_z = gs.matmul(base_point, omega_yz)
         omega_xy = sylv_p(gs.matmul(y_top, horizontal_vec_x))
@@ -635,24 +635,24 @@ class PreShapeBundle(FiberBundle):
         if not gs.all(self.is_horizontal(horizontal_vec_y, base_point)):
             raise ValueError("Tangent vector y is not horizontal")
 
-        p_top = Matrices.transpose(base_point)
+        p_top = gs.transpose(base_point)
         p_top_p = gs.matmul(p_top, base_point)
 
         def sylv_p(mat_b):
             """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
-                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b)
+                p_top_p, p_top_p, mat_b - gs.transpose(mat_b)
             )
 
-        y_top = Matrices.transpose(horizontal_vec_y)
-        x_top = Matrices.transpose(horizontal_vec_x)
+        y_top = gs.transpose(horizontal_vec_y)
+        x_top = gs.transpose(horizontal_vec_x)
         x_y_top = gs.matmul(y_top, horizontal_vec_x)
         omega_xy = sylv_p(x_y_top)
         vertical_vec_v = gs.matmul(base_point, omega_xy)
         omega_xy_x = gs.matmul(horizontal_vec_x, omega_xy)
         omega_xy_y = gs.matmul(horizontal_vec_y, omega_xy)
 
-        v_top = Matrices.transpose(vertical_vec_v)
+        v_top = gs.transpose(vertical_vec_v)
         x_v_top = gs.matmul(v_top, horizontal_vec_x)
         omega_xv = sylv_p(x_v_top)
         omega_xv_p = gs.matmul(base_point, omega_xv)
@@ -908,9 +908,9 @@ class KendallShapeMetric(QuotientMetric):
             coef = self.inner_product(speed, state, gamma_t)
             normal = gs.einsum("...,...ij->...ij", coef, gamma_t)
 
-            align = gs.matmul(Matrices.transpose(speed), state)
-            right = align - Matrices.transpose(align)
-            left = gs.matmul(Matrices.transpose(gamma_t), gamma_t)
+            align = gs.matmul(gs.transpose(speed), state)
+            right = align - gs.transpose(align)
+            left = gs.matmul(gs.transpose(gamma_t), gamma_t)
             skew_ = gs.linalg.solve_sylvester(left, left, right)
             vertical_ = -gs.matmul(gamma_t, skew_)
             return vertical_ - normal

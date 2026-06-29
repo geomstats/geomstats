@@ -89,7 +89,6 @@ from autograd.numpy import (
     tan,
     tanh,
     tile,
-    transpose,
     tril,
     tril_indices,
     triu,
@@ -202,6 +201,22 @@ def flatten(x):
 
 def ndim(x):
     return x.ndim
+
+
+def transpose(x):
+    """Return the transpose of a matrix.
+
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, m]
+        Matrix.
+
+    Returns
+    -------
+    transpose : array-like, shape=[..., n, m]
+        Transposed matrix.
+    """
+    return _np.swapaxes(x, -1, -2)
 
 
 def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):

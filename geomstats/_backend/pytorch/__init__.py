@@ -297,14 +297,8 @@ def einsum(equation, *inputs):
     return _torch.einsum(equation, *input_tensors_list)
 
 
-def transpose(x, axes=None):
-    if axes:
-        return x.permute(axes)
-    if x.dim() == 1:
-        return x
-    if x.dim() > 2 and axes is None:
-        return x.permute(tuple(range(x.ndim)[::-1]))
-    return x.t()
+def transpose(x):
+    return _torch.transpose(x, -1, -2)
 
 
 def squeeze(x, axis=None):

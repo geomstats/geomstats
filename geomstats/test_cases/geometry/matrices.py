@@ -114,13 +114,13 @@ class MatrixOperationsTestCase(TestCase):
         self.assertAllClose(left, right, atol=atol)
 
     def test_transpose(self, mat, expected, atol):
-        res = Matrices.transpose(mat)
+        res = gs.transpose(mat)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
     def test_transpose_vec(self, n_reps, atol):
         mat = self.data_generator.random_mat()
-        expected = Matrices.transpose(mat)
+        expected = gs.transpose(mat)
 
         vec_data = generate_vectorization_data(
             data=[dict(mat=mat, expected=expected, atol=atol)],

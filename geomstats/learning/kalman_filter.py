@@ -374,7 +374,7 @@ class Localization:
         """
         theta, _, _ = state
         rot = self.rotation_matrix(theta)
-        return Matrices.mul(Matrices.transpose(rot), observation_cov, rot)
+        return Matrices.mul(gs.transpose(rot), observation_cov, rot)
 
     def observation_model(self, state):
         """Model used to create the measurements.
@@ -415,7 +415,7 @@ class Localization:
         theta, _, _ = state
         rot = self.rotation_matrix(theta)
         expected = self.observation_model(state)
-        return gs.matvec(Matrices.transpose(rot), observation - expected)
+        return gs.matvec(gs.transpose(rot), observation - expected)
 
 
 class KalmanFilter:
@@ -464,8 +464,8 @@ class KalmanFilter:
         prop_jac = self.model.propagation_jacobian(self.state, sensor_input)
         noise_jac = self.model.noise_jacobian(self.state, sensor_input)
 
-        prop_cov = Matrices.mul(prop_jac, self.covariance, Matrices.transpose(prop_jac))
-        noise_cov = Matrices.mul(noise_jac, prop_noise, Matrices.transpose(noise_jac))
+        prop_cov = Matrices.mul(prop_jac, self.covariance, gs.transpose(prop_jac))
+        noise_cov = Matrices.mul(noise_jac, prop_noise, gs.transpose(noise_jac))
         self.covariance = prop_cov + noise_cov
         self.state = self.model.propagate(self.state, sensor_input)
 
@@ -491,12 +491,10 @@ class KalmanFilter:
             self.state, self.measurement_noise
         )
         obs_jac = self.model.observation_jacobian(self.state, observation)
-        expected_cov = Matrices.mul(
-            obs_jac, self.covariance, Matrices.transpose(obs_jac)
-        )
+        expected_cov = Matrices.mul(obs_jac, self.covariance, gs.transpose(obs_jac))
         innovation_cov = expected_cov + obs_cov
         return Matrices.mul(
-            self.covariance, Matrices.transpose(obs_jac), gs.linalg.inv(innovation_cov)
+            self.covariance, gs.transpose(obs_jac), gs.linalg.inv(innovation_cov)
         )
 
     def update(self, observation):

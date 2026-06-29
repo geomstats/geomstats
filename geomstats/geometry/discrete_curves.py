@@ -17,7 +17,6 @@ from geomstats.geometry.fiber_bundle import AlignerAlgorithm, FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks import Landmarks
 from geomstats.geometry.manifold import register_quotient
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
@@ -1767,7 +1766,7 @@ class RotationBundle(FiberBundle):
 
     def _rotate(self, point, rotation):
         """Rotate discrete curve starting at origin."""
-        return Matrices.transpose(gs.matmul(rotation, Matrices.transpose(point)))
+        return gs.transpose(gs.matmul(rotation, gs.transpose(point)))
 
     def align(self, point, base_point, return_rotation=False):
         """Align point to base point.
@@ -1793,7 +1792,7 @@ class RotationBundle(FiberBundle):
         initial_srv = transform(base_point)
         end_srv = transform(point)
 
-        mat = gs.matmul(Matrices.transpose(initial_srv), end_srv)
+        mat = gs.matmul(gs.transpose(initial_srv), end_srv)
         u_svd, _, vt_svd = gs.linalg.svd(mat)
         sign = gs.linalg.det(gs.matmul(u_svd, vt_svd))
         vt_svd[..., -1, :] = gs.einsum("...,...j->...j", sign, vt_svd[..., -1, :])
