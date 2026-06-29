@@ -136,13 +136,13 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         if self.n == 2:
             return matrix_representation[..., 1, 0][..., None]
         if self.n == 3:
-            vec = gs.stack(
+            return gs.stack(
                 [
                     matrix_representation[..., 2, 1],
                     matrix_representation[..., 0, 2],
                     matrix_representation[..., 1, 0],
-                ]
+                ],
+                axis=-1,
             )
-            return gs.transpose(vec)
 
         return gs.triu_to_vec(matrix_representation, k=1)
