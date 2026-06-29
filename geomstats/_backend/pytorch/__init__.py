@@ -28,7 +28,6 @@ from torch import (
     kron,
     less,
     logical_or,
-    mean,
     median,
     meshgrid,
     moveaxis,
@@ -252,6 +251,10 @@ def maximum(a, b):
 
 def minimum(a, b):
     return _torch.min(array(a), array(b))
+
+
+def mean(x, axis=None, keepdims=False):
+    return _torch.mean(x, dim=axis, keepdim=keepdims)
 
 
 def to_ndarray(x, to_ndim, axis=0, dtype=None):
