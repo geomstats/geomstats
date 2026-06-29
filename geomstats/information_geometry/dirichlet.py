@@ -320,8 +320,10 @@ class DirichletMetric(RiemannianMetric):
         jac_6 = -gs.einsum("k...,j...->kj...", term_5, term_3) / term_9
         jac_6_mat = gs.transpose(from_vector_to_diagonal_matrix(gs.transpose(jac_6)))
         jac_6_mat = (
-            gs.transpose(
-                from_vector_to_diagonal_matrix(gs.transpose(jac_6_mat, [0, 1, 3, 2])),
+            gs.permute_dims(
+                from_vector_to_diagonal_matrix(
+                    gs.permute_dims(jac_6_mat, [0, 1, 3, 2])
+                ),
                 [0, 1, 3, 4, 2],
             )
             if n_dim > 1
@@ -346,9 +348,9 @@ class DirichletMetric(RiemannianMetric):
         )
 
         return (
-            gs.transpose(jac, [3, 1, 0, 2])
+            gs.permute_dims(jac, [3, 1, 0, 2])
             if n_dim == 1
-            else gs.transpose(jac, [4, 3, 1, 0, 2])
+            else gs.permute_dims(jac, [4, 3, 1, 0, 2])
         )
 
     def injectivity_radius(self, base_point=None):
