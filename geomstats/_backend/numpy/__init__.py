@@ -69,6 +69,7 @@ from numpy import (
     ones,
     ones_like,
     pad,
+    permute_dims,
     power,
     prod,
     quantile,

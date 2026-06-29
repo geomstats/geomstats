@@ -301,6 +301,13 @@ def transpose(x):
     return _torch.transpose(x, -1, -2)
 
 
+def permute_dims(x, axes=None):
+    if axes is None:
+        axes = tuple(range(x.ndim - 1, -1, -1))
+
+    return _torch.permute(x, *axes)
+
+
 def squeeze(x, axis=None):
     if not is_array(x):
         return x

@@ -118,6 +118,7 @@ BACKEND_ATTRIBUTES = {
         "ones_like",
         "outer",
         "pad",
+        "permute_dims",
         "pi",
         "polygamma",
         "power",
