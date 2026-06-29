@@ -411,7 +411,7 @@ class Matrices(MatrixVectorSpace):
         is_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric.
         """
-        return cls.equal(mat, cls.transpose(mat), atol)
+        return cls.equal(mat, gs.transpose(mat), atol)
 
     @classmethod
     def is_pd(cls, mat):
@@ -473,7 +473,7 @@ class Matrices(MatrixVectorSpace):
         is_skew_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is skew-symmetric.
         """
-        return cls.equal(mat, -cls.transpose(mat), atol)
+        return cls.equal(mat, -gs.transpose(mat), atol)
 
     @classmethod
     def to_diagonal(cls, mat):
@@ -584,7 +584,7 @@ class Matrices(MatrixVectorSpace):
         sym : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        return 1 / 2 * (mat + cls.transpose(mat))
+        return 1 / 2 * (mat + gs.transpose(mat))
 
     @classmethod
     def to_skew_symmetric(cls, mat):
@@ -603,7 +603,7 @@ class Matrices(MatrixVectorSpace):
         skew_sym : array-like, shape=[..., n, n]
             Skew-symmetric matrix.
         """
-        return 1 / 2 * (mat - cls.transpose(mat))
+        return 1 / 2 * (mat - gs.transpose(mat))
 
     @classmethod
     def to_lower_triangular_diagonal_scaled(cls, mat, K=2.0):
@@ -666,7 +666,7 @@ class Matrices(MatrixVectorSpace):
         cong : array-like, shape=[..., n, n]
             Result of the congruent action.
         """
-        return cls.mul(mat_2, mat_1, cls.transpose(mat_2))
+        return cls.mul(mat_2, mat_1, gs.transpose(mat_2))
 
     @staticmethod
     def frobenius_product(mat_1, mat_2):
@@ -791,7 +791,7 @@ class Matrices(MatrixVectorSpace):
         aligned : array-like, shape=[..., m, n]
             R.point.
         """
-        mat = gs.matmul(cls.transpose(point), base_point)
+        mat = gs.matmul(gs.transpose(point), base_point)
         left, singular_values, right = gs.linalg.svd(mat, full_matrices=False)
         det = gs.linalg.det(mat)
         conditioning = (
@@ -807,10 +807,10 @@ class Matrices(MatrixVectorSpace):
             logging.warning("Alignment matrix is not unique.")
 
         if flip:
-            flipped = flip_determinant(cls.transpose(right), det)
+            flipped = flip_determinant(gs.transpose(right), det)
         else:
-            flipped = cls.transpose(right)
-        return Matrices.mul(point, left, cls.transpose(flipped))
+            flipped = gs.transpose(right)
+        return Matrices.mul(point, left, gs.transpose(flipped))
 
 
 class MatricesMetric(EuclideanMetric):
