@@ -121,8 +121,8 @@ class KendallSphere:
         coords_x = 0.5 * gs.cos(coords_theta) * gs.sin(coords_phi)
         coords_y = 0.5 * gs.sin(coords_theta) * gs.sin(coords_phi)
         coords_z = 0.5 * gs.cos(coords_phi)
-        spherical_coords = gs.transpose(gs.stack((coords_x, coords_y, coords_z)))
-        return spherical_coords
+
+        return gs.stack((coords_x, coords_y, coords_z), axis=-1)
 
     def add_points(self, points):
         """Add points to draw on the Kendall sphere."""
@@ -364,8 +364,7 @@ class KendallDisk:
         coords_r, coords_theta = self.convert_to_polar_coordinates(points)
         coords_x = coords_r * gs.cos(coords_theta)
         coords_y = coords_r * gs.sin(coords_theta)
-        planar_coords = gs.transpose(gs.stack((coords_x, coords_y)))
-        return planar_coords
+        return gs.stack((coords_x, coords_y), axis=-1)
 
     def add_points(self, points):
         """Add points to draw on the Kendall disk."""
