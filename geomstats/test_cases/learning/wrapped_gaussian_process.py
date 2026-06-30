@@ -74,7 +74,7 @@ class WrappedGaussianProcessTestCase(BaseEstimatorTestCase):
 
         self.estimator.fit(X, y)
         y_ = self.estimator.sample_y(X)
-        y_ = gs.reshape(gs.transpose(y_, [0, 2, 1]), (-1, y_.shape[1]))
+        y_ = gs.reshape(gs.transpose(y_), (-1, y_.shape[1]))
 
         res = self.estimator.space.belongs(y_, atol=atol)
         expected = gs.ones(n_samples, dtype=bool)

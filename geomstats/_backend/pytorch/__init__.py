@@ -28,7 +28,6 @@ from torch import (
     kron,
     less,
     logical_or,
-    mean,
     median,
     meshgrid,
     moveaxis,
@@ -254,6 +253,10 @@ def minimum(a, b):
     return _torch.min(array(a), array(b))
 
 
+def mean(x, axis=None, dtype=None, keepdims=False, out=None):
+    return _torch.mean(x, dim=axis, dtype=dtype, keepdim=keepdims, out=out)
+
+
 def to_ndarray(x, to_ndim, axis=0, dtype=None):
     x = _torch.as_tensor(x, dtype=dtype)
 
@@ -297,14 +300,15 @@ def einsum(equation, *inputs):
     return _torch.einsum(equation, *input_tensors_list)
 
 
-def transpose(x, axes=None):
-    if axes:
-        return x.permute(axes)
-    if x.dim() == 1:
-        return x
-    if x.dim() > 2 and axes is None:
-        return x.permute(tuple(range(x.ndim)[::-1]))
-    return x.t()
+def transpose(x):
+    return _torch.transpose(x, -1, -2)
+
+
+def permute_dims(x, axes=None):
+    if axes is None:
+        axes = tuple(range(x.ndim - 1, -1, -1))
+
+    return _torch.permute(x, axes)
 
 
 def squeeze(x, axis=None):

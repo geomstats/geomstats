@@ -56,7 +56,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         return GeneralLinear(self.n, positive_det=True, equip=False)
 
     def _aux_submersion(self, point):
-        return Matrices.mul(Matrices.transpose(point), point)
+        return Matrices.mul(gs.transpose(point), point)
 
     def submersion(self, point):
         """Submersion that defines the manifold.
@@ -83,9 +83,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         -------
         submersed_vector : array-like, shape=[..., n, n]
         """
-        return 2 * Matrices.to_symmetric(
-            Matrices.mul(Matrices.transpose(point), vector)
-        )
+        return 2 * Matrices.to_symmetric(Matrices.mul(gs.transpose(point), vector))
 
     @classmethod
     def inverse(cls, point):
@@ -101,7 +99,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         inverse : array-like, shape=[..., n, n]
             Inverse.
         """
-        return Matrices.transpose(point)
+        return gs.transpose(point)
 
     def projection(self, point):
         """Project a matrix on SO(n) by minimizing the Frobenius norm.
@@ -855,7 +853,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         trace_num = gs.clip(trace, -1, 3)
         angle = gs.arccos(0.5 * (trace_num - 1))
 
-        rot_mat_transpose = Matrices.transpose(rot_mat)
+        rot_mat_transpose = gs.transpose(rot_mat)
         rot_vec_not_pi = self.skew.basis_representation(rot_mat - rot_mat_transpose)
 
         mask_0 = gs.cast(gs.isclose(angle, 0.0), angle.dtype)

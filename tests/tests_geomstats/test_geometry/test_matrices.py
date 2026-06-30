@@ -117,7 +117,7 @@ class MatrixOperationsDataGenerator:
         return LowerTriangularMatrices(*shape).random_point(n_points)
 
     def random_upper_triangular_mat(self, n_points=1, shape=None):
-        return Matrices.transpose(self.random_lower_triangular_mat(n_points, shape))
+        return gs.transpose(self.random_lower_triangular_mat(n_points, shape))
 
     def random_spd_mat(self, n_points=1, shape=None):
         if shape is None:

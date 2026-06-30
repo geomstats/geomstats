@@ -368,7 +368,7 @@ class DiscreteSurfaces(Manifold):
             Surface metric matrices evaluated at each face of
             the triangulated surface.
         """
-        return gs.matmul(one_forms, Matrices.transpose(one_forms))
+        return gs.matmul(one_forms, gs.transpose(one_forms))
 
     def surface_metric_matrices(self, point):
         """Compute the surface metric matrices.
@@ -744,22 +744,20 @@ class ElasticMetric(RiemannianMetric):
         inner_prod_d1 : array-like, shape=[...,]
             Term of order 1, and coefficient d1, of the inner-product.
         """
-        one_forms_bp_t = Matrices.transpose(one_forms_bp)
+        one_forms_bp_t = gs.transpose(one_forms_bp)
 
         aux = gs.matmul(one_forms_bp_t, ginv_bp)
 
         xa = one_forms_a - one_forms_bp
         xa_0 = gs.matmul(
             aux,
-            gs.matmul(xa, one_forms_bp_t)
-            - gs.matmul(one_forms_bp, Matrices.transpose(xa)),
+            gs.matmul(xa, one_forms_bp_t) - gs.matmul(one_forms_bp, gs.transpose(xa)),
         )
 
         xb = one_forms_b - one_forms_bp
         xb_0 = gs.matmul(
             aux,
-            gs.matmul(xb, one_forms_bp_t)
-            - gs.matmul(one_forms_bp, Matrices.transpose(xb)),
+            gs.matmul(xb, one_forms_bp_t) - gs.matmul(one_forms_bp, gs.transpose(xb)),
         )
 
         return self.d1 * gs.sum(
@@ -767,7 +765,7 @@ class ElasticMetric(RiemannianMetric):
                 Matrices.mul(
                     xa_0,
                     ginv_bp,
-                    Matrices.transpose(xb_0),
+                    gs.transpose(xb_0),
                 ),
             )
             * areas_bp,

@@ -69,6 +69,7 @@ from numpy import (
     ones,
     ones_like,
     pad,
+    permute_dims,
     power,
     prod,
     quantile,
@@ -90,7 +91,6 @@ from numpy import (
     tan,
     tanh,
     tile,
-    transpose,
     tril,
     tril_indices,
     triu,
@@ -182,6 +182,22 @@ def squeeze(x, axis=None):
 
 def flatten(x):
     return x.flatten()
+
+
+def transpose(x):
+    """Return the transpose of a matrix.
+
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, m]
+        Matrix.
+
+    Returns
+    -------
+    transpose : array-like, shape=[..., n, m]
+        Transposed matrix.
+    """
+    return _np.swapaxes(x, -1, -2)
 
 
 def ndim(x):

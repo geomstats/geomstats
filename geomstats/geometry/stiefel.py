@@ -64,7 +64,7 @@ class Stiefel(LevelSet):
         -------
         submersed_point : array-like, shape=[..., n, p]
         """
-        return Matrices.mul(Matrices.transpose(point), point) - self._value
+        return Matrices.mul(gs.transpose(point), point) - self._value
 
     def tangent_submersion(self, vector, point):
         """Tangent submersion.
@@ -78,9 +78,7 @@ class Stiefel(LevelSet):
         -------
         submersed_vector : array-like, shape=[..., n, p]
         """
-        return 2 * Matrices.to_symmetric(
-            Matrices.mul(Matrices.transpose(point), vector)
-        )
+        return 2 * Matrices.to_symmetric(Matrices.mul(gs.transpose(point), vector))
 
     @staticmethod
     def to_grassmannian(point):
@@ -101,7 +99,7 @@ class Stiefel(LevelSet):
         projected : array-like, shape=[..., n, n]
             Projected point.
         """
-        return Matrices.mul(point, Matrices.transpose(point))
+        return Matrices.mul(point, gs.transpose(point))
 
     def random_uniform(self, n_samples=1):
         r"""Sample on St(n,p) from the uniform distribution.
@@ -125,7 +123,7 @@ class Stiefel(LevelSet):
         size = (n_samples, n, p) if n_samples != 1 else (n, p)
 
         std_normal = gs.random.normal(size=size)
-        std_normal_transpose = Matrices.transpose(std_normal)
+        std_normal_transpose = gs.transpose(std_normal)
         aux = Matrices.mul(std_normal_transpose, std_normal)
         inv_sqrt_aux = powermh(aux, -1.0 / 2)
         samples = Matrices.mul(std_normal, inv_sqrt_aux)
@@ -171,7 +169,7 @@ class Stiefel(LevelSet):
         tangent_vec : array-like, shape=[..., n, p]
             Tangent vector at base point.
         """
-        aux = Matrices.mul(Matrices.transpose(base_point), vector)
+        aux = Matrices.mul(gs.transpose(base_point), vector)
         sym_aux = Matrices.to_symmetric(aux)
         return vector - Matrices.mul(base_point, sym_aux)
 
@@ -243,10 +241,10 @@ class StiefelCanonicalMetric(RiemannianMetric):
             322-342, 2017. https://epubs.siam.org/doi/pdf/10.1137/16M1074485
 
         """
-        base_point_transpose = Matrices.transpose(base_point)
+        base_point_transpose = gs.transpose(base_point)
 
         aux = gs.matmul(
-            Matrices.transpose(tangent_vec_a),
+            gs.transpose(tangent_vec_a),
             gs.eye(self._space.n) - 0.5 * gs.matmul(base_point, base_point_transpose),
         )
         return Matrices.trace_product(aux, tangent_vec_b)
@@ -268,12 +266,12 @@ class StiefelCanonicalMetric(RiemannianMetric):
             of tangent_vec at the base point.
         """
         p = self._space.p
-        matrix_a = Matrices.mul(Matrices.transpose(base_point), tangent_vec)
+        matrix_a = Matrices.mul(gs.transpose(base_point), tangent_vec)
         matrix_k = tangent_vec - Matrices.mul(base_point, matrix_a)
 
         matrix_q, matrix_r = gs.linalg.qr(matrix_k)
 
-        matrix_ar = gs.concatenate([matrix_a, -Matrices.transpose(matrix_r)], axis=-1)
+        matrix_ar = gs.concatenate([matrix_a, -gs.transpose(matrix_r)], axis=-1)
 
         zeros = gs.zeros_like(tangent_vec)[..., :p, :p]
         matrix_rz = gs.concatenate([matrix_r, zeros], axis=-1)
@@ -372,7 +370,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         """
         point, base_point = gs.broadcast_arrays(point, base_point)
 
-        matrix_m = gs.matmul(Matrices.transpose(base_point), point)
+        matrix_m = gs.matmul(gs.transpose(base_point), point)
 
         if gs.any(matrix_m[..., 0, 0] < 0.0):
             raise ValueError("Algorithm does no work if m11 <= 0.")
@@ -491,7 +489,7 @@ class _StiefelLogSolver(LogSolver):
         [matrix_d, _, matrix_r] = gs.linalg.svd(matrix_v[..., p:, p:])
         matrix_v_final = gs.copy(matrix_v)
         for i in range(1, p + 1):
-            matrix_rd = Matrices.mul(matrix_r, Matrices.transpose(matrix_d))
+            matrix_rd = Matrices.mul(matrix_r, gs.transpose(matrix_d))
             sub_matrix_v = gs.matmul(matrix_v[..., :, p:], matrix_rd)
             matrix_v_final = gs.concatenate(
                 [gs.concatenate([matrix_m, matrix_n], axis=-2), sub_matrix_v], axis=-1
@@ -504,9 +502,7 @@ class _StiefelLogSolver(LogSolver):
             reflection_vec = gs.concatenate([ones[:-i], gs.array([-1.0] * i)], axis=0)
             mask = gs.cast(det < 0, matrix_v.dtype)
             sign = mask[..., None] * reflection_vec + (1.0 - mask)[..., None] * ones
-            matrix_d = gs.einsum(
-                "...ij,...i->...ij", Matrices.transpose(matrix_d), sign
-            )
+            matrix_d = gs.einsum("...ij,...i->...ij", gs.transpose(matrix_d), sign)
 
         return matrix_v_final
 
@@ -552,7 +548,7 @@ class _StiefelLogSolver(LogSolver):
             if not gs.all(det_point * det_base_point > 0.0):
                 raise ValueError("Points from different sheets in log")
 
-        transpose_base_point = Matrices.transpose(base_point)
+        transpose_base_point = gs.transpose(base_point)
         matrix_m = gs.matmul(transpose_base_point, point)
 
         matrix_q, matrix_n = self._normal_component_qr(point, base_point, matrix_m)

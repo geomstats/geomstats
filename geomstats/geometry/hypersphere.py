@@ -230,7 +230,6 @@ class _Hypersphere(LevelSet):
                 " only in dimension 2."
             )
 
-        axes = (2, 0, 1) if base_point_spherical.ndim == 2 else (0, 1)
         theta = base_point_spherical[..., 0]
         phi = base_point_spherical[..., 1]
         phi = gs.where(theta == 0.0, 0.0, phi)
@@ -245,7 +244,8 @@ class _Hypersphere(LevelSet):
             ]
         )
 
-        jac = gs.transpose(jac, axes)
+        if base_point_spherical.ndim == 2:
+            jac = gs.moveaxis(jac, -1, 0)
 
         return gs.einsum("...ij,...j->...i", jac, tangent_vec_spherical)
 
@@ -318,7 +318,6 @@ class _Hypersphere(LevelSet):
         if base_point_spherical is None and base_point is not None:
             base_point_spherical = self.extrinsic_to_spherical(base_point)
 
-        axes = (2, 0, 1) if base_point_spherical.ndim == 2 else (0, 1)
         theta = base_point_spherical[..., 0]
         phi = base_point_spherical[..., 1]
 
@@ -350,8 +349,10 @@ class _Hypersphere(LevelSet):
             ]
         )
 
-        jac = gs.transpose(jac, axes)
-        jac_close_0 = gs.transpose(jac_close_0, axes)
+        if base_point_spherical.ndim == 2:
+            jac = gs.moveaxis(jac, -1, 0)
+            jac_close_0 = gs.moveaxis(jac_close_0, -1, 0)
+
         theta_criterion = gs.einsum("...,...ij->...ij", theta, gs.ones_like(jac))
         jac = gs.where(gs.abs(theta_criterion) < gs.atol, jac_close_0, jac)
 

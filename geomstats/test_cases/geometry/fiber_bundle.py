@@ -517,10 +517,10 @@ class GeneralLinearBuresWassersteinBundle(FiberBundle):
 
     @staticmethod
     def riemannian_submersion(point):
-        return Matrices.mul(point, Matrices.transpose(point))
+        return Matrices.mul(point, gs.transpose(point))
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
-        product = Matrices.mul(base_point, Matrices.transpose(tangent_vec))
+        product = Matrices.mul(base_point, gs.transpose(tangent_vec))
         return 2 * Matrices.to_symmetric(product)
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
