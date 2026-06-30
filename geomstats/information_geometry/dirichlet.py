@@ -196,7 +196,18 @@ class DirichletMetric(RiemannianMetric):
     def christoffels(self, base_point):
         r"""Compute the Christoffel symbols.
 
-        Compute the Christoffel symbols of the Fisher information metric.
+        Compute the Christoffel symbols of the Fisher information metric:
+
+        .. math::
+
+            \Gamma_{j k}^i=\frac{1}{2}\left[\frac{d_i L_0}{D}-\delta_{j k} \frac{d_i L_j}{D}-\delta_{i j} \delta_{i k} L_i\right]
+
+        where
+
+        .. math::
+
+            d_i=\frac{1}{\psi_1\left(\alpha_i\right)}, \quad L_i=\partial_i \log d_i, \quad L_0=\partial_{\alpha_0} \log d_0, \quad D=d_0-\sum_i d_i
+
 
         Parameters
         ----------
@@ -216,51 +227,54 @@ class DirichletMetric(RiemannianMetric):
             geometry of Dirichlet Distributions. Differential Geometry
             and its Applications, 74, 101702, 2021.
         """
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        n_points = base_point.shape[0]
+        dim = self._space.dim
+        param = base_point
 
-        def coefficients(ind_k):
-            """Christoffel symbols for contravariant index ind_k."""
-            param_k = base_point[..., ind_k]
-            param_sum = gs.sum(base_point, -1)
-            c1 = (
-                1
-                / gs.polygamma(1, param_k)
-                / (
-                    1 / gs.polygamma(1, param_sum)
-                    - gs.sum(1 / gs.polygamma(1, base_point), -1)
-                )
+        param_sum = gs.sum(param, axis=-1, keepdims=True)
+
+        trigamma_param = gs.polygamma(1, param)
+        trigamma_sum = gs.polygamma(1, param_sum)
+
+        tetragamma_param = gs.polygamma(2, param)
+        tetragamma_sum = gs.polygamma(2, param_sum)
+
+        inv_trigamma_param = 1 / trigamma_param
+        inv_trigamma_sum = 1 / trigamma_sum
+
+        d_inv_trigamma_param = -tetragamma_param / trigamma_param**2
+        d_inv_trigamma_sum = -tetragamma_sum / trigamma_sum**2
+
+        d_log_inv_trigamma_param = d_inv_trigamma_param / inv_trigamma_param
+        d_log_inv_trigamma_sum = d_inv_trigamma_sum / inv_trigamma_sum
+
+        inv_metric_denominator = inv_trigamma_sum - gs.sum(
+            inv_trigamma_param, axis=-1, keepdims=True
+        )
+
+        eye = gs.eye(dim)
+
+        christoffels_1 = (
+            inv_trigamma_param * d_log_inv_trigamma_sum / inv_metric_denominator
+        )[..., :, None, None]
+
+        christoffels_2 = (
+            -gs.einsum(
+                "...i,...j,jk->...ijk",
+                inv_trigamma_param,
+                d_log_inv_trigamma_param,
+                eye,
             )
-            c2 = -c1 * gs.polygamma(2, param_sum) / gs.polygamma(1, param_sum)
+            / inv_metric_denominator[..., None, None]
+        )
 
-            mat_ones = gs.ones((n_points, self._space.dim, self._space.dim))
-            mat_diag = from_vector_to_diagonal_matrix(
-                -gs.polygamma(2, base_point) / gs.polygamma(1, base_point)
-            )
-            arrays = [
-                gs.zeros((1, ind_k)),
-                gs.ones((1, 1)),
-                gs.zeros((1, self._space.dim - ind_k - 1)),
-            ]
-            vec_k = gs.tile(gs.hstack(arrays), (n_points, 1))
-            val_k = gs.polygamma(2, param_k) / gs.polygamma(1, param_k)
-            vec_k = gs.einsum("i,ij->ij", val_k, vec_k)
-            mat_k = from_vector_to_diagonal_matrix(vec_k)
+        christoffels_3 = -gs.einsum(
+            "...i,ij,ik->...ijk",
+            d_log_inv_trigamma_param,
+            eye,
+            eye,
+        )
 
-            mat = (
-                gs.einsum("i,ijk->ijk", c2, mat_ones)
-                - gs.einsum("i,ijk->ijk", c1, mat_diag)
-                + mat_k
-            )
-
-            return 1 / 2 * mat
-
-        christoffels = []
-        for ind_k in range(self._space.dim):
-            christoffels.append(coefficients(ind_k))
-        christoffels = gs.stack(christoffels, 1)
-
-        return gs.squeeze(christoffels)
+        return 1 / 2 * (christoffels_1 + christoffels_2 + christoffels_3)
 
     def jacobian_christoffels(self, base_point):
         r"""Compute the Jacobian of the Christoffel symbols.
@@ -280,58 +294,95 @@ class DirichletMetric(RiemannianMetric):
             :math:`jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l`
         """
         dim = self._space.dim
-        n_dim = base_point.ndim
-        param = gs.transpose(base_point)
-        sum_param = gs.sum(param, 0)
-        term_1 = 1 / gs.polygamma(1, param)
-        term_2 = 1 / gs.polygamma(1, sum_param)
-        term_3 = -gs.polygamma(2, param) / gs.polygamma(1, param) ** 2
-        term_4 = -gs.polygamma(2, sum_param) / gs.polygamma(1, sum_param) ** 2
-        term_5 = term_3 / term_1
-        term_6 = term_4 / term_2
-        term_7 = (
-            gs.polygamma(2, param) ** 2
-            - gs.polygamma(1, param) * gs.polygamma(3, param)
-        ) / gs.polygamma(1, param) ** 2
-        term_8 = (
-            gs.polygamma(2, sum_param) ** 2
-            - gs.polygamma(1, sum_param) * gs.polygamma(3, sum_param)
-        ) / gs.polygamma(1, sum_param) ** 2
-        term_9 = term_2 - gs.sum(term_1, 0)
+        param = base_point
 
-        jac_1 = term_1 * term_8 / term_9
-        jac_1_mat = gs.squeeze(gs.tile(jac_1, (dim, dim, dim, 1, 1)))
-        jac_2 = (
-            -term_6 / term_9**2 * gs.einsum("j...,i...->ji...", term_4 - term_3, term_1)
+        param_sum = gs.sum(param, axis=-1, keepdims=True)
+
+        trigamma_param = gs.polygamma(1, param)
+        trigamma_sum = gs.polygamma(1, param_sum)
+
+        tetragamma_param = gs.polygamma(2, param)
+        tetragamma_sum = gs.polygamma(2, param_sum)
+
+        pentagamma_param = gs.polygamma(3, param)
+        pentagamma_sum = gs.polygamma(3, param_sum)
+
+        inv_trigamma_param = 1 / trigamma_param
+        inv_trigamma_sum = 1 / trigamma_sum
+
+        d_inv_trigamma_param = -tetragamma_param / trigamma_param**2
+        d_inv_trigamma_sum = -tetragamma_sum / trigamma_sum**2
+
+        d_log_inv_trigamma_param = d_inv_trigamma_param / inv_trigamma_param
+        d_log_inv_trigamma_sum = d_inv_trigamma_sum / inv_trigamma_sum
+
+        dd_log_inv_trigamma_param = (
+            tetragamma_param**2 - trigamma_param * pentagamma_param
+        ) / trigamma_param**2
+        dd_log_inv_trigamma_sum = (
+            tetragamma_sum**2 - trigamma_sum * pentagamma_sum
+        ) / trigamma_sum**2
+
+        inv_metric_denominator = inv_trigamma_sum - gs.sum(
+            inv_trigamma_param, axis=-1, keepdims=True
         )
-        jac_2_mat = gs.squeeze(gs.tile(jac_2, (dim, dim, 1, 1, 1)))
-        jac_3 = term_3 * term_6 / term_9
-        jac_3_mat = gs.transpose(from_vector_to_diagonal_matrix(gs.transpose(jac_3)))
-        jac_3_mat = gs.squeeze(gs.tile(jac_3_mat, (dim, dim, 1, 1, 1)))
-        jac_4 = (
-            1
-            / term_9**2
-            * gs.einsum("k...,j...,i...->kji...", term_5, term_4 - term_3, term_1)
+
+        grad_inv_metric_denominator = d_inv_trigamma_sum - d_inv_trigamma_param
+
+        eye = gs.eye(dim)
+
+        jac_1 = inv_trigamma_param * dd_log_inv_trigamma_sum / inv_metric_denominator
+        jac_1_mat = jac_1[..., :, None, None, None]
+
+        jac_2 = (-d_log_inv_trigamma_sum / inv_metric_denominator**2)[
+            ..., None
+        ] * gs.einsum(
+            "...i,...l->...il",
+            inv_trigamma_param,
+            grad_inv_metric_denominator,
         )
-        jac_4_mat = gs.transpose(from_vector_to_diagonal_matrix(gs.transpose(jac_4)))
-        jac_5 = -gs.einsum("j...,i...->ji...", term_7, term_1) / term_9
-        jac_5_mat = from_vector_to_diagonal_matrix(gs.transpose(jac_5))
-        jac_5_mat = gs.transpose(from_vector_to_diagonal_matrix(jac_5_mat))
-        jac_6 = -gs.einsum("k...,j...->kj...", term_5, term_3) / term_9
-        jac_6_mat = gs.transpose(from_vector_to_diagonal_matrix(gs.transpose(jac_6)))
-        jac_6_mat = (
-            gs.permute_dims(
-                from_vector_to_diagonal_matrix(
-                    gs.permute_dims(jac_6_mat, [0, 1, 3, 2])
-                ),
-                [0, 1, 3, 4, 2],
+        jac_2_mat = jac_2[..., :, None, None, :]
+
+        jac_3 = d_inv_trigamma_param * d_log_inv_trigamma_sum / inv_metric_denominator
+        jac_3_mat = from_vector_to_diagonal_matrix(jac_3)[..., :, None, None, :]
+
+        jac_4_mat = (1 / inv_metric_denominator**2)[..., None, None, None] * gs.einsum(
+            "...i,...j,...l,jk->...ijkl",
+            inv_trigamma_param,
+            d_log_inv_trigamma_param,
+            grad_inv_metric_denominator,
+            eye,
+        )
+
+        jac_5_mat = (
+            -gs.einsum(
+                "...i,...j,jk,jl->...ijkl",
+                inv_trigamma_param,
+                dd_log_inv_trigamma_param,
+                eye,
+                eye,
             )
-            if n_dim > 1
-            else from_vector_to_diagonal_matrix(jac_6_mat)
+            / inv_metric_denominator[..., None, None, None]
         )
-        jac_7 = -from_vector_to_diagonal_matrix(gs.transpose(term_7))
-        jac_7_mat = from_vector_to_diagonal_matrix(jac_7)
-        jac_7_mat = gs.transpose(from_vector_to_diagonal_matrix(jac_7_mat))
+
+        jac_6_mat = (
+            -gs.einsum(
+                "...i,...j,jk,il->...ijkl",
+                d_inv_trigamma_param,
+                d_log_inv_trigamma_param,
+                eye,
+                eye,
+            )
+            / inv_metric_denominator[..., None, None, None]
+        )
+
+        jac_7_mat = -gs.einsum(
+            "...i,ij,ik,il->...ijkl",
+            dd_log_inv_trigamma_param,
+            eye,
+            eye,
+            eye,
+        )
 
         jac = (
             1
@@ -346,12 +397,7 @@ class DirichletMetric(RiemannianMetric):
                 + jac_7_mat
             )
         )
-
-        return (
-            gs.permute_dims(jac, [3, 1, 0, 2])
-            if n_dim == 1
-            else gs.permute_dims(jac, [4, 3, 1, 0, 2])
-        )
+        return jac
 
     def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
