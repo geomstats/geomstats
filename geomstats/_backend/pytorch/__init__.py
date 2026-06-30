@@ -253,8 +253,8 @@ def minimum(a, b):
     return _torch.min(array(a), array(b))
 
 
-def mean(x, axis=None, keepdims=False):
-    return _torch.mean(x, dim=axis, keepdim=keepdims)
+def mean(x, axis=None, dtype=None, keepdims=False, out=None):
+    return _torch.mean(x, dim=axis, dtype=dtype, keepdim=keepdims, out=out)
 
 
 def to_ndarray(x, to_ndim, axis=0, dtype=None):
