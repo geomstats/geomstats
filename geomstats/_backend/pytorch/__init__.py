@@ -308,7 +308,7 @@ def permute_dims(x, axes=None):
     if axes is None:
         axes = tuple(range(x.ndim - 1, -1, -1))
 
-    return _torch.permute(x, *axes)
+    return _torch.permute(x, axes)
 
 
 def squeeze(x, axis=None):
