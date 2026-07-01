@@ -3,6 +3,7 @@
 import math
 
 import geomstats.backend as gs
+from geomstats.geometry.connection import Connection
 from geomstats.vectorization import get_batch_shape
 
 
@@ -204,3 +205,60 @@ class ScipyMultivariateRandomVariable(ScipyRandomVariable):
             return gs.stack([self._pdf_single(x, point_) for point_ in point])
 
         return self._pdf_single(x, point)
+
+
+class AlphaConnection(Connection):
+    def __init__(self, space, riemannian_manifold, alpha=1.0):
+        super().__init__(space)
+        self._riemannian_manifold = riemannian_manifold
+        self.alpha = alpha
+
+    def first_kind_christoffels(self, base_point):
+        r"""Compute the first kind Christoffel symbols.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        matrix : array-like, shape=[..., dim, dim, dim]
+            First kind Christoffel symbols.
+        """
+        raise NotImplementedError
+
+    def christoffels(self, base_point):
+        r"""Compute the (second kind) Christoffel symbols.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        matrix : array-like, shape=[..., dim, dim, dim]
+            Second kind Christoffel symbols.
+        """
+        cometric_matrix = self._riemannian_manifold.metric.cometric_matrix(base_point)
+        first_kind_christoffels = self.first_kind_christoffels(base_point)
+        second_kind_christoffels = gs.einsum(
+            "...kl, ...ijl -> ...kij", cometric_matrix, first_kind_christoffels
+        )
+        return second_kind_christoffels
+    
+    def jacobian_christoffels(self, base_point):
+        r"""Compute the Jacobian of the Christoffel symbols.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        matrix : array-like, shape=[..., dim, dim, dim, dim]
+            Jacobian of the Christoffel symbols.
+        """
+        raise NotImplementedError
