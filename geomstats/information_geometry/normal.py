@@ -945,6 +945,22 @@ class UnivariateNormalAlpha(AlphaConnection):
         - Γ^{(0)}_{ijk} are the Levi-Civita Christoffel symbols
           of the Fisher–Rao metric (first kind),
         - T_{ijk} is the covariant Amari–Chentsov tensor.
+
+    Parameters
+    ----------
+    space : Manifold
+        Manifold of univariate normal distributions.
+    riemannian_manifold : Manifold
+        Manifold equipped with the Fisher–Rao metric, used to compute
+        the Levi-Civita Christoffel symbols and the metric matrix.
+    alpha : float
+        Value of the α parameter of the connection.
+    ivp_kwargs : dict, optional
+        Keyword arguments passed to the IVP integrator used by
+        ``exp_solver``. Default: ``{"step_type": "rk4", "n_steps": 200}``.
+    bvp_kwargs : dict, optional
+        Keyword arguments passed to the BVP solver used by
+        ``log_solver``. Default: ``{"tol": 1e-3, "max_nodes": 1000}``.
     """
     def __init__(self, space, riemannian_manifold, alpha, ivp_kwargs=None, bvp_kwargs=None):
         super().__init__(space, riemannian_manifold, alpha)
