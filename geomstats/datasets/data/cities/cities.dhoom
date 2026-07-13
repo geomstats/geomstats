@@ -1,0 +1,52 @@
+data{capital&, city, city_ascii, lat, lng, country, iso2, iso3, admin_name, population, id}:
+&capital[primary, , admin, minor]
+0, Tokyo, Tokyo, 35.685, 139.7514, Japan, JP, JPN, Tōkyō, 35676000, 1392685764
+1, New York, New York, 40.6943, -73.9249, United States, US, USA, New York, 19354922, 1840034016
+0, Mexico City, Mexico City, 19.4424, -99.131, Mexico, MX, MEX, Ciudad de México, 19028000, 1484247881
+2, Mumbai, Mumbai, 19.017, 72.857, India, IN, IND, Mahārāshtra, 18978000, 1356226629
+2, São Paulo, Sao Paulo, -23.5587, -46.625, Brazil, BR, BRA, São Paulo, 18845000, 1076532519
+2, Delhi, Delhi, 28.67, 77.23, India, IN, IND, Delhi, 15926000, 1356872604
+2, Shanghai, Shanghai, 31.2165, 121.4365, China, CN, CHN, Shanghai, 14987000, 1156073548
+2, Kolkata, Kolkata, 22.495, 88.3247, India, IN, IND, West Bengal, 14787000, 1356060520
+1, Los Angeles, Los Angeles, 34.1139, -118.4068, United States, US, USA, California, 12815475, 1840020491
+0, Dhaka, Dhaka, 23.7231, 90.4086, Bangladesh, BD, BGD, Dhaka, 12797394, 1050529279
+0, Buenos Aires, Buenos Aires, -34.6025, -58.3975, Argentina, AR, ARG, "Buenos Aires, Ciudad Autónoma de", 12795000, 1032717330
+2, Karachi, Karachi, 24.87, 66.99, Pakistan, PK, PAK, Sindh, 12130000, 1586129469
+0, Cairo, Cairo, 30.05, 31.25, Egypt, EG, EGY, Al Qāhirah, 11893000, 1818253931
+2, Rio de Janeiro, Rio de Janeiro, -22.925, -43.225, Brazil, BR, BRA, Rio de Janeiro, 11748000, 1076887657
+2, Ōsaka, Osaka, 34.75, 135.4601, Japan, JP, JPN, Ōsaka, 11294000, 1392419823
+0, Beijing, Beijing, 39.9289, 116.3883, China, CN, CHN, Beijing, 11106000, 1156228865
+0, Manila, Manila, 14.6042, 120.9822, Philippines, PH, PHL, Manila, 11100000, 1608618140
+0, Moscow, Moscow, 55.7522, 37.6155, Russia, RU, RUS, Moskva, 10452000, 1643318494
+2, Istanbul, Istanbul, 41.105, 29.01, Turkey, TR, TUR, İstanbul, 10061000, 1792756324
+0, Paris, Paris, 48.8667, 2.3333, France, FR, FRA, Île-de-France, 9904000, 1250015082
+0, Seoul, Seoul, 37.5663, 126.9997, "Korea, South", KR, KOR, Seoul, 9796000, 1410836482
+3, Lagos, Lagos, 6.4433, 3.3915, Nigeria, NG, NGA, Lagos, 9466000, 1566593751
+0, Jakarta, Jakarta, -6.1744, 106.8294, Indonesia, ID, IDN, Jakarta, 9125000, 1360771077
+2, Guangzhou, Guangzhou, 23.145, 113.325, China, CN, CHN, Guangdong, 8829000, 1156237133
+1, Chicago, Chicago, 41.8373, -87.6862, United States, US, USA, Illinois, 8675982, 1840000494
+0, London, London, 51.5, -0.1167, United Kingdom, GB, GBR, "London, City of", 8567000, 1826645935
+0, Lima, Lima, -12.048, -77.0501, Peru, PE, PER, Lima, 8012000, 1604728603
+0, Tehran, Tehran, 35.6719, 51.4243, Iran, IR, IRN, Tehrān, 7873000, 1364305026
+0, Kinshasa, Kinshasa, -4.3297, 15.315, Congo (Kinshasa), CD, COD, Kinshasa, 7843000, 1180000363
+0, Bogotá, Bogota, 4.5964, -74.0833, Colombia, CO, COL, Bogotá, 7772000, 1170483426
+3, Shenzhen, Shenzhen, 22.5524, 114.1221, China, CN, CHN, Guangdong, 7581000, 1156158707
+2, Wuhan, Wuhan, 30.58, 114.27, China, CN, CHN, Hubei, 7243000, 1156117184
+1, Hong Kong, Hong Kong, 22.305, 114.185, Hong Kong, HK, HKG, , 7206000, 1344982653
+2, Tianjin, Tianjin, 39.13, 117.2, China, CN, CHN, Tianjin, 7180000, 1156174046
+2, Chennai, Chennai, 13.09, 80.28, India, IN, IND, Tamil Nādu, 7163000, 1356374944
+0, Taipei, Taipei, 25.0358, 121.5683, Taiwan, TW, TWN, Taipei, 6900273, 1158881289
+2, Bengalūru, Bengaluru, 12.97, 77.56, India, IN, IND, Karnātaka, 6787000, 1356410365
+0, Bangkok, Bangkok, 13.75, 100.5166, Thailand, TH, THA, Krung Thep Maha Nakhon, 6704000, 1764068610
+2, Lahore, Lahore, 31.56, 74.35, Pakistan, PK, PAK, Punjab, 6577000, 1586801463
+2, Chongqing, Chongqing, 29.565, 106.595, China, CN, CHN, Chongqing, 6461000, 1156936556
+1, Miami, Miami, 25.7839, -80.2102, United States, US, USA, Florida, 6381966, 1840015149
+2, Hyderabad, Hyderabad, 17.4, 78.48, India, IN, IND, Telangana, 6376000, 1356871768
+1, Dallas, Dallas, 32.7936, -96.7662, United States, US, USA, Texas, 5733259, 1840019440
+0, Santiago, Santiago, -33.45, -70.667, Chile, CL, CHL, Región Metropolitana, 5720000, 1152554349
+1, Philadelphia, Philadelphia, 40.0077, -75.1339, United States, US, USA, Pennsylvania, 5637884, 1840000673
+2, Belo Horizonte, Belo Horizonte, -19.915, -43.915, Brazil, BR, BRA, Minas Gerais, 5575000, 1076967355
+0, Madrid, Madrid, 40.4, -3.6834, Spain, ES, ESP, Madrid, 5567000, 1724616994
+1, Houston, Houston, 29.7869, -95.3905, United States, US, USA, Texas, 5446468, 1840020925
+3, Ahmadābād, Ahmadabad, 23.0301, 72.58, India, IN, IND, Gujarāt, 5375000, 1356304381
+2, Ho Chi Minh City, Ho Chi Minh City, 10.78, 106.695, Vietnam, VN, VNM, Hồ Chí Minh, 5314000, 1704774326
