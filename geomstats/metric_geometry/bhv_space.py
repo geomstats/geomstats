@@ -324,7 +324,7 @@ class Tree(Point):
 
         return best
 
-    def _to_networkx(self, root_id=None, pendant_edges=None, leaf_labels=None):
+    def to_networkx(self, root_id=None, pendant_edges=None, leaf_labels=None):
         r"""Convert a split-encoded tree to a rooted NetworkX directed graph.
 
         The tree topology is represented by its non-trivial splits. Since the
@@ -449,7 +449,7 @@ class Tree(Point):
         if ax is None:
             ax = plt.gca()
 
-        nx_tree = self._to_networkx(
+        nx_tree = self.to_networkx(
             root_id=root_id, pendant_edges=pendant_edges, leaf_labels=leaf_labels
         )
         pos = nx.nx_agraph.graphviz_layout(nx_tree, prog="dot", root=root_id)
@@ -503,6 +503,28 @@ class Tree(Point):
         is_equal : array-like, shape=[...]
         """
         return gs.array([self._equal_single(point_, atol) for point_ in point])
+
+    @classmethod
+    def from_biopython_tree(cls, bp_tree, name_to_idx):
+        """Convert a biopython Phylo tree to a geomstats split-based Tree.
+
+        An unrooted binary tree with n leaves has n-3 interior edges. Each
+        interior edge defines a Split of the set of leaves, with both sides
+        of the split containing at least two leaves. Biopython trees are stored
+        with a rooted representation, so these Splits can appear multiple times.
+
+        Parameters
+        ----------
+        bp_tree : Bio.Phylo.BaseTree.Tree
+            Biopython tree.
+        name_to_idx : dict of str to int
+            Mapping of biopython labels to bhv labels.
+
+        Returns
+        -------
+        tree : Tree
+        """
+        return bp_to_bhv(bp_tree, name_to_idx)
 
 
 class TreeBatch(PointBatch):
@@ -1165,3 +1187,46 @@ class GTPSolver:
         v = set(v)
         v_bar = set(v_bar)
         return min_value, tuple(a & v_bar), tuple(a & v), tuple(b & v_bar), tuple(b & v)
+
+
+def bp_to_bhv(bp_tree, name_to_idx):
+    """Convert a biopython Phylo tree to a geomstats split-based Tree.
+
+    An unrooted binary tree with n leaves has n-3 interior edges. Each
+    interior edge defines a Split of the set of leaves, with both sides
+    of the split containing at least two leaves. Biopython trees are stored
+    with a rooted representation, so these Splits can appear multiple times.
+
+    Parameters
+    ----------
+    bp_tree : Bio.Phylo.BaseTree.Tree
+        Biopython tree.
+    name_to_idx : dict of str to int
+        Mapping of biopython labels to bhv labels.
+
+    Returns
+    -------
+    tree : Tree
+    """
+    n = len(name_to_idx)
+    all_idx = set(range(n))
+    splits, lengths = [], []
+
+    for clade in bp_tree.find_clades():
+        if clade.is_terminal():
+            continue
+        here = frozenset(name_to_idx[t.name] for t in clade.get_terminals())
+        other = all_idx - here
+        if 2 <= len(here) < n and len(other) >= 2:
+            splits.append(Split(here, other))
+            lengths.append(max(clade.branch_length or 0.0, 1e-6))
+
+    seen, u_splits, u_lengths = set(), [], []
+    for sp, ln in zip(splits, lengths):
+        key = frozenset([frozenset(sp.part1), frozenset(sp.part2)])
+        if key not in seen:
+            seen.add(key)
+            u_splits.append(sp)
+            u_lengths.append(ln)
+
+    return Tree(tuple(u_splits), u_lengths)

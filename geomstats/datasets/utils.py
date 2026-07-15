@@ -13,8 +13,6 @@ import zipfile
 
 import numpy as np
 import pandas as pd
-from Bio import AlignIO
-from Bio.Phylo.TreeConstruction import DistanceCalculator, DistanceTreeConstructor
 
 import geomstats.backend as gs
 from geomstats.datasets._base import FigshareMetadata, download_figshare_zip
@@ -22,8 +20,6 @@ from geomstats.datasets.prepare_graph_data import Graph
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.metric_geometry.bhv_space import Tree
-from geomstats.metric_geometry.trees import Split
 
 MODULE_PATH = os.path.dirname(__file__)
 DATA_PATH = os.path.join(MODULE_PATH, "data")
@@ -473,49 +469,6 @@ def load_cube():
     return vertices, faces
 
 
-def bp_to_bhv(bp_tree, name_to_idx):
-    """Convert a biopython Phylo tree to a geomstats split-based Tree.
-
-    An unrooted binary tree with n leaves has n-3 interior edges. Each
-    interior edge defines a Split of the set of leaves, with both sides
-    of the split containing at least two leaves. Biopython trees are stored
-    with a rooted representation, so these Splits can appear multiple times.
-
-    Parameters
-    ----------
-    bp_tree : biopython tree
-        Biopython tree.
-    name_to_idx : dict of str to int
-        Mapping of biopython labels to bhv labels.
-
-    Returns
-    -------
-    tree : Tree
-    """
-    n = len(name_to_idx)
-    all_idx = set(range(n))
-    splits, lengths = [], []
-
-    for clade in bp_tree.find_clades():
-        if clade.is_terminal():
-            continue
-        here = frozenset(name_to_idx[t.name] for t in clade.get_terminals())
-        other = all_idx - here
-        if 2 <= len(here) < n and len(other) >= 2:
-            splits.append(Split(here, other))
-            lengths.append(max(clade.branch_length or 0.0, 1e-6))
-
-    seen, u_splits, u_lengths = set(), [], []
-    for sp, ln in zip(splits, lengths):
-        key = frozenset([frozenset(sp.part1), frozenset(sp.part2)])
-        if key not in seen:
-            seen.add(key)
-            u_splits.append(sp)
-            u_lengths.append(ln)
-
-    return Tree(tuple(u_splits), u_lengths)
-
-
 def load_yeast(n_windows=106, file_path=YEAST_GENES_PATH):
     """Load data from data/yeast/yeast_concatenated.fasta.
 
@@ -539,6 +492,9 @@ def load_yeast(n_windows=106, file_path=YEAST_GENES_PATH):
       approaches to resolving incongruence in molecular phylogenies.
       Nature 425, 798–804 (2003). https://doi.org/10.1038/nature02053
     """
+    from geomstats.datasets.prepare_tree_data import build_window_trees
+    from geomstats.metric_geometry.bhv_space import Tree
+
     NAME_TO_IDX = {
         "Scer": 0,
         "Spar": 1,
@@ -549,24 +505,5 @@ def load_yeast(n_windows=106, file_path=YEAST_GENES_PATH):
         "Sklu": 6,
         "Calb": 7,
     }
-
-    full_aln = AlignIO.read(file_path, "fasta")
-    total_bp = full_aln.get_alignment_length()
-
-    window_bp = total_bp // n_windows
-
-    calculator = DistanceCalculator("identity")
-    constructor = DistanceTreeConstructor(calculator, "nj")
-
-    window_alns = []
-    window_bhv_trees = []
-
-    for i in range(n_windows):
-        start = i * window_bp
-        end = start + window_bp if i < n_windows - 1 else total_bp
-        w_aln = full_aln[:, start:end]
-        window_alns.append(w_aln)
-        bp_tree = constructor.nj(calculator.get_distance(w_aln))
-        window_bhv_trees.append(bp_to_bhv(bp_tree, NAME_TO_IDX))
-
-    return window_bhv_trees
+    trees = build_window_trees(file_path, n_windows=n_windows)
+    return [Tree.from_biopython_tree(bp_tree, NAME_TO_IDX) for bp_tree in trees]
