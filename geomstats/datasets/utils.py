@@ -56,6 +56,8 @@ CUBE_MESH_DIR = os.path.join(DATA_PATH, "cube_meshes")
 CUBE_VERTICES = os.path.join(CUBE_MESH_DIR, "vertices.npy")
 CUBE_FACES = os.path.join(CUBE_MESH_DIR, "faces.npy")
 
+YEAST_GENES_PATH = os.path.join(DATA_PATH, "yeast", "yeast_concatenated.fasta")
+
 
 def load_cities():
     """Load data from data/cities/cities.json.
@@ -465,3 +467,43 @@ def load_cube():
     vertices = np.load(CUBE_VERTICES)
     faces = np.load(CUBE_FACES)
     return vertices, faces
+
+
+def load_yeast(n_windows=106, file_path=YEAST_GENES_PATH):
+    """Load data from data/yeast/yeast_concatenated.fasta.
+
+    Parameters
+    ----------
+    n_windows : int
+        Number of windows to split the data into. 106 splits it about
+        into how many genes there are.
+    file_path : str
+        Filepath of the aligned, concatenated yeast genes for 8 species.
+
+    Returns
+    -------
+    phylo_trees : gs.array, n_windows number of Trees in BHV(8)
+        Trees representing the phylogenetic relationships inferred from
+        the Neighbor-Joining algorithm.
+
+    References
+    ----------
+    .. [Rokas2003]  Rokas, A., Williams, B., King, N. et al. Genome-scale
+      approaches to resolving incongruence in molecular phylogenies.
+      Nature 425, 798–804 (2003). https://doi.org/10.1038/nature02053
+    """
+    from geomstats.datasets.prepare_tree_data import build_window_trees
+    from geomstats.metric_geometry.bhv_space import Tree
+
+    NAME_TO_IDX = {
+        "Scer": 0,
+        "Spar": 1,
+        "Smik": 2,
+        "Skud": 3,
+        "Sbay": 4,
+        "Scas": 5,
+        "Sklu": 6,
+        "Calb": 7,
+    }
+    trees = build_window_trees(file_path, n_windows=n_windows)
+    return [Tree.from_biopython_tree(bp_tree, NAME_TO_IDX) for bp_tree in trees]
