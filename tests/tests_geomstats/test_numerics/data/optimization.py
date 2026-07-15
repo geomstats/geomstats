@@ -12,6 +12,10 @@ def _jacobian_sum_squares(x):
     return 2 * x
 
 
+def _sum_squares_val_and_grad(x):
+    return _sum_squares(x), _jacobian_sum_squares(x)
+
+
 def _hessian_sum_squares(x):
     return 2 * gs.eye(x.shape[0])
 
@@ -47,7 +51,13 @@ class OptimizationJacSmokeTestData(TestData):
                 fun_jac=_jacobian_sum_squares,
                 x0=gs.random.uniform(size=dim),
                 expected=gs.zeros(dim),
-            )
+            ),
+            dict(
+                fun=_sum_squares_val_and_grad,
+                fun_jac=True,
+                x0=gs.random.uniform(size=dim),
+                expected=gs.zeros(dim),
+            ),
         ]
 
         return self.generate_tests(data)

@@ -557,7 +557,8 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         """
         dim = self._space.dim
         n_nodes = raveled_state.shape[-1]
-        position, velocity = gs.transpose(raveled_state[:dim]), raveled_state[dim:]
+        position = gs.moveaxis(raveled_state[:dim], -1, 0)
+        velocity = raveled_state[dim:]
 
         dgamma = self._space.connection.jacobian_christoffels(position)
 
@@ -569,18 +570,17 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         df_dvelocity = -2 * gs.einsum("...ijk,k...->ij...", gamma, velocity)
 
         jac_nw = gs.zeros((dim, dim, raveled_state.shape[1]))
-        jac_ne = gs.squeeze(gs.transpose(gs.tile(gs.eye(dim), (n_nodes, 1, 1))))
+        jac_ne = gs.squeeze(gs.permute_dims(gs.tile(gs.eye(dim), (n_nodes, 1, 1))))
+
         jac_sw = df_dposition
         jac_se = df_dvelocity
-        jac = gs.concatenate(
+        return gs.concatenate(
             (
                 gs.concatenate((jac_nw, jac_ne), axis=1),
                 gs.concatenate((jac_sw, jac_se), axis=1),
             ),
             axis=0,
         )
-
-        return jac
 
     def _solve(self, point, base_point):
         bvp = lambda t, state: self._bvp(state)

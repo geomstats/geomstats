@@ -52,19 +52,30 @@ class ScipyMinimize(Minimizer):
 
     def _handle_jac(self, fun, fun_jac):
         if fun_jac is not None:
-            fun_ = lambda x: fun(gs.from_numpy(x))
-            fun_jac_ = fun_jac
             if callable(fun_jac):
+                fun_ = lambda x: gs.to_numpy(fun(gs.from_numpy(x)))
                 fun_jac_ = lambda x: fun_jac(gs.from_numpy(x))
+
+            else:
+
+                def fun_(x):
+                    val, grad = fun(gs.from_numpy(x))
+                    return gs.to_numpy(val), grad
+
+                fun_jac_ = fun_jac
 
             return fun_, fun_jac_
 
         if self.autodiff_jac:
             jac = True
-            fun_ = lambda x: gs.autodiff.value_and_grad(fun)(gs.from_numpy(x))
+
+            def fun_(x):
+                val, grad = gs.autodiff.value_and_grad(fun)(gs.from_numpy(x))
+                return gs.to_numpy(val), grad
+
         else:
             jac = fun_jac
-            fun_ = lambda x: fun(gs.from_numpy(x))
+            fun_ = lambda x: gs.to_numpy(fun(gs.from_numpy(x)))
 
         return fun_, jac
 
@@ -94,7 +105,12 @@ class ScipyMinimize(Minimizer):
         hessp : callable
         """
         fun_, jac = self._handle_jac(fun, fun_jac)
-        hess = self._handle_hess(fun, fun_hess)
+
+        fun_for_hess = fun
+        if fun_jac is not None and not callable(fun_jac):
+            fun_for_hess = lambda x: fun(x)[0]
+
+        hess = self._handle_hess(fun_for_hess, fun_hess)
 
         result = scipy.optimize.minimize(
             fun_,

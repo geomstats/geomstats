@@ -188,8 +188,8 @@ def load_connectomes(as_vectors=False):
     if as_vectors:
         return data, patient_id, target
     mat = SkewSymmetricMatrices(28).matrix_representation(data)
-    mat = gs.eye(28) - gs.transpose(gs.tril(mat), (0, 2, 1))
-    mat = 1.0 / 2.0 * (mat + gs.transpose(mat, (0, 2, 1)))
+    mat = gs.eye(28) - gs.transpose(gs.tril(mat))
+    mat = 1.0 / 2.0 * (mat + gs.transpose(mat))
 
     return mat, patient_id, target
 

@@ -230,8 +230,8 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
             Tangent vector in the tangent space of the simplex
             at the base point.
         """
-        component_mean = gs.mean(vector, axis=-1)
-        tangent_vec = gs.transpose(gs.transpose(vector) - component_mean)
+        component_mean = gs.mean(vector, axis=-1, keepdims=True)
+        tangent_vec = vector - component_mean
 
         return repeat_out(
             self.point_ndim, tangent_vec, vector, base_point, out_shape=self.shape

@@ -520,7 +520,7 @@ class EuclideanCholeskyDiffeo(Diffeo):
 
         chol = gs.linalg.cholesky(base_point)
         chol_inv = gs.linalg.inv(chol)
-        aux = Matrices.mul(chol_inv, tangent_vec, Matrices.transpose(chol_inv))
+        aux = Matrices.mul(chol_inv, tangent_vec, gs.transpose(chol_inv))
         term_1 = Matrices.mul(
             image_point,
             Matrices.to_lower_triangular_diagonal_scaled(aux),

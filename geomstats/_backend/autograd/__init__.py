@@ -68,6 +68,7 @@ from autograd.numpy import (
     ones,
     ones_like,
     pad,
+    permute_dims,
     power,
     prod,
     quantile,
@@ -89,7 +90,6 @@ from autograd.numpy import (
     tan,
     tanh,
     tile,
-    transpose,
     tril,
     tril_indices,
     triu,
@@ -200,12 +200,24 @@ def flatten(x):
     return x.flatten()
 
 
-def one_hot(labels, num_classes):
-    return eye(num_classes, dtype=_np.dtype("uint8"))[labels]
-
-
 def ndim(x):
     return x.ndim
+
+
+def transpose(x):
+    """Return the transpose of a matrix.
+
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, m]
+        Matrix.
+
+    Returns
+    -------
+    transpose : array-like, shape=[..., n, m]
+        Transposed matrix.
+    """
+    return _np.swapaxes(x, -1, -2)
 
 
 def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):

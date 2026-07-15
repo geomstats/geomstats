@@ -37,10 +37,8 @@ class LowerTriangularMatrices(MatrixVectorSpace):
         rows, cols = gs.tril_indices(self.n)
         tril_idxs = gs.ravel_multi_index((rows, cols), (self.n, self.n))
 
-        vector_bases = gs.cast(
-            gs.one_hot(tril_idxs, self.n * self.n),
-            dtype=gs.get_default_dtype(),
-        )
+        vector_bases = gs.eye(self.n * self.n)[tril_idxs]
+
         return gs.reshape(vector_bases, [-1, self.n, self.n])
 
     def belongs(self, point, atol=gs.atol):
@@ -175,10 +173,7 @@ class StrictlyLowerTriangularMatrices(LevelSet, MatrixVectorSpace):
         rows, cols = gs.tril_indices(self.n, k=-1)
         tril_idxs = gs.ravel_multi_index((rows, cols), (self.n, self.n))
 
-        vector_bases = gs.cast(
-            gs.one_hot(tril_idxs, self.n * self.n),
-            dtype=gs.get_default_dtype(),
-        )
+        vector_bases = gs.eye(self.n * self.n)[tril_idxs]
         return gs.reshape(vector_bases, [-1, self.n, self.n])
 
     @staticmethod
