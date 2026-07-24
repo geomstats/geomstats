@@ -12,130 +12,17 @@ import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
 from geomstats.learning._sklearn import PCA
 from geomstats.learning.euclidean import LinearRegression
-from geomstats.learning.frechet_mean import FrechetMean
+from geomstats.learning.frechet_mean import AACFrechetMean
+
+# from geomstats.learning.frechet_mean import FrechetMean
 
 
 def _warn_max_iterations(iteration, max_iter):
     if iteration + 1 == max_iter:
         logging.warning(
             f"Maximum number of iterations {max_iter} reached. "
-            "The estimate may be inaccurate"
+            "The estimate may be inaccurate."
         )
-
-
-class _AACFrechetMean(BaseEstimator):
-    r"""Class AAC for Frechet Mean on Graph Space.
-
-    The Align All and Compute (AAC) algorithm for Frechet Mean (FM)estimation is
-    introduced in [CFV2020]_ and it estimates the Frechet Mean for a set of
-    labeled or unlabeled graphs. The idea is to optimally aligned the graphs to the
-    current mean estimator using the optimal alignment between the graphs and the mean
-    (graph matching between two graphs) and compute the mean estimation between the
-    aligned adjacency matrices (the arithmetic mean in the euclidean space of dimension
-    :math:`nodes \times nodes`). The algorithm stops as soon as the distance between two
-    consecutive estimations is lower then :math:`\epsilon` or the maximum number of
-    iterations is reached. The initialization step consists in aligning the data
-    with respect to an initial point.
-
-    Parameters
-    ----------
-    space : GraphSpace
-        Graph space total space with a quotient structure.
-    epsilon: float, default=1e-6
-        Stopping criterion for the estimation step, i.e., the distance between two
-        consecutive estimators.
-    max_iter: int, default = 20
-        Stopping criterion on the maximum number of iterations.
-    init_point: array-like, shape=[n_nodes, n_nodes] or GraphPoint, default random.
-        Algorithm initialization.
-    save_last_X: bool, default = True
-        Flag to save the data as aligned in the last algorithm iteration.
-    total_space_estimator_kwargs : dict
-        Total space estimator keyword arguments.
-
-    Attributes
-    ----------
-    total_space_estimator : BaseEstimator
-        Frechet mean estimator in total space.
-    estimate_ : array-like, mean=[n_nodes, n_nodes]
-        Mean.
-    n_iter_ : int
-        Number of performed iterations.
-    aligned_X_: array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint.
-        Set of aligned data as after the last call of fit.
-        Saved if ``save_last_X is True``.
-
-    References
-    ----------
-    .. [CFV2020]  Calissano, A., Feragen, A., Vantini, S.
-        “Graph Space: Geodesic Principal Components for a Population of
-        Network-valued Data.” Mox report 14, 2020.
-        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
-    """
-
-    def __init__(
-        self,
-        space,
-        *,
-        epsilon=1e-3,
-        max_iter=20,
-        init_point=None,
-        total_space_estimator_kwargs=None,
-        save_last_X=True,
-    ):
-        self.space = space
-        self.epsilon = epsilon
-        self.max_iter = max_iter
-        self.init_point = init_point
-        self.save_last_X = save_last_X
-
-        self.total_space_estimator_kwargs = total_space_estimator_kwargs or {}
-        self.total_space_estimator = FrechetMean(
-            self.space, **self.total_space_estimator_kwargs
-        )
-
-        self.estimate_ = None
-        self.n_iter_ = None
-        self.aligned_X_ = None
-
-    def fit(self, X, y=None):
-        """Fit the Frechet Mean.
-
-        Parameters
-        ----------
-        X : array-like, shape=[n_samples, n_nodes, n_nodes].
-            Dataset to estimate the FM.
-        y : Ignored
-            Ignored.
-
-        Returns
-        -------
-        self : object
-            Returns self.
-        """
-        previous_estimate = (
-            random.choice(X) if self.init_point is None else self.init_point
-        )
-        aligned_X = X
-
-        for iteration in range(self.max_iter):
-            aligned_X = self.space.aligner.align(aligned_X, previous_estimate)
-            new_estimate = self.total_space_estimator.fit(aligned_X).estimate_
-
-            error = self.space.metric.dist(previous_estimate, new_estimate)
-            if error < self.epsilon:
-                break
-
-            previous_estimate = new_estimate
-        else:
-            _warn_max_iterations(iteration, self.max_iter)
-
-        if self.save_last_X:
-            self.aligned_X_ = aligned_X
-        self.estimate_ = new_estimate
-        self.n_iter_ = iteration
-
-        return self
 
 
 class _AACGGPCA(BaseEstimator):
@@ -463,7 +350,7 @@ class AAC:
     """
 
     MAP_ESTIMATE = {
-        "frechet_mean": _AACFrechetMean,
+        "frechet_mean": AACFrechetMean,
         "ggpca": _AACGGPCA,
         "regression": _AACRegression,
     }
