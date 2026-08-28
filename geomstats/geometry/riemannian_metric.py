@@ -628,6 +628,55 @@ class RiemannianMetric(Connection, ABC):
         cometric_matrix = self.cometric_matrix(base_point)
         return gs.einsum("...ij, ...ij -> ...", cometric_matrix, ricci_tensor)
 
+    def laplacian(self, function, base_point):
+        r"""Compute the Laplace-Beltrami operator applied to a function.
+
+        The Laplace-Beltrami operator (or scalar Laplacian) of a smooth
+        function :math:`f: M \to \mathbb{R}` is the divergence of its
+        gradient. In local coordinates it writes
+
+        .. math::
+
+            \Delta f = g^{ij} (\partial_i \partial_j f
+            - \Gamma^k_{ij} \partial_k f),
+
+        where :math:`g^{ij}` are the components of the cometric matrix
+        and :math:`\Gamma^k_{ij}` the Christoffel symbols of the
+        Levi-Civita connection (with the contravariant index first).
+
+        Parameters
+        ----------
+        function : callable
+            A smooth function on the manifold, mapping a point of shape
+            ``(..., dim)`` to a scalar (or an array of shape ``(...,)``).
+            It should be built from differentiable operations (e.g.
+            through the backend :mod:`geomstats.backend`).
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold at which the Laplacian is evaluated.
+
+        Returns
+        -------
+        laplacian : array-like, shape=[...,]
+            Value of :math:`\Delta f` at ``base_point``.
+
+        Notes
+        -----
+        Requires a backend with automatic differentiation (e.g.
+        ``autograd`` or ``pytorch``), and points represented by vectors
+        (``point_ndim == 1``).
+        """
+        grad = gs.autodiff.jacobian_vec(function)(base_point)
+        hess = gs.autodiff.jacobian_vec(
+            lambda point: gs.autodiff.jacobian_vec(function)(point)
+        )(base_point)
+        cometric = self.cometric_matrix(base_point)
+        christoffels = self.christoffels(base_point)
+        first_term = gs.einsum("...ij,...ij->...", cometric, hess)
+        second_term = gs.einsum(
+            "...ij,...kij,...k->...", cometric, christoffels, grad
+        )
+        return first_term - second_term
+
     def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
