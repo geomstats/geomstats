@@ -9,30 +9,26 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.complex_manifold import ComplexManifold
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
+from geomstats.geometry.connection import Connection
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.numerics.geodesic import ExpODESolver, LogShootingSolver
+from geomstats.numerics.ivp import GSIVPIntegrator
 from geomstats.vectorization import get_batch_shape
 
 COMPLEX_OBJECTS = (ComplexRiemannianMetric, ComplexManifold)
 
 
 def _factor_is_complex(factor):
-    if (
-        isinstance(factor, COMPLEX_OBJECTS)
-        or hasattr(factor, "underlying_metric")
+    return isinstance(factor, COMPLEX_OBJECTS) or (
+        hasattr(factor, "underlying_metric")
         and isinstance(factor.underlying_metric, COMPLEX_OBJECTS)
-    ):
-        return True
-
-    return False
+    )
 
 
 def _has_mixed_fields(factors):
     bools = [_factor_is_complex(factor) for factor in factors]
-    if len(set(bools)) == 2:
-        return True
-
-    return False
+    return len(set(bools)) == 2
 
 
 def _all_equal(arg):
@@ -730,3 +726,277 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             return self._space.embed_to_product(values)
 
         return geod_fun
+
+
+class WarpedProductMetric(ProductRiemannianMetric):
+    r"""Metric on a warped product manifold.
+
+    The warped product :math:`M = B \times_f F` of a base manifold
+    :math:`(B, g_B)` and a fibre manifold :math:`(F, g_F)`, with smooth
+    positive warping function :math:`f: B \to \mathbb{R}_{>0}`, carries
+    the Riemannian metric
+
+    .. math::
+
+        g_{(b, x)}((v_b, v_x), (w_b, w_x))
+        = g_B(v_b, w_b) + f(b)^2\, g_F(v_x, w_x),
+
+    i.e. the metric is a product metric on the base, while the fibre
+    metric is rescaled by the square of the warping function evaluated
+    at the base point.
+
+    Parameters
+    ----------
+    space : ProductManifold
+        Product manifold with exactly two factors: the base manifold
+        (first factor) and the fibre manifold (second factor).
+    warping_function : callable
+        Smooth positive function on the base manifold. It maps a base
+        point of shape ``(..., base.shape)`` to a positive scalar (or an
+        array of shape ``(...,)``). It should be built from differentiable
+        operations (e.g. through the backend :mod:`geomstats.backend`) so
+        that the Christoffel symbols can be obtained by automatic
+        differentiation.
+
+    Notes
+    -----
+    The exponential and logarithm maps and the geodesics are obtained by
+    integrating the geodesic equation associated with the Levi-Civita
+    connection of the warped metric, whose Christoffel symbols are
+    derived from :func:`metric_matrix` by automatic differentiation. This
+    requires a backend with automatic differentiation (e.g. ``autograd``
+    or ``pytorch``), and only vector points (``point_ndim == 1``) are
+    currently supported.
+
+    The connection is derived from the :func:`metric_matrix` of the two
+    factor metrics, which must therefore be expressed in the intrinsic
+    coordinates of the factors. Metrics whose ``metric_matrix`` is that
+    of an embedding space (e.g. the extrinsic
+    :class:`~geomstats.geometry.hypersphere.HypersphereMetric`) are not
+    supported as factors.
+    """
+
+    def __init__(self, space, warping_function):
+        if len(space.factors) != 2:
+            raise ValueError(
+                "The warped product metric is defined on a product of exactly "
+                "two manifolds (base and fibre); got "
+                f"{len(space.factors)} factors."
+            )
+        super().__init__(space)
+        self.warping_function = warping_function
+        self._instantiate_solvers()
+
+    def _instantiate_solvers(self):
+        """Instantiate solvers for the exponential and logarithm maps."""
+        self.exp_solver = ExpODESolver(
+            self._space, integrator=GSIVPIntegrator(n_steps=100, step_type="rk4")
+        )
+        if gs.has_autodiff():
+            self.log_solver = LogShootingSolver(self._space)
+
+    def _warping_factor(self, base_point):
+        """Evaluate the warping function on the base component of a point."""
+        if base_point is None:
+            raise ValueError("A base point is required for a warped product metric.")
+        base_component, _ = self._space.project_from_product(base_point)
+        f = self.warping_function(base_component)
+        if not gs.is_array(f):
+            f = gs.array(f)
+        batch_shape = base_point.shape[: -self._space.point_ndim]
+        if gs.ndim(f) == 0:
+            return gs.broadcast_to(f, batch_shape) if batch_shape else f
+        return gs.reshape(f, batch_shape)
+
+    def metric_matrix(self, base_point=None):
+        """Compute the matrix of the inner-product.
+
+        Matrix of the inner-product defined by the Riemmanian metric
+        at point ``base_point`` of the manifold. It is block diagonal,
+        with the block of the fibre rescaled by the square of the
+        warping function evaluated at the base component of
+        ``base_point``.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., self.shape]
+            Point on the manifold at which to compute the inner-product
+            matrix. Optional, default: None.
+
+        Returns
+        -------
+        matrix : array-like, shape=[..., dim, dim]
+            Matrix of the inner-product at the base point.
+        """
+        factor_matrices = self._iterate_over_factors(
+            "metric_matrix", {"base_point": base_point}
+        )
+        f = self._warping_factor(base_point)
+        factor_matrices[1] = gs.einsum("...,...ij->...ij", f**2, factor_matrices[1])
+        return _block_diagonal(factor_matrices)
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+        r"""Compute the inner-product of two tangent vectors at a base point.
+
+        Inner product defined by the Riemannian metric at point
+        ``base_point`` between tangent vectors ``tangent_vec_a`` and
+        ``tangent_vec_b``:
+
+        .. math::
+
+            g(v, w) = g_B(v_b, w_b) + f(b)^2\, g_F(v_f, w_f).
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., self.shape]
+            First tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., self.shape]
+            Second tangent vector at base point.
+        base_point : array-like, shape=[..., self.shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[...,]
+            Inner-product of the two tangent vectors.
+        """
+        args = {
+            "tangent_vec_a": tangent_vec_a,
+            "tangent_vec_b": tangent_vec_b,
+            "base_point": base_point,
+        }
+        inner_products = self._iterate_over_factors("inner_product", args)
+        f = self._warping_factor(base_point)
+        return inner_products[0] + f**2 * inner_products[1]
+
+    def squared_norm(self, vector, base_point=None):
+        """Compute the square of the norm of a vector.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., self.shape]
+            Vector.
+        base_point : array-like, shape=[..., self.shape]
+            Base point. Optional, default: None.
+
+        Returns
+        -------
+        sq_norm : array-like, shape=[...,]
+            Squared norm.
+        """
+        return self.inner_product(vector, vector, base_point)
+
+    def exp(self, tangent_vec, base_point):
+        """Compute the Riemannian exponential of a tangent vector.
+
+        The exponential map is obtained by integrating the geodesic
+        equation of the warped metric (see the class notes).
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., self.shape]
+            Tangent vector at a base point.
+        base_point : array-like, shape=[..., self.shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., self.shape]
+            Point on the manifold equal to the Riemannian exponential
+            of ``tangent_vec`` at the base point.
+        """
+        return Connection.exp(self, tangent_vec, base_point)
+
+    def log(self, point, base_point):
+        """Compute the Riemannian logarithm of a point.
+
+        The logarithm map is computed by shooting (see the class notes).
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., self.shape]
+            Point on the manifold.
+        base_point : array-like, shape=[..., self.shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        log : array-like, shape=[..., self.shape]
+            Tangent vector at the base point equal to the Riemannian
+            logarithm of ``point`` at the base point.
+        """
+        return Connection.log(self, point, base_point)
+
+    def dist(self, point_a, point_b):
+        """Geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., self.shape]
+            Point.
+        point_b : array-like, shape=[..., self.shape]
+            Point.
+
+        Returns
+        -------
+        dist : array-like, shape=[...,]
+            Distance.
+        """
+        return RiemannianMetric.dist(self, point_a, point_b)
+
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
+        """Generate parameterized function for the geodesic curve.
+
+        Geodesic curve defined by either:
+
+        - an initial point and an initial tangent vector,
+        - an initial point and an end point.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Point on the manifold, initial point of the geodesic.
+        end_point : array-like, shape=[..., dim], optional
+            Point on the manifold, end point of the geodesic. If None,
+            an initial tangent vector must be given.
+        initial_tangent_vec : array-like, shape=[..., dim], optional
+            Tangent vector at base point, the initial speed of the
+            geodesics. If None, an end point must be given and a
+            logarithm is computed.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve.
+        """
+        return Connection.geodesic(self, initial_point, end_point, initial_tangent_vec)
+
+
+class WarpedProductManifold(ProductManifold):
+    r"""Warped product manifold :math:`M = B \times_f F`.
+
+    Convenience class equipping the product manifold of a base and a
+    fibre manifold with the corresponding warped product metric.
+
+    Parameters
+    ----------
+    base : Manifold
+        Base manifold :math:`(B, g_B)`.
+    fiber : Manifold
+        Fibre manifold :math:`(F, g_F)`.
+    warping_function : callable
+        Smooth positive function on the base manifold; see
+        :class:`WarpedProductMetric`.
+    point_ndim : int
+        Point type of the product manifold. Optional, default: 1.
+    equip : bool
+        Whether to equip the manifold with the warped product metric.
+        Optional, default: True.
+    """
+
+    def __init__(self, base, fiber, warping_function, point_ndim=1, equip=True):
+        super().__init__(factors=[base, fiber], point_ndim=point_ndim, equip=False)
+        if equip:
+            self.equip_with_metric(
+                WarpedProductMetric, warping_function=warping_function
+            )
