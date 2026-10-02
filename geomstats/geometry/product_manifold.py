@@ -689,6 +689,41 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         dists = gs.array(self._iterate_over_factors("dist", args))
         return gs.linalg.norm(dists, ord=2, axis=0)
 
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
+        """Compute parallel transport componentwise in the product.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., self.shape]
+            Tangent vector at the base point to transport.
+        base_point : array-like, shape=[..., self.shape]
+            Point on the product manifold to transport from.
+        direction : array-like, shape=[..., self.shape], optional
+            Tangent vector defining the geodesic along which to transport.
+        end_point : array-like, shape=[..., self.shape], optional
+            Point to transport to. Used when direction is not given.
+
+        Returns
+        -------
+        transported_tangent_vec : array-like, shape=[..., self.shape]
+            Transported tangent vector at the endpoint of the geodesic.
+
+        Notes
+        -----
+        The product connection splits across the factors. Each factor metric
+        must implement parallel transport.
+        """
+        args = {
+            "tangent_vec": tangent_vec,
+            "base_point": base_point,
+            "direction": direction,
+            "end_point": end_point,
+        }
+        transported = self._iterate_over_factors("parallel_transport", args)
+        return self._space.embed_to_product(transported)
+
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
 
