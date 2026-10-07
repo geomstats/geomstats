@@ -57,7 +57,7 @@ class _Logm(_torch.autograd.Function):
         return _Logm._logm(backward_tensor).to(tensor.dtype)[..., :n, n:]
 
 
-logm = _Logm.apply
+logm = _cast_out_to_input_dtype(_Logm.apply)
 
 
 def sqrtm(x):
