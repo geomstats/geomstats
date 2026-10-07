@@ -256,7 +256,7 @@ class DtypeTestData(TestData):
             # TODO: add additional test for int
             dict(
                 func_name="where",
-                args=([True, False], 20.0, 20.0),
+                args=(gs.array([True, False]), 20.0, 20.0),
                 kwargs={},
                 expected=gs.float64,
             ),
