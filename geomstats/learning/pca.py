@@ -54,6 +54,13 @@ def _assess_dimension_(spectrum, rank, n_samples, n_features):
     if rank > len(spectrum):
         raise ValueError("The tested rank cannot exceed the rank of the dataset")
 
+    eps = 1e-15
+
+    if spectrum[rank - 1] < eps:
+        # the log-likelihood is not defined for a rank that keeps a zero
+        # eigenvalue, and such a rank cannot be the best one anyway
+        return -gs.inf
+
     pu = -rank * log(2.0)
     for i in range(rank):
         pu += gammaln((n_features - i) / 2.0) - log(gs.pi) * (n_features - i) / 2.0
@@ -65,7 +72,7 @@ def _assess_dimension_(spectrum, rank, n_samples, n_features):
         pv = 0
         v = 1
     else:
-        v = gs.sum(spectrum[rank:]) / (n_features - rank)
+        v = max(eps, gs.sum(spectrum[rank:]) / (n_features - rank))
         pv = -gs.log(v) * n_samples * (n_features - rank) / 2.0
 
     m = n_features * rank - rank * (rank + 1.0) / 2.0
@@ -92,7 +99,8 @@ def _infer_dimension_(spectrum, n_samples, n_features):
     """
     n_spectrum = len(spectrum)
     ll = gs.empty(n_spectrum)
-    for rank in range(n_spectrum):
+    ll[0] = -gs.inf  # a rank of 0 is not a valid number of components
+    for rank in range(1, n_spectrum):
         ll[rank] = _assess_dimension_(spectrum, rank, n_samples, n_features)
     return ll.argmax()
 
