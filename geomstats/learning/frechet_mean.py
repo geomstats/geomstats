@@ -551,9 +551,8 @@ class CircleMean(BaseEstimator):
         i = gs.arange(n_samples, dtype=right_sums.dtype)
         j = i[1:]
         parts2 = right_sums[:-1] / (n_samples - j)
-        first_term = parts2[:1]
         parts2 = gs.where(m_plus[1:], left_sums[:-1] / j, parts2)
-        parts = gs.concatenate([parts, first_term, parts2[1:]])
+        parts = gs.concatenate([parts, parts2])
 
         # Formula (6) from [HH15]_
         plus_vec = (4 * gs.pi * i / n_samples) * (gs.pi + parts - mean) - (
