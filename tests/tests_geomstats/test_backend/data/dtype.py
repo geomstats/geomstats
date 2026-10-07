@@ -175,6 +175,9 @@ class DtypeTestData(TestData):
         def _create_sym():
             return SymmetricMatrices(2).random_point()
 
+        def _create_nonsym():
+            return gs.array([[2.0, 1.0], [0.0, 3.0]])
+
         data = [
             dict(func_name="linalg.cholesky", create_array=_create_spd),
             dict(func_name="linalg.eigvalsh", create_array=_create_sym),
@@ -182,6 +185,7 @@ class DtypeTestData(TestData):
             dict(func_name="linalg.expm", create_array=_create_spd),
             dict(func_name="linalg.logm", create_array=_create_diag),
             dict(func_name="linalg.logm", create_array=_create_spd),
+            dict(func_name="linalg.logm", create_array=_create_nonsym),
             dict(func_name="linalg.sqrtm", create_array=_create_spd),
         ]
 
