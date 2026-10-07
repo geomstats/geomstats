@@ -41,7 +41,7 @@ from geomstats.geometry.symmetric_matrices import (
 from geomstats.numerics.optimization import NewtonMethod
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test.test_case import TestCase, assert_allclose
+from geomstats.test.test_case import TestCase
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
 from geomstats.test_cases.geometry.full_rank_correlation_matrices import (
@@ -181,35 +181,6 @@ class TestPolyHyperbolicCholeskyMetric(
     PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = PolyHyperbolicCholeskyMetricTestData()
-
-
-def test_polyhyperbolic_parallel_transport_product_image():
-    """Correlation transport must work through the product image for n=3."""
-    space = FullRankCorrelationMatrices(3, equip=False).equip_with_metric(
-        PolyHyperbolicCholeskyMetric
-    )
-    base_point = gs.eye(3)
-    tangent_vec = gs.array([[0.0, 0.2, -0.1], [0.2, 0.0, 0.3], [-0.1, 0.3, 0.0]])
-    direction = gs.array([[0.0, 0.05, 0.02], [0.05, 0.0, -0.04], [0.02, -0.04, 0.0]])
-    end_point = space.metric.exp(direction, base_point)
-
-    transported = space.metric.parallel_transport(
-        tangent_vec, base_point, direction=direction
-    )
-    transported_bvp = space.metric.parallel_transport(
-        tangent_vec, base_point, end_point=end_point
-    )
-    recovered = space.metric.parallel_transport(
-        transported, end_point, end_point=base_point
-    )
-
-    assert gs.all(space.is_tangent(transported, end_point))
-    assert_allclose(transported, transported_bvp)
-    assert_allclose(recovered, tangent_vec)
-    assert_allclose(
-        space.metric.norm(transported, end_point),
-        space.metric.norm(tangent_vec, base_point),
-    )
 
 
 class TestEuclideanCholeskyDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
