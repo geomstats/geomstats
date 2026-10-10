@@ -119,7 +119,7 @@ class GeometricMedian(BaseEstimator):
         median = X[-1] if self.init_point is None else self.init_point
         if weights is None:
             weights = gs.ones(X.shape[0])
-        weights /= gs.sum(weights)
+        weights = weights / gs.sum(weights)
 
         for iteration in range(self.max_iter):
             new_median = self._iterate_once(median, X, weights, self.lr)
