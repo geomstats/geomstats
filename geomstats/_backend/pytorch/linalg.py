@@ -63,7 +63,8 @@ logm = _cast_out_to_input_dtype(_Logm.apply)
 def sqrtm(x):
     np_sqrtm = _np.vectorize(_scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
     if np_sqrtm.dtype.kind == "c":
-        np_sqrtm = np_sqrtm.astype(f"complex{int(np_sqrtm.dtype.name[7:]) // 2}")
+        complex_dtype = _np.result_type(_np.asarray(x).dtype, _np.complex64)
+        np_sqrtm = np_sqrtm.astype(complex_dtype, copy=False)
 
     return _torch.from_numpy(np_sqrtm)
 
