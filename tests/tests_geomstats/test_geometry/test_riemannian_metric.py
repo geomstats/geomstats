@@ -1,9 +1,21 @@
+from math import prod
+
 import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
+
+
+@pytest.fixture(autouse=True)
+def fixed_random_samples(monkeypatch):
+    def sample(*shape):
+        return gs.reshape(
+            gs.arange(1, prod(shape) + 1, dtype=gs.get_default_dtype()), shape
+        )
+
+    monkeypatch.setattr(gs.random, "rand", sample)
 
 
 @pytest.mark.parametrize("n_vectors", [1, 4])
