@@ -169,6 +169,35 @@ class RiemannianMetric(Connection, ABC):
 
         return 0.5 * (term_1 + term_2 + term_3)
 
+    def first_kind_christoffels(self, base_point):
+        r"""Compute the Levi-Civita Christoffel symbols of the first kind.
+
+        These are the Christoffel symbols associated with the Fisher-Rao metric:
+
+        .. math::
+
+            \Gamma^{(0)}_{ijk}.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point representing a normal distribution :math:`(\mu, \sigma)`.
+
+        Returns
+        -------
+        christoffels : array-like, shape=[..., 2, 2, 2]
+            Christoffel symbols of the first kind.
+        """
+        metric = self.metric_matrix(base_point)
+
+        christoffels_second = self.christoffels(base_point)
+
+        return gs.einsum(
+            "...kl,...lij->...ijk",
+            metric,
+            christoffels_second,
+        )
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
 

@@ -3,6 +3,7 @@
 import math
 
 import geomstats.backend as gs
+from geomstats.geometry.connection import Connection
 from geomstats.vectorization import get_batch_shape
 
 
@@ -204,3 +205,70 @@ class ScipyMultivariateRandomVariable(ScipyRandomVariable):
             return gs.stack([self._pdf_single(x, point_) for point_ in point])
 
         return self._pdf_single(x, point)
+
+
+class AlphaConnection(Connection):
+    r"""Alpha-connection on a statistical manifold.
+
+    Implements the family of α-connections introduced by Amari
+
+    The α-Christoffel symbols of the second kind are obtained by raising the
+    last index of the first-kind symbols using the inverse Fisher–Rao metric:
+
+        \Gamma^{k(\alpha)}_{ij}
+        = g^{kl} \Gamma^{(\alpha)}_{ijl}
+
+    Parameters
+    ----------
+    space : Manifold
+        Manifold on which the α-connection is defined. This object is used
+        as the domain of the connection (e.g. for geodesic integration) and
+        may be equipped with no metric (``equip=False``).
+    riemannian_manifold : Manifold
+        The same underlying manifold equipped with the Fisher–Rao metric.
+        It is used to access the Levi-Civita Christoffel symbols, the metric
+        matrix, and its inverse, which are needed to define the α-family.
+        Must differ from ``space`` whenever ``space`` has no metric.
+    alpha : float, optional
+        Value of the α parameter. Default: 1.
+    """
+
+    def __init__(self, space, riemannian_manifold, alpha=1.0):
+        super().__init__(space)
+        self._riemannian_manifold = riemannian_manifold
+        self.alpha = alpha
+
+    def first_kind_christoffels(self, base_point):
+        r"""Compute the first kind Christoffel symbols.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        matrix : array-like, shape=[..., dim, dim, dim]
+            First kind Christoffel symbols.
+        """
+        raise NotImplementedError
+
+    def christoffels(self, base_point):
+        r"""Compute the (second kind) Christoffel symbols.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        matrix : array-like, shape=[..., dim, dim, dim]
+            Second kind Christoffel symbols.
+        """
+        cometric_matrix = self._riemannian_manifold.metric.cometric_matrix(base_point)
+        first_kind_christoffels = self.first_kind_christoffels(base_point)
+        second_kind_christoffels = gs.einsum(
+            "...kl, ...ijl -> ...kij", cometric_matrix, first_kind_christoffels
+        )
+        return second_kind_christoffels
