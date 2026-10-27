@@ -1,7 +1,20 @@
+from functools import singledispatch
+
 import geomstats.backend as gs
-from geomstats.geometry.base import ComplexMatrixVectorSpace
+from geomstats.geometry.base import (
+    ComplexMatrixVectorSpace,
+    DiffeomorphicManifold,
+    DiffeomorphicMatrixVectorSpace,
+    DiffeomorphicVectorSpace,
+    LevelSet,
+    MatrixVectorSpace,
+    OpenSet,
+    VectorSpace,
+)
+from geomstats.geometry.diffeo import ReversedDiffeo
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import SquareMatrices
+from geomstats.geometry.manifold import Manifold
 
 
 def get_random_quaternion(n_points=1):
@@ -65,7 +78,7 @@ class MatrixVectorSpaceRandomDataGenerator(VectorSpaceRandomDataGenerator):
     def random_basis_representation(self, n_points=1):
         dtype = (
             gs.get_default_cdtype()
-            if isinstance(self, ComplexMatrixVectorSpace)
+            if isinstance(self.space, ComplexMatrixVectorSpace)
             else None
         )
 
@@ -73,10 +86,46 @@ class MatrixVectorSpaceRandomDataGenerator(VectorSpaceRandomDataGenerator):
             return gs.random.rand(self.space.dim, dtype=dtype)
 
         return gs.reshape(
-            gs.random.rand(n_points * self.space.dim),
+            gs.random.rand(n_points * self.space.dim, dtype=dtype),
             (n_points, -1),
-            dtype=dtype,
         )
+
+
+@singledispatch
+def get_data_generator(space):
+    raise NotImplementedError(
+        f"No data generator registered for {type(space).__name__}."
+    )
+
+
+@get_data_generator.register(Manifold)
+def _(space):
+    return RandomDataGenerator(space)
+
+
+@get_data_generator.register(VectorSpace)
+def _(space):
+    return VectorSpaceRandomDataGenerator(space)
+
+
+@get_data_generator.register(MatrixVectorSpace)
+def _(space):
+    return MatrixVectorSpaceRandomDataGenerator(space)
+
+
+@get_data_generator.register(LevelSet)
+@get_data_generator.register(OpenSet)
+def _(space):
+    return EmbeddedSpaceRandomDataGenerator(space)
+
+
+@get_data_generator.register(DiffeomorphicManifold)
+@get_data_generator.register(DiffeomorphicVectorSpace)
+@get_data_generator.register(DiffeomorphicMatrixVectorSpace)
+def _(space):
+    return DiffeoBasedRandomDataGenerator(
+        space.image_space, diffeo=ReversedDiffeo(space.diffeo)
+    )
 
 
 class EmbeddedSpaceRandomDataGenerator(RandomDataGenerator):
