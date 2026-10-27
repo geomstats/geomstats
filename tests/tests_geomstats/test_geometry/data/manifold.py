@@ -12,7 +12,7 @@ class _ManifoldMixinsTestData:
 
     def assert_is_tangent_test_data(self):
         return self.generate_random_data(
-            arg_names=("base_point", "tangent_vec"),
+            arg_names=("base_point", "vector"),
             atol=gs.atol,
         )
 

@@ -22,7 +22,7 @@ class RiemannianMetricTestData(DistMixinsTestData, ConnectionTestData):
 
     def normalize_is_unitary_test_data(self):
         return self.generate_random_data(
-            arg_names=("point", "vec"),
+            arg_names=("base_point", "vector"),
         )
 
     def dist_is_log_norm_test_data(self):

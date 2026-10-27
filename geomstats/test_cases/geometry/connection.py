@@ -367,7 +367,7 @@ class ConnectionComparisonTestCase(TestCase):
         )
 
     def test_parallel_transport_ivp(
-        self, base_point, tangent_vec, direction, atol=gs.atol
+        self, tangent_vec, base_point, direction, atol=gs.atol
     ):
         assert_same_result(
             lambda space: space.metric.parallel_transport(
@@ -379,7 +379,7 @@ class ConnectionComparisonTestCase(TestCase):
         )
 
     def test_parallel_transport_bvp(
-        self, base_point, end_point, tangent_vec, atol=gs.atol
+        self, tangent_vec, base_point, end_point, atol=gs.atol
     ):
         assert_same_result(
             lambda space: space.metric.parallel_transport(

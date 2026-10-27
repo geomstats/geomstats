@@ -22,7 +22,7 @@ class _ManifoldTestCaseMixins:
         res = self.space.is_tangent(vector, base_point, atol=atol)
         self.assertAllEqual(res, expected)
 
-    def test_assert_is_tangent(self, tangent_vec, base_point, atol):
+    def test_assert_is_tangent(self, vector, base_point, atol=gs.atol):
         """Check to_tangent returns tangent vector.
 
         Parameters
@@ -30,7 +30,7 @@ class _ManifoldTestCaseMixins:
         atol : float
             Absolute tolerance.
         """
-        assert_is_tangent(self.space, tangent_vec, base_point, atol=atol)
+        assert_is_tangent(self.space, vector, base_point, atol=atol)
 
     def test_regularize(self, point, expected, atol=gs.atol):
         regularized_point = self.space.regularize(point)

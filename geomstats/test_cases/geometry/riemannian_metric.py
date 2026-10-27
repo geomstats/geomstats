@@ -87,11 +87,11 @@ class RiemannianMetricTestCase(DistTestCaseMixins, ConnectionTestCase):
         res = self.space.metric.normalize(vector, base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    def test_normalize_is_unitary(self, vec, point, atol=gs.atol):
-        normalized_vec = self.space.metric.normalize(vec, point)
-        res = self.space.metric.norm(normalized_vec, point)
+    def test_normalize_is_unitary(self, vector, base_point, atol=gs.atol):
+        normalized_vec = self.space.metric.normalize(vector, base_point)
+        res = self.space.metric.norm(normalized_vec, base_point)
 
-        batch_shape = get_batch_shape(self.space.point_ndim, vec, point)
+        batch_shape = get_batch_shape(self.space.point_ndim, vector, base_point)
         expected = gs.ones(batch_shape)
         self.assertAllClose(res, expected, atol=atol)
 
