@@ -1,49 +1,17 @@
 import pytest
-from polpo.testing.data import TestDatum
-from polpo.testing.lazy import LazyValue
-
-
-def _point_to_project(data_generator, n_points):
-    return data_generator.point_to_project(n_points)
 
 
 class ProjectionMixinsTestData:
     def projection_belongs_test_data(self):
-        data = []
-
-        for n_points in self.point_counts:
-            point = LazyValue(
-                _point_to_project,
-                self.data_generator,
-                n_points,
-                label=f"n={n_points}",
-            )
-
-            data.append(
-                TestDatum(
-                    {"point": point},
-                    marks=(pytest.mark.random,),
-                )
-            )
-
-        return data
+        return self.generate_random_data(
+            arg_names="point", samplers={"point": "point_to_project"}
+        )
 
     def projection_vec_test_data(self):
-        point = LazyValue(
-            _point_to_project,
-            self.data_generator,
-            1,
-            label="n=1",
-        )
-
-        expected = LazyValue(
-            lambda point: self.space.projection(point),
-            point,
-        )
-
-        return self._vectorize_datum(
-            {"point": point},
-            expected,
+        return self.generate_vectorization_data(
+            arg_names="point",
+            samplers={"point": "point_to_project"},
+            op_name="projection",
             vectorization_type="basic",
         )
 
