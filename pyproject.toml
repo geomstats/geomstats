@@ -85,6 +85,7 @@ markers = [
     "mathprop: mathematical properties tests.",
     "slow: for slow tests.",
     "redundant: redundant test.",
+    "api: API consistency test.",
 ]
 
 [tool.ruff]

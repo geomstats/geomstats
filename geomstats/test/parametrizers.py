@@ -50,7 +50,7 @@ class TestFunction:
 
     @property
     def vanilla_name(self):
-        return self.name[5:]
+        return self.name.removeprefix("test_")
 
     @property
     def data_name(self):
