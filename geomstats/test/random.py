@@ -1,7 +1,57 @@
+import math
+import random
+from functools import singledispatch
+
 import geomstats.backend as gs
+from geomstats.geometry.base import (
+    DiffeomorphicManifold,
+    DiffeomorphicMatrixVectorSpace,
+    DiffeomorphicVectorSpace,
+    ImmersedSet,
+    LevelSet,
+    MatrixVectorSpace,
+    OpenSet,
+    VectorSpace,
+)
+from geomstats.geometry.complex_matrices import ComplexMatrices
+from geomstats.geometry.diffeo import ReversedDiffeo
+from geomstats.geometry.discrete_curves import DiscreteCurvesStartingAtOrigin
+from geomstats.geometry.discrete_surfaces import DiscreteSurfaces
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.general_linear import SquareMatrices
-from geomstats.geometry.manifold import _get_default_dtype
+from geomstats.geometry.full_rank_correlation_matrices import (
+    FullRankCorrelationMatrices,
+)
+from geomstats.geometry.general_linear import GeneralLinear, SquareMatrices
+from geomstats.geometry.hermitian_matrices import HermitianMatrices
+from geomstats.geometry.hpd_matrices import HPDMatrices
+from geomstats.geometry.lower_triangular_matrices import (
+    LowerTriangularMatrices,
+    StrictlyLowerTriangularMatrices,
+)
+from geomstats.geometry.manifold import Manifold, _get_default_dtype
+from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.nfold_manifold import NFoldManifold
+from geomstats.geometry.open_hemisphere import (
+    OpenHemispheresProduct,
+)
+from geomstats.geometry.pre_shape import PreShapeSpace
+from geomstats.geometry.rank_k_psd_matrices import RankKPSDMatrices
+from geomstats.geometry.siegel import Siegel
+from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
+from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.geometry.special_euclidean import _SpecialEuclideanVectors
+from geomstats.geometry.special_orthogonal import (
+    SpecialOrthogonal,
+    _SpecialOrthogonalMatrices,
+    _SpecialOrthogonalVectors,
+)
+from geomstats.geometry.symmetric_matrices import (
+    NullRowSumsSymmetricMatrices,
+    SymmetricHollowMatrices,
+    SymmetricMatrices,
+)
+from geomstats.metric_geometry.point_set import PointSet
+from geomstats.vectorization import repeat_point
 
 
 def get_random_quaternion(n_points=1):
@@ -32,17 +82,79 @@ def get_random_times(n_times, sort=True):
 
 
 class RandomDataGenerator:
-    def __init__(self, space, amplitude=2.0, random_point_kwargs=None):
+    """Random data generator for a space.
+
+    Parameters
+    ----------
+    space : Manifold
+        Space to sample from.
+    amplitude : float
+        Random tangent vectors are divided by it.
+    near_scale : float
+        Scale of the tangent vector used by ``random_point_near``.
+    """
+
+    def __init__(self, space, amplitude=2.0, near_scale=0.1):
         self.space = space
         self.amplitude = amplitude
-        self.random_point_kwargs = random_point_kwargs or {}
+        self.near_scale = near_scale
 
     def random_point(self, n_points=1):
-        return self.space.random_point(n_points, **self.random_point_kwargs)
+        return self.space.random_point(n_points)
 
     def random_tangent_vec(self, base_point):
         tangent_vec = self.space.random_tangent_vec(base_point)
         return tangent_vec / self.amplitude
+
+    def random_cotangent_vec(self, base_point):
+        """Sample cotangent vectors as flats of random tangent vectors.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        cotangent_vec : array-like, shape=[..., *space.shape]
+            Cotangent vectors at ``base_point``.
+        """
+        return self.space.metric.flat(self.random_tangent_vec(base_point), base_point)
+
+    def random_point_near(self, base_point):
+        """Sample a point near ``base_point`` using the metric's exponential.
+
+        The tangent vector used to move away from ``base_point`` is scaled
+        by ``self.near_scale``.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *space.shape]
+            Point around which to sample.
+
+        Returns
+        -------
+        point : array-like, shape=[..., *space.shape]
+            Point near ``base_point``.
+        """
+        tangent_vec = self.near_scale * self.random_tangent_vec(base_point)
+        return self.space.metric.exp(tangent_vec, base_point)
+
+    def random_tangent_vec_at_identity(self, n_points=1):
+        """Sample tangent vectors at the identity of a group.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of tangent vectors.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vectors at the identity.
+        """
+        identity = repeat_point(self.space.identity, n_points)
+        return self.random_tangent_vec(identity)
 
 
 class RandomDatasetGenerator:
@@ -75,9 +187,336 @@ class MatrixVectorSpaceRandomDataGenerator(VectorSpaceRandomDataGenerator):
         )
 
 
+_INJECTIVITY_RADIUS_FACTOR = 0.9
+
+
+def get_data_generator(
+    space,
+    within_injectivity_radius=False,
+    bounded_metric_norm=False,
+    random_point_kwargs=None,
+    **kwargs,
+):
+    """Get the random data generator registered for a space.
+
+    Parameters
+    ----------
+    space : Manifold
+        Space to sample from.
+    within_injectivity_radius : bool
+        If True and the space is equipped, the metric norm of random tangent
+        vectors is capped below the injectivity radius at their base point.
+    bounded_metric_norm : bool
+        If True and the space is equipped, random tangent vectors are rescaled
+        to a random metric norm smaller than ``1 / amplitude``.
+    random_point_kwargs : dict
+        If given, random points are sampled with
+        ``space.random_point(n_points, **random_point_kwargs)``, e.g. to
+        restrict the sampling window.
+    **kwargs
+        Keyword arguments passed to the data generator constructor,
+        e.g. ``amplitude`` or ``near_scale``.
+
+    Returns
+    -------
+    data_generator : RandomDataGenerator
+        Data generator for ``space``.
+    """
+    data_generator = _get_data_generator(space, **kwargs)
+    if random_point_kwargs:
+
+        def random_point(n_points=1):
+            return space.random_point(n_points, **random_point_kwargs)
+
+        data_generator.random_point = random_point
+
+    if within_injectivity_radius or bounded_metric_norm:
+        _rescale_random_tangent_vecs(
+            data_generator, within_injectivity_radius, bounded_metric_norm
+        )
+    return data_generator
+
+
+def _rescale_random_tangent_vecs(
+    data_generator, within_injectivity_radius, bounded_metric_norm
+):
+    """Rescale the random tangent vectors of a data generator in place.
+
+    The instance method is replaced, so that the internal uses of
+    ``random_tangent_vec`` by the data generator are also rescaled.
+    """
+    space = data_generator.space
+    if not hasattr(space, "metric"):
+        return
+
+    sample_tangent_vec = data_generator.random_tangent_vec
+    amplitude = getattr(data_generator, "amplitude", 1.0)
+
+    def random_tangent_vec(base_point):
+        tangent_vec = sample_tangent_vec(base_point)
+        norm = space.metric.norm(tangent_vec, base_point)
+
+        target_norm = norm
+        if bounded_metric_norm:
+            target_norm = gs.random.rand(*norm.shape, 1)[..., 0] / amplitude
+
+        if within_injectivity_radius:
+            try:
+                radius = space.metric.injectivity_radius(base_point)
+                target_norm = gs.minimum(
+                    target_norm, _INJECTIVITY_RADIUS_FACTOR * radius
+                )
+            except NotImplementedError:
+                pass
+
+        factor = target_norm / norm
+        factor = gs.reshape(factor, factor.shape + (1,) * space.point_ndim)
+        return factor * tangent_vec
+
+    data_generator.random_tangent_vec = random_tangent_vec
+
+
+@singledispatch
+def _get_data_generator(space, **kwargs):
+    raise NotImplementedError(
+        f"No data generator registered for {type(space).__name__}."
+    )
+
+
+@_get_data_generator.register(Manifold)
+@_get_data_generator.register(PointSet)
+def _(space, **kwargs):
+    return RandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(VectorSpace)
+def _(space, **kwargs):
+    return VectorSpaceRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(MatrixVectorSpace)
+def _(space, **kwargs):
+    return MatrixVectorSpaceRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(ImmersedSet)
+@_get_data_generator.register(LevelSet)
+@_get_data_generator.register(OpenSet)
+def _(space, **kwargs):
+    return EmbeddedSpaceRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(Siegel)
+def _(space, **kwargs):
+    return SiegelRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(NullRowSumsSymmetricMatrices)
+@_get_data_generator.register(StrictlyLowerTriangularMatrices)
+@_get_data_generator.register(SymmetricHollowMatrices)
+def _(space, **kwargs):
+    return LevelSetMatrixVectorSpaceRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(FullRankCorrelationMatrices)
+def _(space, **kwargs):
+    return FullRankCorrelationMatricesRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(PreShapeSpace)
+def _(space, **kwargs):
+    return KendalShapeRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(RankKPSDMatrices)
+def _(space, **kwargs):
+    return RankKPSDMatricesRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(DiscreteSurfaces)
+def _(space, **kwargs):
+    return DiscreteSurfacesRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(DiscreteCurvesStartingAtOrigin)
+def _(space, **kwargs):
+    return DiscreteCurvesRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(_SpecialOrthogonalMatrices)
+def _(space, **kwargs):
+    return SpecialOrthogonalMatricesRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(_SpecialOrthogonalVectors)
+def _(space, **kwargs):
+    return SpecialOrthogonalVectorsRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(_SpecialEuclideanVectors)
+def _(space, **kwargs):
+    return LieGroupVectorRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(NFoldManifold)
+def _(space, **kwargs):
+    return NFoldManifoldRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(OpenHemispheresProduct)
+def _(space, **kwargs):
+    return FactorwiseRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(GeneralLinear)
+def _(space, **kwargs):
+    return GeneralLinearRandomDataGenerator(space, **kwargs)
+
+
+@_get_data_generator.register(DiffeomorphicManifold)
+@_get_data_generator.register(DiffeomorphicVectorSpace)
+@_get_data_generator.register(DiffeomorphicMatrixVectorSpace)
+def _(space, **kwargs):
+    return DiffeoBasedRandomDataGenerator(
+        space, space.image_space, diffeo=ReversedDiffeo(space.diffeo), **kwargs
+    )
+
+
 class EmbeddedSpaceRandomDataGenerator(RandomDataGenerator):
     def point_to_project(self, n_points=1):
         return self.space.embedding_space.random_point(n_points)
+
+    def random_point_near(self, base_point):
+        """Sample a point near ``base_point`` by projection.
+
+        Works without a metric: moves along a tangent vector in the embedding
+        space and projects back onto the space.
+
+        The tangent vector used to move away from ``base_point`` is scaled
+        by ``self.near_scale``.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *space.shape]
+            Point around which to sample.
+
+        Returns
+        -------
+        point : array-like, shape=[..., *space.shape]
+            Point near ``base_point``.
+        """
+        return self.space.projection(
+            base_point + self.near_scale * self.random_tangent_vec(base_point)
+        )
+
+
+class SiegelRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
+    def random_tangent_vec_at_zero(self, n_points=1):
+        """Sample tangent vectors at the zero matrix.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of tangent vectors.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vectors at zero.
+        """
+        zero = gs.zeros(self.space.shape, dtype=gs.get_default_cdtype())
+        return self.random_tangent_vec(repeat_point(zero, n_points))
+
+
+class RandomGroveDataGenerator(RandomDataGenerator):
+    """Random data generator for points of a grove of a Wald space.
+
+    Parameters
+    ----------
+    space : WaldSpace
+        Wald space.
+    topology : ForestTopology
+        Topology of the grove.
+    """
+
+    def __init__(self, space, topology, near_scale=0.1):
+        super().__init__(space, near_scale=near_scale)
+        self.topology = topology
+
+    def random_point(self, n_points=1):
+        return self.space.random_grove_point(self.topology, n_points)
+
+
+class GeneralLinearRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
+    """Random data generator for (positive) general linear groups.
+
+    Parameters
+    ----------
+    space : GeneralLinear
+        Space to sample from.
+    identity_scale : float
+        Scale of the small random matrices used by
+        ``random_point_near_identity`` and ``random_tangent_vec_near_zero``.
+    """
+
+    def __init__(self, space, identity_scale=0.2, **kwargs):
+        super().__init__(space, **kwargs)
+        self.identity_scale = identity_scale
+
+    def random_point_near_identity(self, n_points=1):
+        """Sample points near the identity.
+
+        They are matrix exponentials of small random matrices, so that the
+        group logarithm between two of them is real.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of points.
+
+        Returns
+        -------
+        point : array-like, shape=[..., n, n]
+            Points near the identity.
+        """
+        return gs.linalg.expm(self._small_matrices(n_points))
+
+    def random_tangent_vec_near_zero(self, base_point):
+        """Sample small tangent vectors.
+
+        They are ``base_point @ X``, with ``X`` small, so that the group
+        logarithm inverts the group exponential at ``base_point``.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the group.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vectors at ``base_point``.
+        """
+        n_points = 1 if base_point.ndim == 2 else base_point.shape[0]
+        return gs.matmul(base_point, self._small_matrices(n_points))
+
+    def _small_matrices(self, n_points):
+        """Sample random matrices scaled by ``identity_scale``."""
+        n = self.space.n
+        shape = (n, n) if n_points == 1 else (n_points, n, n)
+        return self.identity_scale * gs.random.normal(size=shape) / n
+
+
+class LevelSetMatrixVectorSpaceRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
+    """Random data generator for matrix vector spaces defined as level sets.
+
+    Points are sampled as for level sets, and basis representations as for
+    matrix vector spaces.
+    """
+
+    random_basis_representation = (
+        MatrixVectorSpaceRandomDataGenerator.random_basis_representation
+    )
 
 
 class NFoldManifoldRandomDataGenerator(RandomDataGenerator):
@@ -93,9 +532,190 @@ class NFoldManifoldRandomDataGenerator(RandomDataGenerator):
         return gs.reshape(point, shape + base.shape)
 
 
+class DiscreteCurvesRandomDataGenerator(NFoldManifoldRandomDataGenerator):
+    """Random data generator for discrete curves starting at the origin.
+
+    Points to project are curves with `k_sampling_points` points, not
+    necessarily starting at the origin.
+
+    Tangent vectors are smooth vector fields along the curve: random values
+    at `n_tangent_knots - 1` evenly spaced times, vanishing at the origin, are
+    interpolated with a cubic spline.
+
+    Parameters
+    ----------
+    space : DiscreteCurvesStartingAtOrigin
+        Space of discrete curves.
+    fiber_actions : tuple of str, {"rotations", "reparametrizations"}
+        Group actions used to sample points in the same fiber.
+    n_tangent_knots : int
+        Number of knots of the splines defining tangent vectors, including
+        the origin.
+    """
+
+    def __init__(self, space, fiber_actions=(), n_tangent_knots=5, **kwargs):
+        super().__init__(space, **kwargs)
+        self.fiber_actions = fiber_actions
+        self._knots_space = DiscreteCurvesStartingAtOrigin(
+            space.ambient_manifold.dim, n_tangent_knots, equip=False
+        )
+
+    def random_tangent_vec(self, base_point):
+        """Sample a smooth tangent vector at a base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Tangent vector at `base_point`.
+        """
+        is_batch = base_point.ndim > self.space.point_ndim
+        batch_shape = base_point.shape[:1] if is_batch else ()
+        knots = gs.random.normal(size=batch_shape + self._knots_space.shape)
+
+        times = gs.linspace(0.0, 1.0, self.space.k_sampling_points)[1:]
+        return self._knots_space.interpolate(knots)(times) / self.amplitude
+
+    def point_to_project(self, n_points=1):
+        return Matrices(
+            self.space.k_sampling_points,
+            self.space.ambient_manifold.dim,
+            equip=False,
+        ).random_point(n_points)
+
+    def random_point_in_fiber(self, base_point):
+        """Sample a point in the same fiber as a base point.
+
+        The base point is reparametrized by a random power of time and/or
+        rotated by a random rotation, depending on `fiber_actions`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve in the same fiber as `base_point`.
+        """
+        point = base_point
+        if "reparametrizations" in self.fiber_actions:
+            times = gs.linspace(0.0, 1.0, self.space.k_sampling_points)
+            power = random.uniform(1.5, 2.0)
+            curve = self.space.interpolate(point)
+            point = self.space.projection(curve(times**power))
+
+        if "rotations" in self.fiber_actions:
+            n_points = point.shape[0] if point.ndim > self.space.point_ndim else 1
+            rotation = SpecialOrthogonal(
+                self.space.ambient_manifold.dim, equip=False
+            ).random_point(n_points)
+            point = gs.matmul(point, gs.matrix_transpose(rotation))
+
+        return point
+
+
+class DiscreteSurfacesRandomDataGenerator(RandomDataGenerator):
+    """Random data generator for discrete surfaces.
+
+    If `point` is given, points are random deformations of it, and tangent
+    vectors random deformations. The first vertex is kept fixed.
+
+    Parameters
+    ----------
+    space : DiscreteSurfaces
+        Space of discrete surfaces.
+    point : array-like, shape=[n_vertices, 3]
+        Surface around which to sample.
+    """
+
+    def __init__(self, space, point=None, amplitude=2.0, near_scale=0.1):
+        super().__init__(space, amplitude=amplitude, near_scale=near_scale)
+        self.point = point
+
+    def _get_deformation(self, n_points):
+        dim = self.point.shape[-1]
+        dof = self.point.shape[0] - 1
+
+        batch_shape = () if n_points == 1 else (n_points,)
+        rand_shape = batch_shape + (dof, dim)
+
+        return (
+            gs.concatenate(
+                [
+                    gs.zeros(batch_shape + (1, dim)),
+                    gs.reshape(gs.random.rand(math.prod(rand_shape)), rand_shape),
+                ],
+                axis=-2,
+            )
+            / self.amplitude
+        )
+
+    def random_point(self, n_points=1):
+        if self.point is None:
+            return super().random_point(n_points)
+        return self.point + self._get_deformation(n_points)
+
+    def random_tangent_vec(self, base_point):
+        if self.point is None:
+            return super().random_tangent_vec(base_point)
+        n_points = 1 if base_point.ndim == 2 else base_point.shape[0]
+        return self._get_deformation(n_points)
+
+
+class FactorwiseRandomDataGenerator(RandomDataGenerator):
+    """Random data generator sampling each factor of a product manifold.
+
+    Points and tangent vectors are sampled with the data generator of each
+    factor and embedded in the product. Useful when a factor needs its own
+    data generator; otherwise, a product manifold is sampled as any other
+    manifold.
+
+    Parameters
+    ----------
+    space : ProductManifold
+        Space to sample from.
+    amplitude : float
+        Passed to the data generator of each factor.
+    near_scale : float
+        Scale of the tangent vector used by ``random_point_near``.
+    """
+
+    def __init__(self, space, amplitude=2.0, near_scale=0.1):
+        super().__init__(space, amplitude=amplitude, near_scale=near_scale)
+        self.factor_data_generators = [
+            get_data_generator(factor, amplitude=amplitude, near_scale=near_scale)
+            for factor in space.factors
+        ]
+
+    def random_point(self, n_points=1):
+        return self.space.embed_to_product(
+            [
+                data_generator.random_point(n_points)
+                for data_generator in self.factor_data_generators
+            ]
+        )
+
+    def random_tangent_vec(self, base_point):
+        factor_base_points = self.space.project_from_product(base_point)
+        return self.space.embed_to_product(
+            [
+                data_generator.random_tangent_vec(factor_base_point)
+                for data_generator, factor_base_point in zip(
+                    self.factor_data_generators, factor_base_points
+                )
+            ]
+        )
+
+
 class RankKPSDMatricesRandomDataGenerator(RandomDataGenerator):
-    def __init__(self, space, amplitude=1.0):
-        super().__init__(space, amplitude=amplitude)
+    def __init__(self, space, amplitude=1.0, near_scale=0.1):
+        super().__init__(space, amplitude=amplitude, near_scale=near_scale)
         self._square = SquareMatrices(self.space.n)
 
     def point_to_project(self, n_points=1):
@@ -103,12 +723,51 @@ class RankKPSDMatricesRandomDataGenerator(RandomDataGenerator):
 
 
 class LieGroupVectorRandomDataGenerator(RandomDataGenerator):
-    def __init__(self, space, amplitude=1.0):
-        super().__init__(space, amplitude=amplitude)
+    def __init__(self, space, amplitude=1.0, near_scale=0.1):
+        super().__init__(space, amplitude=amplitude, near_scale=near_scale)
         self._euclidean = Euclidean(self.space.dim, equip=False)
 
     def point_to_project(self, n_points=1):
         return self._euclidean.random_point(n_points)
+
+
+class _SpecialOrthogonalSamplersMixin:
+    """Samplers of the representations of rotations of `space`."""
+
+    def random_rotation_matrix(self, n_points=1):
+        return SpecialOrthogonal(self.space.n, equip=False).random_point(n_points)
+
+    def random_rotation_vector(self, n_points=1):
+        return SpecialOrthogonal(
+            self.space.n, point_type="vector", equip=False
+        ).random_point(n_points)
+
+    @staticmethod
+    def random_quaternion(n_points=1):
+        return get_random_quaternion(n_points)
+
+    @staticmethod
+    def random_tait_bryan_angles(n_points=1):
+        size = (n_points, 3) if n_points > 1 else (3,)
+        return gs.random.uniform(low=-gs.pi, high=gs.pi, size=size)
+
+
+class SpecialOrthogonalMatricesRandomDataGenerator(
+    _SpecialOrthogonalSamplersMixin, EmbeddedSpaceRandomDataGenerator
+):
+    """Random data generator for special orthogonal matrices."""
+
+
+class SpecialOrthogonalVectorsRandomDataGenerator(
+    _SpecialOrthogonalSamplersMixin, LieGroupVectorRandomDataGenerator
+):
+    """Random data generator for special orthogonal groups as rotation vectors.
+
+    Points to project are n x n matrices.
+    """
+
+    def point_to_project(self, n_points=1):
+        return Matrices(self.space.n, self.space.n, equip=False).random_point(n_points)
 
 
 class KendalShapeRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
@@ -119,56 +778,222 @@ class KendalShapeRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
             / self.amplitude
         )
 
-
-class GammaRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
-    def random_point_standard(self, n_points=1):
-        return self.space.natural_to_standard(self.random_point(n_points=n_points))
-
-    def random_tangent_vec_standard(self, base_point):
-        base_point_natural = self.space.standard_to_natural(base_point)
-        tangent_vec_natural = self.random_tangent_vec(base_point_natural)
+    def random_vertical_vec(self, base_point):
+        tangent_vec = self.random_tangent_vec(base_point)
         return (
-            self.space.tangent_natural_to_standard(
-                tangent_vec_natural, base_point_natural
-            )
+            self.space.fiber_bundle.vertical_projection(tangent_vec, base_point)
             / self.amplitude
         )
 
 
-class ShapeBundleRandomDataGenerator(RandomDataGenerator):
-    def __init__(self, space, n_discretized_curves=5):
-        super().__init__(space)
-        self.n_discretized_curves = n_discretized_curves
-
-    def random_tangent_vec(self, base_point):
-        n_points = base_point.shape[0] if base_point.ndim > 2 else 1
-        point = self.random_point(n_points=n_points)
-
-        geo = self.space.metric.geodesic(initial_point=base_point, end_point=point)
-
-        times = gs.linspace(0.0, 1.0, self.n_discretized_curves)
-
-        geod = geo(times)
-
-        return (
-            self.n_discretized_curves * (geod[..., 1, :, :] - geod[..., 0, :, :])
-        ) / self.amplitude
+class FullRankCorrelationMatricesRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
+    def random_diagonal_vec(self, n_points=1):
+        return Matrices.diagonal(self.space.embedding_space.random_point(n_points))
 
 
 class DiffeoBasedRandomDataGenerator(RandomDataGenerator):
-    def __init__(self, space, diffeo, amplitude=2.0):
-        super().__init__(space, amplitude)
+    """Random data generator sampling through a diffeomorphism.
+
+    Points and tangent vectors are sampled in ``image_space`` and mapped to
+    ``space`` by ``diffeo``. The other samplers, e.g. of cotangent vectors,
+    use the metric of ``space``.
+
+    Parameters
+    ----------
+    space : Manifold
+        Space of the generated data.
+    image_space : Manifold
+        Space in which the data is sampled.
+    diffeo : Diffeo
+        Diffeomorphism from ``image_space`` to ``space``.
+    amplitude : float
+        Factor by which tangent vectors are divided.
+    near_scale : float
+        Scale of the tangent vectors used to sample nearby points.
+    """
+
+    def __init__(self, space, image_space, diffeo, amplitude=2.0, near_scale=0.1):
+        super().__init__(space, amplitude, near_scale=near_scale)
+        self.image_space = image_space
         self.diffeo = diffeo
 
     def random_point(self, n_points=1):
-        return self.diffeo(self.space.random_point(n_points))
+        return self.diffeo(self.image_space.random_point(n_points))
 
     def random_tangent_vec(self, base_point):
-        image_point = base_point
-        base_point = self.diffeo.inverse(image_point)
+        image_point = self.diffeo.inverse(base_point)
 
-        tangent_vec = self.space.random_tangent_vec(base_point)
+        tangent_vec = self.image_space.random_tangent_vec(image_point)
         tangent_vec = tangent_vec / self.amplitude
         return self.diffeo.tangent(
-            tangent_vec, base_point=base_point, image_point=image_point
+            tangent_vec, base_point=image_point, image_point=base_point
         )
+
+
+class MatrixOperationsRandomDataGenerator:
+    """Random data generator for matrix operations.
+
+    Matrix operations are not tied to a space, so each sampler draws a new
+    random shape unless one is given. Samplers ending in ``_like`` instead
+    match the shape and batch size of a given matrix.
+
+    Parameters
+    ----------
+    m_bounds : tuple[int]
+        Bounds of the number of rows.
+    n_bounds : tuple[int]
+        Bounds of the number of columns.
+    """
+
+    def __init__(self, m_bounds=(2, 4), n_bounds=(2, 4)):
+        self.m_bounds = m_bounds
+        self.n_bounds = n_bounds
+
+        self._n_shape_trials = 20
+
+    def _random_shape(self):
+        return (random.randint(*self.m_bounds), random.randint(*self.n_bounds))
+
+    def _random_square_shape(self):
+        return (random.randint(*self.m_bounds),)
+
+    def _random_non_square_shape(self):
+        m = random.randint(*self.m_bounds)
+        for _ in range(self._n_shape_trials):
+            n = random.randint(*self.n_bounds)
+            if n != m:
+                break
+
+        return (m, n)
+
+    @staticmethod
+    def _n_points_like(mat):
+        return mat.shape[0] if mat.ndim > 2 else 1
+
+    def random_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_shape()
+
+        return Matrices(*shape, equip=False).random_point(n_points)
+
+    def random_mat_like(self, mat):
+        return self.random_mat(self._n_points_like(mat), shape=mat.shape[-2:])
+
+    def random_transposed_mat_like(self, mat):
+        return self.random_mat(self._n_points_like(mat), shape=mat.shape[-2:][::-1])
+
+    def random_square_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_square_shape()
+
+        return SquareMatrices(*shape).random_point(n_points)
+
+    def random_non_square_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_non_square_shape()
+
+        return self.random_mat(n_points, shape)
+
+    def random_symmetric_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_square_shape()
+
+        return SymmetricMatrices(*shape, equip=False).random_point(n_points)
+
+    def random_diagonal_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_square_shape()
+
+        n = shape[0]
+        identity = gs.eye(n)
+        batch_shape = (n_points,) if n_points > 1 else ()
+        coeffs = gs.random.uniform(size=batch_shape + (n,))
+        return gs.einsum("...,ij->...ij", coeffs, identity)
+
+    def random_lower_triangular_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_square_shape()
+
+        return LowerTriangularMatrices(*shape).random_point(n_points)
+
+    def random_upper_triangular_mat(self, n_points=1, shape=None):
+        return gs.matrix_transpose(self.random_lower_triangular_mat(n_points, shape))
+
+    def random_spd_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_square_shape()
+
+        return SPDMatrices(*shape).random_point(n_points)
+
+    def random_skew_symmetric_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_square_shape()
+
+        return SkewSymmetricMatrices(*shape).random_point(n_points)
+
+    @staticmethod
+    def random_coefficients(n_points=1):
+        """Sample two scalar coefficients, independent of `n_points`."""
+        return gs.random.uniform(size=(2,))
+
+
+class ComplexMatrixOperationsRandomDataGenerator(MatrixOperationsRandomDataGenerator):
+    """Random data generator for complex matrix operations.
+
+    Same as `MatrixOperationsRandomDataGenerator`, but samples complex
+    matrices.
+    """
+
+    def random_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_shape()
+
+        return ComplexMatrices(*shape, equip=False).random_point(n_points)
+
+    def random_square_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_square_shape()
+
+        return self.random_mat(n_points, shape=shape * 2)
+
+    def random_hermitian_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_square_shape()
+
+        return HermitianMatrices(*shape, equip=False).random_point(n_points)
+
+    def random_hpd_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_square_shape()
+
+        return HPDMatrices(*shape, equip=False).random_point(n_points)
+
+    def random_skew_hermitian_mat(self, n_points=1, shape=None):
+        return ComplexMatrices.to_skew_hermitian(
+            self.random_square_mat(n_points, shape=shape)
+        )
+
+
+class GroupActionRandomDataGenerator:
+    """Random data generator for a group action.
+
+    Samples points with the data generator registered for `space`, and group
+    elements with `group.random_point`.
+
+    Parameters
+    ----------
+    space : Manifold
+        Space the group acts on.
+    group : object
+        Group acting on `space`. Must implement `random_point`.
+    """
+
+    def __init__(self, space, group, **kwargs):
+        self.space_data_generator = get_data_generator(space, **kwargs)
+        self.group = group
+
+    def random_point(self, n_points=1):
+        return self.space_data_generator.random_point(n_points)
+
+    def random_group_elem(self, n_points=1):
+        return self.group.random_point(n_points)
