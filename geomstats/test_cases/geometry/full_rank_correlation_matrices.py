@@ -1,7 +1,7 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.matrices import MatrixOperations
+from geomstats.geometry.matrices import Matrices
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import LevelSetTestCase
 
@@ -39,7 +39,7 @@ class FullRankCorrelationMatricesTestCase(LevelSetTestCase):
     @pytest.mark.vec
     def test_diag_action_vec(self, n_reps, atol):
         point = self.space.embedding_space.random_point()
-        diagonal_vec = MatrixOperations.diagonal(point)
+        diagonal_vec = Matrices.diagonal(point)
 
         expected = self.space.diag_action(diagonal_vec, point)
 

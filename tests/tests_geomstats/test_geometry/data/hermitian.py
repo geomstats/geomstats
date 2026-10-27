@@ -2,8 +2,8 @@ import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from .base import VectorSpaceTestData
-from .mixins import GroupExpMixinsTestData
 from .riemannian_metric import RiemannianMetricTestData
+from .mixins import GroupExpMixinsTestData
 
 
 class HermitianTestData(GroupExpMixinsTestData, VectorSpaceTestData):

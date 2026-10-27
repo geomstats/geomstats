@@ -2,8 +2,8 @@ import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from .complex_matrices import ComplexMatricesMetricTestData
-from .pullback_metric import PullbackDiffeoMetricTestData
 from .riemannian_metric import RiemannianMetricTestData
+from .pullback_metric import PullbackDiffeoMetricTestData
 
 
 class HPDMatrices2TestData(TestData):

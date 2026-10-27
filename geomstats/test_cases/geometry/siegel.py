@@ -1,7 +1,9 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+from geomstats.test_cases.geometry.riemannian_metric import (
+    RiemannianMetricTestCase,
+)
 
 
 class SiegelMetricTestCase(RiemannianMetricTestCase):

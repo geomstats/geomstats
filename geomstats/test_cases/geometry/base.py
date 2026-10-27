@@ -1,7 +1,6 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.manifold import _get_default_dtype
 from geomstats.test.random import (
     EmbeddedSpaceRandomDataGenerator,
     MatrixVectorSpaceRandomDataGenerator,
@@ -135,9 +134,7 @@ class MatrixVectorSpaceTestCase(VectorSpaceTestCase):
 
     @pytest.mark.vec
     def test_matrix_representation_vec(self, n_reps, atol):
-        basis_representation = gs.random.rand(
-            self.space.dim, dtype=_get_default_dtype(self.space.field == "complex")
-        )
+        basis_representation = gs.random.rand(self.space.dim)
         expected = self.space.matrix_representation(basis_representation)
 
         vec_data = generate_vectorization_data(
@@ -156,10 +153,7 @@ class MatrixVectorSpaceTestCase(VectorSpaceTestCase):
 
     @pytest.mark.random
     def test_matrix_representation_belongs(self, n_points, atol):
-        dtype = _get_default_dtype(self.space.field == "complex")
-        vec = gs.reshape(
-            gs.random.rand(n_points * self.space.dim, dtype=dtype), (n_points, -1)
-        )
+        vec = gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
         point = self.space.matrix_representation(vec)
 
         self.test_belongs(point, gs.ones(n_points, dtype=bool), atol)
@@ -174,10 +168,7 @@ class MatrixVectorSpaceTestCase(VectorSpaceTestCase):
 
     @pytest.mark.random
     def test_basis_representation_after_matrix_representation(self, n_points, atol):
-        dtype = _get_default_dtype(self.space.field == "complex")
-        vec = gs.reshape(
-            gs.random.rand(n_points * self.space.dim, dtype=dtype), (n_points, -1)
-        )
+        vec = gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
         point = self.space.matrix_representation(vec)
         vec_ = self.space.basis_representation(point)
 

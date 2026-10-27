@@ -1,5 +1,5 @@
 import geomstats.backend as gs
-from geomstats.geometry.matrices import MatrixOperations
+from geomstats.geometry.matrices import Matrices
 from geomstats.test.data import TestData
 
 from .fiber_bundle import FiberBundleTestData
@@ -42,12 +42,12 @@ class GrassmannianCanonicalMetric32TestData(TestData):
 
         data = [
             dict(
-                tangent_vec=MatrixOperations.bracket(pi_2 * r_y, gs.stack([p_xy, p_yz])),
+                tangent_vec=Matrices.bracket(pi_2 * r_y, gs.stack([p_xy, p_yz])),
                 base_point=gs.stack([p_xy, p_yz]),
                 expected=gs.stack([p_yz, p_xy]),
             ),
             dict(
-                tangent_vec=MatrixOperations.bracket(
+                tangent_vec=Matrices.bracket(
                     pi_2 * gs.stack([r_y, r_z]), gs.stack([p_xy, p_yz])
                 ),
                 base_point=gs.stack([p_xy, p_yz]),

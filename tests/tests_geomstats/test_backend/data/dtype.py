@@ -1,7 +1,7 @@
 import numpy as np
 
 import geomstats.backend as gs
-from geomstats.geometry.matrices import MatrixOperations
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.test.data import TestData
@@ -173,7 +173,7 @@ class DtypeTestData(TestData):
             return SPDMatrices(2).random_point()
 
         def _create_diag():
-            return MatrixOperations.to_diagonal(rand(2, 2))
+            return Matrices.to_diagonal(rand(2, 2))
 
         def _create_sym():
             return SymmetricMatrices(2).random_point()

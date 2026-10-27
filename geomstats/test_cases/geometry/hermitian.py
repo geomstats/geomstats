@@ -2,8 +2,10 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.test_cases.geometry.base import VectorSpaceTestCase
+from geomstats.test_cases.geometry.riemannian_metric import (
+    RiemannianMetricTestCase,
+)
 from geomstats.test_cases.geometry.mixins import GroupExpTestCaseMixins
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
 class HermitianTestCase(GroupExpTestCaseMixins, VectorSpaceTestCase):

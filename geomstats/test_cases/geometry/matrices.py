@@ -1,7 +1,7 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.matrices import MatrixOperations
+from geomstats.geometry.matrices import Matrices
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import MatrixVectorSpaceTestCase
@@ -14,7 +14,7 @@ class MatrixOperationsTestCase(TestCase):
         return mat.shape[::-1][:2]
 
     def test_equal(self, mat_a, mat_b, expected, atol):
-        res = MatrixOperations.equal(mat_a, mat_b, atol=atol)
+        res = Matrices.equal(mat_a, mat_b, atol=atol)
         self.assertAllEqual(res, expected)
 
     @pytest.mark.vec
@@ -22,7 +22,7 @@ class MatrixOperationsTestCase(TestCase):
         mat_a = self.data_generator.random_mat()
         mat_b = self.data_generator.random_mat(shape=mat_a.shape[-2:])
 
-        expected = MatrixOperations.equal(mat_a, mat_b)
+        expected = Matrices.equal(mat_a, mat_b)
 
         vec_data = generate_vectorization_data(
             data=[dict(mat_a=mat_a, mat_b=mat_b, expected=expected, atol=atol)],
@@ -46,11 +46,11 @@ class MatrixOperationsTestCase(TestCase):
         self.test_equal(mat_a, mat_b, False, atol=atol)
 
     def test_mul_reduce(self, mats, expected, atol):
-        res = MatrixOperations.mul(*mats)
+        res = Matrices.mul(*mats)
         self.assertAllClose(res, expected, atol=atol)
 
     def test_mul(self, mat_a, mat_b, expected, atol):
-        res = MatrixOperations.mul(mat_a, mat_b)
+        res = Matrices.mul(mat_a, mat_b)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
@@ -77,7 +77,7 @@ class MatrixOperationsTestCase(TestCase):
         self.test_mul(mat_a, identity, mat_a, atol)
 
     def test_bracket(self, mat_a, mat_b, expected, atol):
-        res = MatrixOperations.bracket(mat_a, mat_b)
+        res = Matrices.bracket(mat_a, mat_b)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
@@ -85,7 +85,7 @@ class MatrixOperationsTestCase(TestCase):
         mat_a = self.data_generator.random_square_mat()
         mat_b = self.data_generator.random_square_mat(shape=mat_a.shape[-1:])
 
-        expected = MatrixOperations.bracket(mat_a, mat_b)
+        expected = Matrices.bracket(mat_a, mat_b)
 
         vec_data = generate_vectorization_data(
             data=[dict(mat_a=mat_a, mat_b=mat_b, expected=expected, atol=atol)],
@@ -105,12 +105,12 @@ class MatrixOperationsTestCase(TestCase):
         a, b = gs.random.uniform(size=(2,))
 
         mat_ab = a * mat_a + b * mat_b
-        left = MatrixOperations.bracket(mat_ab, mat_c)
-        right = a * MatrixOperations.bracket(mat_a, mat_c) + b * MatrixOperations.bracket(mat_b, mat_c)
+        left = Matrices.bracket(mat_ab, mat_c)
+        right = a * Matrices.bracket(mat_a, mat_c) + b * Matrices.bracket(mat_b, mat_c)
         self.assertAllClose(left, right, atol=atol)
 
-        left = MatrixOperations.bracket(mat_c, mat_ab)
-        right = a * MatrixOperations.bracket(mat_c, mat_a) + b * MatrixOperations.bracket(mat_c, mat_b)
+        left = Matrices.bracket(mat_c, mat_ab)
+        right = a * Matrices.bracket(mat_c, mat_a) + b * Matrices.bracket(mat_c, mat_b)
         self.assertAllClose(left, right, atol=atol)
 
     def test_transpose(self, mat, expected, atol):
@@ -137,14 +137,14 @@ class MatrixOperationsTestCase(TestCase):
         self.test_transpose(mat, mat, atol)
 
     def test_diagonal(self, mat, expected, atol):
-        res = MatrixOperations.diagonal(mat)
+        res = Matrices.diagonal(mat)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
     def test_diagonal_vec(self, n_reps, atol):
         mat = self.data_generator.random_mat()
 
-        expected = MatrixOperations.diagonal(mat)
+        expected = Matrices.diagonal(mat)
         vec_data = generate_vectorization_data(
             data=[dict(mat=mat, expected=expected, atol=atol)],
             arg_names=["mat"],
@@ -157,21 +157,21 @@ class MatrixOperationsTestCase(TestCase):
     def test_diagonal_sum(self, n_points, atol):
         mat = self.data_generator.random_square_mat(n_points)
 
-        diag = MatrixOperations.diagonal(mat)
+        diag = Matrices.diagonal(mat)
 
         sum_diag = gs.sum(diag, axis=-1)
         trace = gs.trace(mat)
         self.assertAllClose(sum_diag, trace, atol=atol)
 
     def test_is_square(self, mat, expected):
-        res = MatrixOperations.is_square(mat)
+        res = Matrices.is_square(mat)
         self.assertAllEqual(res, expected)
 
     @pytest.mark.vec
     def test_is_square_vec(self, n_reps):
         mat = self.data_generator.random_square_mat()
 
-        expected = MatrixOperations.is_square(mat)
+        expected = Matrices.is_square(mat)
         vec_data = generate_vectorization_data(
             data=[dict(mat=mat, expected=expected)],
             arg_names=["mat"],
@@ -191,7 +191,7 @@ class MatrixOperationsTestCase(TestCase):
         self.test_is_square(mat, False)
 
     def test_is_property(self, property_name, mat, expected, atol):
-        func = getattr(MatrixOperations, f"is_{property_name}")
+        func = getattr(Matrices, f"is_{property_name}")
         res = func(mat, atol=atol)
         self.assertAllEqual(res, expected)
 
@@ -199,7 +199,7 @@ class MatrixOperationsTestCase(TestCase):
     def test_is_property_vec(self, property_name, n_reps, atol):
         mat = getattr(self.data_generator, f"random_{property_name}_mat")()
 
-        func = getattr(MatrixOperations, f"is_{property_name}")
+        func = getattr(Matrices, f"is_{property_name}")
         expected = func(mat, atol=atol)
 
         vec_data = generate_vectorization_data(
@@ -226,8 +226,8 @@ class MatrixOperationsTestCase(TestCase):
     def test_to_property_is_property(self, property_name, n_points, atol):
         square_mat = self.data_generator.random_square_mat(n_points)
 
-        to_func = getattr(MatrixOperations, f"to_{property_name}")
-        is_func = getattr(MatrixOperations, f"is_{property_name}")
+        to_func = getattr(Matrices, f"to_{property_name}")
+        is_func = getattr(Matrices, f"is_{property_name}")
 
         mat = to_func(square_mat)
         res = is_func(mat, atol=atol)
@@ -240,13 +240,13 @@ class MatrixOperationsTestCase(TestCase):
     ):
         square_mat = self.data_generator.random_square_mat(n_points)
 
-        mat = MatrixOperations.to_lower_triangular_diagonal_scaled(square_mat)
-        res = MatrixOperations.is_lower_triangular(mat, atol=atol)
+        mat = Matrices.to_lower_triangular_diagonal_scaled(square_mat)
+        res = Matrices.is_lower_triangular(mat, atol=atol)
 
         self.assertAllEqual(res, True)
 
     def test_congruent(self, mat_1, mat_2, expected, atol):
-        res = MatrixOperations.congruent(
+        res = Matrices.congruent(
             mat_1,
             mat_2,
         )
@@ -258,7 +258,7 @@ class MatrixOperationsTestCase(TestCase):
         shape = mat_1.shape[-1:]
         mat_2 = self.data_generator.random_square_mat(shape=shape)
 
-        expected = MatrixOperations.congruent(mat_1, mat_2)
+        expected = Matrices.congruent(mat_1, mat_2)
 
         vec_data = generate_vectorization_data(
             data=[dict(mat_1=mat_1, mat_2=mat_2, expected=expected, atol=atol)],
@@ -269,7 +269,7 @@ class MatrixOperationsTestCase(TestCase):
         self._test_vectorization(vec_data)
 
     def test_frobenius_product(self, mat_1, mat_2, expected, atol):
-        res = MatrixOperations.frobenius_product(
+        res = Matrices.frobenius_product(
             mat_1,
             mat_2,
         )
@@ -281,7 +281,7 @@ class MatrixOperationsTestCase(TestCase):
         shape = mat_1.shape[-2:]
         mat_2 = self.data_generator.random_mat(shape=shape)
 
-        expected = MatrixOperations.frobenius_product(mat_1, mat_2)
+        expected = Matrices.frobenius_product(mat_1, mat_2)
 
         vec_data = generate_vectorization_data(
             data=[dict(mat_1=mat_1, mat_2=mat_2, expected=expected, atol=atol)],
@@ -292,7 +292,7 @@ class MatrixOperationsTestCase(TestCase):
         self._test_vectorization(vec_data)
 
     def test_trace_product(self, mat_1, mat_2, expected, atol):
-        res = MatrixOperations.trace_product(
+        res = Matrices.trace_product(
             mat_1,
             mat_2,
         )
@@ -304,7 +304,7 @@ class MatrixOperationsTestCase(TestCase):
         shape = mat_1.shape[-2:]
         mat_2 = gs.matrix_transpose(self.data_generator.random_mat(shape=shape))
 
-        expected = MatrixOperations.trace_product(mat_1, mat_2)
+        expected = Matrices.trace_product(mat_1, mat_2)
 
         vec_data = generate_vectorization_data(
             data=[dict(mat_1=mat_1, mat_2=mat_2, expected=expected, atol=atol)],
@@ -315,14 +315,14 @@ class MatrixOperationsTestCase(TestCase):
         self._test_vectorization(vec_data)
 
     def test_flatten(self, mat, expected, atol):
-        res = MatrixOperations.flatten(mat)
+        res = Matrices.flatten(mat)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
     def test_flatten_vec(self, n_reps, atol):
         mat = self.data_generator.random_mat()
 
-        expected = MatrixOperations.flatten(mat)
+        expected = Matrices.flatten(mat)
 
         vec_data = generate_vectorization_data(
             data=[dict(mat=mat, expected=expected, atol=atol)],
@@ -333,7 +333,7 @@ class MatrixOperationsTestCase(TestCase):
         self._test_vectorization(vec_data)
 
     def test_align_matrices(self, point, base_point, expected, atol):
-        res = MatrixOperations.align_matrices(point, base_point)
+        res = Matrices.align_matrices(point, base_point)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
@@ -342,7 +342,7 @@ class MatrixOperationsTestCase(TestCase):
         shape = point.shape[-2:]
         base_point = self.data_generator.random_mat(shape=shape)
 
-        expected = MatrixOperations.align_matrices(point, base_point)
+        expected = Matrices.align_matrices(point, base_point)
 
         vec_data = generate_vectorization_data(
             data=[
@@ -356,7 +356,13 @@ class MatrixOperationsTestCase(TestCase):
 
 
 class MatricesTestCase(MatrixVectorSpaceTestCase):
-    pass
+    @pytest.mark.random
+    def test_reshape_after_flatten(self, n_points, atol):
+        point = self.data_generator.random_point(n_points)
+
+        vec = Matrices.flatten(point)
+        point_ = self.space.reshape(vec)
+        self.assertAllClose(point, point_, atol=atol)
 
 
 class MatricesMetricTestCase(EuclideanMetricTestCase):

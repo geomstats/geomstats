@@ -1,5 +1,5 @@
 import geomstats.backend as gs
-from geomstats.geometry.matrices import MatrixOperations
+from geomstats.geometry.matrices import Matrices
 from geomstats.test.data import TestData
 
 rand = gs.random.rand
@@ -8,9 +8,9 @@ rand = gs.random.rand
 class AgainstScipyTestData(TestData):
     def _logm_expm_data(self, func_name="linalg.logm"):
         arrays = [
-            MatrixOperations.to_diagonal(rand(3, 3)),
+            Matrices.to_diagonal(rand(3, 3)),
             # TODO: uncomment or delete?
-            # MatrixOperations.to_symmetric(rand(3, 3)),
+            # Matrices.to_symmetric(rand(3, 3)),
             # rand(3, 3),
         ]
         return [dict(func_name=func_name, a=array) for array in arrays]
