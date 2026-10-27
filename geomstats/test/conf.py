@@ -14,7 +14,7 @@ def pytest_collection_modifyitems(session, config, items):
     selected = []
     deselected = []
     for item in items:
-        if _has_ignore_marker(item.own_markers):
+        if _has_ignore_marker(item.iter_markers()):
             deselected.append(item)
         else:
             selected.append(item)
