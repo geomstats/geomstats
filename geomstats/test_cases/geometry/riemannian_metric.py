@@ -4,7 +4,7 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.spd_matrices import SPDMatrices
-from geomstats.test.assertions import assert_belongs
+from geomstats.test.assertions import assert_belongs, assert_same_result
 from geomstats.vectorization import get_batch_shape
 
 from .connection import ConnectionComparisonTestCase, ConnectionTestCase
@@ -266,87 +266,125 @@ class RiemannianMetricTestCase(DistTestCaseMixins, ConnectionTestCase):
 
 class RiemannianMetricComparisonTestCase(ConnectionComparisonTestCase):
     def test_metric_matrix(self, base_point, atol=gs.atol):
-        res = self.space.metric.metric_matrix(base_point)
-        res_ = self.other_space.metric.metric_matrix(base_point)
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.metric_matrix(base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_cometric_matrix(self, base_point, atol=gs.atol):
-        res = self.space.metric.cometric_matrix(base_point)
-        res_ = self.other_space.metric.cometric_matrix(base_point)
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.cometric_matrix(base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_inner_product_derivative_matrix(self, base_point, atol=gs.atol):
-        res = self.space.metric.inner_product_derivative_matrix(base_point)
-        res_ = self.other_space.metric.inner_product_derivative_matrix(base_point)
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.inner_product_derivative_matrix(base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_inner_product(
         self, tangent_vec_a, tangent_vec_b, base_point, atol=gs.atol
     ):
-        res = self.space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        res_ = self.other_space.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point
+        assert_same_result(
+            lambda space: space.metric.inner_product(
+                tangent_vec_a, tangent_vec_b, base_point
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
-        self.assertAllClose(res, res_, atol=atol)
 
     def test_inner_coproduct(
         self, cotangent_vec_a, cotangent_vec_b, base_point, atol=gs.atol
     ):
-        res = self.space.metric.inner_coproduct(
-            cotangent_vec_a, cotangent_vec_b, base_point
+        assert_same_result(
+            lambda space: space.metric.inner_coproduct(
+                cotangent_vec_a, cotangent_vec_b, base_point
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
-        res_ = self.other_space.metric.inner_coproduct(
-            cotangent_vec_a, cotangent_vec_b, base_point
-        )
-        self.assertAllClose(res, res_, atol=atol)
 
     def test_squared_norm(self, vector, base_point, atol=gs.atol):
-        res = self.space.metric.squared_norm(vector, base_point)
-        res_ = self.other_space.metric.squared_norm(vector, base_point)
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.squared_norm(vector, base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_norm(self, vector, base_point, atol=gs.atol):
-        res = self.space.metric.norm(vector, base_point)
-        res_ = self.other_space.metric.norm(vector, base_point)
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.norm(vector, base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_normalize(self, vector, base_point, atol=gs.atol):
-        res = self.space.metric.normalize(vector, base_point)
-        res_ = self.other_space.metric.normalize(vector, base_point)
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.normalize(vector, base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_squared_dist(self, point_a, point_b, atol=gs.atol):
-        res = self.space.metric.squared_dist(point_a, point_b)
-        res_ = self.other_space.metric.squared_dist(point_a, point_b)
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.squared_dist(point_a, point_b),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_dist(self, point_a, point_b, atol=gs.atol):
-        res = self.space.metric.dist(point_a, point_b)
-        res_ = self.other_space.metric.dist(point_a, point_b)
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.dist(point_a, point_b),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_covariant_riemann_tensor(self, base_point, atol=gs.atol):
-        res = self.space.metric.covariant_riemann_tensor(base_point)
-        res_ = self.other_space.metric.covariant_riemann_tensor(base_point)
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.covariant_riemann_tensor(base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_sectional_curvature(
         self, tangent_vec_a, tangent_vec_b, base_point, atol=gs.atol
     ):
-        res = self.space.metric.sectional_curvature(
-            tangent_vec_a, tangent_vec_b, base_point
+        assert_same_result(
+            lambda space: space.metric.sectional_curvature(
+                tangent_vec_a, tangent_vec_b, base_point
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
-        res_ = self.other_space.metric.sectional_curvature(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-        self.assertAllClose(res, res_, atol=atol)
 
     def test_scalar_curvature(self, base_point, atol=gs.atol):
-        res = self.space.metric.scalar_curvature(base_point)
-        res_ = self.other_space.metric.scalar_curvature(base_point)
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.scalar_curvature(base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_injectivity_radius(self, base_point, atol=gs.atol):
-        res = self.space.metric.injectivity_radius(base_point)
-        res_ = self.other_space.metric.injectivity_radius(base_point)
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.injectivity_radius(base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )

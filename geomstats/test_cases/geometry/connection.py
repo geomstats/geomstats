@@ -1,5 +1,9 @@
 import geomstats.backend as gs
-from geomstats.test.assertions import assert_belongs, assert_is_tangent
+from geomstats.test.assertions import (
+    assert_belongs,
+    assert_is_tangent,
+    assert_same_result,
+)
 from geomstats.test.test_case import TestCase
 
 from .mixins import GeodesicBVPTestCaseMixins
@@ -249,53 +253,68 @@ class ConnectionTestCase(GeodesicBVPTestCaseMixins, TestCase):
 
 class ConnectionComparisonTestCase(TestCase):
     def test_christoffels(self, base_point, atol=gs.atol):
-        res = self.space.metric.christoffels(base_point)
-        res_ = self.other_space.metric.christoffels(base_point)
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.christoffels(base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_exp(self, tangent_vec, base_point, atol=gs.atol):
-        res = self.space.metric.exp(tangent_vec, base_point)
-        res_ = self.other_space.metric.exp(tangent_vec, base_point)
-
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.exp(tangent_vec, base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_log(self, point, base_point, atol=gs.atol):
-        res = self.space.metric.log(point, base_point)
-        res_ = self.other_space.metric.log(point, base_point)
-
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.log(point, base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_riemann_tensor(self, base_point, atol=gs.atol):
-        res = self.space.metric.riemann_tensor(base_point)
-        res_ = self.other_space.metric.riemann_tensor(base_point)
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.riemann_tensor(base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_curvature(
         self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point, atol=gs.atol
     ):
-        res = self.space.metric.curvature(
-            tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
+        assert_same_result(
+            lambda space: space.metric.curvature(
+                tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
-        res_ = self.other_space.metric.curvature(
-            tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
-        )
-        self.assertAllClose(res, res_, atol=atol)
 
     def test_ricci_tensor(self, base_point, atol=gs.atol):
-        res = self.space.metric.ricci_tensor(base_point)
-        res_ = self.other_space.metric.ricci_tensor(base_point)
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.ricci_tensor(base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_directional_curvature(
         self, tangent_vec_a, tangent_vec_b, base_point, atol=gs.atol
     ):
-        res = self.space.metric.directional_curvature(
-            tangent_vec_a, tangent_vec_b, base_point
+        assert_same_result(
+            lambda space: space.metric.directional_curvature(
+                tangent_vec_a, tangent_vec_b, base_point
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
-        res_ = self.other_space.metric.directional_curvature(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-        self.assertAllClose(res, res_, atol=atol)
 
     def test_curvature_derivative(
         self,
@@ -306,63 +325,67 @@ class ConnectionComparisonTestCase(TestCase):
         base_point,
         atol=gs.atol,
     ):
-        res = self.space.metric.curvature_derivative(
-            tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d, base_point
+        assert_same_result(
+            lambda space: space.metric.curvature_derivative(
+                tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d, base_point
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
-        res_ = self.other_space.metric.curvature_derivative(
-            tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d, base_point
-        )
-        self.assertAllClose(res, res_, atol=atol)
 
     def test_directional_curvature_derivative(
         self, tangent_vec_a, tangent_vec_b, base_point, atol=gs.atol
     ):
-        res = self.space.metric.directional_curvature_derivative(
-            tangent_vec_a, tangent_vec_b, base_point
+        assert_same_result(
+            lambda space: space.metric.directional_curvature_derivative(
+                tangent_vec_a, tangent_vec_b, base_point
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
-        res_ = self.other_space.metric.directional_curvature_derivative(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-        self.assertAllClose(res, res_, atol=atol)
 
     def test_geodesic_bvp(self, initial_point, end_point, time, atol=gs.atol):
-        res = self.space.metric.geodesic(initial_point, end_point=end_point)(time)
-        res_ = self.other_space.metric.geodesic(initial_point, end_point=end_point)(
-            time
+        assert_same_result(
+            lambda space: space.metric.geodesic(initial_point, end_point=end_point)(
+                time
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
 
-        self.assertAllClose(res, res_, atol=atol)
-
     def test_geodesic_ivp(self, initial_point, initial_tangent_vec, time, atol=gs.atol):
-        res = self.space.metric.geodesic(
-            initial_point, initial_tangent_vec=initial_tangent_vec
-        )(time)
-
-        res_ = self.other_space.metric.geodesic(
-            initial_point, initial_tangent_vec=initial_tangent_vec
-        )(time)
-
-        self.assertAllClose(res, res_, atol=atol)
+        assert_same_result(
+            lambda space: space.metric.geodesic(
+                initial_point, initial_tangent_vec=initial_tangent_vec
+            )(time),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_parallel_transport_ivp(
         self, base_point, tangent_vec, direction, atol=gs.atol
     ):
-        res = self.space.metric.parallel_transport(
-            tangent_vec, base_point, direction=direction
+        assert_same_result(
+            lambda space: space.metric.parallel_transport(
+                tangent_vec, base_point, direction=direction
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
-        res_ = self.other_space.metric.parallel_transport(
-            tangent_vec, base_point, direction=direction
-        )
-        self.assertAllClose(res, res_, atol=atol)
 
     def test_parallel_transport_bvp(
         self, base_point, end_point, tangent_vec, atol=gs.atol
     ):
-        res = self.space.metric.parallel_transport(
-            tangent_vec, base_point, end_point=end_point
+        assert_same_result(
+            lambda space: space.metric.parallel_transport(
+                tangent_vec, base_point, end_point=end_point
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
-        res_ = self.other_space.metric.parallel_transport(
-            tangent_vec, base_point, end_point=end_point
-        )
-
-        self.assertAllClose(res, res_, atol=atol)

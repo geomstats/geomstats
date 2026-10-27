@@ -3,7 +3,12 @@
 import numpy as np
 
 import geomstats.backend as gs
-from geomstats.test.test_case import assert_true, autograd_backend, np_backend
+from geomstats.test.test_case import (
+    assert_allclose,
+    assert_true,
+    autograd_backend,
+    np_backend,
+)
 from geomstats.vectorization import get_batch_shape
 
 
@@ -12,6 +17,12 @@ def _assert_all_equal(a, b):
         np.testing.assert_array_equal(a, b)
     else:
         assert_true(gs.all(gs.equal(a, b)))
+
+
+def _assert_all_close(a, b, atol=gs.atol):
+    if (gs.is_array(a) and gs.ndim(a) > 0) or (gs.is_array(b) and gs.ndim(b) > 0):
+        assert a.shape == b.shape
+    assert_allclose(a, b, atol=atol)
 
 
 def _assert_all_true(res, point_ndim, *points):
@@ -87,3 +98,18 @@ def assert_is_vertical(total_space, tangent_vec, base_point, atol=gs.atol):
     """
     res = total_space.fiber_bundle.is_vertical(tangent_vec, base_point, atol=atol)
     _assert_all_true(res, total_space.point_ndim, tangent_vec, base_point)
+
+
+def assert_same_result(func, obj, other_obj, atol=gs.atol):
+    """Check ``func`` gives the same result on two objects.
+
+    Parameters
+    ----------
+    func : callable
+        Function taking one object and returning an array.
+    obj, other_obj : object
+        Objects to compare (e.g. two spaces, two diffeos).
+    atol : float
+        Absolute tolerance.
+    """
+    _assert_all_close(func(obj), func(other_obj), atol=atol)
