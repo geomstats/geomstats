@@ -2,10 +2,10 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.diffeo import AutodiffDiffeo
+from geomstats.test.assertions import assert_belongs, assert_is_tangent
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
-from geomstats.vectorization import get_batch_shape
 
 
 class CircleSO2Diffeo(AutodiffDiffeo):
@@ -30,15 +30,7 @@ class DiffeoTestCase(TestCase):
     def test_diffeomorphism_belongs(self, base_point, atol=gs.atol):
         image_point = self.diffeo(base_point)
 
-        belongs = self.image_space.belongs(image_point, atol=atol)
-
-        expected_shape = get_batch_shape(
-            self.domain_space.point_ndim,
-            base_point,
-        )
-        expected = gs.ones(expected_shape, dtype=bool)
-
-        self.assertAllEqual(belongs, expected)
+        assert_belongs(self.image_space, image_point, atol=atol)
 
     def test_inverse(self, image_point, expected, atol=gs.atol):
         res = self.diffeo.inverse(image_point)
@@ -47,15 +39,7 @@ class DiffeoTestCase(TestCase):
     def test_inverse_belongs(self, image_point, atol=gs.atol):
         point = self.diffeo.inverse(image_point)
 
-        belongs = self.domain_space.belongs(point, atol=atol)
-
-        expected_shape = get_batch_shape(
-            self.image_space.point_ndim,
-            image_point,
-        )
-        expected = gs.ones(expected_shape, dtype=bool)
-
-        self.assertAllEqual(belongs, expected)
+        assert_belongs(self.domain_space, point, atol=atol)
 
     def test_inverse_after_diffeomorphism(self, base_point, atol=gs.atol):
         image_point = self.diffeo(base_point)
@@ -81,18 +65,7 @@ class DiffeoTestCase(TestCase):
         image_tangent_vec = self.diffeo.tangent(tangent_vec, base_point)
         image_point = self.diffeo(base_point)
 
-        is_tangent = self.image_space.is_tangent(
-            image_tangent_vec, image_point, atol=atol
-        )
-
-        expected_shape = get_batch_shape(
-            self.domain_space.point_ndim,
-            tangent_vec,
-            base_point,
-        )
-        expected = gs.ones(expected_shape, dtype=bool)
-
-        self.assertAllEqual(is_tangent, expected)
+        assert_is_tangent(self.image_space, image_tangent_vec, image_point, atol=atol)
 
     @pytest.mark.api
     def test_tangent_with_image_point(self, tangent_vec, base_point, atol=gs.atol):
@@ -124,16 +97,7 @@ class DiffeoTestCase(TestCase):
         tangent_vec = self.diffeo.inverse_tangent(image_tangent_vec, image_point)
         base_point = self.diffeo.inverse(image_point)
 
-        is_tangent = self.domain_space.is_tangent(tangent_vec, base_point, atol=atol)
-
-        expected_shape = get_batch_shape(
-            self.image_space.point_ndim,
-            image_tangent_vec,
-            image_point,
-        )
-        expected = gs.ones(expected_shape, dtype=bool)
-
-        self.assertAllEqual(is_tangent, expected)
+        assert_is_tangent(self.domain_space, tangent_vec, base_point, atol=atol)
 
     @pytest.mark.api
     def test_inverse_tangent_with_base_point(

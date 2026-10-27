@@ -4,8 +4,13 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
 from geomstats.geometry.manifold import register_quotient
 from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.test.assertions import (
+    assert_belongs,
+    assert_is_horizontal,
+    assert_is_tangent,
+    assert_is_vertical,
+)
 from geomstats.test.test_case import TestCase
-from geomstats.vectorization import get_batch_shape
 
 
 class FiberBundleTestCase(TestCase):
@@ -24,10 +29,7 @@ class FiberBundleTestCase(TestCase):
     def test_riemannian_submersion_belongs_to_base(self, point, atol=gs.atol):
         proj_point = self.total_space.fiber_bundle.riemannian_submersion(point)
 
-        expected_shape = get_batch_shape(self.total_space.point_ndim, point)
-        expected = gs.ones(expected_shape, dtype=bool)
-
-        self._test_belongs_to_base(proj_point, expected, atol)
+        assert_belongs(self.base_space, proj_point, atol=atol)
 
     def test_lift(self, point, expected, atol=gs.atol):
         res = self.total_space.fiber_bundle.lift(point)
@@ -36,10 +38,7 @@ class FiberBundleTestCase(TestCase):
     def test_lift_belongs_to_total_space(self, point, atol=gs.atol):
         lifted_point = self.total_space.fiber_bundle.lift(point)
 
-        expected_shape = get_batch_shape(self.base_space.point_ndim, point)
-        expected = gs.ones(expected_shape, dtype=bool)
-
-        self._test_belongs_to_total_space(lifted_point, expected, atol)
+        assert_belongs(self.total_space, lifted_point, atol=atol)
 
     def test_riemannian_submersion_after_lift(self, point, atol=gs.atol):
         lifted_point = self.total_space.fiber_bundle.lift(point)
@@ -65,14 +64,7 @@ class FiberBundleTestCase(TestCase):
         )
         proj_point = self.total_space.fiber_bundle.riemannian_submersion(base_point)
 
-        res = self.base_space.is_tangent(proj_tangent_vector, proj_point, atol=atol)
-
-        expected_shape = get_batch_shape(
-            self.total_space.point_ndim, tangent_vec, base_point
-        )
-        expected = gs.ones(expected_shape, dtype=bool)
-
-        self.assertAllEqual(res, expected)
+        assert_is_tangent(self.base_space, proj_tangent_vector, proj_point, atol=atol)
 
     def test_align(self, point, base_point, expected, atol=gs.atol):
         res = self.total_space.fiber_bundle.align(point, base_point)
@@ -82,10 +74,7 @@ class FiberBundleTestCase(TestCase):
         aligned_point = self.total_space.fiber_bundle.align(point, base_point)
         log = self.total_space.metric.log(aligned_point, base_point)
 
-        expected_shape = get_batch_shape(self.total_space.point_ndim, point, base_point)
-        expected = gs.ones(expected_shape, dtype=bool)
-
-        self.test_is_horizontal(log, base_point, expected, atol)
+        assert_is_horizontal(self.total_space, log, base_point, atol=atol)
 
     def test_horizontal_projection(
         self, tangent_vec, base_point, expected, atol=gs.atol
@@ -102,12 +91,7 @@ class FiberBundleTestCase(TestCase):
             tangent_vec, base_point
         )
 
-        expected_shape = get_batch_shape(
-            self.total_space.point_ndim, tangent_vec, base_point
-        )
-        expected = gs.ones(expected_shape, dtype=bool)
-
-        self.test_is_horizontal(horizontal, base_point, expected, atol)
+        assert_is_horizontal(self.total_space, horizontal, base_point, atol=atol)
 
     def test_vertical_projection(self, tangent_vec, base_point, expected, atol=gs.atol):
         res = self.total_space.fiber_bundle.vertical_projection(tangent_vec, base_point)
@@ -120,12 +104,7 @@ class FiberBundleTestCase(TestCase):
             tangent_vec, base_point
         )
 
-        expected_shape = get_batch_shape(
-            self.total_space.point_ndim, tangent_vec, base_point
-        )
-        expected = gs.ones(expected_shape, dtype=bool)
-
-        self.test_is_vertical(vertical, base_point, expected, atol)
+        assert_is_vertical(self.total_space, vertical, base_point, atol=atol)
 
     def test_tangent_riemannian_submersion_after_vertical_projection(
         self, tangent_vec, base_point, atol=gs.atol
@@ -166,12 +145,7 @@ class FiberBundleTestCase(TestCase):
             tangent_vec, base_point=base_point, fiber_point=fiber_point
         )
 
-        expected_shape = get_batch_shape(
-            self.base_space.point_ndim, tangent_vec, base_point
-        )
-        expected = gs.ones(expected_shape, dtype=bool)
-
-        self.test_is_horizontal(horizontal, fiber_point, expected, atol)
+        assert_is_horizontal(self.total_space, horizontal, fiber_point, atol=atol)
 
     def test_tangent_riemannian_submersion_after_horizontal_lift(
         self, tangent_vec, base_point, atol=gs.atol

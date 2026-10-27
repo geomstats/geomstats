@@ -1,6 +1,6 @@
 import geomstats.backend as gs
+from geomstats.test.assertions import assert_belongs, assert_is_tangent
 from geomstats.test.test_case import TestCase
-from geomstats.vectorization import get_batch_shape
 
 from .mixins import GeodesicBVPTestCaseMixins
 
@@ -30,10 +30,7 @@ class ConnectionTestCase(GeodesicBVPTestCaseMixins, TestCase):
         """
         point = self.space.metric.exp(tangent_vec, base_point)
 
-        res = self.space.belongs(point, atol=atol)
-        expected_shape = get_batch_shape(self.space.point_ndim, base_point)
-        expected = gs.ones(expected_shape, dtype=bool)
-        self.assertAllEqual(res, expected)
+        assert_belongs(self.space, point, atol=atol)
 
     def test_log(self, point, base_point, expected, atol=gs.atol):
         res = self.space.metric.log(point, base_point)
@@ -49,10 +46,7 @@ class ConnectionTestCase(GeodesicBVPTestCaseMixins, TestCase):
         """
         tangent_vec = self.space.metric.log(point, base_point)
 
-        res = self.space.is_tangent(tangent_vec, base_point, atol=atol)
-        expected_shape = get_batch_shape(self.space.point_ndim, base_point)
-        expected = gs.ones(expected_shape, dtype=bool)
-        self.assertAllEqual(res, expected)
+        assert_is_tangent(self.space, tangent_vec, base_point, atol=atol)
 
     def test_exp_after_log(self, point, base_point, atol=gs.atol):
         """Check exp and log are inverse.
@@ -181,17 +175,8 @@ class ConnectionTestCase(GeodesicBVPTestCaseMixins, TestCase):
         )
 
         points = geod_func(time)
-        res = self.space.belongs(points, atol=atol)
 
-        batch_shape = get_batch_shape(
-            self.space.point_ndim,
-            initial_point,
-            initial_tangent_vec,
-        )
-        expected_shape = batch_shape + (time.shape or (1,))
-
-        expected = gs.ones(expected_shape, dtype=bool)
-        self.assertAllEqual(res, expected)
+        assert_belongs(self.space, points, atol=atol)
 
     def test_exp_geodesic_ivp(self, tangent_vec, base_point, atol=gs.atol):
         """Check end point of a geodesic matches exponential.
@@ -250,12 +235,7 @@ class ConnectionTestCase(GeodesicBVPTestCaseMixins, TestCase):
 
         end_point = self.space.metric.exp(direction, base_point)
 
-        res = self.space.is_tangent(transported, end_point, atol=atol)
-
-        expected_shape = get_batch_shape(self.space.point_ndim, base_point)
-        expected = gs.ones(expected_shape, dtype=bool)
-
-        self.assertAllEqual(res, expected)
+        assert_is_tangent(self.space, transported, end_point, atol=atol)
 
     def test_parallel_transport_bvp_transported_is_tangent(
         self, tangent_vec, base_point, end_point, atol=gs.atol
@@ -264,12 +244,7 @@ class ConnectionTestCase(GeodesicBVPTestCaseMixins, TestCase):
             tangent_vec, base_point, end_point=end_point
         )
 
-        res = self.space.is_tangent(transported, end_point, atol=atol)
-
-        expected_shape = get_batch_shape(self.space.point_ndim, base_point)
-        expected = gs.ones(expected_shape, dtype=bool)
-
-        self.assertAllEqual(res, expected)
+        assert_is_tangent(self.space, transported, end_point, atol=atol)
 
 
 class ConnectionComparisonTestCase(TestCase):

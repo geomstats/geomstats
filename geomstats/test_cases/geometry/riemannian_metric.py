@@ -4,6 +4,7 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.test.assertions import assert_belongs
 from geomstats.vectorization import get_batch_shape
 
 from .connection import ConnectionComparisonTestCase, ConnectionTestCase
@@ -18,13 +19,9 @@ class RiemannianMetricTestCase(DistTestCaseMixins, ConnectionTestCase):
     def test_metric_matrix_is_spd(self, base_point, atol=gs.atol):
         metric_matrix = self.space.metric.metric_matrix(base_point)
 
-        res = SPDMatrices(n=math.prod(self.space.shape)).belongs(
-            metric_matrix, atol=atol
+        assert_belongs(
+            SPDMatrices(n=math.prod(self.space.shape)), metric_matrix, atol=atol
         )
-        expected_shape = get_batch_shape(self.space.point_ndim, base_point)
-        expected = gs.ones(expected_shape, dtype=bool)
-
-        self.assertAllEqual(res, expected)
 
     def test_cometric_matrix(self, base_point, expected, atol=gs.atol):
         res = self.space.metric.cometric_matrix(base_point)

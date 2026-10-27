@@ -1,4 +1,5 @@
 import geomstats.backend as gs
+from geomstats.test.assertions import assert_belongs
 from geomstats.vectorization import get_batch_shape
 
 
@@ -17,10 +18,7 @@ class ProjectionTestCaseMixins:
         """
         proj_point = self.space.projection(point)
 
-        batch_shape = get_batch_shape(self.space.point_ndim, point)
-        expected = gs.ones(batch_shape, dtype=bool)
-
-        self.test_belongs(proj_point, expected, atol)
+        assert_belongs(self.space, proj_point, atol=atol)
 
 
 class GroupExpTestCaseMixins:
@@ -167,14 +165,4 @@ class GeodesicBVPTestCaseMixins:
         geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
         points = geod_func(time)
 
-        res = self.space.belongs(points, atol=atol)
-
-        batch_shape = get_batch_shape(
-            self.space.point_ndim,
-            initial_point,
-            end_point,
-        )
-        expected_shape = batch_shape + (time.shape or (1,))
-
-        expected = gs.ones(expected_shape, dtype=bool)
-        self.assertAllEqual(res, expected)
+        assert_belongs(self.space, points, atol=atol)
