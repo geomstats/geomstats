@@ -1,7 +1,16 @@
+from functools import singledispatch
+
 import geomstats.backend as gs
-from geomstats.geometry.base import ComplexMatrixVectorSpace
+from geomstats.geometry.base import (
+    ComplexMatrixVectorSpace,
+    DiffeomorphicManifold,
+    LevelSet,
+    OpenSet,
+)
+from geomstats.geometry.diffeo import ReversedDiffeo
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import SquareMatrices
+from geomstats.geometry.manifold import Manifold
 from geomstats.vectorization import get_n_points
 
 
@@ -78,6 +87,31 @@ class MatrixVectorSpaceRandomDataGenerator(VectorSpaceRandomDataGenerator):
             (n_points, -1),
             dtype=dtype,
         )
+
+
+@singledispatch
+def get_data_generator(space):
+    raise NotImplementedError(
+        f"No data generator registered for {type(space).__name__}."
+    )
+
+
+@get_data_generator.register(Manifold)
+def _(space):
+    return RandomDataGenerator(space)
+
+
+@get_data_generator.register(LevelSet)
+@get_data_generator.register(OpenSet)
+def _(space):
+    return EmbeddedSpaceRandomDataGenerator(space)
+
+
+@get_data_generator.register(DiffeomorphicManifold)
+def _(space):
+    return DiffeoBasedRandomDataGenerator(
+        space.image_space, diffeo=ReversedDiffeo(space.diffeo)
+    )
 
 
 class EmbeddedSpaceRandomDataGenerator(RandomDataGenerator):

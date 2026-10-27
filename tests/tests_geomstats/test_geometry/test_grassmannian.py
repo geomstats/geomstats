@@ -1,12 +1,16 @@
 import random
 
 import pytest
+from polpo.testing.composition import MarkedGeometricTestData
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.base import LevelSetTestCase
 from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
 from geomstats.test_cases.geometry.riemannian_metric import (
@@ -15,12 +19,18 @@ from geomstats.test_cases.geometry.riemannian_metric import (
 )
 
 from .data.base import LevelSetTestData
+from .data.fiber_bundle import (
+    FiberBundleProjectionTestData,
+    FiberBundleSubmersionLiftTestData,
+    FiberBundleTestData,
+)
 from .data.grassmannian import (
     Grassmannian32TestData,
-    GrassmannianBundleTestData,
     GrassmannianCanonicalMetric32TestData,
-    GrassmannianCanonicalMetricTestData,
-    GrassmannianQuotientMetricCmpTestData,
+)
+from .data.riemannian_metric import (
+    RiemannianMetricComparisonTestData,
+    RiemannianMetricTestData,
 )
 
 
@@ -40,24 +50,34 @@ def _get_random_params():
     return n, p
 
 
+@pytest.mark.smoke
+class TestGrassmannian32(LevelSetTestCase, metaclass=DataBasedParametrizer):
+    space = Grassmannian(3, 2, equip=False)
+    testing_data = Grassmannian32TestData()
+
+
 @pytest.fixture(
     scope="class",
     params=[_get_random_params()],
 )
 def spaces(request):
     n, p = request.param
-    request.cls.space = Grassmannian(n=n, p=p, equip=False)
+    space = request.cls.space = Grassmannian(n=n, p=p, equip=False)
+
+    request.cls.testing_data.space = space
 
 
 @pytest.mark.usefixtures("spaces")
-class TestGrassmannian(LevelSetTestCase, metaclass=DataBasedParametrizer):
+class TestGrassmannian(LevelSetTestCase, metaclass=GeometricDataBasedParametrizer):
     testing_data = LevelSetTestData()
 
 
 @pytest.mark.smoke
-class TestGrassmannian32(LevelSetTestCase, metaclass=DataBasedParametrizer):
-    space = Grassmannian(3, 2, equip=False)
-    testing_data = Grassmannian32TestData()
+class TestGrassmannianCanonicalMetric32(
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+):
+    space = Grassmannian(3, 2)
+    testing_data = GrassmannianCanonicalMetric32TestData()
 
 
 @pytest.fixture(
@@ -70,23 +90,19 @@ def equipped_spaces(request):
     request.cls.space = space
     space.equip_with_metric(GrassmannianCanonicalMetric)
 
+    request.cls.testing_data.space = space
+
 
 @pytest.mark.usefixtures("equipped_spaces")
 class TestGrassmannianCanonicalMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = GrassmannianCanonicalMetricTestData()
+    testing_data = RiemannianMetricTestData()
 
 
-@pytest.mark.smoke
-class TestGrassmannianCanonicalMetric32(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+class TestGrassmannianBundle(
+    FiberBundleTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    space = Grassmannian(3, 2)
-    testing_data = GrassmannianCanonicalMetric32TestData()
-
-
-class TestGrassmannianBundle(FiberBundleTestCase, metaclass=DataBasedParametrizer):
     _n, _p = _get_random_params()
 
     total_space = Stiefel(_n, _p, equip=False)
@@ -95,9 +111,23 @@ class TestGrassmannianBundle(FiberBundleTestCase, metaclass=DataBasedParametrize
     total_space.equip_with_group_action("right_orthogonal_action")
     total_space.equip_with_quotient()
 
-    base = Grassmannian(_n, _p, equip=False)
+    base_space = Grassmannian(_n, _p, equip=False)
 
-    testing_data = GrassmannianBundleTestData()
+    testing_data = (
+        FiberBundleTestData(
+            excluded_methods=(
+                "integrability_tensor",
+                "integrability_tensor_derivative",
+            )
+        )
+        + FiberBundleSubmersionLiftTestData()
+        + MarkedGeometricTestData(
+            FiberBundleProjectionTestData(), marks=(pytest.mark.redundant,)
+        )
+    )
+
+    testing_data.propagate("total_space", total_space)
+    testing_data.propagate("base_space", base_space)
 
 
 @pytest.fixture(
@@ -106,7 +136,7 @@ class TestGrassmannianBundle(FiberBundleTestCase, metaclass=DataBasedParametrize
 )
 def grassmannian_with_quotient_metric(request):
     n, p = request.param
-    request.cls.space = Grassmannian(n, p).equip_with_metric(
+    space = request.cls.space = Grassmannian(n, p).equip_with_metric(
         ScalarProductMetric,
         scale=1 / 2.0,
     )
@@ -119,9 +149,17 @@ def grassmannian_with_quotient_metric(request):
 
     other_space.equip_with_metric(QuotientMetric, total_space=total_space)
 
+    request.cls.testing_data.space = space
+
 
 @pytest.mark.usefixtures("grassmannian_with_quotient_metric")
 class TestGrassmannianQuotientMetricCmp(
-    RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricComparisonTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = GrassmannianQuotientMetricCmpTestData()
+    testing_data = RiemannianMetricComparisonTestData(
+        excluded_methods=(
+            "injectivity_radius",
+            "parallel_transport_ivp",
+            "parallel_transport_bvp",
+        )
+    )

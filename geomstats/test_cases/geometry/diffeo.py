@@ -5,6 +5,7 @@ from geomstats.geometry.diffeo import AutodiffDiffeo
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.vectorization import get_batch_shape
 
 
 class CircleSO2Diffeo(AutodiffDiffeo):
@@ -22,139 +23,79 @@ class CircleSO2Diffeo(AutodiffDiffeo):
 
 
 class DiffeoTestCase(TestCase):
-    tangent_to_multiple = False
-
-    def setup_method(self):
-        if not hasattr(self, "data_generator") and hasattr(self, "space"):
-            self.data_generator = RandomDataGenerator(self.space)
-
-        if not hasattr(self, "image_data_generator") and hasattr(self, "image_space"):
-            self.image_data_generator = RandomDataGenerator(self.image_space)
-
-    def test_diffeomorphism(self, base_point, expected, atol):
+    def test_diffeomorphism(self, base_point, expected, atol=gs.atol):
         res = self.diffeo(base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_diffeomorphism_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-
-        expected = self.diffeo(base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(base_point=base_point, expected=expected, atol=atol)],
-            arg_names=["base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    @pytest.mark.random
-    def test_diffeomorphism_belongs(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-
+    def test_diffeomorphism_belongs(self, base_point, atol=gs.atol):
         image_point = self.diffeo(base_point)
 
         belongs = self.image_space.belongs(image_point, atol=atol)
-        expected = gs.ones(n_points, dtype=bool)
+
+        expected_shape = get_batch_shape(
+            self.domain_space.point_ndim,
+            base_point,
+        )
+        expected = gs.ones(expected_shape, dtype=bool)
+
         self.assertAllEqual(belongs, expected)
 
-    def test_inverse(self, image_point, expected, atol):
+    def test_inverse(self, image_point, expected, atol=gs.atol):
         res = self.diffeo.inverse(image_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_inverse_vec(self, n_reps, atol):
-        image_point = self.image_data_generator.random_point()
-
-        expected = self.diffeo.inverse(image_point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(image_point=image_point, expected=expected, atol=atol)],
-            arg_names=["image_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    @pytest.mark.random
-    def test_inverse_belongs(self, n_points, atol):
-        image_point = self.image_data_generator.random_point(n_points)
-
+    def test_inverse_belongs(self, image_point, atol=gs.atol):
         point = self.diffeo.inverse(image_point)
 
-        belongs = self.space.belongs(point, atol=atol)
-        expected = gs.ones(n_points, dtype=bool)
+        belongs = self.domain_space.belongs(point, atol=atol)
+
+        expected_shape = get_batch_shape(
+            self.image_space.point_ndim,
+            image_point,
+        )
+        expected = gs.ones(expected_shape, dtype=bool)
+
         self.assertAllEqual(belongs, expected)
 
-    @pytest.mark.random
-    def test_inverse_after_diffeomorphism(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-
+    def test_inverse_after_diffeomorphism(self, base_point, atol=gs.atol):
         image_point = self.diffeo(base_point)
         base_point_ = self.diffeo.inverse(image_point)
 
         self.assertAllClose(base_point_, base_point, atol=atol)
 
-    @pytest.mark.random
-    def test_diffeomorphism_after_inverse(self, n_points, atol):
-        image_point = self.image_data_generator.random_point(n_points)
-
+    def test_diffeomorphism_after_inverse(self, image_point, atol=gs.atol):
         point = self.diffeo.inverse(image_point)
         image_point_ = self.diffeo(point)
 
         self.assertAllClose(image_point_, image_point, atol=atol)
 
     def test_tangent(
-        self, tangent_vec, expected, atol, base_point=None, image_point=None
+        self, tangent_vec, expected, atol=gs.atol, base_point=None, image_point=None
     ):
         res = self.diffeo.tangent(
             tangent_vec, base_point=base_point, image_point=image_point
         )
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_tangent_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.diffeo.tangent(tangent_vec, base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec=tangent_vec,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec", "base_point"],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    @pytest.mark.random
-    def test_tangent_is_tangent(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
+    def test_tangent_is_tangent(self, tangent_vec, base_point, atol=gs.atol):
         image_tangent_vec = self.diffeo.tangent(tangent_vec, base_point)
         image_point = self.diffeo(base_point)
 
         is_tangent = self.image_space.is_tangent(
             image_tangent_vec, image_point, atol=atol
         )
-        expected = gs.ones(n_points, dtype=bool)
+
+        expected_shape = get_batch_shape(
+            self.domain_space.point_ndim,
+            tangent_vec,
+            base_point,
+        )
+        expected = gs.ones(expected_shape, dtype=bool)
+
         self.assertAllEqual(is_tangent, expected)
 
-    @pytest.mark.random
-    def test_tangent_with_image_point(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
+    @pytest.mark.api
+    def test_tangent_with_image_point(self, tangent_vec, base_point, atol=gs.atol):
         image_point = self.diffeo(base_point)
 
         image_tangent_vec = self.diffeo.tangent(tangent_vec, base_point)
@@ -166,7 +107,7 @@ class DiffeoTestCase(TestCase):
         self,
         image_tangent_vec,
         expected,
-        atol,
+        atol=gs.atol,
         image_point=None,
         base_point=None,
     ):
@@ -177,46 +118,27 @@ class DiffeoTestCase(TestCase):
         )
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_inverse_tangent_vec(self, n_reps, atol):
-        image_point = self.image_data_generator.random_point()
-        image_tangent_vec = self.image_data_generator.random_tangent_vec(image_point)
-
-        expected = self.diffeo.inverse_tangent(image_tangent_vec, image_point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    image_tangent_vec=image_tangent_vec,
-                    image_point=image_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["image_tangent_vec", "image_point"],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    @pytest.mark.random
-    def test_inverse_tangent_is_tangent(self, n_points, atol):
-        image_point = self.image_data_generator.random_point(n_points)
-        image_tangent_vec = self.image_data_generator.random_tangent_vec(image_point)
-
+    def test_inverse_tangent_is_tangent(
+        self, image_tangent_vec, image_point, atol=gs.atol
+    ):
         tangent_vec = self.diffeo.inverse_tangent(image_tangent_vec, image_point)
         base_point = self.diffeo.inverse(image_point)
 
-        is_tangent = self.space.is_tangent(tangent_vec, base_point, atol=atol)
-        expected = gs.ones(n_points, dtype=bool)
+        is_tangent = self.domain_space.is_tangent(tangent_vec, base_point, atol=atol)
+
+        expected_shape = get_batch_shape(
+            self.image_space.point_ndim,
+            image_tangent_vec,
+            image_point,
+        )
+        expected = gs.ones(expected_shape, dtype=bool)
+
         self.assertAllEqual(is_tangent, expected)
 
-    @pytest.mark.random
-    def test_inverse_tangent_with_base_point(self, n_points, atol):
-        image_point = self.image_data_generator.random_point(n_points)
-        image_tangent_vec = self.image_data_generator.random_tangent_vec(image_point)
-
+    @pytest.mark.api
+    def test_inverse_tangent_with_base_point(
+        self, image_tangent_vec, image_point, atol=gs.atol
+    ):
         base_point = self.diffeo.inverse(image_point)
 
         tangent_vec = self.diffeo.inverse_tangent(image_tangent_vec, image_point)
@@ -225,22 +147,16 @@ class DiffeoTestCase(TestCase):
         )
         self.assertAllClose(tangent_vec, tangent_vec_, atol=atol)
 
-    @pytest.mark.random
-    def test_inverse_tangent_after_tangent(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
+    def test_inverse_tangent_after_tangent(self, tangent_vec, base_point, atol=gs.atol):
         image_tangent_vec = self.diffeo.tangent(tangent_vec, base_point)
         image_point = self.diffeo(base_point)
 
         tangent_vec_ = self.diffeo.inverse_tangent(image_tangent_vec, image_point)
         self.assertAllClose(tangent_vec_, tangent_vec, atol=atol)
 
-    @pytest.mark.random
-    def test_tangent_after_inverse_tangent(self, n_points, atol):
-        image_point = self.image_data_generator.random_point(n_points)
-        image_tangent_vec = self.image_data_generator.random_tangent_vec(image_point)
-
+    def test_tangent_after_inverse_tangent(
+        self, image_tangent_vec, image_point, atol=gs.atol
+    ):
         tangent_vec = self.diffeo.inverse_tangent(image_tangent_vec, image_point)
         base_point = self.diffeo.inverse(image_point)
 

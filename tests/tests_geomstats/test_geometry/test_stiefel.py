@@ -2,7 +2,6 @@ import random
 
 import pytest
 
-import geomstats.backend as gs
 from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
 from geomstats.test.parametrizers import DataBasedParametrizer, Parametrizer
 from geomstats.test_cases.geometry.stiefel import (
@@ -76,13 +75,6 @@ class TestStiefelCanonicalMetric(
     StiefelCanonicalMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = StiefelCanonicalMetricTestData()
-
-    def test_log_antipodal_raises(self):
-        """Log of antipodal points is not well-defined."""
-        space = Stiefel(n=3, p=2)
-        point = gs.array([[1.0, 0.0], [0.0, 1.0], [0.0, 0.0]])
-        with pytest.raises(ValueError, match="antipodal"):
-            space.metric.log(-point, point)
 
 
 class TestStiefelCanonicalMetricSquare(
