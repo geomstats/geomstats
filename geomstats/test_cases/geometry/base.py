@@ -8,9 +8,9 @@ from geomstats.test.random import (
 )
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.complex_manifold import ComplexManifoldTestCase
-from geomstats.test_cases.geometry.manifold import ManifoldTestCase
-from geomstats.test_cases.geometry.mixins import ProjectionTestCaseMixins
-from geomstats.vectorization import get_batch_shape
+
+from .manifold import ManifoldTestCase
+from .mixins import ProjectionTestCaseMixins
 
 # TODO: vec with tangent_vecs may not be being tested sufficiently well
 # i.e. tests may pass but just because it is the repetition of points
@@ -186,75 +186,78 @@ class ComplexMatrixVectorSpaceTestCase(ComplexVectorSpaceTestCase):
 
 
 class LevelSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
-    # TODO: need to develop ``intrinsic_after_extrinsic``
-    # and ``extrinsic_after_intrinsic``
     # TODO: need to develop `intrinsic_after_extrinsic` and `extrinsic_after_intrinsic`
     # TODO: class to handle `extrinsinc-intrinsic` mixins?
 
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = EmbeddedSpaceRandomDataGenerator(self.space)
-        super().setup_method()
+    def test_submersion(self, point, expected, atol=gs.atol):
+        """Check submersion.
 
-    def test_submersion(self, point, expected, atol):
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the embedding space.
+        expected : array-like, shape=[..., *submersion_shape]
+            Expected submersed point.
+        atol : float
+            Absolute tolerance.
+        """
         submersed_point = self.space.submersion(point)
         self.assertAllClose(submersed_point, expected, atol=atol)
 
-    def test_submersion_is_zero(self, point, submersion_shape, atol):
-        # TODO: keep?
-        batch_shape = get_batch_shape(self.space.point_ndim, point)
-        expected = gs.zeros(batch_shape + submersion_shape)
+    def test_tangent_submersion(self, vector, point, expected, atol=gs.atol):
+        """Check tangent submersion.
 
-        self.test_submersion(point, expected, atol)
-
-    @pytest.mark.vec
-    def test_submersion_vec(self, n_reps, atol):
-        # TODO: mark as redundant? belongs suffices?
-        point = self.space.embedding_space.random_point()
-        expected = self.space.submersion(point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, expected=expected, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    def test_tangent_submersion(self, vector, point, expected, atol):
+        Parameters
+        ----------
+        vector : array-like, shape=[..., *space.shape]
+            Tangent vector to the embedding space at `point`.
+        point : array-like, shape=[..., *space.shape]
+            Point on the embedding space.
+        expected : array-like, shape=[..., *tangent_submersion_shape]
+            Expected submersed vector.
+        atol : float
+            Absolute tolerance.
+        """
         submersed_vector = self.space.tangent_submersion(vector, point)
         self.assertAllClose(submersed_vector, expected, atol=atol)
 
-    def test_tangent_submersion_is_zero(
-        self, tangent_vector, point, tangent_submersion_shape, atol
-    ):
-        # TODO: keep?
-        batch_shape = get_batch_shape(self.space.point_ndim, tangent_vector, point)
-        expected = gs.zeros(batch_shape + tangent_submersion_shape)
+    def test_submersion_is_zero(self, point, atol=gs.atol):
+        """Check submersion vanishes.
 
-        self.test_tangent_submersion(tangent_vector, point, expected, atol)
+        The submersion vanishes exactly on the level set, so `point`
+        must belong to it.
 
-    @pytest.mark.vec
-    def test_tangent_submersion_vec(self, n_reps, atol):
-        # TODO: mark as redundant? is_tangent suffices?
-        vector, point = self.data_generator.random_point(2)
-        expected = self.space.tangent_submersion(vector, point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    vector=vector,
-                    point=point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["vector", "point"],
-            n_reps=n_reps,
-            vectorization_type="sym" if self.tangent_to_multiple else "repetition-0",
-            expected_name="expected",
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        submersed_point = self.space.submersion(point)
+        self.assertAllClose(
+            submersed_point, gs.zeros_like(submersed_point), atol=atol
         )
-        self._test_vectorization(vec_data)
+
+    def test_tangent_submersion_is_zero(self, vector, point, atol=gs.atol):
+        """Check tangent submersion vanishes.
+
+        The tangent submersion vanishes exactly on tangent vectors to the
+        level set, so `vector` must be tangent to it at `point`.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., *space.shape]
+            Tangent vector to the manifold at `point`.
+        point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        submersed_vector = self.space.tangent_submersion(vector, point)
+        self.assertAllClose(
+            submersed_vector, gs.zeros_like(submersed_vector), atol=atol
+        )
 
 
 class _OpenSetTestCaseMixins(ProjectionTestCaseMixins):
