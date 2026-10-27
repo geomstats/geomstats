@@ -2,7 +2,6 @@ import pytest
 from polpo.testing.geometric import GeometricCaseData
 
 import geomstats.backend as gs
-from geomstats.test.random import get_random_times
 
 from .mixins import GeodesicBVPMixinsTestData
 
@@ -29,17 +28,9 @@ class ConnectionTestData(GeodesicBVPMixinsTestData, GeometricCaseData):
         )
 
     def geodesic_ivp_belongs_test_data(self):
-        data = []
-        for n_times in self.time_counts:
-            time = get_random_times(n_times)
-            data_ = self.generate_random_data(
-                arg_names=("initial_point", "initial_tangent_vec"),
-                time=time,
-            )
-
-            data.extend(data_)
-
-        return data
+        return self.generate_timed_random_data(
+            arg_names=("initial_point", "initial_tangent_vec")
+        )
 
     def exp_geodesic_ivp_test_data(self):
         return self.generate_random_data(
@@ -78,21 +69,11 @@ class ConnectionTestData(GeodesicBVPMixinsTestData, GeometricCaseData):
         )
 
     def geodesic_ivp_vec_test_data(self):
-        data = []
-        for n_times in self.time_counts:
-            time = get_random_times(n_times)
-
-            data_ = self.generate_vectorization_data(
-                arg_names=("initial_point", "initial_tangent_vec"),
-                op_name="geodesic",
-                op_evaluator=lambda op, time=time, **kwargs: op(**kwargs)(time),
-                time=time,
-                on_metric=True,
-            )
-
-            data.extend(data_)
-
-        return data
+        return self.generate_timed_vectorization_data(
+            arg_names=("initial_point", "initial_tangent_vec"),
+            op_name="geodesic",
+            on_metric=True,
+        )
 
     def parallel_transport_ivp_vec_test_data(self):
         return self.generate_vectorization_data(
@@ -204,30 +185,14 @@ class ConnectionComparisonTestData(GeometricCaseData):
         )
 
     def geodesic_bvp_test_data(self):
-        data = []
-        for n_times in self.time_counts:
-            time = get_random_times(n_times)
-            data_ = self.generate_random_data(
-                arg_names=("initial_point", "end_point"),
-                time=time,
-            )
-
-            data.extend(data_)
-
-        return data
+        return self.generate_timed_random_data(
+            arg_names=("initial_point", "end_point"),
+        )
 
     def geodesic_ivp_test_data(self):
-        data = []
-        for n_times in self.time_counts:
-            time = get_random_times(n_times)
-            data_ = self.generate_random_data(
-                arg_names=("initial_point", "initial_tangent_vec"),
-                time=time,
-            )
-
-            data.extend(data_)
-
-        return data
+        return self.generate_timed_random_data(
+            arg_names=("initial_point", "initial_tangent_vec")
+        )
 
     def parallel_transport_ivp_test_data(self):
         return self.generate_random_data(
