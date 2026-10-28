@@ -8,8 +8,8 @@ from geomstats.vectorization import get_n_points
 
 
 class SurfacesLocalRandomDataGenerator(RandomDataGenerator):
-    def __init__(self, space, point, amplitude=2.0):
-        super().__init__(space, amplitude)
+    def __init__(self, space, point, amplitude=2.0, near_scale=0.1):
+        super().__init__(space, amplitude, near_scale=near_scale)
         self.point = point
 
     def _get_deformation(self, n_points):
