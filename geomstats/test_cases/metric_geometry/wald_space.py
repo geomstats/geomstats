@@ -7,8 +7,8 @@ from geomstats.test_cases.metric_geometry.point_set import PointTestCase
 
 
 class RandomGroveDataGenerator(RandomDataGenerator):
-    def __init__(self, space, topology):
-        super().__init__(space)
+    def __init__(self, space, topology, near_scale=0.1):
+        super().__init__(space, near_scale=near_scale)
         self.topology = topology
 
     def random_point(self, n_points=1):
