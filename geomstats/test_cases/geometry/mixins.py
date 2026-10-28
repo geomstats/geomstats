@@ -1,5 +1,5 @@
 import geomstats.backend as gs
-from geomstats.test.assertions import assert_belongs
+from geomstats.test.assertions import assert_belongs, assert_is_tangent
 from geomstats.vectorization import get_batch_shape
 
 
@@ -166,3 +166,34 @@ class GeodesicBVPTestCaseMixins:
         points = geod_func(time)
 
         assert_belongs(self.space, points, atol=atol)
+
+
+class RetractionTestCaseMixins:
+    def test_retraction(self, tangent_vec, base_point, expected, atol=gs.atol):
+        res = self.space.metric.retraction(tangent_vec, base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    def test_lifting(self, point, base_point, expected, atol=gs.atol):
+        res = self.space.metric.lifting(point, base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    def test_lifting_is_tangent(self, point, base_point, atol=gs.atol):
+        tangent_vec = self.space.metric.lifting(point, base_point)
+
+        assert_is_tangent(self.space, tangent_vec, base_point, atol=atol)
+
+    def test_lifting_after_retraction(self, tangent_vec, base_point, atol=gs.atol):
+        point = self.space.metric.retraction(tangent_vec, base_point)
+        tangent_vec_ = self.space.metric.lifting(point, base_point)
+
+        self.assertAllClose(tangent_vec_, tangent_vec, atol=atol)
+
+    def test_retraction_after_lifting(self, point, base_point, atol=gs.atol):
+        tangent_vec = self.space.metric.lifting(point, base_point)
+
+        point_ = self.space.metric.retraction(tangent_vec, base_point)
+        self.assertAllClose(point_, point, atol=atol)
+
+    def test_retraction_belongs(self, tangent_vec, base_point, atol=gs.atol):
+        point = self.space.metric.retraction(tangent_vec, base_point)
+        assert_belongs(self.space, point, atol=atol)
