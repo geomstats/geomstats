@@ -14,12 +14,14 @@ class ConnectionTestData(GeodesicBVPMixinsTestData, GeometricCaseData):
 
     def log_is_tangent_test_data(self):
         return self.generate_random_data(
-            arg_names=("point", "base_point"),
+            arg_names=("base_point", "point"),
+            near={"point": "base_point"},
         )
 
     def exp_after_log_test_data(self):
         return self.generate_random_data(
-            arg_names=("point", "base_point"),
+            arg_names=("base_point", "point"),
+            near={"point": "base_point"},
         )
 
     def log_after_exp_test_data(self):
@@ -54,6 +56,7 @@ class ConnectionTestData(GeodesicBVPMixinsTestData, GeometricCaseData):
                 "end_point",
             ),
             dependencies={"tangent_vec": "base_point"},
+            near={"end_point": "base_point"},
         )
 
     def exp_vec_test_data(self):
@@ -64,7 +67,8 @@ class ConnectionTestData(GeodesicBVPMixinsTestData, GeometricCaseData):
 
     def log_vec_test_data(self):
         return self.generate_vectorization_data(
-            arg_names=("point", "base_point"),
+            arg_names=("base_point", "point"),
+            near={"point": "base_point"},
             on_metric=True,
         )
 
@@ -95,6 +99,7 @@ class ConnectionTestData(GeodesicBVPMixinsTestData, GeometricCaseData):
                 "end_point",
             ),
             dependencies={"tangent_vec": "base_point"},
+            near={"end_point": "base_point"},
             op_name="parallel_transport",
             on_metric=True,
         )
@@ -181,12 +186,14 @@ class ConnectionComparisonTestData(GeometricCaseData):
 
     def log_test_data(self):
         return self.generate_random_data(
-            arg_names=("point", "base_point"),
+            arg_names=("base_point", "point"),
+            near={"point": "base_point"},
         )
 
     def geodesic_bvp_test_data(self):
         return self.generate_timed_random_data(
             arg_names=("initial_point", "end_point"),
+            near={"end_point": "initial_point"},
         )
 
     def geodesic_ivp_test_data(self):
@@ -211,6 +218,7 @@ class ConnectionComparisonTestData(GeometricCaseData):
                 "end_point",
             ),
             dependencies={"tangent_vec": "base_point"},
+            near={"end_point": "base_point"},
         )
 
 

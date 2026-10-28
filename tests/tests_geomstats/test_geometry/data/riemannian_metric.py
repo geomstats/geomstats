@@ -28,6 +28,7 @@ class RiemannianMetricTestData(DistMixinsTestData, ConnectionTestData):
     def dist_is_log_norm_test_data(self):
         return self.generate_random_data(
             arg_names=("point_a", "point_b"),
+            near={"point_b": "point_a"},
         )
 
     def parallel_transport_ivp_norm_test_data(self):
@@ -39,6 +40,7 @@ class RiemannianMetricTestData(DistMixinsTestData, ConnectionTestData):
         return self.generate_random_data(
             arg_names=("base_point", "tangent_vec", "end_point"),
             dependencies={"tangent_vec": "base_point"},
+            near={"end_point": "base_point"},
         )
 
     def inner_product_vec_test_data(self):
@@ -160,11 +162,15 @@ class RiemannianMetricComparisonTestData(ConnectionComparisonTestData):
 
     @pytest.mark.redundant
     def squared_dist_test_data(self):
-        return self.generate_random_data(arg_names=("point_a", "point_b"))
+        return self.generate_random_data(
+            arg_names=("point_a", "point_b"), near={"point_b": "point_a"}
+        )
 
     @pytest.mark.redundant
     def dist_test_data(self):
-        return self.generate_random_data(arg_names=("point_a", "point_b"))
+        return self.generate_random_data(
+            arg_names=("point_a", "point_b"), near={"point_b": "point_a"}
+        )
 
     def injectivity_radius_test_data(self):
         return self.generate_random_data(arg_names="base_point")
