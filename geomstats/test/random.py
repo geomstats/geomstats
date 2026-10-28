@@ -9,8 +9,12 @@ from geomstats.geometry.base import (
 )
 from geomstats.geometry.diffeo import ReversedDiffeo
 from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.full_rank_correlation_matrices import (
+    FullRankCorrelationMatrices,
+)
 from geomstats.geometry.general_linear import SquareMatrices
 from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.matrices import Matrices
 from geomstats.vectorization import get_n_points
 
 
@@ -154,6 +158,11 @@ def _(space, **kwargs):
     return EmbeddedSpaceRandomDataGenerator(space, **kwargs)
 
 
+@get_data_generator.register(FullRankCorrelationMatrices)
+def _(space, **kwargs):
+    return FullRankCorrelationMatricesRandomDataGenerator(space, **kwargs)
+
+
 @get_data_generator.register(DiffeomorphicManifold)
 def _(space, **kwargs):
     return DiffeoBasedRandomDataGenerator(
@@ -249,6 +258,11 @@ class GammaRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
             )
             / self.amplitude
         )
+
+
+class FullRankCorrelationMatricesRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
+    def random_diagonal_vec(self, n_points=1):
+        return Matrices.diagonal(self.space.embedding_space.random_point(n_points))
 
 
 class HeisenbergVectorsRandomDataGenerator(VectorSpaceRandomDataGenerator):

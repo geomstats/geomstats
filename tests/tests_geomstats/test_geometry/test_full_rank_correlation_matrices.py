@@ -42,103 +42,143 @@ from geomstats.geometry.symmetric_matrices import (
     SymmetricMatrices,
 )
 from geomstats.numerics.optimization import NewtonMethod
-from geomstats.test.random import RandomDataGenerator
+from geomstats.test.assertions import assert_belongs, assert_is_tangent
 from geomstats.test.test_case import TestCase
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
 from geomstats.test_cases.geometry.full_rank_correlation_matrices import (
     FullRankCorrelationMatricesTestCase,
 )
-from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
 from geomstats.test_cases.geometry.quotient_metric import QuotientMetricTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.diffeo import DiffeoTestData
+from .data.fiber_bundle import (
+    FiberBundleProjectionTestData,
+    FiberBundleSubmersionLiftTestData,
+)
 from .data.full_rank_correlation_matrices import (
+    CorrelationMatricesBundleTestData,
+    FullRankCorrelationAffineQuotientMetricTestData,
+    FullRankCorrelationMatricesTestData,
     SPDScalingFinderTestData,
     UniqueDiagonalMatrixAlgorithmTestData,
 )
 from .data.riemannian_metric import RiemannianMetricTestData
 
-# from .data.full_rank_correlation_matrices import (
-#     CorrelationMatricesBundleTestData,
-#     EuclideanCholeskyMetricTestData,
-#     FullRankCorrelationAffineQuotientMetricTestData,
-#     FullRankCorrelationMatricesTestData,
-#     LogScaledMetricTestData,
-#     OffLogMetricTestData,
-#     PolyHyperbolicCholeskyMetricTestData,
-#     SPDScalingFinderTestData,
-#     UniqueDiagonalMatrixAlgorithmTestData,
-# )
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        3,
+        random.randint(4, 8),
+    ],
+)
+def spaces(request):
+    space = request.cls.space = FullRankCorrelationMatrices(
+        n=request.param, equip=False
+    )
+
+    request.cls.testing_data.space = space
 
 
-# @pytest.fixture(
-#     scope="class",
-#     params=[
-#         3,
-#         random.randint(4, 8),
-#     ],
-# )
-# def spaces(request):
-#     request.cls.space = FullRankCorrelationMatrices(n=request.param, equip=False)
+@pytest.mark.usefixtures("spaces")
+class TestFullRankCorrelationMatrices(
+    FullRankCorrelationMatricesTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    testing_data = FullRankCorrelationMatricesTestData()
 
 
-# @pytest.mark.usefixtures("spaces")
-# class TestFullRankCorrelationMatrices(
-#     FullRankCorrelationMatricesTestCase, metaclass=DataBasedParametrizer
-# ):
-#     testing_data = FullRankCorrelationMatricesTestData()
+@pytest.fixture(
+    scope="class",
+    params=[
+        2,
+        random.randint(3, 5),
+    ],
+)
+def bundles(request):
+    n = request.param
+    request.cls.total_space = total_space = SPDMatrices(n=n, equip=True)
+
+    total_space.equip_with_group_action(FullRankCorrelationMatrices.diag_action)
+    total_space.equip_with_quotient()
+
+    request.cls.base_space = base_space = FullRankCorrelationMatrices(n=n, equip=False)
+
+    request.cls.testing_data.propagate("total_space", total_space)
+    request.cls.testing_data.propagate("base_space", base_space)
 
 
-# @pytest.fixture(
-#     scope="class",
-#     params=[
-#         2,
-#         random.randint(3, 5),
-#     ],
-# )
-# def bundles(request):
-#     n = request.param
-#     request.cls.total_space = total_space = SPDMatrices(n=n, equip=True)
+@pytest.mark.usefixtures("bundles")
+class TestCorrelationMatricesBundle(
+    FiberBundleTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    testing_data = (
+        CorrelationMatricesBundleTestData(
+            excluded_methods=(
+                "integrability_tensor",
+                "integrability_tensor_derivative",
+            )
+        )
+        + FiberBundleSubmersionLiftTestData()
+        + FiberBundleProjectionTestData()
+    )
 
-#     total_space.equip_with_group_action(FullRankCorrelationMatrices.diag_action)
-#     total_space.equip_with_quotient()
+    def test_horizontal_projection_is_horizontal_v2(
+        self, tangent_vec, base_point, atol=gs.atol
+    ):
+        horizontal_vec = self.total_space.fiber_bundle.horizontal_projection(
+            tangent_vec, base_point
+        )
 
-#     request.cls.base = FullRankCorrelationMatrices(n=n, equip=False)
+        inverse = GeneralLinear.inverse(base_point)
+        product_1 = Matrices.mul(horizontal_vec, inverse)
+        product_2 = Matrices.mul(inverse, horizontal_vec)
 
-
-# @pytest.mark.usefixtures("bundles")
-# class TestCorrelationMatricesBundle(
-#     FiberBundleTestCase, metaclass=DataBasedParametrizer
-# ):
-#     testing_data = CorrelationMatricesBundleTestData()
-
-#     def test_horizontal_projection_is_horizontal_v2(self, n_points, atol):
-#         base_point = self.data_generator.random_point(n_points)
-#         tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
-#         horizontal_vec = self.total_space.fiber_bundle.horizontal_projection(
-#             tangent_vec, base_point
-#         )
-
-#         inverse = GeneralLinear.inverse(base_point)
-#         product_1 = Matrices.mul(horizontal_vec, inverse)
-#         product_2 = Matrices.mul(inverse, horizontal_vec)
-#         is_horizontal = gs.all(
-#             self.base.is_tangent(product_1 + product_2, base_point, atol=atol)
-#         )
-
-#         self.assertTrue(is_horizontal)
+        assert_is_tangent(self.base_space, product_1 + product_2, base_point, atol=atol)
 
 
-# @pytest.mark.redundant
-# class TestFullRankCorrelationAffineQuotientMetric(
-#     QuotientMetricTestCase, metaclass=DataBasedParametrizer
-# ):
-#     _n = random.randint(3, 5)
-#     space = FullRankCorrelationMatrices(n=_n)
-#     testing_data = FullRankCorrelationAffineQuotientMetricTestData()
+# require an aligner, which only exists with autodiff
+_QUOTIENT_ALIGN_METHODS = (
+    "log_is_tangent",
+    "exp_after_log",
+    "log_after_exp",
+    "log",
+    "dist_is_log_norm",
+    "squared_dist_is_symmetric",
+    "squared_dist_is_positive",
+    "dist_is_symmetric",
+    "dist_is_positive",
+    "dist_point_to_itself_is_zero",
+    "dist_triangle_inequality",
+    "squared_dist",
+    "dist",
+    "geodesic_boundary_points",
+    "geodesic_bvp_reverse",
+    "geodesic_bvp_belongs",
+    "geodesic_bvp",
+)
+
+
+@pytest.mark.redundant
+class TestFullRankCorrelationAffineQuotientMetric(
+    QuotientMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    _n = random.randint(3, 5)
+    space = FullRankCorrelationMatrices(n=_n)
+    testing_data = FullRankCorrelationAffineQuotientMetricTestData(
+        space,
+        excluded_methods=(
+            "injectivity_radius",
+            "parallel_transport_ivp",
+            "parallel_transport_bvp",
+            "parallel_transport_ivp_transported_is_tangent",
+            "parallel_transport_bvp_transported_is_tangent",
+            "parallel_transport_ivp_norm",
+            "parallel_transport_bvp_norm",
+        )
+        + (() if gs.has_autodiff() else _QUOTIENT_ALIGN_METHODS),
+    )
 
 
 class TestCholeskyMap(
@@ -307,12 +347,7 @@ class TestUniqueDiagonalMatrixAlgorithm(
         self.assertAllClose(self.map(point), expected, atol=atol)
 
     def test_map_belongs_to_image(self, point, atol=gs.atol):
-        image_point = self.map(point)
-
-        res = self.image_space.belongs(image_point, atol=atol)
-        expected = gs.ones_like(res)
-
-        self.assertAllEqual(res, expected)
+        assert_belongs(self.image_space, self.map(point), atol=atol)
 
 
 class TestOffLogDiffeo(
