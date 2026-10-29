@@ -611,6 +611,33 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
 
         return point_prod
 
+    def jacobian_translation(self, point, left=True):
+        r"""Compute the Jacobian matrix resulting from translation.
+
+        Compute the matrix of the differential of the left/right translations
+        from the identity to point in SO(2).
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 1]
+            Point.
+        left : bool
+            Whether to compute the jacobian of the left or right translation.
+            Optional, default: True.
+
+        Returns
+        -------
+        jacobian : array-like, shape=[..., 1, 1]
+            Jacobian of the left / right translation.
+
+        Notes
+        -----
+        In the rotation angle representation, composition is the addition
+        of angles modulo :math:`2\pi`. Left and right translations are thus
+        shifts of the angle, and their differential is the identity.
+        """
+        return gs.expand_dims(gs.ones_like(point), axis=-1)
+
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in SO(2) using the uniform distribution.
 
