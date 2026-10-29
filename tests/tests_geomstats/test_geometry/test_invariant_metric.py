@@ -218,6 +218,8 @@ class TestInvariantMetricMatrixSE(
 @pytest.fixture(
     scope="class",
     params=[
+        (SpecialOrthogonal(2, point_type="vector", equip=False), True),
+        (SpecialOrthogonal(2, point_type="vector", equip=False), False),
         (SpecialOrthogonal(3, point_type="vector", equip=False), True),
         (SpecialOrthogonal(3, point_type="vector", equip=False), False),
         (SpecialEuclidean(2, point_type="vector", equip=False), True),
@@ -243,8 +245,7 @@ class TestInvariantMetricVector(
 @pytest.fixture(
     scope="class",
     params=[
-        # TODO: uncomment
-        # SpecialOrthogonal(2, point_type="vector", equip=False),
+        SpecialOrthogonal(2, point_type="vector", equip=False),
         SpecialOrthogonal(3, point_type="vector", equip=False),
     ],
 )
