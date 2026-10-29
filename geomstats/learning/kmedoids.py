@@ -101,7 +101,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
                 )
 
         self.cluster_centers_ = X[medoids_indices]
-        self.labels_ = labels
+        self.labels_ = gs.argmin(distances[medoids_indices, :], axis=0)
         self.medoid_indices_ = medoids_indices
 
         return self
