@@ -1,19 +1,9 @@
-import logging
-
 from geomstats.geometry.discrete_curves import ElasticMetric, SRVMetric
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.metric_geometry.graph_space import GraphSpace
 from geomstats.metric_geometry.point_set import PointSetMetric
 
 ELASTIC_METRICS = (SRVMetric, ElasticMetric)
-
-
-def _warn_max_iterations(iteration, max_iter):
-    if iteration + 1 == max_iter:
-        logging.warning(
-            f"Maximum number of iterations {max_iter} reached. "
-            "The estimate may be inaccurate."
-        )
 
 
 def _is_linear_metric(metric):

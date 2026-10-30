@@ -12,6 +12,8 @@ from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean, GeneralFrechetMean, variance
 from geomstats.learning.kmeans import RiemannianKMeans
 
+logger = logging.getLogger(__name__)
+
 PDF_TOL = 1e-6
 SUM_CHECK_PDF = 1e-4
 MIN_VAR_INIT = 1e-3
@@ -84,7 +86,7 @@ class GaussianMixtureModel:
         cond_3 = normalization_factor_var.sum() == float("-inf")
 
         if cond_1 or cond_2 or cond_3:
-            logging.warning("Untractable normalization factor :")
+            logger.warning("Untractable normalization factor :")
 
             limit_nf = (
                 ((normalization_factor_var / normalization_factor_var) * 0)
@@ -95,12 +97,12 @@ class GaussianMixtureModel:
             variances = variances[0:limit_nf]
             normalization_factor_var = normalization_factor_var[0:limit_nf]
             if cond_1:
-                logging.warning("\t Nan value in processing normalization factor")
+                logger.warning("\t Nan value in processing normalization factor")
             if cond_2 or cond_3:
                 raise ValueError("\t +-inf value in processing normalization factor")
 
-            logging.warning("\t Max variance is now : %s", str(variances[-1]))
-            logging.warning(
+            logger.warning("\t Max variance is now : %s", str(variances[-1]))
+            logger.warning(
                 "\t Number of possible variance is now: %s / %s ",
                 str(len(variances)),
                 str(max_nf),
@@ -347,7 +349,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self.mixture_coefficients_ = gs.mean(posterior_probabilities, 0)
 
         if gs.any(gs.isnan(self.mixture_coefficients_)):
-            logging.warning(
+            logger.warning(
                 "UPDATE : mixture coefficients contain elements that are not numbers"
             )
 
@@ -362,7 +364,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self._model.means = gs.squeeze(self.mean_estimator.estimate_)
 
         if gs.any(gs.isnan(self._model.means)):
-            logging.warning("UPDATE : means contain not a number elements")
+            logger.warning("UPDATE : means contain not a number elements")
 
     def _update_variances(self, data, posterior_probabilities):
         """Update variances function.
@@ -387,7 +389,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         )
 
         if gs.any(gs.isnan(self._model.variances)):
-            logging.warning("UPDATE : variances contain not a number elements")
+            logger.warning("UPDATE : variances contain not a number elements")
 
     def _expectation(self, data):
         """Update the posterior probabilities.
@@ -401,7 +403,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         pdf = self._model.pdf(data)
 
         if gs.any(gs.isnan(pdf)):
-            logging.warning(
+            logger.warning(
                 "EXPECTATION : Probability distribution function"
                 "contain elements that are not numbers"
             )
@@ -418,7 +420,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         )
 
         if gs.any(gs.mean(posterior_probabilities)) is None:
-            logging.warning(
+            logger.warning(
                 "EXPECTATION : posterior probabilities "
                 "contain elements that are not numbers."
             )
@@ -428,10 +430,10 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             >= gs.mean(gs.sum(posterior_probabilities, 1))
             >= 1 + SUM_CHECK_PDF
         ):
-            logging.warning("EXPECTATION : posterior probabilities do not sum to 1.")
+            logger.warning("EXPECTATION : posterior probabilities do not sum to 1.")
 
         if gs.any(gs.sum(posterior_probabilities, 0) < PDF_TOL):
-            logging.warning(
+            logger.warning(
                 "EXPECTATION : Gaussian got no elements (precision error) reinitialize"
             )
             posterior_probabilities[posterior_probabilities == 0] = PDF_TOL
@@ -519,12 +521,12 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             )
 
             if condition < self.conv_rate and epoch > self.minimum_epochs:
-                logging.info("EM converged in %s iterations", epoch)
+                logger.info("EM converged in %s iterations", epoch)
                 break
 
             self._maximization(X, posterior_probabilities)
         else:
-            logging.info(
+            logger.info(
                 "WARNING: EM did not converge \nPlease increase MINIMUM_EPOCHS."
             )
 

@@ -11,6 +11,8 @@ import types
 
 import geomstats._backend._common as common
 
+logger = logging.getLogger("geomstats")
+
 
 def get_backend_name():
     return os.environ.get("GEOMSTATS_BACKEND", "numpy")
@@ -292,7 +294,7 @@ class BackendImporter:
 
         module.set_default_dtype("float64")
 
-        logging.debug(f"geomstats is using {BACKEND_NAME} backend")
+        logger.debug(f"Using {BACKEND_NAME} backend")
         return module
 
     def find_spec(self, fullname, path=None, target=None):

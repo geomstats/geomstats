@@ -3,6 +3,7 @@
 Lead author: Nina Miolane.
 """
 
+import logging
 import numbers
 import random
 from math import log
@@ -13,6 +14,7 @@ from sklearn.decomposition._base import _BasePCA
 from sklearn.utils.extmath import stable_cumsum, svd_flip
 
 import geomstats.backend as gs
+from geomstats._logging import warn_max_iterations
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.matrices import Matrices
@@ -21,7 +23,9 @@ from geomstats.learning._sklearn import PCA
 from geomstats.learning.exponential_barycenter import ExponentialBarycenter
 from geomstats.learning.frechet_mean import FrechetMean
 
-from ._utils import _is_graph_space, _warn_max_iterations
+from ._utils import _is_graph_space
+
+logger = logging.getLogger(__name__)
 
 
 def _assess_dimension_(spectrum, rank, n_samples, n_features):
@@ -650,7 +654,7 @@ class AACGGPCA(BaseEstimator):
                 break
             previous_expl = expl_
         else:
-            _warn_max_iterations(iteration, self.max_iter)
+            warn_max_iterations(logger, self.max_iter)
 
         if self.save_last_X:
             self.aligned_X_ = aligned_X

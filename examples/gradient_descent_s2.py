@@ -115,4 +115,5 @@ def main(output_file="out.mp4", max_iter=128):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     main()

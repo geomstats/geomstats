@@ -8,8 +8,11 @@ import math
 from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
+from geomstats._logging import warn_max_iterations
 from geomstats.numerics.optimization import ScipyMinimize
 from geomstats.vectorization import check_is_batch, get_batch_shape
+
+logger = logging.getLogger(__name__)
 
 
 def _from_base(method):
@@ -256,17 +259,14 @@ class AlternatingAligner(AlignerAlgorithm):
 
             if gap < self.threshold:
                 if self.verbose > 0:
-                    logging.info(
+                    logger.info(
                         f"Convergence of alignment reached after {index + 1} "
                         "iterations."
                     )
 
                 break
         else:
-            logging.warning(
-                f"Maximum number of iterations {self.max_iter} reached during "
-                "alignment. The result may be inaccurate."
-            )
+            warn_max_iterations(logger, self.max_iter)
         return aligned_point
 
     def align(self, point, base_point):

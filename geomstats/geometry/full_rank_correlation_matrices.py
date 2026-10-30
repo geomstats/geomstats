@@ -12,6 +12,7 @@ References
 import logging
 
 import geomstats.backend as gs
+from geomstats._logging import warn_max_iterations
 from geomstats.algebra_utils import rowwise_scaling
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.diffeo import ComposedDiffeo, Diffeo
@@ -52,6 +53,8 @@ from geomstats.geometry.symmetric_matrices import (
     SymmetricHollowMatrices,
 )
 from geomstats.numerics.optimization import NewtonMethod
+
+logger = logging.getLogger(__name__)
 
 
 def corr_map(point):
@@ -700,10 +703,7 @@ class UniqueDiagonalMatrixAlgorithm:
 
             diag_mat = new_diag_mat
         else:
-            logging.warning(
-                "Maximum number of iterations %d reached. The mean may be inaccurate",
-                self.max_iter,
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         return diag_mat
 

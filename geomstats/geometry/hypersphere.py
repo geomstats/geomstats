@@ -18,6 +18,8 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import get_batch_shape, repeat_out
 
+logger = logging.getLogger(__name__)
+
 
 class _Hypersphere(LevelSet):
     """Private class for the n-dimensional hypersphere.
@@ -542,7 +544,7 @@ class _Hypersphere(LevelSet):
                 n_accepted += gs.sum(criterion)
                 n_iter += 1
             if n_accepted < n_samples:
-                logging.warning(
+                logger.warning(
                     "Maximum number of iteration reached in rejection "
                     "sampling before n_samples were accepted."
                 )
@@ -640,7 +642,7 @@ class _Hypersphere(LevelSet):
             n_accepted += gs.sum(criterion)
             n_iter += 1
         if n_accepted < n_samples:
-            logging.warning(
+            logger.warning(
                 "Maximum number of iteration reached in rejection "
                 "sampling before n_samples were accepted."
             )

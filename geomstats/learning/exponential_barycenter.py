@@ -6,6 +6,7 @@ Lead author: Nicolas Guigui.
 import logging
 
 import geomstats.backend as gs
+from geomstats._logging import warn_max_iterations
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
 from geomstats.learning.frechet_mean import (
@@ -14,6 +15,8 @@ from geomstats.learning.frechet_mean import (
     _BaseMeanEstimator,
     _scalarmulsum,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class GroupGradientDescent(BaseGradientDescent):
@@ -69,13 +72,10 @@ class GroupGradientDescent(BaseGradientDescent):
             mean = mean_next
 
         else:
-            logging.warning(
-                f"Maximum number of iterations {self.max_iter} reached. "
-                "The mean may be inaccurate"
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         if self.verbose:
-            logging.info(f"n_iter: {iteration}, final gradient norm: {grad_norm}")
+            logger.info(f"n_iter: {iteration}, final gradient norm: {grad_norm}")
         return mean
 
 
@@ -146,10 +146,7 @@ class ConnectionGradientDescent(BaseGradientDescent):
                 step_size = step_size / 2.0
 
         else:
-            logging.warning(
-                "Maximum number of iterations %d reached. The mean may be inaccurate",
-                self.max_iter,
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         return mean
 

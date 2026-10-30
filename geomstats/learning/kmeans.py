@@ -10,8 +10,11 @@ from scipy.stats import rv_discrete
 from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
+from geomstats._logging import warn_max_iterations
 from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean, GeneralFrechetMean
+
+logger = logging.getLogger(__name__)
 
 
 class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
@@ -154,7 +157,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         """
         n_samples = X.shape[0]
         if self.verbose > 0:
-            logging.info("Initializing...")
+            logger.info("Initializing...")
 
         cluster_centers = self._pick_init_cluster_centers(X)
         self.init_cluster_centers_ = gs.copy(cluster_centers)
@@ -168,7 +171,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         for index in range(self.max_iter):
             if self.verbose > 0:
-                logging.info(f"Iteration {index}...")
+                logger.info(f"Iteration {index}...")
 
             old_cluster_centers = gs.copy(cluster_centers)
             for i in range(self.n_clusters):
@@ -192,21 +195,18 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                 old_cluster_centers, cluster_centers
             )
             if self.verbose > 0:
-                logging.info(
+                logger.info(
                     f"Convergence criterion at the end of iteration {index} "
                     f"is {gs.mean(cluster_centers_distances)}."
                 )
 
             if gs.mean(cluster_centers_distances) < self.tol:
                 if self.verbose > 0:
-                    logging.info(f"Convergence reached after {index} iterations.")
+                    logger.info(f"Convergence reached after {index} iterations.")
 
                 break
         else:
-            logging.warning(
-                f"K-means maximum number of iterations {self.max_iter} reached. "
-                "The mean may be inaccurate."
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         self.cluster_centers_ = cluster_centers
 

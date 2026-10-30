@@ -11,6 +11,7 @@ from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
 import geomstats.errors as error
+from geomstats._logging import warn_max_iterations
 from geomstats.geometry.hypersphere import HypersphereMetric
 
 from ._utils import (
@@ -18,8 +19,9 @@ from ._utils import (
     _is_geodesic_metric,
     _is_graph_space,
     _is_linear_metric,
-    _warn_max_iterations,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _scalarmul(scalar, array):
@@ -189,10 +191,10 @@ class GradientDescent(BaseGradientDescent):
                 step_size = step_size / 2.0
 
         if iteration == self.max_iter:
-            _warn_max_iterations(iteration, self.max_iter)
+            warn_max_iterations(logger, self.max_iter)
 
         if self.verbose:
-            logging.info(
+            logger.info(
                 "n_iter: {}, final variance: {}, final dist: {}".format(
                     iteration, var, sq_dist
                 )
@@ -245,10 +247,10 @@ class BatchGradientDescent(BaseGradientDescent):
                 step_size = step_size / 2.0
 
         if iteration == self.max_iter:
-            _warn_max_iterations(iteration, self.max_iter)
+            warn_max_iterations(logger, self.max_iter)
 
         if self.verbose:
-            logging.info(
+            logger.info(
                 "n_iter: %d, final dist: %e, final step size: %e",
                 iteration,
                 convergence,
@@ -345,13 +347,10 @@ class AdaptiveGradientDescent(BaseGradientDescent):
                 tau = max(tau_min, tau_mul_down * tau)
 
         if iteration == self.max_iter:
-            logging.warning(
-                "Maximum number of iterations %d reached. The mean may be inaccurate",
-                self.max_iter,
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         if self.verbose:
-            logging.info(
+            logger.info(
                 "n_iter: %d, final variance: %e, final dist: %e, final_step_size: %e",
                 iteration,
                 var,
@@ -749,12 +748,10 @@ class SturmsMean(BaseEstimator):
             if convergence < self.epsilon:
                 break
         else:
-            logging.warning(
-                f"Maximum number of iterations {self.max_iter} reached. The mean may be inaccurate."
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         if i < 2 * len(X):
-            logging.warning(
+            logger.warning(
                 f"Sampled <2*sample_size={2 * len(X)}. Due to stochastic nature, not guaranteed to have sampled all points. The mean may be inaccurate."
             )
 
@@ -868,7 +865,7 @@ class AACFrechetMean(BaseEstimator):
 
             previous_estimate = new_estimate
         else:
-            _warn_max_iterations(iteration, self.max_iter)
+            warn_max_iterations(logger, self.max_iter)
 
         if self.save_last_X:
             self.aligned_X_ = aligned_X

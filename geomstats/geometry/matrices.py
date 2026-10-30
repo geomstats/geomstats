@@ -12,6 +12,8 @@ from geomstats.geometry.diffeo import VectorSpaceDiffeo
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.vectorization import repeat_out
 
+logger = logging.getLogger(__name__)
+
 
 def matrix_matrix_transpose(point):
     r"""Matrix multiplication with transpose.
@@ -798,13 +800,13 @@ class Matrices(MatrixVectorSpace):
             singular_values[..., -2] + gs.sign(det) * singular_values[..., -1]
         ) / singular_values[..., 0]
         if gs.any(conditioning < gs.atol):
-            logging.warning(
+            logger.warning(
                 f"Singularity close, ill-conditioned matrix "
                 f"encountered: "
                 f"{conditioning[conditioning < 1e-10]}"
             )
         if gs.any(gs.isclose(conditioning, 0.0)):
-            logging.warning("Alignment matrix is not unique.")
+            logger.warning("Alignment matrix is not unique.")
 
         if flip:
             flipped = flip_determinant(gs.transpose(right), det)

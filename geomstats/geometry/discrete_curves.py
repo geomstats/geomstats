@@ -9,6 +9,7 @@ import math
 from scipy.interpolate import CubicSpline
 
 import geomstats.backend as gs
+from geomstats._logging import warn_max_iterations
 from geomstats._scipygs.interpolate import PchipInterpolator
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.diffeo import AutodiffDiffeo, Diffeo
@@ -30,6 +31,8 @@ from geomstats.numerics.interpolation import (
     UniformUnitIntervalLinearInterpolator,
 )
 from geomstats.vectorization import check_is_batch, get_batch_shape
+
+logger = logging.getLogger(__name__)
 
 
 def insert_zeros(array, axis=-1, end=False):
@@ -1206,16 +1209,13 @@ class IterativeHorizontalGeodesicAligner(AlignerAlgorithm):
 
             if gap < self.threshold:
                 if self.verbose > 0:
-                    logging.info(
+                    logger.info(
                         f"Convergence of alignment reached after {index + 1} "
                         "iterations."
                     )
                 break
         else:
-            logging.warning(
-                "Maximum number of iterations %d reached. The result may be inaccurate",
-                self.max_iter,
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         if self.save_history:
             self.history = dict(

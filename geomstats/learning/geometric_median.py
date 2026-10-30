@@ -5,6 +5,9 @@ import logging
 from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
+from geomstats._logging import warn_max_iterations
+
+logger = logging.getLogger(__name__)
 
 
 class GeometricMedian(BaseEstimator):
@@ -130,12 +133,9 @@ class GeometricMedian(BaseEstimator):
             median = new_median
 
             if self.print_every and (iteration + 1) % self.print_every == 0:
-                logging.info(f"median at iteration {iteration + 1}:\n{median}")
+                logger.info(f"median at iteration {iteration + 1}:\n{median}")
         else:
-            logging.warning(
-                "Maximum number of iterations %s reached. The median may be inaccurate",
-                self.max_iter,
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         self.estimate_ = median
         return self

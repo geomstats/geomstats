@@ -6,6 +6,8 @@ from geomstats.numerics._common import params_to_kwargs
 
 from ._optimization import Minimizer
 
+logger = logging.getLogger("geomstats.numerics.optimization")
+
 
 class TorchminMinimize(Minimizer):
     """Wrapper for torchmin.minimize.
@@ -57,7 +59,7 @@ class TorchminMinimize(Minimizer):
         )
 
         if not result.success:
-            logging.warning(result.message)
+            logger.warning(result.message)
 
         if self.save_result:
             self.result_ = result
