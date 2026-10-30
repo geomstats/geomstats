@@ -14,7 +14,7 @@ from sklearn.decomposition._base import _BasePCA
 from sklearn.utils.extmath import stable_cumsum, svd_flip
 
 import geomstats.backend as gs
-from geomstats.errors import warn_max_iterations
+from geomstats._logging import warn_max_iterations
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.matrices import Matrices

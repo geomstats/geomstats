@@ -9,9 +9,9 @@ import math
 from scipy.interpolate import CubicSpline
 
 import geomstats.backend as gs
+from geomstats._logging import warn_max_iterations
 from geomstats._scipygs.interpolate import PchipInterpolator
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.errors import warn_max_iterations
 from geomstats.geometry.diffeo import AutodiffDiffeo, Diffeo
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.fiber_bundle import AlignerAlgorithm, FiberBundle

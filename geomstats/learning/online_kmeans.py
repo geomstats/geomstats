@@ -8,7 +8,7 @@ import logging
 from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
-from geomstats.errors import warn_max_iterations
+from geomstats._logging import warn_max_iterations
 
 logger = logging.getLogger(__name__)
 

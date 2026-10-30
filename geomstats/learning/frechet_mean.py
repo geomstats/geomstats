@@ -11,7 +11,7 @@ from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
 import geomstats.errors as error
-from geomstats.errors import warn_max_iterations
+from geomstats._logging import warn_max_iterations
 from geomstats.geometry.hypersphere import HypersphereMetric
 
 from ._utils import (

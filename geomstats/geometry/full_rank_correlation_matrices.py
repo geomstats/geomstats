@@ -12,8 +12,8 @@ References
 import logging
 
 import geomstats.backend as gs
+from geomstats._logging import warn_max_iterations
 from geomstats.algebra_utils import rowwise_scaling
-from geomstats.errors import warn_max_iterations
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.diffeo import ComposedDiffeo, Diffeo
 from geomstats.geometry.fiber_bundle import DistanceMinimizingAligner, FiberBundle

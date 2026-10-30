@@ -6,7 +6,7 @@ import random
 from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
-from geomstats.errors import warn_max_iterations
+from geomstats._logging import warn_max_iterations
 from geomstats.learning.euclidean import LinearRegression
 
 from ._utils import _is_graph_space

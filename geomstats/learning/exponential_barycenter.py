@@ -6,7 +6,7 @@ Lead author: Nicolas Guigui.
 import logging
 
 import geomstats.backend as gs
-from geomstats.errors import warn_max_iterations
+from geomstats._logging import warn_max_iterations
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
 from geomstats.learning.frechet_mean import (

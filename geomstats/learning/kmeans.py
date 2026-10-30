@@ -10,7 +10,7 @@ from scipy.stats import rv_discrete
 from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
-from geomstats.errors import warn_max_iterations
+from geomstats._logging import warn_max_iterations
 from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean, GeneralFrechetMean
 
