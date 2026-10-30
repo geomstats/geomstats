@@ -1,13 +1,17 @@
 """Regression on Manifolds/Geodesic metric spaces."""
 
+import logging
 import random
 
 from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
+from geomstats.errors import warn_max_iterations
 from geomstats.learning.euclidean import LinearRegression
 
-from ._utils import _is_graph_space, _warn_max_iterations
+from ._utils import _is_graph_space
+
+logger = logging.getLogger(__name__)
 
 
 class AACRegression(BaseEstimator):
@@ -118,7 +122,7 @@ class AACRegression(BaseEstimator):
 
             previous_pred_dist = pred_dist
         else:
-            _warn_max_iterations(self.max_iter)
+            warn_max_iterations(logger, self.max_iter)
 
         if self.save_last_y:
             self.aligned_y_ = aligned_y

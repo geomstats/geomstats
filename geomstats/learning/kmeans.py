@@ -10,6 +10,7 @@ from scipy.stats import rv_discrete
 from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
+from geomstats.errors import warn_max_iterations
 from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean, GeneralFrechetMean
 
@@ -205,10 +206,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
                 break
         else:
-            logger.warning(
-                f"K-means maximum number of iterations {self.max_iter} reached. "
-                "The mean may be inaccurate."
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         self.cluster_centers_ = cluster_centers
 

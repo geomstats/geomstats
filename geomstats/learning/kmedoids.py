@@ -8,6 +8,7 @@ import logging
 from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
+from geomstats.errors import warn_max_iterations
 from geomstats.learning._template import TransformerMixin
 
 logger = logging.getLogger(__name__)
@@ -98,11 +99,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
             if gs.all(old_medoids_indices == medoids_indices):
                 break
             if iteration == self.max_iter - 1:
-                logger.warning(
-                    "Maximum number of iteration reached before "
-                    "convergence. Consider increasing max_iter to "
-                    "improve the fit."
-                )
+                warn_max_iterations(logger, self.max_iter)
 
         self.cluster_centers_ = X[medoids_indices]
         self.labels_ = labels

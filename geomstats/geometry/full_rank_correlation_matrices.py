@@ -13,6 +13,7 @@ import logging
 
 import geomstats.backend as gs
 from geomstats.algebra_utils import rowwise_scaling
+from geomstats.errors import warn_max_iterations
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.diffeo import ComposedDiffeo, Diffeo
 from geomstats.geometry.fiber_bundle import DistanceMinimizingAligner, FiberBundle
@@ -702,10 +703,7 @@ class UniqueDiagonalMatrixAlgorithm:
 
             diag_mat = new_diag_mat
         else:
-            logger.warning(
-                "Maximum number of iterations %d reached. The mean may be inaccurate",
-                self.max_iter,
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         return diag_mat
 

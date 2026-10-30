@@ -11,6 +11,7 @@ from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
 import geomstats.errors as error
+from geomstats.errors import warn_max_iterations
 from geomstats.geometry.hypersphere import HypersphereMetric
 
 from ._utils import (
@@ -18,7 +19,6 @@ from ._utils import (
     _is_geodesic_metric,
     _is_graph_space,
     _is_linear_metric,
-    _warn_max_iterations,
 )
 
 logger = logging.getLogger(__name__)
@@ -191,7 +191,7 @@ class GradientDescent(BaseGradientDescent):
                 step_size = step_size / 2.0
 
         if iteration == self.max_iter:
-            _warn_max_iterations(self.max_iter)
+            warn_max_iterations(logger, self.max_iter)
 
         if self.verbose:
             logger.info(
@@ -247,7 +247,7 @@ class BatchGradientDescent(BaseGradientDescent):
                 step_size = step_size / 2.0
 
         if iteration == self.max_iter:
-            _warn_max_iterations(self.max_iter)
+            warn_max_iterations(logger, self.max_iter)
 
         if self.verbose:
             logger.info(
@@ -347,10 +347,7 @@ class AdaptiveGradientDescent(BaseGradientDescent):
                 tau = max(tau_min, tau_mul_down * tau)
 
         if iteration == self.max_iter:
-            logger.warning(
-                "Maximum number of iterations %d reached. The mean may be inaccurate",
-                self.max_iter,
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         if self.verbose:
             logger.info(
@@ -751,9 +748,7 @@ class SturmsMean(BaseEstimator):
             if convergence < self.epsilon:
                 break
         else:
-            logger.warning(
-                f"Maximum number of iterations {self.max_iter} reached. The mean may be inaccurate."
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         if i < 2 * len(X):
             logger.warning(
@@ -870,7 +865,7 @@ class AACFrechetMean(BaseEstimator):
 
             previous_estimate = new_estimate
         else:
-            _warn_max_iterations(self.max_iter)
+            warn_max_iterations(logger, self.max_iter)
 
         if self.save_last_X:
             self.aligned_X_ = aligned_X

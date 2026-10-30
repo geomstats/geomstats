@@ -294,7 +294,7 @@ class BackendImporter:
 
         module.set_default_dtype("float64")
 
-        logger.debug(f"geomstats is using {BACKEND_NAME} backend")
+        logger.debug(f"Using {BACKEND_NAME} backend")
         return module
 
     def find_spec(self, fullname, path=None, target=None):
