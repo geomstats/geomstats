@@ -29,7 +29,7 @@ from geomstats._mesh import Surface
 from ._device import gpu_is_available, to_cpu, to_device
 from .kernel import GaussianBinetPairing
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("geomstats.varifold")
 
 
 class KernelInducedMetric(abc.ABC):

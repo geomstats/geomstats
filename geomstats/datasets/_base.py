@@ -9,7 +9,7 @@ from collections import namedtuple
 
 import requests
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("geomstats.datasets")
 
 DEFAULT_DATA_DIR = os.path.expanduser(os.path.join("~", ".geomstats_data"))
 

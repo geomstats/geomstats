@@ -5,7 +5,7 @@ from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.metric_geometry.graph_space import GraphSpace
 from geomstats.metric_geometry.point_set import PointSetMetric
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("geomstats.learning")
 
 ELASTIC_METRICS = (SRVMetric, ElasticMetric)
 

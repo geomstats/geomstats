@@ -7,7 +7,7 @@ from scipy.optimize import OptimizeResult
 
 import geomstats.backend as gs
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("geomstats.numerics.optimization")
 
 
 class Minimizer(ABC):

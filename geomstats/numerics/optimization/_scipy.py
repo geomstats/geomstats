@@ -8,7 +8,7 @@ from geomstats.numerics._common import result_to_backend_type
 
 from ._optimization import Minimizer, RootFinder
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("geomstats.numerics.optimization")
 
 
 class ScipyMinimize(Minimizer):

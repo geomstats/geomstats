@@ -9,7 +9,7 @@ from geomstats.numerics._common import params_to_kwargs
 
 from ._optimization import Minimizer
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("geomstats.numerics.optimization")
 
 
 class TorchMinimizer(Minimizer, abc.ABC):
