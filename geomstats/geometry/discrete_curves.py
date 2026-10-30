@@ -31,6 +31,8 @@ from geomstats.numerics.interpolation import (
 )
 from geomstats.vectorization import check_is_batch, get_batch_shape
 
+logger = logging.getLogger(__name__)
+
 
 def insert_zeros(array, axis=-1, end=False):
     """Insert zeros in a given array.
@@ -1206,13 +1208,13 @@ class IterativeHorizontalGeodesicAligner(AlignerAlgorithm):
 
             if gap < self.threshold:
                 if self.verbose > 0:
-                    logging.info(
+                    logger.info(
                         f"Convergence of alignment reached after {index + 1} "
                         "iterations."
                     )
                 break
         else:
-            logging.warning(
+            logger.warning(
                 "Maximum number of iterations %d reached. The result may be inaccurate",
                 self.max_iter,
             )

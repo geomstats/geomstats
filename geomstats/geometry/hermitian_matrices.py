@@ -11,6 +11,8 @@ from geomstats.geometry.base import ComplexMatrixVectorSpace
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
 from geomstats.geometry.matrices import Matrices
 
+logger = logging.getLogger(__name__)
+
 
 def expmh(mat):
     """Compute the matrix exponential for a Hermitian matrix.
@@ -83,7 +85,7 @@ def apply_func_to_eigvalsh(mat, function, check_positive=False):
         except AttributeError:
             name = function[0].__name__
 
-        logging.warning("Negative eigenvalue encountered in %s", name)
+        logger.warning("Negative eigenvalue encountered in %s", name)
 
     return_list = True
     if not isinstance(function, list):

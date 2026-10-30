@@ -9,6 +9,8 @@ from collections import namedtuple
 
 import requests
 
+logger = logging.getLogger(__name__)
+
 DEFAULT_DATA_DIR = os.path.expanduser(os.path.join("~", ".geomstats_data"))
 
 
@@ -34,11 +36,11 @@ def download_figshare_zip(article_id, filename, dirname=None):
     file_path = os.path.join(dirname, filename)
 
     if os.path.exists(file_path):
-        logging.info(
+        logger.info(
             f"Data has already been downloaded... using cached file ('{file_path}')."
         )
     else:
-        logging.info(f"Downloading '{file_path}' from {url} to '{dirname}'.")
+        logger.info(f"Downloading '{file_path}' from {url} to '{dirname}'.")
 
         with requests.get(url, stream=True) as r:
             r.raise_for_status()

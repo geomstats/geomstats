@@ -5,15 +5,20 @@ from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.metric_geometry.graph_space import GraphSpace
 from geomstats.metric_geometry.point_set import PointSetMetric
 
+logger = logging.getLogger(__name__)
+
 ELASTIC_METRICS = (SRVMetric, ElasticMetric)
 
 
-def _warn_max_iterations(iteration, max_iter):
-    if iteration + 1 == max_iter:
-        logging.warning(
-            f"Maximum number of iterations {max_iter} reached. "
-            "The estimate may be inaccurate."
-        )
+def _warn_max_iterations(max_iter):
+    """Warn that the maximum number of iterations was reached.
+
+    Callers decide when the iteration budget is exhausted.
+    """
+    logger.warning(
+        f"Maximum number of iterations {max_iter} reached. "
+        "The estimate may be inaccurate."
+    )
 
 
 def _is_linear_metric(metric):

@@ -9,6 +9,8 @@ from geomstats.numerics._common import params_to_kwargs
 
 from ._optimization import Minimizer
 
+logger = logging.getLogger(__name__)
+
 
 class TorchMinimizer(Minimizer, abc.ABC):
     """Base class for torch.optim wrapper.
@@ -77,7 +79,7 @@ class TorchClosuredBasedMinimizer(TorchMinimizer):
         result = self._to_result(x0)
 
         if not result.success:
-            logging.warning(result.message)
+            logger.warning(result.message)
 
         if self.save_result:
             self.result_ = result
@@ -164,7 +166,7 @@ class TorchStepwiseMinimizer(TorchMinimizer):
         result = self._to_result(x0)
 
         if not result.success:
-            logging.warning(result.message)
+            logger.warning(result.message)
 
         if self.save_result:
             self.result_ = result

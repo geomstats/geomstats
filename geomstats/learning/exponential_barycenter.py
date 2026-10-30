@@ -15,6 +15,8 @@ from geomstats.learning.frechet_mean import (
     _scalarmulsum,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class GroupGradientDescent(BaseGradientDescent):
     """Gradient descent for exponential barycenter."""
@@ -69,13 +71,13 @@ class GroupGradientDescent(BaseGradientDescent):
             mean = mean_next
 
         else:
-            logging.warning(
+            logger.warning(
                 f"Maximum number of iterations {self.max_iter} reached. "
                 "The mean may be inaccurate"
             )
 
         if self.verbose:
-            logging.info(f"n_iter: {iteration}, final gradient norm: {grad_norm}")
+            logger.info(f"n_iter: {iteration}, final gradient norm: {grad_norm}")
         return mean
 
 
@@ -146,7 +148,7 @@ class ConnectionGradientDescent(BaseGradientDescent):
                 step_size = step_size / 2.0
 
         else:
-            logging.warning(
+            logger.warning(
                 "Maximum number of iterations %d reached. The mean may be inaccurate",
                 self.max_iter,
             )

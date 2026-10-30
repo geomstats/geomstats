@@ -93,6 +93,7 @@ def estimate_dominant_eigenvector(matrix):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     if os.environ.get("GEOMSTATS_BACKEND", "numpy") != "numpy":
         raise SystemExit("This example currently only supports the numpy backend")
 

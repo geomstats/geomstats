@@ -9,6 +9,8 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.poincare_ball import PoincareBall
 
+logger = logging.getLogger(__name__)
+
 
 class Graph:
     """Class for generating a graph object from a dataset.
@@ -249,8 +251,8 @@ class HyperbolicEmbedding:
             is represented as a point belonging to the manifold.
         """
         nb_vertices_by_edges = [len(e_2) for _, e_2 in graph.edges.items()]
-        logging.info("Number of edges: %s", len(graph.edges))
-        logging.info(
+        logger.info("Number of edges: %s", len(graph.edges))
+        logger.info(
             "Mean vertices by edges: %s",
             (sum(nb_vertices_by_edges, 0) / len(graph.edges)),
         )
@@ -309,7 +311,7 @@ class HyperbolicEmbedding:
                         )
                         embeddings[one_path, :] = valeur
 
-            logging.info(
+            logger.info(
                 f"iteration {epoch} loss_value {sum(total_loss, 0) / len(total_loss)}",
             )
         return embeddings

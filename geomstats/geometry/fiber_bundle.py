@@ -11,6 +11,8 @@ import geomstats.backend as gs
 from geomstats.numerics.optimization import ScipyMinimize
 from geomstats.vectorization import check_is_batch, get_batch_shape
 
+logger = logging.getLogger(__name__)
+
 
 def _from_base(method):
     """Decorate method in order to avoid recursive calls."""
@@ -256,14 +258,14 @@ class AlternatingAligner(AlignerAlgorithm):
 
             if gap < self.threshold:
                 if self.verbose > 0:
-                    logging.info(
+                    logger.info(
                         f"Convergence of alignment reached after {index + 1} "
                         "iterations."
                     )
 
                 break
         else:
-            logging.warning(
+            logger.warning(
                 f"Maximum number of iterations {self.max_iter} reached during "
                 "alignment. The result may be inaccurate."
             )

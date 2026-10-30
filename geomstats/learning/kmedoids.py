@@ -10,6 +10,8 @@ from sklearn.base import BaseEstimator, ClusterMixin
 import geomstats.backend as gs
 from geomstats.learning._template import TransformerMixin
 
+logger = logging.getLogger(__name__)
+
 
 class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
     """Class for K-medoids clustering on manifolds.
@@ -61,7 +63,9 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         if self.init == "random":
             medoids = gs.random.choice(gs.arange(len(distances)), self.n_clusters)
         else:
-            logging.error("Unknown initialization method.")
+            raise ValueError(
+                f"Unknown initialization method: {self.init!r}. Expected 'random'."
+            )
 
         return medoids
 
@@ -94,7 +98,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
             if gs.all(old_medoids_indices == medoids_indices):
                 break
             if iteration == self.max_iter - 1:
-                logging.warning(
+                logger.warning(
                     "Maximum number of iteration reached before "
                     "convergence. Consider increasing max_iter to "
                     "improve the fit."
@@ -110,7 +114,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         for cluster in range(self.n_clusters):
             cluster_index = gs.where(labels == cluster)[0]
             if len(cluster_index) == 0:
-                logging.warning("One cluster is empty.")
+                logger.warning("One cluster is empty.")
                 continue
 
             in_cluster_distances = distances[

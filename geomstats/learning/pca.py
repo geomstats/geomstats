@@ -650,7 +650,7 @@ class AACGGPCA(BaseEstimator):
                 break
             previous_expl = expl_
         else:
-            _warn_max_iterations(iteration, self.max_iter)
+            _warn_max_iterations(self.max_iter)
 
         if self.save_last_X:
             self.aligned_X_ = aligned_X

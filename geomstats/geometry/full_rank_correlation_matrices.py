@@ -53,6 +53,8 @@ from geomstats.geometry.symmetric_matrices import (
 )
 from geomstats.numerics.optimization import NewtonMethod
 
+logger = logging.getLogger(__name__)
+
 
 def corr_map(point):
     r"""Compute the correlation matrix associated to an SPD matrix.
@@ -700,7 +702,7 @@ class UniqueDiagonalMatrixAlgorithm:
 
             diag_mat = new_diag_mat
         else:
-            logging.warning(
+            logger.warning(
                 "Maximum number of iterations %d reached. The mean may be inaccurate",
                 self.max_iter,
             )
