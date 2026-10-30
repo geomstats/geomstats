@@ -49,57 +49,108 @@ class AlignerAlgorithm(ABC):
 
 
 class DistanceMinimizingAligner(AlignerAlgorithm):
-    """Aligment based on minimization of squared distance.
+    r"""Align points by minimizing squared distance.
+
+    Solve
+
+    .. math::
+
+        g^\star \in \arg\min_{g \in G}
+        d(g \cdot p, q)^2,
+
+    where :math:`G` acts on the total space by isometries. For batched
+    inputs, minimize the sum of these objectives over the batch.
 
     Parameters
     ----------
     total_space : Manifold
         Space equipped with a group action and a group-invariant metric.
     optimizer : Minimizer
-        Optimizer to solve minimization problem.
+        Optimizer to solve the minimization problem.
     group_elem_shape : tuple
         Shape of the group element representation.
+    use_log_gradient : bool
+        Whether to register a custom squared-distance derivative using
+
+        .. math::
+
+            d_p\bigl(d(\cdot, q)^2\bigr)[h]
+            = -2 g_p(\mathrm{Log}_p(q), h).
+
+        Requires an autodiff backend and a metric whose `flat` method
+        returns an autodiff-compatible covector representation.
     """
 
-    def __init__(self, total_space, optimizer=None, group_elem_shape=None):
+    def __init__(
+        self,
+        total_space,
+        optimizer=None,
+        group_elem_shape=None,
+        use_log_gradient=False,
+    ):
+        if group_elem_shape is None:
+            group_elem_shape = total_space.group_action.group_elem_shape
+
+        if use_log_gradient and not hasattr(total_space.metric, "flat"):
+            raise ValueError(
+                "use_log_gradient=True requires a metric with a callable flat method."
+            )
+
         super().__init__(total_space)
         if optimizer is None:
             optimizer = ScipyMinimize(
                 method="L-BFGS-B",
-                autodiff_jac=True,
+                autodiff_jac=gs.has_autodiff(),
             )
         self.optimizer = optimizer
 
-        if group_elem_shape is None:
-            group_elem_shape = self._total_space.group_action.group_elem_shape
         self.group_elem_shape = group_elem_shape
+        self.use_log_gradient = use_log_gradient
 
     def _objective(self, point, base_point, batch_shape):
-        """Objective function.
+        """Create the alignment objective.
 
         Parameters
         ----------
         point : array-like, shape=[..., *total_space.shape]
-            Point to align to base point.
+            Point to align.
         base_point : array-like, shape=[..., *total_space.shape]
-            Point wrt alignment is performed.
+            Point to which alignment is performed.
         batch_shape : tuple
-            Batch shape.
+            Broadcast batch shape of the input points.
+
+        Returns
+        -------
+        objective : callable
+            Sum of squared distances as a function of flat group parameters.
         """
+        metric = self._total_space.metric
+        squared_dist = metric.squared_dist
+
+        if self.use_log_gradient:
+
+            def grad_point_a(a, b):
+                """Compute the array gradient with respect to the first point."""
+                return -2 * metric.flat(metric.log(b, a), a)
+
+            squared_dist = gs.autodiff.custom_gradient(grad_point_a, None)(squared_dist)
 
         def sum_squared_dist(param):
-            """Objective function.
+            """Evaluate the alignment objective.
 
             Parameters
             ----------
-            param : array-like
-                Flat representation of group element.
+            param : array-like, shape=[prod(batch_shape + group_elem_shape)]
+                Flat representation of the group elements.
+
+            Returns
+            -------
+            value : array-like, shape=[]
+                Sum of squared distances between aligned and base points.
             """
             group_elem = gs.reshape(param, batch_shape + self.group_elem_shape)
             aligned_point = self._total_space.group_action(group_elem, point)
-            return gs.sum(
-                self._total_space.metric.squared_dist(aligned_point, base_point)
-            )
+            return gs.sum(squared_dist(aligned_point, base_point))
 
         return sum_squared_dist
 
