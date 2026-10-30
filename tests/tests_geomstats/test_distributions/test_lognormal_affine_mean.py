@@ -5,6 +5,24 @@ from scipy.linalg import expm
 import geomstats.backend as gs
 from geomstats.distributions.lognormal import LogNormal
 from geomstats.geometry.spd_matrices import SPDLogEuclideanMetric, SPDMatrices
+from geomstats.test.test_case import pytorch_backend
+
+if pytorch_backend():
+    import torch
+
+
+@pytest.fixture(autouse=True)
+def preserve_random_state():
+    """Restore the backend RNG after deterministic sampling checks."""
+    if pytorch_backend():
+        with torch.random.fork_rng():
+            yield
+    else:
+        state = np.random.get_state()
+        try:
+            yield
+        finally:
+            np.random.set_state(state)
 
 
 @pytest.mark.parametrize(
