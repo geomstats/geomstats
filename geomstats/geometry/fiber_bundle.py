@@ -89,7 +89,7 @@ class DistanceMinimizingAligner(AlignerAlgorithm):
         use_log_gradient=False,
     ):
         if group_elem_shape is None:
-            group_elem_shape = self._total_space.group_action.group_elem_shape
+            group_elem_shape = total_space.group_action.group_elem_shape
 
         if use_log_gradient and not hasattr(total_space.metric, "flat"):
             raise ValueError(
@@ -133,13 +133,7 @@ class DistanceMinimizingAligner(AlignerAlgorithm):
                 """Compute the array gradient with respect to the first point."""
                 return -2 * metric.flat(metric.log(b, a), a)
 
-            def grad_point_b(a, b):
-                """Compute the array gradient with respect to the second point."""
-                return -2 * metric.flat(metric.log(a, b), b)
-
-            squared_dist = gs.autodiff.custom_gradient(grad_point_a, grad_point_b)(
-                squared_dist
-            )
+            squared_dist = gs.autodiff.custom_gradient(grad_point_a, None)(squared_dist)
 
         def sum_squared_dist(param):
             """Evaluate the alignment objective.
