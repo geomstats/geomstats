@@ -11,7 +11,7 @@ import types
 
 import geomstats._backend._common as common
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("geomstats")
 
 
 def get_backend_name():

@@ -47,7 +47,7 @@ def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+    logging.basicConfig(level=logging.INFO)
     if os.environ.get("GEOMSTATS_BACKEND", "numpy") != "numpy":
         logging.info(
             "Examples with visualizations are only implemented "
