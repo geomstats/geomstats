@@ -76,6 +76,7 @@ class TestGaussianMixtureModel(
 
 
 def test_riemannian_em_warns_when_max_iter_reached(caplog):
+    """Check that RiemannianEM logs a warning when max_iter is reached."""
     space = PoincareBall(dim=2)
     X = space.random_point(10)
     estimator = RiemannianEM(space, n_gaussians=2, max_iter=1)

@@ -229,6 +229,7 @@ class TestBatchGradientDescent(
 
 
 def test_sturms_mean_verbose_logs_instead_of_printing(caplog, capsys):
+    """Check that verbose Sturm's mean logs its progress instead of printing."""
     space = Euclidean(dim=2)
     X = space.random_point(5)
     estimator = FrechetMean(space, method="sturms", max_iter=3, verbose=True)
