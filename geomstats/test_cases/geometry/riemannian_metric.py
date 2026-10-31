@@ -1,7 +1,5 @@
 import math
 
-import pytest
-
 import geomstats.backend as gs
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.test.assertions import assert_belongs, assert_same_result
@@ -95,7 +93,6 @@ class RiemannianMetricTestCase(DistTestCaseMixins, ConnectionTestCase):
         expected = gs.ones(batch_shape)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.random
     def test_dist_is_log_norm(self, point_a, point_b, atol=gs.atol):
         """Check distance is norm of log.
 

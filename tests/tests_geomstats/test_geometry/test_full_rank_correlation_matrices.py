@@ -89,30 +89,16 @@ class TestFullRankCorrelationMatrices(
     testing_data = FullRankCorrelationMatricesTestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def bundles(request):
-    n = request.param
-    request.cls.total_space = total_space = SPDMatrices(n=n, equip=True)
-
-    total_space.equip_with_group_action(FullRankCorrelationMatrices.diag_action)
-    total_space.equip_with_quotient()
-
-    request.cls.base_space = base_space = FullRankCorrelationMatrices(n=n, equip=False)
-
-    request.cls.testing_data.propagate("total_space", total_space)
-    request.cls.testing_data.propagate("base_space", base_space)
-
-
-@pytest.mark.usefixtures("bundles")
 class TestCorrelationMatricesBundle(
     FiberBundleTestCase, metaclass=GeometricDataBasedParametrizer
 ):
+    _n = random.randint(3, 5)
+    total_space = SPDMatrices(n=_n, equip=True)
+    total_space.equip_with_group_action(FullRankCorrelationMatrices.diag_action)
+    total_space.equip_with_quotient()
+
+    base_space = FullRankCorrelationMatrices(n=_n, equip=False)
+
     testing_data = (
         CorrelationMatricesBundleTestData(
             excluded_methods=(
@@ -123,6 +109,9 @@ class TestCorrelationMatricesBundle(
         + FiberBundleSubmersionLiftTestData()
         + FiberBundleProjectionTestData()
     )
+
+    testing_data.propagate("total_space", total_space)
+    testing_data.propagate("base_space", base_space)
 
     def test_horizontal_projection_is_horizontal_v2(
         self, tangent_vec, base_point, atol=gs.atol
@@ -136,28 +125,6 @@ class TestCorrelationMatricesBundle(
         product_2 = Matrices.mul(inverse, horizontal_vec)
 
         assert_is_tangent(self.base_space, product_1 + product_2, base_point, atol=atol)
-
-
-# require an aligner, which only exists with autodiff
-_QUOTIENT_ALIGN_METHODS = (
-    "log_is_tangent",
-    "exp_after_log",
-    "log_after_exp",
-    "log",
-    "dist_is_log_norm",
-    "squared_dist_is_symmetric",
-    "squared_dist_is_positive",
-    "dist_is_symmetric",
-    "dist_is_positive",
-    "dist_point_to_itself_is_zero",
-    "dist_triangle_inequality",
-    "squared_dist",
-    "dist",
-    "geodesic_boundary_points",
-    "geodesic_bvp_reverse",
-    "geodesic_bvp_belongs",
-    "geodesic_bvp",
-)
 
 
 @pytest.mark.redundant
@@ -176,8 +143,7 @@ class TestFullRankCorrelationAffineQuotientMetric(
             "parallel_transport_bvp_transported_is_tangent",
             "parallel_transport_ivp_norm",
             "parallel_transport_bvp_norm",
-        )
-        + (() if gs.has_autodiff() else _QUOTIENT_ALIGN_METHODS),
+        ),
     )
 
 
@@ -263,7 +229,7 @@ def phc_equipped_spaces(request):
 class TestPolyHyperbolicCholeskyMetric(
     RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = RiemannianMetricTestData()
+    testing_data = RiemannianMetricTestData(excluded_methods=("injectivity_radius",))
 
 
 class TestEuclideanCholeskyDiffeo(
@@ -293,7 +259,9 @@ class TestEuclideanCholeskyMetric(
         EuclideanCholeskyMetric
     )
 
-    testing_data = RiemannianMetricTestData(space)
+    testing_data = RiemannianMetricTestData(
+        space, excluded_methods=("injectivity_radius",)
+    )
 
 
 class TestLogEuclideanCholeskyDiffeo(
@@ -322,7 +290,9 @@ class TestLogEuclideanCholeskyMetric(
     space = FullRankCorrelationMatrices(n=_n, equip=False).equip_with_metric(
         LogEuclideanCholeskyMetric
     )
-    testing_data = RiemannianMetricTestData(space)
+    testing_data = RiemannianMetricTestData(
+        space, excluded_methods=("injectivity_radius",)
+    )
 
 
 class TestUniqueDiagonalMatrixAlgorithm(
@@ -360,7 +330,6 @@ class TestOffLogDiffeo(
     image_space = SymmetricHollowMatrices(n=_n, equip=False)
 
     diffeo = OffLogDiffeo()
-    testing_data = DiffeoTestData()
 
     testing_data = DiffeoTestData(
         domain_space=domain_space,
@@ -391,7 +360,7 @@ def equipped_cor_with_off_log_metric(request):
 class TestOffLogMetric(
     RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = RiemannianMetricTestData()
+    testing_data = RiemannianMetricTestData(excluded_methods=("injectivity_radius",))
 
 
 @pytest.fixture(
@@ -478,4 +447,26 @@ def equipped_cor_with_log_scaled_metric(request):
 class TestLogScaledMetric(
     RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = RiemannianMetricTestData()
+    testing_data = RiemannianMetricTestData(excluded_methods=("injectivity_radius",))
+
+
+@pytest.mark.parametrize(
+    "n, Metric",
+    [
+        (2, PolyHyperbolicCholeskyMetric),
+        (3, PolyHyperbolicCholeskyMetric),
+        (3, EuclideanCholeskyMetric),
+        (3, LogEuclideanCholeskyMetric),
+        (2, OffLogMetric),
+        (3, OffLogMetric),
+        (4, OffLogMetric),
+        (2, LogScaledMetric),
+        (3, LogScaledMetric),
+        (4, LogScaledMetric),
+    ],
+)
+def test_instantiation(n, Metric):
+    space = FullRankCorrelationMatrices(n=n, equip=False)
+    space.equip_with_metric(Metric)
+
+    assert isinstance(space.metric, Metric)

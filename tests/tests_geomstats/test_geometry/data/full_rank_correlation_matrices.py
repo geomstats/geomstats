@@ -6,6 +6,12 @@ from .quotient_metric import QuotientMetricTestData
 
 
 class FullRankCorrelationMatricesTestData(LevelSetTestData):
+    def tangent_submersion_vec_test_data(self):
+        return self.generate_vectorization_data(
+            arg_names=("point", "vector"),
+            vectorization_type="sym",
+        )
+
     def from_covariance_belongs_test_data(self):
         return self.generate_random_data(
             arg_names="point", samplers={"point": "point_to_project"}
