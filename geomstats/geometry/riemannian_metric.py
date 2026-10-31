@@ -327,6 +327,8 @@ class RiemannianMetric(Connection, ABC):
         point_shape = self._space.shape
         vec_shape = (n_vectors, *point_shape) if n_vectors > 1 else point_shape
         random_vector = gs.random.rand(*vec_shape)
+        if self._space.shape != (self._space.dim,):
+            random_vector = self._space.to_tangent(random_vector, base_point)
         return self.normalize(random_vector, base_point)
 
     def squared_dist(self, point_a, point_b):
