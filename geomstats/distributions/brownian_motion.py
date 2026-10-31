@@ -68,7 +68,7 @@ class BrownianMotion:
         paths = [initial_point]
         for _ in range(1, n_steps):
             paths.append(self._step(step_size, paths[-1]))
-        return gs.stack(paths)
+        return gs.stack(paths, axis=-2)
 
     def _step(self, step_size, current_point):
         """Calulate one increment of a Brownian motion path.
