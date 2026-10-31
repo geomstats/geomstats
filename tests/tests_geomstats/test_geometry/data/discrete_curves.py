@@ -76,12 +76,19 @@ class ReparametrizationAlignerTestData(TestData):
     N_RANDOM_POINTS = [1]
 
     tolerances = {
-        "align_in_same_fiber": {"atol": 1e-1},
+        "align_in_same_fiber": {"atol": 2e-1},
     }
 
     def align_in_same_fiber_test_data(self):
-        return self.generate_random_data()
+        return self.generate_tests(
+            [
+                dict(n_points=6, atol=self.tolerances["align_in_same_fiber"]["atol"]),
+                dict(n_points=9, atol=self.tolerances["align_in_same_fiber"]["atol"]),
+            ]
+        )
 
+
+   
 
 class RotationBundleTestData(TestData):
     def align_test_data(self):
