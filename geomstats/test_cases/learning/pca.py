@@ -1,6 +1,7 @@
 import pytest
 
 import geomstats.backend as gs
+from geomstats.test.test_case import TestCase
 from geomstats.test_cases.learning._base import BaseEstimatorTestCase
 
 
@@ -66,3 +67,9 @@ class TangentPCATestCase(BaseEstimatorTestCase):
         self.assertEqual(self.estimator.n_features_, gs.shape(X)[1])
 
         self.estimator.n_components = n_components_0
+
+
+class TangentPCAEuclideanTestCase(TestCase):
+    def test_n_components_mle(self, X, expected):
+        self.estimator.fit(X)
+        self.assertEqual(self.estimator.n_components_, expected)
