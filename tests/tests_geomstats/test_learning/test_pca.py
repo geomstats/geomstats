@@ -1,14 +1,18 @@
 import pytest
 
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.pca import TangentPCA
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.test_case import np_and_autograd_only
-from geomstats.test_cases.learning.pca import TangentPCATestCase
+from geomstats.test_cases.learning.pca import (
+    TangentPCAEuclideanTestCase,
+    TangentPCATestCase,
+)
 
-from .data.pca import TangentPCATestData
+from .data.pca import TangentPCAEuclideanTestData, TangentPCATestData
 
 
 @pytest.fixture(
@@ -31,3 +35,12 @@ class TestTangentPCA(
     metaclass=DataBasedParametrizer,
 ):
     testing_data = TangentPCATestData()
+
+
+@np_and_autograd_only
+class TestTangentPCAEuclidean(
+    TangentPCAEuclideanTestCase,
+    metaclass=DataBasedParametrizer,
+):
+    estimator = TangentPCA(Euclidean(dim=3), n_components="mle")
+    testing_data = TangentPCAEuclideanTestData()
