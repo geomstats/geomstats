@@ -743,7 +743,11 @@ class SturmsMean(BaseEstimator):
             prev_mean_estimate = mean_estimate
 
             if self.verbose:
-                print(convergence, prev_mean_movements)
+                logger.info(
+                    "convergence: %s, mean movements: %s",
+                    convergence,
+                    prev_mean_movements,
+                )
 
             if convergence < self.epsilon:
                 break
@@ -752,7 +756,9 @@ class SturmsMean(BaseEstimator):
 
         if i < 2 * len(X):
             logger.warning(
-                f"Sampled <2*sample_size={2 * len(X)}. Due to stochastic nature, not guaranteed to have sampled all points. The mean may be inaccurate."
+                "Sampled <2*sample_size=%d. Due to stochastic nature, not guaranteed "
+                "to have sampled all points. The mean may be inaccurate.",
+                2 * len(X),
             )
 
         self.estimate_ = mean_estimate

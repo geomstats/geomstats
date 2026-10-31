@@ -171,7 +171,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         for index in range(self.max_iter):
             if self.verbose > 0:
-                logger.info(f"Iteration {index}...")
+                logger.info("Iteration %d...", index)
 
             old_cluster_centers = gs.copy(cluster_centers)
             for i in range(self.n_clusters):
@@ -196,13 +196,14 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             )
             if self.verbose > 0:
                 logger.info(
-                    f"Convergence criterion at the end of iteration {index} "
-                    f"is {gs.mean(cluster_centers_distances)}."
+                    "Convergence criterion at the end of iteration %d is %s.",
+                    index,
+                    gs.mean(cluster_centers_distances),
                 )
 
             if gs.mean(cluster_centers_distances) < self.tol:
                 if self.verbose > 0:
-                    logger.info(f"Convergence reached after {index} iterations.")
+                    logger.info("Convergence reached after %d iterations.", index)
 
                 break
         else:

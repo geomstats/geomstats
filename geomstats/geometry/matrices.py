@@ -801,9 +801,8 @@ class Matrices(MatrixVectorSpace):
         ) / singular_values[..., 0]
         if gs.any(conditioning < gs.atol):
             logger.warning(
-                f"Singularity close, ill-conditioned matrix "
-                f"encountered: "
-                f"{conditioning[conditioning < 1e-10]}"
+                "Singularity close, ill-conditioned matrix encountered: %s",
+                conditioning[conditioning < 1e-10],
             )
         if gs.any(gs.isclose(conditioning, 0.0)):
             logger.warning("Alignment matrix is not unique.")
