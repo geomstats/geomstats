@@ -226,3 +226,15 @@ class TestBatchGradientDescent(
     BatchGradientDescentTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = BatchGradientDescentTestData()
+
+
+def test_sturms_mean_verbose_logs_instead_of_printing(caplog, capsys):
+    space = Euclidean(dim=2)
+    X = space.random_point(5)
+    estimator = FrechetMean(space, method="sturms", max_iter=3, verbose=True)
+
+    with caplog.at_level("INFO", logger="geomstats.learning"):
+        estimator.fit(X)
+
+    assert capsys.readouterr().out == ""
+    assert any("convergence" in r.getMessage() for r in caplog.records)

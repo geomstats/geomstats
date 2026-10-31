@@ -1210,8 +1210,8 @@ class IterativeHorizontalGeodesicAligner(AlignerAlgorithm):
             if gap < self.threshold:
                 if self.verbose > 0:
                     logger.info(
-                        f"Convergence of alignment reached after {index + 1} "
-                        "iterations."
+                        "Convergence of alignment reached after %d iterations.",
+                        index + 1,
                     )
                 break
         else:
