@@ -54,15 +54,11 @@ class LogNormalSPD:
                 )
             )[0]
             _samples = self.samples_sym(mean_euclidean, self.cov, n_samples)
+            return expmh(_samples)
 
-        else:
-            samples_sym = self.samples_sym(
-                gs.zeros(self.space.dim), self.cov, n_samples
-            )
-            mean_half = powermh(self.mean, 0.5)
-            _samples = Matrices.mul(mean_half, samples_sym, mean_half)
-
-        return expmh(_samples)
+        samples_sym = self.samples_sym(gs.zeros(self.space.dim), self.cov, n_samples)
+        mean_half = powermh(self.mean, 0.5)
+        return Matrices.mul(mean_half, expmh(samples_sym), mean_half)
 
 
 class LogNormalEuclidean:
@@ -105,7 +101,9 @@ class LogNormal:
            Distribution.
 
         b) AffineInvariant Metric : X is distributed as LogNormal(mean, cov)
-           if exp(mean^{1/2}.X.mean^{1/2}) is distributed as Normal(0, cov)
+           if log(mean^{-1/2}.X.mean^{-1/2}) is distributed as Normal(0, cov).
+           Equivalently, X = mean^{1/2}.exp(Z).mean^{1/2} for a symmetric
+           matrix Z distributed as Normal(0, cov).
 
     Parameters
     ----------
