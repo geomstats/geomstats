@@ -150,10 +150,8 @@ class VectorSpace(Manifold, abc.ABC):
             and base_point.ndim > self.point_ndim
             and n_samples != base_point.shape[0]
         ):
-            raise ValueError(
-                "The number of base points must be the same as the "
-                "number of samples, when the number of base points is different from 1."
-            )
+            raise ValueError("Number of base points must match the number of samples when it is not equal to 1.")
+
         if n_samples == 1 and base_point.ndim > self.point_ndim:
             n_samples = base_point.shape[0]
         return self.random_point(n_samples)
@@ -944,7 +942,8 @@ class DiffeomorphicManifold(Manifold):
             Boolean evaluating if point belongs to the manifold.
         """
         if not self.intrinsic:
-            raise ValueError("`belongs` is not implemented.")
+            raise ValueError("Method 'belongs' is not implemented for extrinsic coordinates.")
+
         return self.image_space.belongs(self.diffeo(point), atol=atol)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
@@ -966,7 +965,8 @@ class DiffeomorphicManifold(Manifold):
             Boolean denoting if vector is a tangent vector at the base point.
         """
         if not self.intrinsic:
-            raise ValueError("`is_tangent` is not implemented.")
+            raise ValueError(   "Method 'is_tangent' is not implemented for extrinsic coordinates.")
+
 
         image_point = self.diffeo(base_point)
         image_vector = self.diffeo.tangent(
