@@ -35,9 +35,27 @@ class FrechetMeanSOCoincideTestData(BaseEstimatorTestData):
 class CircularMeanTestData(FrechetMeanTestData):
     skips = ("weighted_mean_two_points",)
 
+    def fit_test_data(self):
+        # the mean wraps around pi: (2 + 3 + (2 pi - 3)) / 3
+        angle = (2.0 + 2 * gs.pi) / 3
+        data = [
+            dict(
+                X=gs.array(
+                    [
+                        [gs.cos(2.0), gs.sin(2.0)],
+                        [gs.cos(3.0), gs.sin(3.0)],
+                        [gs.cos(-3.0), gs.sin(-3.0)],
+                    ]
+                ),
+                expected=gs.array([gs.cos(angle), gs.sin(angle)]),
+            )
+        ]
+        return self.generate_tests(data)
+
     def against_optimization_test_data(self):
-        # TODO: something wrong for certain n_points?
-        return self.generate_tests([dict(n_points=10, atol=1e-4)])
+        return self.generate_tests(
+            [dict(n_points=n_points, atol=1e-4) for n_points in (2, 3, 5, 10)]
+        )
 
 
 class LinearMeanEuclideaTestData(TestData):
