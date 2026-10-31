@@ -854,7 +854,8 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         angle = gs.arccos(0.5 * (trace_num - 1))
 
         rot_mat_transpose = gs.transpose(rot_mat)
-        rot_vec_not_pi = self.skew.basis_representation(rot_mat - rot_mat_transpose)
+        skew_vec = self.skew.basis_representation(rot_mat - rot_mat_transpose)
+        rot_vec_not_pi = skew_vec
 
         mask_0 = gs.cast(gs.isclose(angle, 0.0), angle.dtype)
         mask_pi = gs.cast(gs.isclose(angle, gs.pi, atol=1e-2), angle.dtype)
@@ -868,7 +869,15 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             "...,...i->...i", numerator / denominator, rot_vec_not_pi
         )
 
-        vector_outer = 0.5 * (gs.eye(3) + rot_mat)
+        # outer(r, r) = (sym(R) - cos(angle) I) / (1 - cos(angle)) holds for any
+        # angle, not only for pi
+        cos_angle = 0.5 * (trace_num - 1)
+        vector_outer = 0.5 * (rot_mat + rot_mat_transpose) - gs.einsum(
+            "...,ij->...ij", cos_angle, gs.eye(3)
+        )
+        vector_outer = gs.einsum(
+            "...,...ij->...ij", 1 / (1 - cos_angle + 1 - mask_pi), vector_outer
+        )
         vector_outer = gs.set_diag(
             vector_outer, gs.maximum(0.0, gs.diagonal(vector_outer, axis1=-2, axis2=-1))
         )
@@ -882,7 +891,12 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         else:
             selected_line = vector_outer[..., max_line_index]
         signs = gs.sign(selected_line)
-        rot_vec_pi = gs.einsum("...,...i,...i->...i", angle, signs, diag_comp)
+        rot_vec_pi = signs * diag_comp
+
+        # the outer product gives the axis up to its sign; below pi, the
+        # skew-symmetric part of the matrix is 2 sin(angle) times the axis
+        flip = gs.cast(gs.sum(rot_vec_pi * skew_vec, axis=-1) < 0, angle.dtype)
+        rot_vec_pi = gs.einsum("...,...,...i->...i", angle, 1 - 2 * flip, rot_vec_pi)
 
         rot_vec = rot_vec_not_pi + gs.einsum("...,...i->...i", mask_pi, rot_vec_pi)
 

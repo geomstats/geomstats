@@ -421,6 +421,37 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
                 expected=0.12 * gs.array([1.0, 0.0, 0.0]),
             ),
         ]
+
+        # close to pi, but not close enough to be its own antipode
+        angle = gs.pi - 5e-3
+        data.append(
+            dict(
+                rot_mat=gs.array(
+                    [
+                        [1.0, 0.0, 0.0],
+                        [0.0, gs.cos(angle), gs.sin(angle)],
+                        [0, -gs.sin(angle), gs.cos(angle)],
+                    ]
+                ),
+                expected=angle * gs.array([-1.0, 0.0, 0.0]),
+            )
+        )
+        axis = gs.array([0.0, 1.0, -1.0]) / gs.sqrt(2.0)
+        data.append(
+            dict(
+                rot_mat=gs.cos(angle) * gs.eye(3)
+                + gs.sin(angle)
+                * gs.array(
+                    [
+                        [0.0, -axis[2], axis[1]],
+                        [axis[2], 0.0, -axis[0]],
+                        [-axis[1], axis[0], 0.0],
+                    ]
+                )
+                + (1 - gs.cos(angle)) * gs.outer(axis, axis),
+                expected=angle * axis,
+            )
+        )
         return self.generate_tests(data)
 
     def projection_test_data(self):
