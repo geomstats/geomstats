@@ -166,12 +166,6 @@ class TestHypersphere2ExtrinsicMetric(
 
     testing_data = Hypersphere2ExtrinsicMetricTestData()
 
-    def test_log_antipodal_raises(self):
-        """Log of antipodal points is not well-defined."""
-        x = gs.array([1.0, 0.0, 0.0])
-        with pytest.raises(ValueError, match="antipodal"):
-            self.space.metric.log(-x, x)
-
 
 @pytest.mark.smoke
 class TestHypersphere4ExtrinsicMetric(

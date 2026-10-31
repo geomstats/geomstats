@@ -1,47 +1,24 @@
-import math
-
-import pytest
-
 import geomstats.backend as gs
-from geomstats.test.random import get_random_times
-from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test.assertions import assert_belongs, assert_is_tangent
 from geomstats.vectorization import get_batch_shape
 
 
 class ProjectionTestCaseMixins:
-    def test_projection(self, point, expected, atol):
+    def test_projection(self, point, expected, atol=gs.atol):
         proj_point = self.space.projection(point)
         self.assertAllClose(proj_point, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_projection_vec(self, n_reps, atol):
-        point = self.data_generator.point_to_project()
-        expected = self.space.projection(point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, expected=expected, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    @pytest.mark.random
-    def test_projection_belongs(self, n_points, atol):
+    def test_projection_belongs(self, point, atol=gs.atol):
         """Check projection belongs to manifold.
 
         Parameters
         ----------
-        n_points : int
-            Number of random points to generate.
         atol : float
             Absolute tolerance.
         """
-        point = self.data_generator.point_to_project(n_points)
         proj_point = self.space.projection(point)
-        expected = gs.ones(n_points, dtype=bool)
 
-        self.test_belongs(proj_point, expected, atol)
+        assert_belongs(self.space, proj_point, atol=atol)
 
 
 class GroupExpTestCaseMixins:
@@ -51,81 +28,86 @@ class GroupExpTestCaseMixins:
 
 
 class DistTestCaseMixins:
-    def test_dist(self, point_a, point_b, expected, atol):
+    def test_squared_dist(self, point_a, point_b, expected, atol=gs.atol):
+        res = self.space.metric.squared_dist(point_a, point_b)
+        self.assertAllClose(res, expected, atol=atol)
+
+    def test_squared_dist_is_symmetric(self, point_a, point_b, atol=gs.atol):
+        """Check squared distance is symmetric.
+
+        Parameters
+        ----------
+        atol : float
+            Absolute tolerance.
+        """
+        squared_dist_ab = self.space.metric.squared_dist(point_a, point_b)
+        squared_dist_ba = self.space.metric.squared_dist(point_b, point_a)
+
+        self.assertAllClose(squared_dist_ab, squared_dist_ba, atol=atol)
+
+    def test_squared_dist_is_positive(self, point_a, point_b, atol=gs.atol):
+        """Check squared distance is positive.
+
+        Parameters
+        ----------
+        atol : float
+            Absolute tolerance.
+        """
+        squared_dist_ = self.space.metric.squared_dist(point_a, point_b)
+        res = gs.all(squared_dist_ > -atol)
+        self.assertTrue(res)
+
+    def test_dist(self, point_a, point_b, expected, atol=gs.atol):
         res = self.space.metric.dist(point_a, point_b)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.random
-    def test_dist_is_symmetric(self, n_points, atol):
+    def test_dist_is_symmetric(self, point_a, point_b, atol=gs.atol):
         """Check distance is symmetric.
 
         Parameters
         ----------
-        n_points : int
-            Number of random points to generate.
         atol : float
             Absolute tolerance.
         """
-        point_a = self.data_generator.random_point(n_points)
-        point_b = self.data_generator.random_point(n_points)
-
         dist_ab = self.space.metric.dist(point_a, point_b)
         dist_ba = self.space.metric.dist(point_b, point_a)
 
         self.assertAllClose(dist_ab, dist_ba, atol=atol)
 
-    @pytest.mark.random
-    def test_dist_is_positive(self, n_points, atol):
+    def test_dist_is_positive(self, point_a, point_b, atol=gs.atol):
         """Check distance is positive.
 
         Parameters
         ----------
-        n_points : int
-            Number of random points to generate.
         atol : float
             Absolute tolerance.
         """
-        point_a = self.data_generator.random_point(n_points)
-        point_b = self.data_generator.random_point(n_points)
-
         dist_ = self.space.metric.dist(point_a, point_b)
         res = gs.all(dist_ > -atol)
         self.assertTrue(res)
 
-    @pytest.mark.random
-    def test_dist_point_to_itself_is_zero(self, n_points, atol):
+    def test_dist_point_to_itself_is_zero(self, point, atol=gs.atol):
         """Check distance of a point to itself is zero.
 
         Parameters
         ----------
-        n_points : int
-            Number of random points to generate.
         atol : float
             Absolute tolerance.
         """
-        point = self.data_generator.random_point(n_points)
-
         dist_ = self.space.metric.dist(point, point)
 
-        expected_shape = (n_points,) if n_points > 1 else ()
-        expected = gs.zeros(expected_shape)
+        batch_shape = get_batch_shape(self.space.point_ndim, point)
+        expected = gs.zeros(batch_shape)
         self.assertAllClose(dist_, expected, atol=atol)
 
-    @pytest.mark.random
-    def test_dist_triangle_inequality(self, n_points, atol):
+    def test_dist_triangle_inequality(self, point_a, point_b, point_c, atol=gs.atol):
         """Check distance satifies triangle inequality.
 
         Parameters
         ----------
-        n_points : int
-            Number of random points to generate.
         atol : float
             Absolute tolerance.
         """
-        point_a = self.data_generator.random_point(n_points)
-        point_b = self.data_generator.random_point(n_points)
-        point_c = self.data_generator.random_point(n_points)
-
         dist_ab = self.space.metric.dist(point_a, point_b)
         dist_bc = self.space.metric.dist(point_b, point_c)
         rhs = dist_ac = self.space.metric.dist(point_a, point_c)
@@ -136,34 +118,19 @@ class DistTestCaseMixins:
 
 
 class GeodesicBVPTestCaseMixins:
-    @pytest.mark.vec
-    def test_geodesic_bvp_vec(self, n_reps, n_times, atol):
-        initial_point, end_point = self.data_generator.random_point(2)
-        time = get_random_times(n_times)
-
-        expected = self.space.metric.geodesic(initial_point, end_point=end_point)(time)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    initial_point=initial_point,
-                    end_point=end_point,
-                    time=time,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["initial_point", "end_point"],
-            expected_name="expected",
-            n_reps=n_reps,
+    def test_geodesic_bvp(
+        self,
+        initial_point,
+        end_point,
+        time,
+        expected,
+        atol=gs.atol,
+    ):
+        self.test_geodesic(
+            initial_point, time, expected, atol=atol, end_point=end_point
         )
-        self._test_vectorization(vec_data, test_fnc_name="test_geodesic")
 
-    @pytest.mark.random
-    def test_geodesic_boundary_points(self, n_points, atol):
-        initial_point = self.data_generator.random_point(n_points)
-        end_point = self.data_generator.random_point(n_points)
-
+    def test_geodesic_boundary_points(self, initial_point, end_point, atol=gs.atol):
         time = gs.array([0.0, 1.0])
 
         geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
@@ -174,13 +141,7 @@ class GeodesicBVPTestCaseMixins:
         )
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.random
-    def test_geodesic_bvp_reverse(self, n_points, n_times, atol):
-        initial_point = self.data_generator.random_point(n_points)
-        end_point = self.data_generator.random_point(n_points)
-
-        time = get_random_times(n_times)
-
+    def test_geodesic_bvp_reverse(self, initial_point, end_point, time, atol=gs.atol):
         geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
         geod_func_reverse = self.space.metric.geodesic(
             end_point, end_point=initial_point
@@ -191,31 +152,48 @@ class GeodesicBVPTestCaseMixins:
 
         self.assertAllClose(res, res_, atol=atol)
 
-    @pytest.mark.random
-    def test_geodesic_bvp_belongs(self, n_points, n_times, atol):
+    def test_geodesic_bvp_belongs(self, initial_point, end_point, time, atol=gs.atol):
         """Check geodesic belongs to manifold.
 
         This is for geodesics defined by the boundary value problem (bvp).
 
         Parameters
         ----------
-        n_points : int
-            Number of random points to generate.
         atol : float
             Absolute tolerance.
         """
-        initial_point = self.data_generator.random_point(n_points)
-        end_point = self.data_generator.random_point(n_points)
-
-        time = get_random_times(n_times)
-
         geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
         points = geod_func(time)
 
-        res = self.space.belongs(gs.reshape(points, (-1, *self.space.shape)), atol=atol)
+        assert_belongs(self.space, points, atol=atol)
 
-        expected_shape = (
-            math.prod(get_batch_shape(self.space.point_ndim, initial_point)) * n_times,
-        )
-        expected = gs.ones(expected_shape, dtype=bool)
-        self.assertAllEqual(res, expected)
+
+class RetractionTestCaseMixins:
+    def test_retraction(self, tangent_vec, base_point, expected, atol=gs.atol):
+        res = self.space.metric.retraction(tangent_vec, base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    def test_lifting(self, point, base_point, expected, atol=gs.atol):
+        res = self.space.metric.lifting(point, base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    def test_lifting_is_tangent(self, point, base_point, atol=gs.atol):
+        tangent_vec = self.space.metric.lifting(point, base_point)
+
+        assert_is_tangent(self.space, tangent_vec, base_point, atol=atol)
+
+    def test_lifting_after_retraction(self, tangent_vec, base_point, atol=gs.atol):
+        point = self.space.metric.retraction(tangent_vec, base_point)
+        tangent_vec_ = self.space.metric.lifting(point, base_point)
+
+        self.assertAllClose(tangent_vec_, tangent_vec, atol=atol)
+
+    def test_retraction_after_lifting(self, point, base_point, atol=gs.atol):
+        tangent_vec = self.space.metric.lifting(point, base_point)
+
+        point_ = self.space.metric.retraction(tangent_vec, base_point)
+        self.assertAllClose(point_, point, atol=atol)
+
+    def test_retraction_belongs(self, tangent_vec, base_point, atol=gs.atol):
+        point = self.space.metric.retraction(tangent_vec, base_point)
+        assert_belongs(self.space, point, atol=atol)

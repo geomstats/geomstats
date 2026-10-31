@@ -49,10 +49,14 @@ class ComplexMatrixVectorSpaceTestData(ComplexVectorSpaceTestData):
 
 class LevelSetTestData(ProjectionMixinsTestData, ManifoldTestData):
     def submersion_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names="point",
+        )
 
     def tangent_submersion_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names=("point", "vector"),
+        )
 
 
 class _OpenSetMixinsTestData(ProjectionMixinsTestData):

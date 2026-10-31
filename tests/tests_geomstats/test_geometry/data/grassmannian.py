@@ -1,36 +1,22 @@
+from polpo.testing.data import CaseData
+
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
-from geomstats.test.data import TestData
-
-from .fiber_bundle import FiberBundleTestData
-from .matrices import RiemannianMetricTestData
-from .riemannian_metric import (
-    RiemannianMetricComparisonTestData,
-)
 
 
-class Grassmannian32TestData(TestData):
+class Grassmannian32TestData(CaseData):
     def belongs_test_data(self):
         p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
         p_yz = gs.array([[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
         p_xz = gs.array([[1.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
 
-        data = [
+        return [
             dict(point=p_xy, expected=gs.array(True)),
             dict(point=gs.stack([p_yz, p_xz]), expected=gs.array([True, True])),
         ]
-        return self.generate_tests(data)
 
 
-class GrassmannianCanonicalMetricTestData(RiemannianMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
-    trials = 3
-
-    xfails = ("log_after_exp",)
-
-
-class GrassmannianCanonicalMetric32TestData(TestData):
+class GrassmannianCanonicalMetric32TestData(CaseData):
     def exp_test_data(self):
         p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
         p_yz = gs.array([[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
@@ -54,13 +40,4 @@ class GrassmannianCanonicalMetric32TestData(TestData):
                 expected=gs.stack([p_yz, p_xz]),
             ),
         ]
-        return self.generate_tests(data)
-
-
-class GrassmannianBundleTestData(FiberBundleTestData):
-    fail_for_not_implemented_errors = False
-
-
-class GrassmannianQuotientMetricCmpTestData(RiemannianMetricComparisonTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
+        return data
