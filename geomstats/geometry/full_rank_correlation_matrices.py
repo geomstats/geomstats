@@ -755,12 +755,9 @@ class UniqueDiagonalMatrixAlgorithm:
             return self._call_single(sym_mat)
 
         batch_shape = sym_mat.shape[:-2]
-        if len(batch_shape) == 1:
-            return gs.stack([self._call_single(sym_mat_) for sym_mat_ in sym_mat])
-
         mat_shape = sym_mat.shape[-2:]
         flat_sym_mat = gs.reshape(sym_mat, (-1,) + mat_shape)
-        out = gs.stack([self._call_single(sym_mat_) for sym_mat_ in flat_sym_mat])
+        out = gs.stack([self._call_single(matrix) for matrix in flat_sym_mat])
         return gs.reshape(out, batch_shape + mat_shape)
 
 
@@ -1177,13 +1174,11 @@ class SPDScalingFinder:
             return self._call_single(spd_matrix)
 
         batch_shape = spd_matrix.shape[:-2]
-        if len(batch_shape) == 1:
-            return gs.stack([self._call_single(sym_mat_) for sym_mat_ in spd_matrix])
+        n = spd_matrix.shape[-1]
+        flat_matrices = gs.reshape(spd_matrix, (-1, n, n))
+        out = gs.stack([self._call_single(matrix) for matrix in flat_matrices])
 
-        mat_shape = spd_matrix.shape[-2:]
-        flat_spd_mat = gs.reshape(spd_matrix, (-1,) + mat_shape)
-        out = gs.stack([self._call_single(sym_mat_) for sym_mat_ in flat_spd_mat])
-        return gs.reshape(out, batch_shape + (mat_shape.shape[-1],))
+        return gs.reshape(out, batch_shape + (n,))
 
 
 class LogScalingDiffeo(Diffeo):
