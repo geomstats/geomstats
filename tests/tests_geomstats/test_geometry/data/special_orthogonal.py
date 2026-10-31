@@ -267,6 +267,26 @@ class SpecialOrthogonal2VectorsSmokeTestData(TestData):
         ]
         return self.generate_tests(data)
 
+    def jacobian_translation_test_data(self):
+        data = [
+            dict(
+                point=gs.array([0.12]),
+                left=True,
+                expected=gs.array([[1.0]]),
+            ),
+            dict(
+                point=gs.array([0.12]),
+                left=False,
+                expected=gs.array([[1.0]]),
+            ),
+            dict(
+                point=gs.array([[0.12], [-2.5]]),
+                left=True,
+                expected=gs.array([[[1.0]], [[1.0]]]),
+            ),
+        ]
+        return self.generate_tests(data)
+
 
 class SpecialOrthogonal3VectorsTestData(SpecialOrthogonalVectorsTestData):
     skips = ("projection_belongs",)
