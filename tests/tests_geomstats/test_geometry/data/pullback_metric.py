@@ -114,6 +114,21 @@ def _expected_sphere_inner_product_derivativ_matrix(base_point):
     return expected_1, expected_2
 
 
+def _expected_sphere_riemann_tensor(base_point):
+    r"""Riemann tensor of the unit sphere in spherical coordinates.
+
+    The unit sphere has constant sectional curvature 1, hence
+    :math:`R(X_j, X_k) X_i = g_{ki} X_j - g_{ji} X_k`. With the geomstats
+    convention `riemann_tensor[i, j, k, l] = R_{ijk}^l`, this gives
+    :math:`R_{ijk}^l = g_{ki} \delta_j^l - g_{ji} \delta_k^l`.
+    """
+    metric_matrix = _expected_sphere_metric_matrix(base_point)
+    identity = gs.eye(2)
+    return gs.einsum("ki,jl->ijkl", metric_matrix, identity) - gs.einsum(
+        "ji,kl->ijkl", metric_matrix, identity
+    )
+
+
 class CircleIntrinsicTestData(TestData):
     fail_for_autodiff_exceptions = False
 
@@ -348,6 +363,40 @@ class SphereIntrinsicMetricTestData(TestData):
                     expected_2=expected_2,
                 )
             )
+        return self.generate_tests(data)
+
+    def riemann_tensor_test_data(self):
+        base_points = [gs.array([0.6, -1.0]), gs.array([0.8, -0.8])]
+        expected_tensors = [
+            _expected_sphere_riemann_tensor(base_point) for base_point in base_points
+        ]
+        data = [
+            dict(base_point=base_point, expected=expected)
+            for base_point, expected in zip(base_points, expected_tensors)
+        ]
+        data.append(
+            dict(
+                base_point=gs.stack(base_points),
+                expected=gs.stack(expected_tensors),
+            )
+        )
+        return self.generate_tests(data)
+
+    def sectional_curvature_test_data(self):
+        data = [
+            dict(
+                tangent_vec_a=gs.array([1.0, 0.0]),
+                tangent_vec_b=gs.array([0.0, 1.0]),
+                base_point=gs.array([0.6, -1.0]),
+                expected=gs.array(1.0),
+            ),
+            dict(
+                tangent_vec_a=gs.array([0.5, 2.0]),
+                tangent_vec_b=gs.array([-1.0, 0.7]),
+                base_point=gs.array([0.8, -0.8]),
+                expected=gs.array(1.0),
+            ),
+        ]
         return self.generate_tests(data)
 
 
