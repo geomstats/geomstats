@@ -8,6 +8,7 @@ import logging
 from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
+from geomstats._logging import warn_max_iterations
 from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean, GeneralFrechetMean, variance
 from geomstats.learning.kmeans import RiemannianKMeans
@@ -526,8 +527,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
             self._maximization(X, posterior_probabilities)
         else:
-            logger.info(
-                "WARNING: EM did not converge \nPlease increase MINIMUM_EPOCHS."
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         return self

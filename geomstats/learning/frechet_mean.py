@@ -195,9 +195,10 @@ class GradientDescent(BaseGradientDescent):
 
         if self.verbose:
             logger.info(
-                "n_iter: {}, final variance: {}, final dist: {}".format(
-                    iteration, var, sq_dist
-                )
+                "n_iter: %d, final variance: %s, final dist: %s",
+                iteration,
+                var,
+                sq_dist,
             )
 
         return mean
@@ -743,7 +744,7 @@ class SturmsMean(BaseEstimator):
             prev_mean_estimate = mean_estimate
 
             if self.verbose:
-                print(convergence, prev_mean_movements)
+                logger.info("n_iter: %d, convergence: %s", i, convergence)
 
             if convergence < self.epsilon:
                 break
@@ -752,7 +753,9 @@ class SturmsMean(BaseEstimator):
 
         if i < 2 * len(X):
             logger.warning(
-                f"Sampled <2*sample_size={2 * len(X)}. Due to stochastic nature, not guaranteed to have sampled all points. The mean may be inaccurate."
+                "Sampled <2*sample_size=%d. Due to stochastic nature, not guaranteed "
+                "to have sampled all points. The mean may be inaccurate.",
+                2 * len(X),
             )
 
         self.estimate_ = mean_estimate

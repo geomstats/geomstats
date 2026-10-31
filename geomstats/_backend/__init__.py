@@ -294,7 +294,7 @@ class BackendImporter:
 
         module.set_default_dtype("float64")
 
-        logger.debug(f"Using {BACKEND_NAME} backend")
+        logger.debug("Using %s backend", BACKEND_NAME)
         return module
 
     def find_spec(self, fullname, path=None, target=None):

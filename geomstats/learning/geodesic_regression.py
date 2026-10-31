@@ -91,7 +91,7 @@ class RiemannianGradientDescent:
         for i in range(self.max_iter):
             loss, grad = fun(param)
             if gs.any(gs.isnan(grad)):
-                logger.warning(f"NaN encountered in gradient at iter {current_iter}")
+                logger.warning("NaN encountered in gradient at iter %d", current_iter)
                 lr /= 2
                 grad = current_grad
             elif loss >= current_loss and i > 0:
@@ -104,7 +104,7 @@ class RiemannianGradientDescent:
                 current_iter += 1
             if abs(loss - current_loss) < self.tol:
                 if self.verbose:
-                    logger.info(f"Tolerance threshold reached at iter {current_iter}")
+                    logger.info("Tolerance threshold reached at iter %d", current_iter)
                 break
 
             grad_intercept, grad_coef = gs.split(grad, 2)
@@ -132,9 +132,12 @@ class RiemannianGradientDescent:
 
         if self.verbose:
             logger.info(
-                f"Number of gradient evaluations: {i}, "
-                f"Number of gradient iterations: {current_iter}"
-                f" loss at termination: {current_loss}"
+                "Number of gradient evaluations: %d, "
+                "Number of gradient iterations: %d"
+                ", loss at termination: %s",
+                i,
+                current_iter,
+                current_loss,
             )
 
         return OptimizeResult(fun=loss, x=param, nit=current_iter)

@@ -37,10 +37,10 @@ def download_figshare_zip(article_id, filename, dirname=None):
 
     if os.path.exists(file_path):
         logger.info(
-            f"Data has already been downloaded... using cached file ('{file_path}')."
+            "Data has already been downloaded... using cached file ('%s').", file_path
         )
     else:
-        logger.info(f"Downloading '{file_path}' from {url} to '{dirname}'.")
+        logger.info("Downloading '%s' from %s to '%s'.", file_path, url, dirname)
 
         with requests.get(url, stream=True) as r:
             r.raise_for_status()
