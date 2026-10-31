@@ -195,7 +195,7 @@ class GradientDescent(BaseGradientDescent):
 
         if self.verbose:
             logger.info(
-                "n_iter: %d, final variance: %e, final dist: %e",
+                "n_iter: %d, final variance: %s, final dist: %s",
                 iteration,
                 var,
                 sq_dist,
@@ -744,7 +744,7 @@ class SturmsMean(BaseEstimator):
             prev_mean_estimate = mean_estimate
 
             if self.verbose:
-                logger.info("n_iter: %d, convergence: %e", i, convergence)
+                logger.info("n_iter: %d, convergence: %s", i, convergence)
 
             if convergence < self.epsilon:
                 break

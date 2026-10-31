@@ -134,7 +134,7 @@ class RiemannianGradientDescent:
             logger.info(
                 "Number of gradient evaluations: %d, "
                 "Number of gradient iterations: %d"
-                " loss at termination: %s",
+                ", loss at termination: %s",
                 i,
                 current_iter,
                 current_loss,

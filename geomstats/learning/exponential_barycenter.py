@@ -75,7 +75,7 @@ class GroupGradientDescent(BaseGradientDescent):
             warn_max_iterations(logger, self.max_iter)
 
         if self.verbose:
-            logger.info("n_iter: %d, final gradient norm: %e", iteration, grad_norm)
+            logger.info("n_iter: %d, final gradient norm: %s", iteration, grad_norm)
         return mean
 
 
