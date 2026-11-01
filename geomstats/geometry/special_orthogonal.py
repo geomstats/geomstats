@@ -121,7 +121,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         return utils.flip_determinant(rotation_mat, det)
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample in SO(n) using a normal distribution (not the Haar measure).
+        """Sample in SO(n) from the Haar measure.
 
         Parameters
         ----------
@@ -139,7 +139,10 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         return self.random_uniform(n_samples)
 
     def random_uniform(self, n_samples=1):
-        """Sample in SO(n) using a normal distribution (not the Haar measure).
+        """Sample in SO(n) from the Haar measure.
+
+        Q from the QR decomposition of a Gaussian matrix is Haar distributed
+        on O(n) once the diagonal of R is made positive [Mezzadri2007]_.
 
         Parameters
         ----------
@@ -152,13 +155,21 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         -------
         samples : array-like, shape=[..., n, n]
             Points sampled on the SO(n).
+
+        References
+        ----------
+        .. [Mezzadri2007] F. Mezzadri, "How to generate random matrices from
+            the classical compact groups", Notices of the AMS, 54(5), 2007.
         """
         if n_samples == 1:
             size = (self.n, self.n)
         else:
             size = (n_samples, self.n, self.n)
         random_mat = gs.random.normal(size=size)
-        rotation_mat, _ = gs.linalg.qr(random_mat)
+        rotation_mat, upper = gs.linalg.qr(random_mat)
+        diag = Matrices.diagonal(upper)
+        signs = 1.0 - 2.0 * gs.cast(diag < 0, rotation_mat.dtype)
+        rotation_mat = rotation_mat * signs[..., None, :]
         det = gs.linalg.det(rotation_mat)
         return utils.flip_determinant(rotation_mat, det)
 
