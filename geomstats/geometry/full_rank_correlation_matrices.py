@@ -349,7 +349,7 @@ class CorrelationMatricesBundle(FiberBundle):
         inverse_base_point = gs.linalg.inv(base_point)
         operator = gs.eye(n) + base_point * inverse_base_point
 
-        vector = gs.einsum("...ij,...ji->...i", inverse_base_point, tangent_vec)
+        vector = gs.matmul_diagonal(inverse_base_point, tangent_vec)
 
         diagonal = gs.linalg.solve(operator, vector)
 

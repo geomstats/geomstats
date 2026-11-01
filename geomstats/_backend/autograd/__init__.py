@@ -366,6 +366,10 @@ def matvec(A, b):
     return _np.einsum("...ij,...j->...i", A, b)
 
 
+def matmul_diagonal(a, b):
+    return _np.einsum("...ij,...ji->...i", a, b)
+
+
 def dot(a, b):
     if b.ndim == 1:
         return _np.dot(a, b)

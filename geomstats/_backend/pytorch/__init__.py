@@ -672,6 +672,11 @@ def matvec(A, b):
     return _torch.einsum("...ij,...j->...i", A, b)
 
 
+def matmul_diagonal(a, b):
+    a, b = convert_to_wider_dtype([a, b])
+    return _torch.einsum("...ij,...ji->...i", a, b)
+
+
 def dot(a, b):
     a, b = convert_to_wider_dtype([a, b])
 
