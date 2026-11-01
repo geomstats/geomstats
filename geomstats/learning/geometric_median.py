@@ -49,6 +49,9 @@ class GeometricMedian(BaseEstimator):
         "The geometric median on Riemannian manifolds with application to
         robust atlas estimation", NeuroImage, 2009
         https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2735114/
+    .. [VZ2000] Vardi Y and Zhang CH.
+        "The multivariate L1-median and associated data depth", PNAS, 2000
+        https://doi.org/10.1073/pnas.97.4.1423
     """
 
     def __init__(
@@ -96,6 +99,15 @@ class GeometricMedian(BaseEstimator):
         w = weights[is_non_zero] / dists[is_non_zero]
         logs = self.space.metric.log(X[is_non_zero], current_median)
         v_k = gs.einsum("n,n...->...", w / gs.sum(w), logs)
+
+        # Vardi-Zhang: account for the weight of samples at the current median
+        coincident_weight = gs.sum(weights[~is_non_zero])
+        if coincident_weight > 0.0:
+            grad_norm = self.space.metric.norm(gs.sum(w) * v_k, current_median)
+            if grad_norm <= coincident_weight:
+                return current_median
+            v_k = (1.0 - coincident_weight / grad_norm) * v_k
+
         updated_median = self.space.metric.exp(lr * v_k, current_median)
         return updated_median
 
