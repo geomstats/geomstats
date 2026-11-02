@@ -673,6 +673,7 @@ def matvec(A, b):
 
 
 def matmul_diagonal(a, b):
+    """Compute the diagonal of the matrix product a @ b."""
     a, b = convert_to_wider_dtype([a, b])
     return _torch.einsum("...ij,...ji->...i", a, b)
 

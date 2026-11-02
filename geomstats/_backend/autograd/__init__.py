@@ -367,6 +367,7 @@ def matvec(A, b):
 
 
 def matmul_diagonal(a, b):
+    """Compute the diagonal of the matrix product a @ b."""
     return _np.einsum("...ij,...ji->...i", a, b)
 
 
