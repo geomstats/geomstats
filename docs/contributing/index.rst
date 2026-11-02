@@ -601,7 +601,7 @@ And then merge them into your branch:
    `Git documentation related to resolving merge conflict using the command
    line <https://help.github.com/articles/resolving-a-merge-conflict-using-the-command-line/>`_.
    The `Git documentation <https://git-scm.com/documentation>`_ and
-   http://try.github.io are excellent resources to get started with git,
+   `Coddy's interactive Git course <https://coddy.tech/landing/git>`_ are excellent resources to get started with git,
    and understanding all of the commands shown here.
 
 Pull Request Checklist
