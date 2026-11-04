@@ -216,7 +216,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
 
     @staticmethod
     def are_antipodals(rotation_mat1, rotation_mat2):
-        """Determine if two rotation matrices are antipodals.
+        r"""Determine if two rotation matrices are antipodals.
 
         Parameters
         ----------
@@ -231,14 +231,17 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             Boolean determining if each pair of rotation
             matrices corresponds to a pair of antipodal rotation
             matrices.
-        """
-        sq_rot_mat1 = gs.matmul(rotation_mat1, rotation_mat1)
-        sq_rot_mat2 = gs.matmul(rotation_mat2, rotation_mat2)
-        are_different = ~gs.all(gs.isclose(rotation_mat1, rotation_mat2), axis=(-2, -1))
 
-        return are_different & gs.all(
-            gs.isclose(sq_rot_mat1, sq_rot_mat2), axis=(-2, -1)
-        )
+        Notes
+        -----
+        Two rotations are antipodal when the relative rotation
+        :math:`R_1^T R_2` has an eigenvalue equal to -1, i.e. when
+        :math:`\det(I + R_1^T R_2) = 0`. For :math:`SO(3)`, this means
+        that the relative rotation has an angle of :math:`\pi`.
+        """
+        relative_rot = Matrices.mul(gs.transpose(rotation_mat1), rotation_mat2)
+        n = relative_rot.shape[-1]
+        return gs.isclose(gs.linalg.det(gs.eye(n) + relative_rot), 0.0)
 
     def log(self, point, base_point=None):
         r"""

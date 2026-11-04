@@ -2,6 +2,7 @@ import random
 
 import pytest
 
+import geomstats.backend as gs
 from geomstats.geometry.special_orthogonal import (
     SpecialOrthogonal,
     _SpecialOrthogonalMatrices,
@@ -56,6 +57,24 @@ class TestSpecialOrthogonalMatrices3(
 ):
     space = _SpecialOrthogonalMatrices(n=3, equip=False)
     testing_data = SpecialOrthogonalMatrices3TestData()
+
+
+@pytest.mark.smoke
+def test_dist_between_nearby_rotation_matrices():
+    """Distance between rotations 1e-6 rad apart is defined and equal to 1e-6.
+
+    Nearby rotations used to be flagged as antipodal, which made the log raise.
+    See https://github.com/geomstats/geomstats/issues/2168.
+    """
+    space = SpecialOrthogonal(3, point_type="matrix")
+    rot = SpecialOrthogonal(
+        3, point_type="vector", equip=False
+    ).matrix_from_rotation_vector
+    base_point = rot(gs.array([-2.0, -2.0, -0.5]))
+    point = gs.matmul(base_point, rot(gs.array([0.0, 0.0, 1e-6])))
+
+    dist = space.metric.dist(point, base_point)
+    assert gs.isclose(dist, 1e-6, atol=0.0, rtol=1e-6)
 
 
 class TestSpecialOrthogonal2Vectors(
