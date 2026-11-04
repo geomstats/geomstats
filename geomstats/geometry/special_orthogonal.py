@@ -232,11 +232,11 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             matrices corresponds to a pair of antipodal rotation
             matrices.
         """
-      # two rotations are antipodal if their relative rotation has the
-      # eigenvalue -1, i.e. if det(I + R_1^T R_2) = 0
-      relative_rot_mat = gs.einsum("...ji,...jk->...ik", rotation_mat1, rotation_mat2)
-      n = rotation_mat1.shape[-1]
-      return gs.isclose(gs.linalg.det(gs.eye(n) + relative_rot_mat), 0.0)
+        # two rotations are antipodal if their relative rotation has the
+        # eigenvalue -1, i.e. if det(I + R_1^T R_2) = 0
+        relative_rot_mat = gs.einsum("...ji,...jk->...ik", rotation_mat1, rotation_mat2)
+        n = rotation_mat1.shape[-1]
+        return gs.isclose(gs.linalg.det(gs.eye(n) + relative_rot_mat), 0.0)
 
     def log(self, point, base_point=None):
         r"""
