@@ -30,10 +30,11 @@ References
 """
 
 import geomstats.backend as gs
+from geomstats import algebra_utils as utils
 from geomstats.geometry.base import ComplexVectorSpaceOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
-from geomstats.geometry.hermitian_matrices import expmh, powermh
+from geomstats.geometry.hermitian_matrices import apply_func_to_eigvalsh, powermh
 from geomstats.geometry.matrices import Matrices
 
 
@@ -276,19 +277,18 @@ class SiegelMetric(ComplexRiemannianMetric):
         exp : array-like, shape=[..., n, n]
             Point on the manifold.
         """
-        identity = gs.eye(tangent_vec.shape[-1], dtype=tangent_vec.dtype)
         tangent_vec_transconj = ComplexMatrices.transconjugate(tangent_vec)
-        aux_1 = gs.matmul(tangent_vec, tangent_vec_transconj)
-        aux_2 = powermh(aux_1, 1 / 2)
-        aux_3 = expmh(2 * aux_2)
-        factor_1 = aux_3 - identity
-        aux_4 = aux_3 + identity
-        factor_2 = powermh(aux_4, -1)
-        factor_3 = powermh(aux_2, -1)
-        factor_3 = gs.where(gs.isnan(factor_3), gs.zeros_like(factor_2), factor_3)
-        prod_1 = gs.matmul(factor_1, factor_2)
-        prod_2 = gs.matmul(prod_1, factor_3)
-        return gs.matmul(prod_2, tangent_vec)
+        squared_radius = gs.matmul(tangent_vec, tangent_vec_transconj)
+
+        def tanh_card(eigvals):
+            # tanh(s) / s extends continuously to 1 at s = 0.
+            values = utils.taylor_exp_even_func(
+                gs.maximum(eigvals, 0.0), utils.inv_tanh_close_0
+            )
+            return gs.cast(1 / values, eigvals.dtype)
+
+        factor = apply_func_to_eigvalsh(squared_radius, tanh_card)
+        return gs.matmul(factor, tangent_vec)
 
     @staticmethod
     def isometry(point, point_to_zero):
@@ -366,19 +366,18 @@ class SiegelMetric(ComplexRiemannianMetric):
         log_at_zero : array-like, shape=[..., n, n]
             Riemannian logarithm at zero (null matrix).
         """
-        identity = gs.eye(point.shape[-1], dtype=point.dtype)
         point_transconj = ComplexMatrices.transconjugate(point)
-        aux_1 = gs.matmul(point, point_transconj)
-        aux_2 = powermh(aux_1, 1 / 2)
-        num = identity + aux_2
-        den = identity - aux_2
-        inv_den = powermh(den, -1)
-        frac = gs.matmul(num, inv_den)
-        factor_1 = gs.linalg.logm(frac)
-        factor_2 = powermh(aux_2, -1)
-        factor_2 = gs.where(gs.isnan(factor_2), gs.zeros_like(factor_2), factor_2)
-        prod_1 = gs.matmul(factor_1, factor_2)
-        return gs.matmul(prod_1, point) * 0.5
+        squared_radius = gs.matmul(point, point_transconj)
+
+        def arctanh_card(eigvals):
+            # arctanh(s) / s extends continuously to 1 at s = 0.
+            values = utils.taylor_exp_even_func(
+                gs.maximum(eigvals, 0.0), utils.arctanh_card_close_0
+            )
+            return gs.cast(values, eigvals.dtype)
+
+        factor = apply_func_to_eigvalsh(squared_radius, arctanh_card)
+        return gs.matmul(factor, point)
 
     @staticmethod
     def tangent_vec_from_zero_to_base_point(tangent_vec, base_point):
