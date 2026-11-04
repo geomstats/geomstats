@@ -4,6 +4,24 @@ import pytest
 import geomstats.backend as gs
 from geomstats.distributions.brownian_motion import BrownianMotion
 from geomstats.geometry.euclidean import Euclidean
+from geomstats.test.test_case import pytorch_backend
+
+if pytorch_backend():
+    import torch
+
+
+@pytest.fixture(autouse=True)
+def preserve_random_state():
+    """Restore the backend RNG after deterministic Brownian checks."""
+    if pytorch_backend():
+        with torch.random.fork_rng():
+            yield
+    else:
+        state = np.random.get_state()
+        try:
+            yield
+        finally:
+            np.random.set_state(state)
 
 
 @pytest.mark.parametrize("batch_shape", [(), (2,), (2, 3)])
