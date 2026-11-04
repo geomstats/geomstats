@@ -129,6 +129,14 @@ class SpecialOrthogonalMatrices3TestData(TestData):
     def are_antipodals_test_data(self):
         mat1 = gs.eye(3)
         mat2 = gs.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
+        rotation_from_vec = SpecialOrthogonal(
+            3, point_type="vector", equip=False
+        ).matrix_from_rotation_vector
+        mat3 = rotation_from_vec(gs.array([-1.5, -1.0, -1.0]))
+        # very close to mat3 (relative rotation angle of 1e-6): not antipodal
+        mat4 = gs.matmul(mat3, rotation_from_vec(gs.array([1e-6, 0.0, 0.0])))
+        # relative rotation angle of pi: antipodal
+        mat5 = gs.matmul(mat3, rotation_from_vec(gs.array([gs.pi, 0.0, 0.0])))
         data = [
             dict(rotation_mat1=mat1, rotation_mat2=mat2, expected=gs.array(True)),
             dict(
@@ -136,6 +144,8 @@ class SpecialOrthogonalMatrices3TestData(TestData):
                 rotation_mat2=gs.stack([mat2, mat2]),
                 expected=gs.array([True, False]),
             ),
+            dict(rotation_mat1=mat3, rotation_mat2=mat4, expected=gs.array(False)),
+            dict(rotation_mat1=mat3, rotation_mat2=mat5, expected=gs.array(True)),
         ]
         return self.generate_tests(data)
 
