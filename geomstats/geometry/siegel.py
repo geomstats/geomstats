@@ -281,7 +281,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         squared_radius = gs.matmul(tangent_vec, tangent_vec_transconj)
 
         def tanh_card(eigvals):
-            # tanh(s) / s extends continuously to 1 at s = 0.
+            """Evaluate tanh(sqrt(x)) / sqrt(x), including its limit at zero."""
             values = utils.taylor_exp_even_func(
                 gs.maximum(eigvals, 0.0), utils.inv_tanh_close_0
             )
@@ -370,7 +370,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         squared_radius = gs.matmul(point, point_transconj)
 
         def arctanh_card(eigvals):
-            # arctanh(s) / s extends continuously to 1 at s = 0.
+            """Evaluate arctanh(sqrt(x)) / sqrt(x), including its limit at zero."""
             values = utils.taylor_exp_even_func(
                 gs.maximum(eigvals, 0.0), utils.arctanh_card_close_0
             )
