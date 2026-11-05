@@ -79,7 +79,7 @@ class RiemannianMinimumDistanceToMean(
         self.classes_ = gs.unique(y)
         if weights is None:
             weights = gs.ones(X.shape[0])
-        weights /= gs.sum(weights)
+        weights = weights / gs.sum(weights)
 
         frechet_means = []
         for c in self.classes_:
