@@ -660,12 +660,15 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
             Tangent vector at base point.
         base_point : array-like, shape=[..., 1]
             Point from which the exponential is computed.
+            Optional, default: identity.
 
         Returns
         -------
         point : array-like, shape=[..., 1]
             Group exponential.
         """
+        if base_point is None:
+            base_point = self.identity
         return self.regularize(tangent_vec + base_point)
 
     def log(self, point, base_point=None):
@@ -677,12 +680,15 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
             Point.
         base_point : array-like, shape=[..., 1]
             Point from which the log is computed.
+            Optional, default: identity.
 
         Returns
         -------
         tangent_vec : array-like, shape=[..., 1]
             Group logarithm.
         """
+        if base_point is None:
+            base_point = self.identity
         return self.regularize(point - base_point)
 
     def lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point=None):
