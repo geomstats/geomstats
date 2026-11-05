@@ -334,6 +334,63 @@ class EuclideanMetric(RiemannianMetric):
         radius = gs.array(math.inf)
         return repeat_out(self._space.point_ndim, radius, base_point)
 
+    def flat(self, tangent_vec, base_point=None):
+        """Map a tangent vector to a covector.
+
+        The metric is independent of the base point, so this is the
+        multiplication by the metric matrix.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        cotangent_vec : array-like, shape=[..., dim]
+            Covector at base point.
+        """
+        cotangent_vec = gs.matvec(self.metric_matrix_, tangent_vec)
+
+        return repeat_out(
+            self._space.point_ndim,
+            cotangent_vec,
+            tangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )
+
+    def sharp(self, cotangent_vec, base_point=None):
+        """Map a covector to a tangent vector.
+
+        Inverse of :meth:`flat`.
+
+        Parameters
+        ----------
+        cotangent_vec : array-like, shape=[..., dim]
+            Covector at base point.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
+        tangent_vec = gs.matvec(gs.linalg.inv(self.metric_matrix_), cotangent_vec)
+
+        return repeat_out(
+            self._space.point_ndim,
+            tangent_vec,
+            cotangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )
+
 
 class CanonicalEuclideanMetric(EuclideanMetric):
     """Class for the canonical Euclidean metric.
@@ -420,3 +477,55 @@ class CanonicalEuclideanMetric(EuclideanMetric):
         """
         norm = gs.linalg.norm(vector, axis=-1)
         return repeat_out(self._space.point_ndim, norm, vector, base_point)
+
+    def flat(self, tangent_vec, base_point=None):
+        """Map a tangent vector to a covector.
+
+        The metric matrix is the identity, so this is the identity.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        cotangent_vec : array-like, shape=[..., dim]
+            Covector at base point.
+        """
+        return repeat_out(
+            self._space.point_ndim,
+            gs.copy(tangent_vec),
+            tangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )
+
+    def sharp(self, cotangent_vec, base_point=None):
+        """Map a covector to a tangent vector.
+
+        The metric matrix is the identity, so this is the identity.
+
+        Parameters
+        ----------
+        cotangent_vec : array-like, shape=[..., dim]
+            Covector at base point.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
+        return repeat_out(
+            self._space.point_ndim,
+            gs.copy(cotangent_vec),
+            cotangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )
