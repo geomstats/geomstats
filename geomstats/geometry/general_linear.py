@@ -187,6 +187,22 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
         return path
 
 
+class PositiveGeneralLinear(GeneralLinear):
+    """Class for the positive general linear group GL+(n).
+
+    The connected component of the identity of the general linear group,
+    i.e. the space of matrices with positive determinant.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shape of the matrices: n x n.
+    """
+
+    def __init__(self, n, equip=True):
+        super().__init__(n, positive_det=True, equip=equip)
+
+
 class SquareMatrices(MatrixLieAlgebra):
     """Lie algebra of the general linear group.
 
