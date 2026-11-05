@@ -24,6 +24,7 @@ from geomstats.geometry.lower_triangular_matrices import (
 )
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.positive_reals import PositiveReals
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.symmetric_matrices import (
@@ -203,6 +204,11 @@ def _(space, **kwargs):
     return EmbeddedSpaceRandomDataGenerator(space, **kwargs)
 
 
+@get_data_generator.register(PositiveReals)
+def _(space, **kwargs):
+    return PositiveRealsRandomDataGenerator(space, **kwargs)
+
+
 @get_data_generator.register(NullRowSumsSymmetricMatrices)
 @get_data_generator.register(StrictlyLowerTriangularMatrices)
 @get_data_generator.register(SymmetricHollowMatrices)
@@ -245,6 +251,17 @@ class EmbeddedSpaceRandomDataGenerator(RandomDataGenerator):
         return self.space.projection(
             base_point + self.near_scale * self.random_tangent_vec(base_point)
         )
+
+
+class PositiveRealsRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
+    """Random data generator for the positive reals.
+
+    Tangent vectors are scaled by their base point, so that their norm for
+    the positive reals metric does not depend on the base point.
+    """
+
+    def random_tangent_vec(self, base_point):
+        return base_point * super().random_tangent_vec(base_point)
 
 
 class LevelSetMatrixVectorSpaceRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
