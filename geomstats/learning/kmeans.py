@@ -238,8 +238,6 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             ],
             axis=1,
         )
-        dists = gs.squeeze(dists)
-
         labels = gs.argmin(dists, -1)
 
         return labels
