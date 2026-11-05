@@ -61,6 +61,24 @@ class Connection(ABC):
         """
         raise NotImplementedError("The Christoffel symbols are not implemented.")
 
+    def jacobian_christoffels(self, base_point=None):
+        """Jacobian of the Christoffel symbols at base_point.
+
+        Computed via automatic differentiation by default.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        jacobian : array-like, shape=[..., dim, dim, dim, dim]
+            Jacobian of the Christoffel symbols. The last dimension is the
+            differentiation variable: jacobian[..., k, i, j, m] = d_m Gamma^k_ij.
+        """
+        return gs.autodiff.jacobian_vec(self.christoffels)(base_point)
+
     def geodesic_equation(self, state):
         """Compute the geodesic ODE associated with the connection.
 
@@ -391,7 +409,7 @@ class Connection(ABC):
                 "Riemann tensor not implemented for manifolds with points of ndim > 1."
             )
         christoffels = self.christoffels(base_point)
-        jacobian_christoffels = gs.autodiff.jacobian_vec(self.christoffels)(base_point)
+        jacobian_christoffels = self.jacobian_christoffels(base_point)
 
         prod_christoffels = gs.einsum(
             "...ijk,...klm->...ijlm", christoffels, christoffels
