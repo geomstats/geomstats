@@ -885,6 +885,60 @@ class MatricesMetric(EuclideanMetric):
         norm = gs.linalg.norm(vector, axis=(-2, -1))
         return repeat_out(self._space.point_ndim, norm, vector, base_point)
 
+    def flat(self, tangent_vec, base_point=None):
+        """Map a tangent vector to a covector under the Frobenius pairing.
+
+        The Frobenius metric is the Frobenius pairing itself, so this is the
+        identity.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *shape]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        cotangent_vec : array-like, shape=[..., *shape]
+            Matrix representing the covector.
+        """
+        return repeat_out(
+            self._space.point_ndim,
+            gs.copy(tangent_vec),
+            tangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )
+
+    def sharp(self, cotangent_vec, base_point=None):
+        """Map a covector to a tangent vector under the Frobenius pairing.
+
+        The Frobenius metric is the Frobenius pairing itself, so this is the
+        identity.
+
+        Parameters
+        ----------
+        cotangent_vec : array-like, shape=[..., *shape]
+            Matrix representing the covector.
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *shape]
+            Tangent vector at base point.
+        """
+        return repeat_out(
+            self._space.point_ndim,
+            gs.copy(cotangent_vec),
+            cotangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )
+
 
 class MatricesDiagMetric(EuclideanMetric):
     """Flat metric on matrices given by a diagonal metric matrix.
