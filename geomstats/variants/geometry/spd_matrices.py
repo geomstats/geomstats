@@ -33,7 +33,7 @@ class PositiveGeneralLinearGramBundle(FiberBundle):
     """
 
     def __init__(self, total_space):
-        super().__init__(total_space=total_space, aligner=True)
+        super().__init__(total_space=total_space)
 
     @staticmethod
     def riemannian_submersion(point):
@@ -145,6 +145,32 @@ class PositiveGeneralLinearGramBundle(FiberBundle):
             Point of the total space.
         """
         return gs.linalg.cholesky(point)
+
+    def align(self, point, base_point):
+        r"""Align point to base point.
+
+        Denoting `point` by :math:`X` and `base_point` by :math:`Y`, find the
+        rotation :math:`R \in SO(n)` minimizing :math:`\|XR - Y\|_F`. This is
+        the orthogonal Procrustes problem: with the singular value
+        decomposition :math:`X^T Y = U \Sigma V^T`, the minimizer is
+        :math:`R = UV^T`.
+
+        Since :math:`\det(X^T Y) > 0` on the positive general linear group,
+        :math:`\det(UV^T) = 1`, so no determinant correction is needed.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point of the total space to align.
+        base_point : array-like, shape=[..., n, n]
+            Point of the total space.
+
+        Returns
+        -------
+        aligned_point : array-like, shape=[..., n, n]
+            Point of the fiber of `point` closest to `base_point`.
+        """
+        return Matrices.align_matrices(point, base_point)
 
 
 class QuotientSPDBuresWassersteinMetric(QuotientMetric):
