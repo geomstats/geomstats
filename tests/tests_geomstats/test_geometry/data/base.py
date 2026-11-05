@@ -67,7 +67,7 @@ class LevelSetTestData(ProjectionMixinsTestData, ManifoldTestData):
 
 class _OpenSetMixinsTestData(ProjectionMixinsTestData):
     def to_tangent_is_tangent_in_embedding_space_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(arg_names=("base_point", "tangent_vec"))
 
 
 class OpenSetTestData(_OpenSetMixinsTestData, ManifoldTestData):

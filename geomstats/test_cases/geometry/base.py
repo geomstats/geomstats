@@ -1,6 +1,7 @@
 import pytest
 
 import geomstats.backend as gs
+from geomstats.test.assertions import assert_is_tangent
 from geomstats.test.random import (
     EmbeddedSpaceRandomDataGenerator,
     MatrixVectorSpaceRandomDataGenerator,
@@ -261,19 +262,26 @@ class LevelSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
 
 
 class _OpenSetTestCaseMixins(ProjectionTestCaseMixins):
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = EmbeddedSpaceRandomDataGenerator(self.space)
-        super().setup_method()
+    def test_to_tangent_is_tangent_in_embedding_space(
+        self, tangent_vec, base_point, atol=gs.atol
+    ):
+        """Check tangent vector is tangent to the embedding space.
 
-    @pytest.mark.random
-    def test_to_tangent_is_tangent_in_embedding_space(self, n_points):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-        res = self.space.embedding_space.is_tangent(tangent_vec, base_point)
+        The tangent space of an open set coincides with the one of its
+        embedding space.
 
-        expected = gs.ones(n_points, dtype=bool)
-        self.assertAllEqual(res, expected)
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_is_tangent(
+            self.space.embedding_space, tangent_vec, base_point, atol=atol
+        )
 
 
 class OpenSetTestCase(_OpenSetTestCaseMixins, ManifoldTestCase):
