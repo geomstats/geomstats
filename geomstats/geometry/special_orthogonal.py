@@ -216,7 +216,16 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
 
     @staticmethod
     def are_antipodals(rotation_mat1, rotation_mat2):
-        """Determine if two rotation matrices are antipodals.
+        r"""Determine if two rotation matrices are antipodals.
+
+        Two rotations :math:`R_1` and :math:`R_2` are antipodal when
+        :math:`R_2` belongs to the cut locus of :math:`R_1` for the canonical
+        metric, i.e. when the relative rotation :math:`R_1^T R_2` has
+        :math:`-1` as an eigenvalue, or equivalently
+
+        .. math::
+
+            \det(I + R_1^T R_2) = 0
 
         Parameters
         ----------
@@ -227,18 +236,21 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
 
         Returns
         -------
-        _ : array-like, shape=[...,]
+        are_antipodals : array-like, shape=[...,]
             Boolean determining if each pair of rotation
             matrices corresponds to a pair of antipodal rotation
             matrices.
-        """
-        sq_rot_mat1 = gs.matmul(rotation_mat1, rotation_mat1)
-        sq_rot_mat2 = gs.matmul(rotation_mat2, rotation_mat2)
-        are_different = ~gs.all(gs.isclose(rotation_mat1, rotation_mat2), axis=(-2, -1))
 
-        return are_different & gs.all(
-            gs.isclose(sq_rot_mat1, sq_rot_mat2), axis=(-2, -1)
-        )
+        Notes
+        -----
+        Geometrically, :math:`R_1^T R_2` rotates by an angle :math:`\pi` on at
+        least one invariant two-dimensional subspace. Distinct minimizing
+        geodesics then join :math:`R_1` to :math:`R_2`, so the logarithm is
+        not uniquely defined.
+        """
+        relative_rot = Matrices.mul(gs.transpose(rotation_mat1), rotation_mat2)
+        n = relative_rot.shape[-1]
+        return gs.isclose(gs.linalg.det(gs.eye(n) + relative_rot), 0.0)
 
     def log(self, point, base_point=None):
         r"""
