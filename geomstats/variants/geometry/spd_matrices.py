@@ -36,13 +36,80 @@ class PositiveGeneralLinearGramBundle(FiberBundle):
 
     @staticmethod
     def riemannian_submersion(point):
+        r"""Project a point to SPD matrices with the Gram map.
+
+        .. math::
+
+            \pi(X) = XX^T
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point of the total space.
+
+        Returns
+        -------
+        projection : array-like, shape=[..., n, n]
+            SPD matrix.
+        """
         return Matrices.mul(point, gs.transpose(point))
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
+        r"""Project a tangent vector to SPD matrices.
+
+        Differential of the Gram map:
+
+        .. math::
+
+            d\pi_X(V) = XV^T + VX^T
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector to the total space at `base_point`.
+        base_point : array-like, shape=[..., n, n]
+            Point of the total space.
+
+        Returns
+        -------
+        projection : array-like, shape=[..., n, n]
+            Symmetric matrix, tangent to SPD matrices at the projection
+            of `base_point`.
+        """
         product = Matrices.mul(base_point, gs.transpose(tangent_vec))
         return 2 * Matrices.to_symmetric(product)
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
+        r"""Lift a tangent vector to a horizontal vector in the total space.
+
+        Denoting `tangent_vec` by :math:`W`, `base_point` by :math:`P`
+        and `fiber_point` by :math:`X`, the horizontal lift is
+
+        .. math::
+
+            V = SX
+
+        where :math:`S` is the symmetric solution of the Sylvester equation
+        :math:`PS + SP = W`.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector to SPD matrices at `base_point`.
+        base_point : array-like, shape=[..., n, n]
+            SPD matrix.
+            Optional, default: None. In this case, `fiber_point` must be given,
+            and `riemannian_submersion` is used to compute `base_point`.
+        fiber_point : array-like, shape=[..., n, n]
+            Point of the total space in the fiber above `base_point`.
+            Optional, default: None. In this case, `lift` is used to compute
+            `fiber_point`.
+
+        Returns
+        -------
+        horizontal_lift : array-like, shape=[..., n, n]
+            Horizontal tangent vector to the total space at `fiber_point`.
+        """
         if base_point is None and fiber_point is None:
             raise ValueError(
                 "Either a point (of the total space) or a "
@@ -61,6 +128,21 @@ class PositiveGeneralLinearGramBundle(FiberBundle):
 
     @staticmethod
     def lift(point):
+        """Lift an SPD matrix to the total space with the Cholesky factor.
+
+        The Cholesky factor is lower triangular with positive diagonal,
+        so it has a positive determinant.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            SPD matrix.
+
+        Returns
+        -------
+        lift : array-like, shape=[..., n, n]
+            Point of the total space.
+        """
         return gs.linalg.cholesky(point)
 
 
