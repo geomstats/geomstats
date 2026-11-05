@@ -12,6 +12,7 @@ from geomstats.geometry.general_linear import PositiveGeneralLinear
 from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
 from geomstats.geometry.manifold import register_quotient
 from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.quotient_metric import QuotientMetric
 
 
 class PositiveGeneralLinearGramBundle(FiberBundle):
@@ -144,6 +145,39 @@ class PositiveGeneralLinearGramBundle(FiberBundle):
             Point of the total space.
         """
         return gs.linalg.cholesky(point)
+
+
+class QuotientSPDBuresWassersteinMetric(QuotientMetric):
+    """Bures-Wasserstein metric on SPD matrices as a quotient metric.
+
+    Variant of :class:`geomstats.geometry.spd_matrices.SPDBuresWassersteinMetric`
+    obtained as the quotient of the Frobenius metric on the positive general
+    linear group by the right action of the special orthogonal group.
+
+    Parameters
+    ----------
+    space : SPDMatrices
+        Base manifold.
+    total_space : PositiveGeneralLinear
+        Total space.
+        Optional, default: None. In this case, it is equipped with the
+        Frobenius metric and the special orthogonal compose action.
+    """
+
+    def __init__(self, space, total_space=None):
+        if total_space is None:
+            total_space = PositiveGeneralLinear(space.n, equip=False)
+            total_space.equip_with_metric(MatricesMetric)
+
+        if not hasattr(total_space, "group_action"):
+            total_space.equip_with_group_action(
+                SpecialOrthogonalComposeAction(total_space.n)
+            )
+
+        if not hasattr(total_space, "fiber_bundle"):
+            total_space.equip_with_quotient()
+
+        super().__init__(space=space, total_space=total_space)
 
 
 register_quotient(

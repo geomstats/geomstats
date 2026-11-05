@@ -2,19 +2,13 @@ import random
 
 import pytest
 
-from geomstats.geometry.general_linear import PositiveGeneralLinear
-from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
-from geomstats.geometry.matrices import MatricesMetric
-from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDBuresWassersteinMetric, SPDMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.riemannian_metric import (
     RiemannianMetricComparisonTestCase,
 )
-from geomstats.variants.geometry.spd_matrices import (  # noqa # flake8:disable=unused-import
-    PositiveGeneralLinearGramBundle,
-)
+from geomstats.variants.geometry.spd_matrices import QuotientSPDBuresWassersteinMetric
 
 from .data.quotient_metric import SPDBuresWassersteinQuotientMetricCmpTestData
 
@@ -32,13 +26,7 @@ def spd_with_quotient_metric(request):
     space.equip_with_metric(SPDBuresWassersteinMetric)
 
     request.cls.other_space = other_space = SPDMatrices(n=n, equip=False)
-
-    total_space = PositiveGeneralLinear(n=n, equip=False)
-    total_space.equip_with_metric(MatricesMetric)
-    total_space.equip_with_group_action(SpecialOrthogonalComposeAction(total_space.n))
-    total_space.equip_with_quotient()
-
-    other_space.equip_with_metric(QuotientMetric, total_space=total_space)
+    other_space.equip_with_metric(QuotientSPDBuresWassersteinMetric)
 
     request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
 
