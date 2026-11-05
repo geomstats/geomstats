@@ -775,6 +775,49 @@ class DiagonalNormalMetric(RiemannianMetric):
             diagonal = gs.power(diagonal, 2)
         return gs.concatenate([mean, diagonal], axis=-1)
 
+    def _tangent_vec_to_1d_pairs(self, tangent_vec, base_point):
+        """Write tangent vectors in the (mean, standard deviation) coordinates.
+
+        Points store variances while the univariate normal metric uses standard
+        deviations sigma, so the variance components of tangent vectors are
+        divided by the derivative 2 sigma of the variance.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 2 * sample_dim]
+            Tangent vector at base point, in (mean, variance) coordinates.
+        base_point : array-like, shape=[..., 2 * sample_dim]
+            Base point.
+
+        Returns
+        -------
+        pairs : array-like, shape=[..., sample_dim, 2]
+            Pairs of (mean, standard deviation) components.
+        """
+        mean, diagonal = self._space._unstack_mean_diagonal(tangent_vec)
+        _, variance = self._space._unstack_mean_diagonal(base_point)
+        return gs.stack([mean, diagonal / (2.0 * gs.sqrt(variance))], axis=-1)
+
+    def _1d_pairs_to_tangent_vec(self, pairs, base_point):
+        """Write tangent vectors back in the (mean, variance) coordinates.
+
+        Parameters
+        ----------
+        pairs : array-like, shape=[..., sample_dim, 2]
+            Pairs of (mean, standard deviation) components.
+        base_point : array-like, shape=[..., 2 * sample_dim]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., 2 * sample_dim]
+            Tangent vector at base point, in (mean, variance) coordinates.
+        """
+        _, variance = self._space._unstack_mean_diagonal(base_point)
+        mean = pairs[..., 0]
+        diagonal = 2.0 * gs.sqrt(variance) * pairs[..., 1]
+        return gs.concatenate([mean, diagonal], axis=-1)
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Inner product between two tangent vectors at a base point.
 
@@ -793,8 +836,8 @@ class DiagonalNormalMetric(RiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        tangent_vec_a = self._stacked_mean_diagonal_to_1d_pairs(tangent_vec_a)
-        tangent_vec_b = self._stacked_mean_diagonal_to_1d_pairs(tangent_vec_b)
+        tangent_vec_a = self._tangent_vec_to_1d_pairs(tangent_vec_a, base_point)
+        tangent_vec_b = self._tangent_vec_to_1d_pairs(tangent_vec_b, base_point)
         base_point = self._stacked_mean_diagonal_to_1d_pairs(
             base_point, apply_sqrt=True
         )
@@ -819,7 +862,7 @@ class DiagonalNormalMetric(RiemannianMetric):
             Point reached by the geodesic starting from `base_point`
             with initial velocity `tangent_vec`.
         """
-        tangent_vec = self._stacked_mean_diagonal_to_1d_pairs(tangent_vec)
+        tangent_vec = self._tangent_vec_to_1d_pairs(tangent_vec, base_point)
         base_point = self._stacked_mean_diagonal_to_1d_pairs(
             base_point, apply_sqrt=True
         )
@@ -843,11 +886,11 @@ class DiagonalNormalMetric(RiemannianMetric):
             of point at the base point.
         """
         point = self._stacked_mean_diagonal_to_1d_pairs(point, apply_sqrt=True)
-        base_point = self._stacked_mean_diagonal_to_1d_pairs(
+        base_point_pairs = self._stacked_mean_diagonal_to_1d_pairs(
             base_point, apply_sqrt=True
         )
-        log = self._univariate_normal.metric.log(point, base_point)
-        return self._1d_pairs_to_stacked_mean_diagonal(log)
+        log = self._univariate_normal.metric.log(point, base_point_pairs)
+        return self._1d_pairs_to_tangent_vec(log, base_point)
 
     def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.

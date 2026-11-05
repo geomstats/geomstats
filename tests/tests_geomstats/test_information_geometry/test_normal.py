@@ -191,3 +191,37 @@ class TestGeneralNormalMetric(
     RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = GeneralNormalMetricTestData()
+
+
+def test_diagonal_normal_metric_uses_variance_coordinates():
+    """Tangent vectors of diagonal normals are in (mean, variance) coordinates.
+
+    The inner product must be the Fisher information in these coordinates,
+    and exp must have initial velocity ``tangent_vec``.
+    """
+    import geomstats.backend as gs
+
+    space = NormalDistributions(sample_dim=2, distribution_type="diagonal")
+    base_point = gs.array([0.3, -0.5, 1.2, 0.8])
+    tangent_vec = gs.array([0.2, -0.1, 0.3, 0.5])
+    variance = base_point[2:]
+
+    fisher = gs.sum(tangent_vec[:2] ** 2 / variance) + gs.sum(
+        tangent_vec[2:] ** 2 / (2.0 * variance**2)
+    )
+    inner = space.metric.inner_product(tangent_vec, tangent_vec, base_point)
+    assert gs.allclose(inner, fisher)
+
+    step = 1e-4
+    velocity = (
+        space.metric.exp(step * tangent_vec, base_point)
+        - space.metric.exp(-step * tangent_vec, base_point)
+    ) / (2.0 * step)
+    assert gs.allclose(velocity, tangent_vec, atol=1e-6)
+
+    point = gs.array([-1.0, 0.2, 0.6, 1.5])
+    log = space.metric.log(point, base_point)
+    assert gs.allclose(space.metric.exp(log, base_point), point)
+    assert gs.allclose(
+        space.metric.norm(log, base_point), space.metric.dist(base_point, point)
+    )
