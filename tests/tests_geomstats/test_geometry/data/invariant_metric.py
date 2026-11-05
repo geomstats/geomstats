@@ -189,15 +189,7 @@ class BiInvariantMetricTestData(RiemannianMetricTestData):
 class BiInvariantMetricVectorsSOTestData(BiInvariantMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
-    skips = (
-        "parallel_transport_bvp_norm",
-        "parallel_transport_ivp_norm",
-        "parallel_transport_bvp_transported_is_tangent",
-        "parallel_transport_ivp_transported_is_tangent",
-        "parallel_transport_bvp_vec",
-        "parallel_transport_ivp_vec",
-        "invariance",
-    )
+    skips = ("invariance",)
 
 
 class BiInvariantMetricMatrixTestData(BiInvariantMetricTestData):
