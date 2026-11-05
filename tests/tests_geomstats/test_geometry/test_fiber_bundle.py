@@ -6,6 +6,9 @@ from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
+from geomstats.variants.geometry.spd_matrices import (  # noqa # flake8:disable=unused-import
+    GeneralLinearBuresWassersteinBundle,
+)
 
 from .data.fiber_bundle import GeneralLinearBuresWassersteinBundleTestData
 

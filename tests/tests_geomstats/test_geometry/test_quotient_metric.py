@@ -9,11 +9,11 @@ from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDBuresWassersteinMetric, SPDMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test_cases.geometry.fiber_bundle import (  # noqa # flake8:disable=unused-import
-    GeneralLinearBuresWassersteinBundle,
-)
 from geomstats.test_cases.geometry.riemannian_metric import (
     RiemannianMetricComparisonTestCase,
+)
+from geomstats.variants.geometry.spd_matrices import (  # noqa # flake8:disable=unused-import
+    GeneralLinearBuresWassersteinBundle,
 )
 
 from .data.quotient_metric import SPDBuresWassersteinQuotientMetricCmpTestData
