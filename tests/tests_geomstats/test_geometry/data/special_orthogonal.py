@@ -129,12 +129,49 @@ class SpecialOrthogonalMatrices3TestData(TestData):
     def are_antipodals_test_data(self):
         mat1 = gs.eye(3)
         mat2 = gs.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
+
+        rot = SpecialOrthogonal(
+            3, point_type="vector", equip=False
+        ).matrix_from_rotation_vector
+        base_mat = rot(gs.array([-2.0, -2.0, -0.5]))
+        nearby_mat = gs.matmul(base_mat, rot(gs.array([0.0, 0.0, 1e-6])))
+        other_mat = rot(gs.array([0.1, 1.3, -0.5]))
+        antipodal_mat = gs.matmul(other_mat, rot(gs.pi * gs.array([0.0, 0.6, 0.8])))
+
         data = [
             dict(rotation_mat1=mat1, rotation_mat2=mat2, expected=gs.array(True)),
             dict(
                 rotation_mat1=gs.stack([mat1, mat2]),
                 rotation_mat2=gs.stack([mat2, mat2]),
                 expected=gs.array([True, False]),
+            ),
+            dict(
+                rotation_mat1=base_mat,
+                rotation_mat2=nearby_mat,
+                expected=gs.array(False),
+            ),
+            dict(
+                rotation_mat1=other_mat,
+                rotation_mat2=antipodal_mat,
+                expected=gs.array(True),
+            ),
+        ]
+        return self.generate_tests(data)
+
+    def log_test_data(self):
+        rot = SpecialOrthogonal(
+            3, point_type="vector", equip=False
+        ).matrix_from_rotation_vector
+
+        base_mat = rot(gs.array([-2.0, -2.0, -0.5]))
+        nearby_mat = gs.matmul(base_mat, rot(gs.array([0.0, 0.0, 1e-6])))
+        skew = gs.array([[0.0, -1e-6, 0.0], [1e-6, 0.0, 0.0], [0.0, 0.0, 0.0]])
+
+        data = [
+            dict(
+                point=nearby_mat,
+                base_point=base_mat,
+                expected=gs.matmul(base_mat, skew),
             ),
         ]
         return self.generate_tests(data)
