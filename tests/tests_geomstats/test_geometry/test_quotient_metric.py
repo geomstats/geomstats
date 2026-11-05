@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.general_linear import PositiveGeneralLinear
 from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
 from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
@@ -13,7 +13,7 @@ from geomstats.test_cases.geometry.riemannian_metric import (
     RiemannianMetricComparisonTestCase,
 )
 from geomstats.variants.geometry.spd_matrices import (  # noqa # flake8:disable=unused-import
-    GeneralLinearBuresWassersteinBundle,
+    PositiveGeneralLinearGramBundle,
 )
 
 from .data.quotient_metric import SPDBuresWassersteinQuotientMetricCmpTestData
@@ -33,7 +33,7 @@ def spd_with_quotient_metric(request):
 
     request.cls.other_space = other_space = SPDMatrices(n=n, equip=False)
 
-    total_space = GeneralLinear(n=n, equip=False)
+    total_space = PositiveGeneralLinear(n=n, equip=False)
     total_space.equip_with_metric(MatricesMetric)
     total_space.equip_with_group_action(SpecialOrthogonalComposeAction(total_space.n))
     total_space.equip_with_quotient()

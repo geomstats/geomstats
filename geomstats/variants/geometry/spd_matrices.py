@@ -1,29 +1,33 @@
 """Bures-Wasserstein metric on SPD matrices as a quotient metric.
 
-Importing this module registers the quotient structure of the general
-linear group under the special orthogonal compose action, so that
-`GeneralLinear.equip_with_quotient` induces the Bures-Wasserstein metric
-on SPD matrices.
+Importing this module registers the quotient structure of the positive
+general linear group under the special orthogonal compose action, so that
+`PositiveGeneralLinear.equip_with_quotient` induces the Bures-Wasserstein
+metric on SPD matrices.
 """
 
 import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
-from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.general_linear import PositiveGeneralLinear
 from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
 from geomstats.geometry.manifold import register_quotient
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
-class GeneralLinearBuresWassersteinBundle(FiberBundle):
-    """Fiber bundle from the general linear group to SPD matrices.
+class PositiveGeneralLinearGramBundle(FiberBundle):
+    r"""Gram map bundle from the positive general linear group to SPD matrices.
+
+    The Gram map :math:`X \mapsto XX^T` is invariant under the right action
+    of the special orthogonal group, and induces a diffeomorphism from the
+    quotient :math:`GL^+(n) / SO(n)` to SPD matrices.
 
     Variant of :class:`geomstats.geometry.spd_matrices.SPDBuresWassersteinMetric`
-    obtained as the quotient of the Frobenius metric on the general linear
-    group by the right action of the special orthogonal group.
+    obtained as the quotient of the Frobenius metric on the positive general
+    linear group.
 
     Parameters
     ----------
-    total_space : GeneralLinear
+    total_space : PositiveGeneralLinear
         Total space.
     """
 
@@ -61,8 +65,8 @@ class GeneralLinearBuresWassersteinBundle(FiberBundle):
 
 
 register_quotient(
-    Space=GeneralLinear,
+    Space=PositiveGeneralLinear,
     Metric=MatricesMetric,
     GroupAction=SpecialOrthogonalComposeAction,
-    FiberBundle=GeneralLinearBuresWassersteinBundle,
+    FiberBundle=PositiveGeneralLinearGramBundle,
 )
