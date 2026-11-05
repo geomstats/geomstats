@@ -18,12 +18,19 @@ from geomstats.geometry.complex_manifold import ComplexManifold
 from geomstats.geometry.diffeo import ReversedDiffeo
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import SquareMatrices
-from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
+from geomstats.geometry.lower_triangular_matrices import (
+    LowerTriangularMatrices,
+    StrictlyLowerTriangularMatrices,
+)
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.spd_matrices import SPDMatrices
-from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from geomstats.geometry.symmetric_matrices import (
+    NullRowSumsSymmetricMatrices,
+    SymmetricHollowMatrices,
+    SymmetricMatrices,
+)
 from geomstats.vectorization import repeat_point
 
 
@@ -196,6 +203,13 @@ def _(space, **kwargs):
     return EmbeddedSpaceRandomDataGenerator(space, **kwargs)
 
 
+@get_data_generator.register(NullRowSumsSymmetricMatrices)
+@get_data_generator.register(StrictlyLowerTriangularMatrices)
+@get_data_generator.register(SymmetricHollowMatrices)
+def _(space, **kwargs):
+    return LevelSetMatrixVectorSpaceRandomDataGenerator(space, **kwargs)
+
+
 @get_data_generator.register(DiffeomorphicManifold)
 @get_data_generator.register(DiffeomorphicVectorSpace)
 @get_data_generator.register(DiffeomorphicMatrixVectorSpace)
@@ -231,6 +245,18 @@ class EmbeddedSpaceRandomDataGenerator(RandomDataGenerator):
         return self.space.projection(
             base_point + self.near_scale * self.random_tangent_vec(base_point)
         )
+
+
+class LevelSetMatrixVectorSpaceRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
+    """Random data generator for matrix vector spaces defined as level sets.
+
+    Points are sampled as for level sets, and basis representations as for
+    matrix vector spaces.
+    """
+
+    random_basis_representation = (
+        MatrixVectorSpaceRandomDataGenerator.random_basis_representation
+    )
 
 
 class NFoldManifoldRandomDataGenerator(RandomDataGenerator):

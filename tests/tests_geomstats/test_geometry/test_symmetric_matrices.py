@@ -1,6 +1,10 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 from geomstats.geometry.symmetric_matrices import (
     ConstantValueRowSumsDiffeo,
@@ -10,7 +14,6 @@ from geomstats.geometry.symmetric_matrices import (
     SymmetricHollowMatrices,
     SymmetricMatrices,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.base import (
     LevelSetTestCase,
     MatrixVectorSpaceTestCase,
@@ -19,27 +22,26 @@ from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.euclidean import EuclideanMetricTestCase
 from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 
+from .data.base import MatrixVectorSpaceTestData
 from .data.diffeo import DiffeoTestData
+from .data.euclidean import EuclideanMetricTestData
 from .data.matrices import MatricesMetricTestData
 from .data.symmetric_matrices import (
-    HollowMatricesPermutationInvariantMetricTestData,
-    NullRowSumsPermutationInvariantMetricTestData,
     NullRowSumsSymmetricMatricesTestData,
     SymmetricHollowMatricesTestData,
     SymmetricMatrices1TestData,
     SymmetricMatrices2TestData,
     SymmetricMatrices3TestData,
-    SymmetricMatricesTestData,
 )
 
 
 class TestSymmetricMatrices(
     MatrixVectorSpaceTestCase,
-    metaclass=DataBasedParametrizer,
+    metaclass=GeometricDataBasedParametrizer,
 ):
     _n = random.randint(2, 5)
     space = SymmetricMatrices(n=_n, equip=False)
-    testing_data = SymmetricMatricesTestData()
+    testing_data = MatrixVectorSpaceTestData(space)
 
 
 @pytest.mark.smoke
@@ -69,82 +71,95 @@ class TestSymmetricMatrices3(
 
 
 @pytest.mark.redundant
-class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
+class TestMatricesMetric(
+    MatricesMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
     _n = random.randint(2, 5)
     space = SymmetricMatrices(n=_n)
 
-    testing_data = MatricesMetricTestData()
+    testing_data = MatricesMetricTestData(space)
 
 
 class TestSymmetricHollowMatrices(
     LevelSetTestCase,
     MatrixVectorSpaceTestCase,
-    metaclass=DataBasedParametrizer,
+    metaclass=GeometricDataBasedParametrizer,
 ):
     _n = random.randint(2, 6)
     space = SymmetricHollowMatrices(n=_n, equip=False)
 
-    testing_data = SymmetricHollowMatricesTestData()
+    testing_data = SymmetricHollowMatricesTestData(space)
 
 
 @pytest.fixture(
     scope="class",
-    params=[
-        (2, (0.0, 0.0, 1.0)),
-        (3, (0.0, 1.0, 1.0)),
-        (random.randint(4, 6), (1.0, 1.0, 1.0)),
-    ],
+    params=[2, 3, random.randint(4, 6)],
 )
 def equipped_hollow_matrices(request):
-    n, (alpha, beta, gamma) = request.param
-    request.cls.space = SymmetricHollowMatrices(n, equip=False).equip_with_metric(
-        HollowMatricesPermutationInvariantMetric, alpha=alpha, beta=beta, gamma=gamma
-    )
+    n = request.param
+    space = request.cls.space = SymmetricHollowMatrices(
+        n, equip=False
+    ).equip_with_metric(HollowMatricesPermutationInvariantMetric)
+
+    request.cls.testing_data.space = space
 
 
 @pytest.mark.usefixtures("equipped_hollow_matrices")
 class TestHollowMatricesPermutationInvariantMetric(
-    EuclideanMetricTestCase, metaclass=DataBasedParametrizer
+    EuclideanMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = HollowMatricesPermutationInvariantMetricTestData()
+    testing_data = EuclideanMetricTestData(
+        excluded_methods=(
+            "christoffels_are_zeros",
+            "inner_product_derivative_matrix_is_zeros",
+        ),
+    )
 
 
 class TestNullRowSumSymmetricMatrices(
     LevelSetTestCase,
     MatrixVectorSpaceTestCase,
-    metaclass=DataBasedParametrizer,
+    metaclass=GeometricDataBasedParametrizer,
 ):
     _n = random.randint(3, 6)
     space = NullRowSumsSymmetricMatrices(n=_n, equip=False)
 
-    testing_data = NullRowSumsSymmetricMatricesTestData()
+    testing_data = NullRowSumsSymmetricMatricesTestData(space)
 
 
-class TestNullRowSumsDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+class TestNullRowSumsDiffeo(DiffeoTestCase, metaclass=GeometricDataBasedParametrizer):
     _n = random.randint(3, 6)
-    space = NullRowSumsSymmetricMatrices(n=_n, equip=False)
+    domain_space = NullRowSumsSymmetricMatrices(n=_n, equip=False)
     image_space = SymmetricMatrices(n=_n - 1, equip=False)
     diffeo = ConstantValueRowSumsDiffeo()
-    testing_data = DiffeoTestData()
+
+    testing_data = DiffeoTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+        map_=diffeo,
+    )
 
 
 @pytest.fixture(
     scope="class",
-    params=[
-        (2, (0.0, 0.0, 1.0)),
-        (3, (0.0, 1.0, 1.0)),
-        (random.randint(4, 6), (1.0, 1.0, 1.0)),
-    ],
+    params=[2, 3, random.randint(4, 6)],
 )
 def equipped_null_row_sums_matrices(request):
-    n, (alpha, delta, zeta) = request.param
-    request.cls.space = NullRowSumsSymmetricMatrices(n, equip=False).equip_with_metric(
-        NullRowSumsPermutationInvariantMetric, alpha=alpha, delta=delta, zeta=zeta
-    )
+    n = request.param
+    space = request.cls.space = NullRowSumsSymmetricMatrices(
+        n, equip=False
+    ).equip_with_metric(NullRowSumsPermutationInvariantMetric)
+
+    request.cls.testing_data.space = space
 
 
 @pytest.mark.usefixtures("equipped_null_row_sums_matrices")
 class TestNullRowSumsPermutationInvariantMetric(
-    EuclideanMetricTestCase, metaclass=DataBasedParametrizer
+    EuclideanMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = NullRowSumsPermutationInvariantMetricTestData()
+    testing_data = EuclideanMetricTestData(
+        excluded_methods=(
+            "christoffels_are_zeros",
+            "inner_product_derivative_matrix_is_zeros",
+        ),
+    )

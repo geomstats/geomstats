@@ -1,35 +1,31 @@
+from polpo.testing.data import CaseData
+
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 from .base import LevelSetTestData, MatrixVectorSpaceTestData
-from .euclidean import EuclideanMetricTestData
 
 
-class SymmetricMatricesTestData(MatrixVectorSpaceTestData):
-    pass
-
-
-class SymmetricMatrices1TestData(TestData):
+class SymmetricMatrices1TestData(CaseData):
     def basis_test_data(self):
         smoke_data = [
             dict(expected=gs.array([[[1.0]]])),
         ]
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
     def basis_representation_test_data(self):
         data = [dict(matrix_representation=gs.array([[1.0]]), expected=gs.array([1.0]))]
 
-        return self.generate_tests(data)
+        return data
 
     def matrix_representation_test_data(self):
         data = [
             dict(basis_representation=gs.array([1.0]), expected=gs.array([[1.0]])),
         ]
 
-        return self.generate_tests(data)
+        return data
 
 
-class SymmetricMatrices2TestData(TestData):
+class SymmetricMatrices2TestData(CaseData):
     def basis_test_data(self):
         data = [
             dict(
@@ -43,7 +39,7 @@ class SymmetricMatrices2TestData(TestData):
             ),
         ]
 
-        return self.generate_tests(data)
+        return data
 
     def belongs_test_data(self):
         data = [
@@ -54,10 +50,10 @@ class SymmetricMatrices2TestData(TestData):
                 expected=gs.array([True, False]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class SymmetricMatrices3TestData(TestData):
+class SymmetricMatrices3TestData(CaseData):
     def belongs_test_data(self):
         data = [
             dict(
@@ -66,7 +62,7 @@ class SymmetricMatrices3TestData(TestData):
             ),
         ]
 
-        return self.generate_tests(data)
+        return data
 
     def basis_representation_test_data(self):
         data = [
@@ -77,7 +73,7 @@ class SymmetricMatrices3TestData(TestData):
                 expected=gs.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def matrix_representation_test_data(self):
         data = [
@@ -86,22 +82,12 @@ class SymmetricMatrices3TestData(TestData):
                 expected=gs.array([[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
 class SymmetricHollowMatricesTestData(LevelSetTestData, MatrixVectorSpaceTestData):
     pass
 
 
-class HollowMatricesPermutationInvariantMetricTestData(EuclideanMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
-
-
 class NullRowSumsSymmetricMatricesTestData(LevelSetTestData, MatrixVectorSpaceTestData):
     pass
-
-
-class NullRowSumsPermutationInvariantMetricTestData(EuclideanMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
