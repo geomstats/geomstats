@@ -133,10 +133,9 @@ class SpecialOrthogonalMatrices3TestData(TestData):
         rot = SpecialOrthogonal(
             3, point_type="vector", equip=False
         ).matrix_from_rotation_vector
-        base_mat = rot(gs.array([-2.0, -2.0, -0.5]))
-        nearby_mat = gs.matmul(base_mat, rot(gs.array([0.0, 0.0, 1e-6])))
-        other_mat = rot(gs.array([0.1, 1.3, -0.5]))
-        antipodal_mat = gs.matmul(other_mat, rot(gs.pi * gs.array([0.0, 0.6, 0.8])))
+        base_mat = rot(gs.array([-1.5, -1.0, -1.0]))
+        nearby_mat = gs.matmul(base_mat, rot(gs.array([1e-6, 0.0, 0.0])))
+        antipodal_mat = gs.matmul(base_mat, rot(gs.pi * gs.array([0.0, 0.6, 0.8])))
 
         data = [
             dict(rotation_mat1=mat1, rotation_mat2=mat2, expected=gs.array(True)),
@@ -151,7 +150,7 @@ class SpecialOrthogonalMatrices3TestData(TestData):
                 expected=gs.array(False),
             ),
             dict(
-                rotation_mat1=other_mat,
+                rotation_mat1=base_mat,
                 rotation_mat2=antipodal_mat,
                 expected=gs.array(True),
             ),
@@ -162,18 +161,18 @@ class SpecialOrthogonalMatrices3TestData(TestData):
         rot = SpecialOrthogonal(
             3, point_type="vector", equip=False
         ).matrix_from_rotation_vector
+        base_mat = rot(gs.array([-1.5, -1.0, -1.0]))
 
-        base_mat = rot(gs.array([-2.0, -2.0, -0.5]))
-        nearby_mat = gs.matmul(base_mat, rot(gs.array([0.0, 0.0, 1e-6])))
-        skew = gs.array([[0.0, -1e-6, 0.0], [1e-6, 0.0, 0.0], [0.0, 0.0, 0.0]])
-
-        data = [
-            dict(
-                point=nearby_mat,
-                base_point=base_mat,
-                expected=gs.matmul(base_mat, skew),
-            ),
-        ]
+        data = []
+        for angle in [1e-3, 1e-5, 3e-6, 1e-6, 1e-7]:
+            skew = gs.array([[0.0, 0.0, 0.0], [0.0, 0.0, -angle], [0.0, angle, 0.0]])
+            data.append(
+                dict(
+                    point=gs.matmul(base_mat, rot(gs.array([angle, 0.0, 0.0]))),
+                    base_point=base_mat,
+                    expected=gs.matmul(base_mat, skew),
+                )
+            )
         return self.generate_tests(data)
 
     def matrix_from_rotation_vector_test_data(self):
