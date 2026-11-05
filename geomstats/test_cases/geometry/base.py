@@ -1,13 +1,8 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.test.assertions import assert_is_tangent
-from geomstats.test.random import (
-    EmbeddedSpaceRandomDataGenerator,
-    MatrixVectorSpaceRandomDataGenerator,
-    VectorSpaceRandomDataGenerator,
-)
-from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test.assertions import assert_belongs, assert_is_tangent
+from geomstats.test.random import EmbeddedSpaceRandomDataGenerator
 from geomstats.test_cases.geometry.complex_manifold import ComplexManifoldTestCase
 
 from .manifold import ManifoldTestCase
@@ -26,72 +21,63 @@ from .mixins import ProjectionTestCaseMixins
 
 
 class _VectorSpaceTestCaseMixins(ProjectionTestCaseMixins):
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = VectorSpaceRandomDataGenerator(self.space)
-        super().setup_method()
+    def test_random_point_is_tangent(self, point, atol=gs.atol):
+        """Check point is tangent.
 
-    @pytest.mark.random
-    def test_random_point_is_tangent(self, n_points, atol):
-        """Check random point is tangent.
+        In a vector space, points and tangent vectors are identified.
 
         Parameters
         ----------
-        n_points : int
-            Number of random points to generate.
+        point : array-like, shape=[..., *space.shape]
+            Point on the vector space.
         atol : float
             Absolute tolerance.
         """
-        points = self.data_generator.random_point(n_points)
+        assert_is_tangent(self.space, point, None, atol=atol)
 
-        res = self.space.is_tangent(points, base_point=None, atol=atol)
-        self.assertAllEqual(res, gs.ones(n_points, dtype=bool))
-
-    @pytest.mark.random
-    def test_to_tangent_is_projection(self, n_points, atol):
-        """Check to_tangent is same as projection.
+    def test_to_tangent_is_projection(self, point, atol=gs.atol):
+        """Check to_tangent is the same as projection.
 
         Parameters
         ----------
-        n_points : int
-            Number of random points to generate.
+        point : array-like, shape=[..., *space.shape]
+            Point on the vector space.
         atol : float
             Absolute tolerance.
         """
-        vec = self.data_generator.random_point(n_points)
-        result = self.space.to_tangent(vec)
-        expected = self.space.projection(vec)
+        result = self.space.to_tangent(point)
+        expected = self.space.projection(point)
 
         self.assertAllClose(result, expected, atol=atol)
 
 
 class VectorSpaceTestCase(_VectorSpaceTestCaseMixins, ManifoldTestCase):
-    @pytest.mark.mathprop
-    def test_basis_cardinality(self):
-        """Check number of basis elements is the dimension.
+    def test_basis(self, expected, atol=gs.atol):
+        """Check basis.
 
         Parameters
         ----------
+        expected : array-like, shape=[dim, *space.shape]
+            Expected basis.
         atol : float
             Absolute tolerance.
         """
+        self.assertAllClose(self.space.basis, expected, atol=atol)
+
+    def test_basis_cardinality(self):
+        """Check number of basis elements is the dimension."""
         basis = self.space.basis
         self.assertEqual(basis.shape[0], self.space.dim)
 
-    @pytest.mark.mathprop
-    def test_basis_belongs(self, atol):
-        """Check basis elements belong to vector space.
+    def test_basis_belongs(self, atol=gs.atol):
+        """Check basis elements belong to the vector space.
 
         Parameters
         ----------
         atol : float
             Absolute tolerance.
         """
-        result = self.space.belongs(self.space.basis, atol=atol)
-        self.assertAllEqual(result, gs.ones_like(result))
-
-    def test_basis(self, expected, atol):
-        self.assertAllClose(self.space.basis, expected, atol=atol)
+        assert_belongs(self.space, self.space.basis, atol=atol)
 
 
 class ComplexVectorSpaceTestCase(_VectorSpaceTestCaseMixins, ComplexManifoldTestCase):
@@ -99,87 +85,104 @@ class ComplexVectorSpaceTestCase(_VectorSpaceTestCaseMixins, ComplexManifoldTest
 
 
 class MatrixVectorSpaceTestCase(VectorSpaceTestCase):
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = MatrixVectorSpaceRandomDataGenerator(self.space)
-        super().setup_method()
+    def test_basis_representation(
+        self, matrix_representation, expected, atol=gs.atol
+    ):
+        """Check basis representation.
 
-    def test_basis_representation(self, matrix_representation, expected, atol):
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., *space.shape]
+            Point on the vector space.
+        expected : array-like, shape=[..., dim]
+            Expected coefficients in the basis of the vector space.
+        atol : float
+            Absolute tolerance.
+        """
         vec = self.space.basis_representation(matrix_representation)
         self.assertAllClose(vec, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_basis_representation_vec(self, n_reps, atol):
-        matrix_representation = self.data_generator.random_point()
-        expected = self.space.basis_representation(matrix_representation)
+    def test_matrix_representation(self, basis_representation, expected, atol=gs.atol):
+        """Check matrix representation.
 
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    matrix_representation=matrix_representation,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["matrix_representation"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    @pytest.mark.random
-    def test_basis_representation_and_basis(self, n_points, atol):
-        mat = self.data_generator.random_point(n_points)
-        vec = self.space.basis_representation(mat)
-
-        res = gs.einsum("...i,...ijk->...jk", vec, self.space.basis)
-        self.assertAllClose(res, mat, atol=atol)
-
-    def test_matrix_representation(self, basis_representation, expected, atol):
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis of the vector space.
+        expected : array-like, shape=[..., *space.shape]
+            Expected point on the vector space.
+        atol : float
+            Absolute tolerance.
+        """
         mat = self.space.matrix_representation(basis_representation)
         self.assertAllClose(mat, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_matrix_representation_vec(self, n_reps, atol):
-        basis_representation = gs.random.rand(self.space.dim)
-        expected = self.space.matrix_representation(basis_representation)
+    def test_basis_representation_and_basis(
+        self, matrix_representation, atol=gs.atol
+    ):
+        """Check basis representation gives the coefficients in the basis.
 
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    basis_representation=basis_representation,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["basis_representation"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
+        Combining the basis elements with the coefficients recovers the matrix.
 
-    @pytest.mark.random
-    def test_matrix_representation_belongs(self, n_points, atol):
-        vec = gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., *space.shape]
+            Point on the vector space.
+        atol : float
+            Absolute tolerance.
+        """
+        vec = self.space.basis_representation(matrix_representation)
+
+        res = gs.einsum("...i,...ijk->...jk", vec, self.space.basis)
+        self.assertAllClose(res, matrix_representation, atol=atol)
+
+    def test_matrix_representation_belongs(self, basis_representation, atol=gs.atol):
+        """Check matrix representation maps to the vector space.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis of the vector space.
+        atol : float
+            Absolute tolerance.
+        """
+        point = self.space.matrix_representation(basis_representation)
+
+        assert_belongs(self.space, point, atol=atol)
+
+    def test_matrix_representation_after_basis_representation(
+        self, matrix_representation, atol=gs.atol
+    ):
+        """Check matrix representation is a left inverse of basis representation.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., *space.shape]
+            Point on the vector space.
+        atol : float
+            Absolute tolerance.
+        """
+        vec = self.space.basis_representation(matrix_representation)
         point = self.space.matrix_representation(vec)
 
-        self.test_belongs(point, gs.ones(n_points, dtype=bool), atol)
+        self.assertAllClose(point, matrix_representation, atol=atol)
 
-    @pytest.mark.random
-    def test_matrix_representation_after_basis_representation(self, n_points, atol):
-        point = self.data_generator.random_point(n_points)
+    def test_basis_representation_after_matrix_representation(
+        self, basis_representation, atol=gs.atol
+    ):
+        """Check basis representation is a left inverse of matrix representation.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis of the vector space.
+        atol : float
+            Absolute tolerance.
+        """
+        point = self.space.matrix_representation(basis_representation)
         vec = self.space.basis_representation(point)
-        point_ = self.space.matrix_representation(vec)
 
-        self.assertAllClose(point_, point, atol=atol)
-
-    @pytest.mark.random
-    def test_basis_representation_after_matrix_representation(self, n_points, atol):
-        vec = gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
-        point = self.space.matrix_representation(vec)
-        vec_ = self.space.basis_representation(point)
-
-        self.assertAllClose(vec_, vec, atol=atol)
+        self.assertAllClose(vec, basis_representation, atol=atol)
 
 
 class ComplexMatrixVectorSpaceTestCase(ComplexVectorSpaceTestCase):
