@@ -149,6 +149,26 @@ class SpecialOrthogonalMatrices3TestData(TestData):
         ]
         return self.generate_tests(data)
 
+    def log_test_data(self):
+        rotation_from_vec = SpecialOrthogonal(
+            3, point_type="vector", equip=False
+        ).matrix_from_rotation_vector
+        base_mat = rotation_from_vec(gs.array([-1.5, -1.0, -1.0]))
+
+        data = []
+        for angle in [1e-3, 1e-5, 3e-6, 1e-6, 1e-7]:
+            skew = gs.array([[0.0, 0.0, 0.0], [0.0, 0.0, -angle], [0.0, angle, 0.0]])
+            data.append(
+                dict(
+                    point=gs.matmul(
+                        base_mat, rotation_from_vec(gs.array([angle, 0.0, 0.0]))
+                    ),
+                    base_point=base_mat,
+                    expected=gs.matmul(base_mat, skew),
+                )
+            )
+        return self.generate_tests(data)
+
     def matrix_from_rotation_vector_test_data(self):
         rot_vec_3 = 1e-11 * gs.array([12.0, 1.0, -81.0])
         angle = gs.linalg.norm(rot_vec_3)
