@@ -1,4 +1,3 @@
-import pytest
 import scipy
 
 import geomstats.backend as gs
@@ -26,8 +25,7 @@ def _estimate_von_mises_kappa(X, n_steps=100):
 
 
 class DistributionTestCase(TestCase):
-    @pytest.mark.random
-    def test_sample_belongs(self, n_samples, atol):
+    def test_sample_belongs(self, n_samples, atol=gs.atol):
         """Check samples belong to the space.
 
         Also checks the batch shape of the samples, as `belongs` returns
@@ -53,8 +51,7 @@ class VonMisesFisherTestCase(DistributionTestCase):
             return self.distribution.mu
         return gs.array([1.0] + [0.0] * self.distribution.space.dim)
 
-    @pytest.mark.random
-    def test_sample_mean(self, n_samples, atol):
+    def test_sample_mean(self, n_samples, atol=gs.atol):
         """Check the normalized mean of the samples is the mean direction.
 
         Parameters
@@ -70,8 +67,7 @@ class VonMisesFisherTestCase(DistributionTestCase):
         res = sum_point / gs.linalg.norm(sum_point)
         self.assertAllClose(res, self._get_mean_direction(), atol=atol)
 
-    @pytest.mark.validation
-    def test_sample_kappa(self, n_samples, atol):
+    def test_sample_kappa(self, n_samples, atol=gs.atol):
         """Check the maximum likelihood estimate of kappa.
 
         Parameters
@@ -101,8 +97,7 @@ class HypersphereRiemannianNormalTestCase(DistributionTestCase):
 
         return estimator.estimate_
 
-    @pytest.mark.random
-    def test_sample_frechet_mean(self, n_samples, atol):
+    def test_sample_frechet_mean(self, n_samples, atol=gs.atol):
         """Check the Frechet mean of the samples is the mean.
 
         Parameters
