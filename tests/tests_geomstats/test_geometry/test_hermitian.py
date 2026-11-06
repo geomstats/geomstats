@@ -1,56 +1,36 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 from geomstats.geometry.hermitian import Hermitian
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.test_case import np_and_torch_only
-from geomstats.test_cases.geometry.hermitian import (
-    HermitianMetricTestCase,
-    HermitianTestCase,
+from geomstats.test_cases.geometry.complex_riemannian_metric import (
+    ComplexRiemannianMetricTestCase,
 )
+from geomstats.test_cases.geometry.hermitian import HermitianTestCase
 
-from .data.hermitian import (
-    Hermitian2MetricTestData,
-    HermitianMetricTestData,
-    HermitianTestData,
-)
+from .data.complex_riemannian_metric import ComplexRiemannianMetricTestData
+from .data.hermitian import Hermitian2MetricTestData, HermitianTestData
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def spaces(request):
-    request.cls.space = Hermitian(dim=request.param, equip=False)
-
-
-@pytest.mark.usefixtures("spaces")
-class TestHermitian(HermitianTestCase, metaclass=DataBasedParametrizer):
-    testing_data = HermitianTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def equipped_spaces(request):
-    request.cls.space = Hermitian(dim=request.param)
-
-
-@np_and_torch_only
-@pytest.mark.usefixtures("equipped_spaces")
-class TestHermitianMetric(HermitianMetricTestCase, metaclass=DataBasedParametrizer):
-    testing_data = HermitianMetricTestData()
+class TestHermitian(HermitianTestCase, metaclass=GeometricDataBasedParametrizer):
+    space = Hermitian(dim=random.randint(2, 5), equip=False)
+    testing_data = HermitianTestData(space)
 
 
 @pytest.mark.smoke
-class TestHermitian2Metric(HermitianMetricTestCase, metaclass=DataBasedParametrizer):
+class TestHermitian2Metric(
+    ComplexRiemannianMetricTestCase, metaclass=DataBasedParametrizer
+):
     space = Hermitian(dim=2, equip=True)
     testing_data = Hermitian2MetricTestData()
+
+
+class TestHermitianMetric(
+    ComplexRiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = Hermitian(dim=random.randint(2, 5))
+    testing_data = ComplexRiemannianMetricTestData(space)

@@ -1,27 +1,29 @@
-import pytest
-
 import geomstats.backend as gs
 from geomstats.test_cases.geometry.base import ComplexVectorSpaceTestCase
-from geomstats.test_cases.geometry.complex_riemannian_metric import (
-    ComplexRiemannianMetricTestCase,
-)
 from geomstats.test_cases.geometry.mixins import GroupExpTestCaseMixins
 
 
 class HermitianTestCase(GroupExpTestCaseMixins, ComplexVectorSpaceTestCase):
-    @pytest.mark.random
-    def test_exp_random(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+    def test_exp_random(self, tangent_vec, base_point, atol=gs.atol):
+        """Check group exponential is the addition.
 
-        expected = tangent_vec + base_point
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., dim]
+            Point.
+        atol : float
+            Absolute tolerance.
+        """
+        self.test_exp(tangent_vec, base_point, tangent_vec + base_point, atol=atol)
 
-        self.test_exp(tangent_vec, base_point, expected, atol)
+    def test_identity_belongs(self, atol=gs.atol):
+        """Check identity belongs to the space.
 
-    @pytest.mark.random
-    def test_identity_belongs(self, atol):
-        self.test_belongs(self.space.identity, gs.array(True), atol)
-
-
-class HermitianMetricTestCase(ComplexRiemannianMetricTestCase):
-    pass
+        Parameters
+        ----------
+        atol : float
+            Absolute tolerance.
+        """
+        self.test_belongs(self.space.identity, gs.array(True), atol=atol)
