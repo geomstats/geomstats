@@ -12,7 +12,7 @@ from sklearn.base import BaseEstimator
 import geomstats.backend as gs
 import geomstats.errors as error
 from geomstats._logging import warn_max_iterations
-from geomstats.geometry.hypersphere import HypersphereMetric
+from geomstats.geometry.hypersphere import AngleToExtrinsicDiffeo, HypersphereMetric
 
 from ._utils import (
     _is_elastic_metric,
@@ -506,6 +506,11 @@ class CircleMean(BaseEstimator):
         points : array-like, shape=[n_samples, 1]
             Data set of angles (intrinsic coordinates).
 
+        Returns
+        -------
+        mean : array-like, shape=[1]
+            Mean angle.
+
         Reference
         ---------
         .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the
@@ -518,7 +523,7 @@ class CircleMean(BaseEstimator):
         var0 = gs.sum((points - mean0) ** 2)
         sorted_points = gs.sort(points, axis=0)
         means = self._circle_variances(mean0, var0, sample_size, sorted_points)
-        return means[gs.argmin(means[:, 1]), 0]
+        return means[gs.argmin(means[:, 1]), :1]
 
     @staticmethod
     def _circle_variances(mean, var, n_samples, points):
@@ -584,9 +589,8 @@ class CircleMean(BaseEstimator):
         self : object
             Returns self.
         """
-        self.estimate_ = self.space.angle_to_extrinsic(
-            self._circle_mean(self.space.extrinsic_to_angle(X))
-        )
+        diffeo = AngleToExtrinsicDiffeo()
+        self.estimate_ = diffeo(self._circle_mean(diffeo.inverse(X)))
         return self
 
 
