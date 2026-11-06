@@ -11,6 +11,15 @@ from geomstats.test.test_case import TestCase
 
 class WrapperTestCase(TestCase):
     def test_wrap_attr(self, func, scale):
+        """Check a wrapped function is scaled.
+
+        Parameters
+        ----------
+        func : callable
+            Function without arguments.
+        scale : float
+            Scaling factor.
+        """
         scaled_func = _wrap_attr(scale, func)
 
         res = func()
@@ -19,17 +28,46 @@ class WrapperTestCase(TestCase):
         self.assertAllClose(res, scaled_res / scale)
 
     def test_scaling_factor(self, func_name, scale, expected):
+        """Check the scaling factor of a registered method.
+
+        Parameters
+        ----------
+        func_name : str
+            Name of the method.
+        scale : float
+            Scale of the metric.
+        expected : float
+            Expected scaling factor of the method.
+        """
         scaling_factor = _ScaledMethodsRegistry._get_scaling_factor(func_name, scale)
         self.assertAllClose(scaling_factor, expected)
 
     def test_non_scaled(self, func_name, scale):
+        """Check a method that is not registered is not scaled.
+
+        Parameters
+        ----------
+        func_name : str
+            Name of the method.
+        scale : float
+            Scale of the metric.
+        """
         scaling_factor = _ScaledMethodsRegistry._get_scaling_factor(func_name, scale)
         assert scaling_factor is None
 
 
 class InstantiationTestCase(TestCase):
-    @pytest.mark.random
     def test_scalar_metric_multiplication(self, scale):
+        """Check multiplying a metric by a scalar scales it.
+
+        Also checks a scaled metric cannot be scaled again with ``*`` before
+        the space is equipped with it.
+
+        Parameters
+        ----------
+        scale : float
+            Scale of the metric.
+        """
         scaled_metric_1 = scale * self.space.metric
         scaled_metric_2 = self.space.metric * scale
 
@@ -45,6 +83,13 @@ class InstantiationTestCase(TestCase):
             scale * scaled_metric_1
 
     def test_scalar_metric_multiplication_error(self, scale):
+        """Check multiplying a metric by a non-float raises.
+
+        Parameters
+        ----------
+        scale : any
+            Value that is not a float.
+        """
         with pytest.raises(TypeError):
             scale * self.space.metric
 
@@ -55,11 +100,24 @@ class InstantiationTestCase(TestCase):
             self.space.metric * self.space.metric
 
     def test_scalar_metric_signature(self, scale):
+        """Check instantiating with a metric instead of a space raises.
+
+        Parameters
+        ----------
+        scale : float
+            Scale of the metric.
+        """
         with pytest.raises(TypeError):
             ScalarProductMetric(self.space.metric, scale)
 
-    @pytest.mark.random
     def test_scaling_scalar_metric(self, scale):
+        """Check scaling an already scaled metric multiplies the scales.
+
+        Parameters
+        ----------
+        scale : float
+            Scale of the metric.
+        """
         point_a, point_b = self.space.random_point(2)
 
         dist = self.space.metric.squared_dist(point_a, point_b)
@@ -88,10 +146,26 @@ class InstantiationTestCase(TestCase):
 
 class CustomizationTestCase(TestCase):
     def test_register_scaled_method_invalid(self, func_name, scaling_type):
+        """Check registering an invalid scaled method raises.
+
+        Parameters
+        ----------
+        func_name : str
+            Name of the method.
+        scaling_type : str
+            Scaling type.
+        """
         with pytest.raises(ValueError):
             register_scaled_method(func_name, scaling_type)
 
     def test_register_scaled_method_valid(self, scale):
+        """Check a registered method is scaled.
+
+        Parameters
+        ----------
+        scale : float
+            Scale of the metric.
+        """
         def dummy_method(self):
             return 1
 

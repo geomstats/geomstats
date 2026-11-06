@@ -1,5 +1,6 @@
+from polpo.testing.parametrizers import DataBasedParametrizer
+
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.scalar_product_metric import (
     CustomizationTestCase,
     InstantiationTestCase,
