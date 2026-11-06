@@ -374,3 +374,37 @@ class NFoldMetric(RiemannianMetric):
         point_ = gs.reshape(point_, (-1, *base_manifold.shape))
         each_log = base_manifold.metric.log(point_, base_point_)
         return gs.reshape(each_log, batch_shape + self._space.shape)
+
+    def injectivity_radius(self, base_point=None):
+        """Compute the radius of the injectivity domain.
+
+        The injectivity radius of a product is the minimum of the injectivity
+        radii of its factors. Scaling a copy by `scale` scales its injectivity
+        radius by `sqrt(scale)`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n_copies, *base_shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        base_manifold = self._space.base_manifold
+        if base_point is None:
+            radius = base_manifold.metric.injectivity_radius()
+            if self.scales is not None:
+                radius = gs.amin(gs.sqrt(self.scales)) * radius
+            return radius
+
+        batch_shape = get_batch_shape(self._space.point_ndim, base_point)
+        point_ = gs.reshape(base_point, (-1, *base_manifold.shape))
+        radii = base_manifold.metric.injectivity_radius(point_)
+        radii = gs.reshape(radii, batch_shape + (self._space.n_copies,))
+
+        if self.scales is not None:
+            radii = gs.einsum("j,...j->...j", gs.sqrt(self.scales), radii)
+
+        return gs.amin(radii, axis=-1)
