@@ -474,6 +474,7 @@ class ConnectionComparisonTestCase(TestCase):
         res_ = self.other_space.metric.curvature(
             tangent_vec_a_, tangent_vec_b_, tangent_vec_c_, base_point_
         )
+        res_ = self.point_transformer.inverse_transform_tangent_vec(res_, base_point_)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
