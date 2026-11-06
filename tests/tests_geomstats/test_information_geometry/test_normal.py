@@ -2,20 +2,22 @@ import random
 
 import pytest
 
+from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 from geomstats.information_geometry.normal import (
     DiagonalNormalDistributionsRandomVariable,
     MultivariateNormalDistributionsRandomVariable,
     NormalDistributions,
     SharedMeanNormalDistributionsRandomVariable,
     UnivariateNormalDistributionsRandomVariable,
+    UnivariateNormalToPoincareHalfSpaceDiffeo,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.base import VectorSpaceOpenSetTestCase
+from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.poincare_half_space import PoincareHalfSpaceTestCase
 from geomstats.test_cases.geometry.product_manifold import ProductManifoldTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
-from geomstats.test_cases.geometry.spd_matrices import SPDMatricesTestCase
 from geomstats.test_cases.information_geometry.base import (
     InformationManifoldMixinTestCase,
 )
@@ -23,6 +25,7 @@ from geomstats.test_cases.information_geometry.normal import (
     UnivariateNormalMetricTestCase,
 )
 
+from ..test_geometry.data.diffeo import DiffeoTestData
 from ..test_geometry.data.spd_matrices import SPDAffineMetricTestData
 from .data.normal import (
     CenteredNormalDistributionsTestData,
@@ -43,6 +46,15 @@ class TestUnivariateNormalDistributions(
     space = NormalDistributions(sample_dim=1, equip=False)
     random_variable = UnivariateNormalDistributionsRandomVariable(space)
     testing_data = UnivariateNormalDistributionsTestData()
+
+
+class TestUnivariateNormalToPoincareHalfSpaceDiffeo(
+    DiffeoTestCase, metaclass=DataBasedParametrizer
+):
+    space = NormalDistributions(sample_dim=1, equip=False)
+    image_space = PoincareHalfSpace(dim=2, equip=False)
+    diffeo = UnivariateNormalToPoincareHalfSpaceDiffeo()
+    testing_data = DiffeoTestData()
 
 
 class TestUnivariateNormalMetric(
@@ -70,7 +82,7 @@ def centered_spaces(request):
 @pytest.mark.usefixtures("centered_spaces")
 class TestCenteredNormalDistributions(
     InformationManifoldMixinTestCase,
-    SPDMatricesTestCase,
+    VectorSpaceOpenSetTestCase,
     metaclass=DataBasedParametrizer,
 ):
     testing_data = CenteredNormalDistributionsTestData()
