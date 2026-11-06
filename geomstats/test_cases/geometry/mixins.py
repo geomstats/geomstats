@@ -53,6 +53,25 @@ class GroupExpTestCaseMixins:
         self.assertAllClose(point, expected, atol=atol)
 
 
+class ExpDomainTestCaseMixins:
+    def test_exp_domain(self, tangent_vec, base_point, expected, atol=gs.atol):
+        """Check domain of the exponential map.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., 2]
+            Expected interval of time where the geodesic is defined.
+        atol : float
+            Absolute tolerance.
+        """
+        res = self.space.metric.exp_domain(tangent_vec, base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+
 class DistTestCaseMixins:
     def test_squared_dist(self, point_a, point_b, expected, atol=gs.atol):
         """Check squared distance.

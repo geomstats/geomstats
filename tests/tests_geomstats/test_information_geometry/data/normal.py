@@ -6,7 +6,6 @@ from ...test_geometry.data.product_manifold import (
 )
 from ...test_geometry.data.pullback_metric import PullbackDiffeoMetricTestData
 from ...test_geometry.data.riemannian_metric import RiemannianMetricTestData
-from ...test_geometry.data.spd_matrices import SPDMatricesTestData
 from .base import InformationManifoldMixinTestData
 
 
@@ -33,7 +32,7 @@ class UnivariateNormalMetricTestData(PullbackDiffeoMetricTestData):
 
 
 class CenteredNormalDistributionsTestData(
-    InformationManifoldMixinTestData, SPDMatricesTestData
+    InformationManifoldMixinTestData, VectorSpaceOpenSetTestData
 ):
     fail_for_not_implemented_errors = False
 

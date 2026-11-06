@@ -1,21 +1,15 @@
 import math
 
-import geomstats.backend as gs
-from geomstats.test.data import TestData
+from polpo.testing.data import CaseData
 
-from .base import VectorSpaceOpenSetTestData
+import geomstats.backend as gs
+
 from .matrices import MatricesMetricTestData
-from .pullback_metric import PullbackDiffeoMetricTestData
+from .mixins import ExpDomainMixinsTestData
 from .riemannian_metric import RiemannianMetricTestData
 
-SQRT_2 = math.sqrt(2.0)
-LN_2 = math.log(2.0)
-EXP_1 = math.exp(1.0)
-EXP_2 = math.exp(2.0)
-SINH_1 = math.sinh(1.0)
 
-
-class SymMatrixLogSmokeTestData(TestData):
+class SymMatrixLogSmokeTestData(CaseData):
     def diffeomorphism_test_data(self):
         data = [
             dict(
@@ -23,7 +17,7 @@ class SymMatrixLogSmokeTestData(TestData):
                 expected=gs.array([[0.0, 0.0], [0.0, 0.0]]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def tangent_test_data(self):
         data = [
@@ -36,18 +30,18 @@ class SymMatrixLogSmokeTestData(TestData):
                 ),
                 expected=gs.array(
                     [
-                        [1.0, 1.0, 2 * LN_2],
-                        [1.0, 1.0, 2 * LN_2],
-                        [2 * LN_2, 2 * LN_2, 1],
+                        [1.0, 1.0, 2 * math.log(2.0)],
+                        [1.0, 1.0, 2 * math.log(2.0)],
+                        [2 * math.log(2.0), 2 * math.log(2.0), 1],
                     ]
                 ),
             ),
             dict(
                 tangent_vec=gs.array(
                     [
-                        [EXP_1, EXP_1, SINH_1],
-                        [EXP_1, EXP_1, SINH_1],
-                        [SINH_1, SINH_1, 1 / EXP_1],
+                        [math.exp(1.0), math.exp(1.0), math.sinh(1.0)],
+                        [math.exp(1.0), math.exp(1.0), math.sinh(1.0)],
+                        [math.sinh(1.0), math.sinh(1.0), 1 / math.exp(1.0)],
                     ]
                 ),
                 image_point=gs.array(
@@ -56,7 +50,7 @@ class SymMatrixLogSmokeTestData(TestData):
                 expected=gs.array([[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def inverse_tangent_test_data(self):
         data = [
@@ -69,18 +63,18 @@ class SymMatrixLogSmokeTestData(TestData):
                 ),
                 expected=gs.array(
                     [
-                        [EXP_1, EXP_1, SINH_1],
-                        [EXP_1, EXP_1, SINH_1],
-                        [SINH_1, SINH_1, 1 / EXP_1],
+                        [math.exp(1.0), math.exp(1.0), math.sinh(1.0)],
+                        [math.exp(1.0), math.exp(1.0), math.sinh(1.0)],
+                        [math.sinh(1.0), math.sinh(1.0), 1 / math.exp(1.0)],
                     ]
                 ),
             ),
             dict(
                 image_tangent_vec=gs.array(
                     [
-                        [1.0, 1.0, 2 * LN_2],
-                        [1.0, 1.0, 2 * LN_2],
-                        [2 * LN_2, 2 * LN_2, 1],
+                        [1.0, 1.0, 2 * math.log(2.0)],
+                        [1.0, 1.0, 2 * math.log(2.0)],
+                        [2 * math.log(2.0), 2 * math.log(2.0), 1],
                     ]
                 ),
                 base_point=gs.array(
@@ -89,10 +83,10 @@ class SymMatrixLogSmokeTestData(TestData):
                 expected=gs.array([[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class MatrixPower05TestData(TestData):
+class MatrixPower05TestData(CaseData):
     def tangent_test_data(self):
         data = [
             dict(
@@ -111,7 +105,7 @@ class MatrixPower05TestData(TestData):
                 ),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def inverse_tangent_test_data(self):
         data = [
@@ -129,10 +123,10 @@ class MatrixPower05TestData(TestData):
                 expected=gs.array([[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class CholeskyMapSmokeTestData(TestData):
+class CholeskyMapSmokeTestData(CaseData):
     def diffeomorphism_test_data(self):
         data = [
             dict(
@@ -147,14 +141,14 @@ class CholeskyMapSmokeTestData(TestData):
                 ),
                 expected=gs.array(
                     [
-                        [SQRT_2, 0.0, 0.0],
-                        [0.0, SQRT_2, 0.0],
-                        [0.0, 0.0, SQRT_2],
+                        [math.sqrt(2.0), 0.0, 0.0],
+                        [0.0, math.sqrt(2.0), 0.0],
+                        [0.0, 0.0, math.sqrt(2.0)],
                     ]
                 ),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def inverse_test_data(self):
         data = [
@@ -171,7 +165,7 @@ class CholeskyMapSmokeTestData(TestData):
                 ),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def tangent_test_data(self):
         data = [
@@ -197,7 +191,7 @@ class CholeskyMapSmokeTestData(TestData):
                 ),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def inverse_tangent_test_data(self):
         data = [
@@ -221,14 +215,10 @@ class CholeskyMapSmokeTestData(TestData):
                 ),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class SPDMatricesTestData(VectorSpaceOpenSetTestData):
-    pass
-
-
-class SPDMatrices2TestData(TestData):
+class SPDMatrices2TestData(CaseData):
     def belongs_test_data(self):
         data = [
             dict(point=gs.array([[3.0, -1.0], [-1.0, 3.0]]), expected=True),
@@ -239,7 +229,7 @@ class SPDMatrices2TestData(TestData):
             ),
         ]
 
-        return self.generate_tests(data)
+        return data
 
     def projection_test_data(self):
         data = [
@@ -252,10 +242,10 @@ class SPDMatrices2TestData(TestData):
                 expected=gs.array([[gs.atol, 0.0], [0.0, gs.atol]]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class SPDMatrices3TestData(TestData):
+class SPDMatrices3TestData(CaseData):
     def belongs_test_data(self):
         data = [
             dict(
@@ -263,7 +253,7 @@ class SPDMatrices3TestData(TestData):
                 expected=False,
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
 class SPDAffineMetricTestData(RiemannianMetricTestData):
@@ -271,29 +261,31 @@ class SPDAffineMetricTestData(RiemannianMetricTestData):
     fail_for_not_implemented_errors = False
 
 
-class SPD2AffineMetricTestData(TestData):
+class SPD2AffineMetricTestData(CaseData):
     def exp_test_data(self):
         data = [
             dict(
                 tangent_vec=gs.array([[2.0, 0.0], [0.0, 2.0]]),
                 base_point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
-                expected=gs.array([[EXP_2, 0.0], [0.0, EXP_2]]),
+                expected=gs.array([[math.exp(2.0), 0.0], [0.0, math.exp(2.0)]]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def log_test_data(self):
         data = [
             dict(
                 point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
                 base_point=gs.array([[2.0, 0.0], [0.0, 2.0]]),
-                expected=gs.array([[-2 * LN_2, 0.0], [0.0, -2 * LN_2]]),
+                expected=gs.array(
+                    [[-2 * math.log(2.0), 0.0], [0.0, -2 * math.log(2.0)]]
+                ),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class SPD3AffineMetricPower05TestData(TestData):
+class SPD3AffineMetricPower05TestData(CaseData):
     def inner_product_test_data(self):
         data = [
             dict(
@@ -309,15 +301,10 @@ class SPD3AffineMetricPower05TestData(TestData):
                 expected=gs.array(713 / 144),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class SPDBuresWassersteinMetricTestData(RiemannianMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-
-class SPD2BuresWassersteinMetricTestData(TestData):
+class SPD2BuresWassersteinMetricTestData(CaseData):
     def exp_test_data(self):
         data = [
             dict(
@@ -326,7 +313,7 @@ class SPD2BuresWassersteinMetricTestData(TestData):
                 expected=gs.array([[4.0, 0.0], [0.0, 4.0]]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def log_test_data(self):
         data = [
@@ -336,20 +323,20 @@ class SPD2BuresWassersteinMetricTestData(TestData):
                 expected=gs.array([[2.0, 0.0], [0.0, 2.0]]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def squared_dist_test_data(self):
         data = [
             dict(
                 point_a=gs.array([[1.0, 0.0], [0.0, 1.0]]),
                 point_b=gs.array([[2.0, 0.0], [0.0, 2.0]]),
-                expected=gs.array(2 + 4 - (2 * 2 * SQRT_2)),
+                expected=gs.array(2 + 4 - (2 * 2 * math.sqrt(2.0))),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class SPD3BuresWassersteinMetricTestData(TestData):
+class SPD3BuresWassersteinMetricTestData(CaseData):
     def inner_product_test_data(self):
         data = [
             dict(
@@ -365,18 +352,14 @@ class SPD3BuresWassersteinMetricTestData(TestData):
                 expected=gs.array(4.0),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class SPDEuclideanMetricTestData(MatricesMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-    def exp_domain_vec_test_data(self):
-        return self.generate_vec_data()
+class SPDEuclideanMetricTestData(ExpDomainMixinsTestData, MatricesMetricTestData):
+    pass
 
 
-class SPD2EuclideanMetricTestData(TestData):
+class SPD2EuclideanMetricTestData(CaseData):
     def exp_test_data(self):
         data = [
             dict(
@@ -385,7 +368,7 @@ class SPD2EuclideanMetricTestData(TestData):
                 expected=gs.array([[3.0, 0.0], [0.0, 3.0]]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def log_test_data(self):
         data = [
@@ -395,7 +378,7 @@ class SPD2EuclideanMetricTestData(TestData):
                 expected=gs.array([[1.0, 0.0], [0.0, 1.0]]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def parallel_transport_test_data(self):
         smoke_data = [
@@ -406,10 +389,10 @@ class SPD2EuclideanMetricTestData(TestData):
                 expected=gs.array([[2.0, 0.0], [0.0, 2.0]]),
             )
         ]
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
 
-class SPD3EuclideanMetricTestData(TestData):
+class SPD3EuclideanMetricTestData(CaseData):
     def exp_domain_test_data(self):
         data = [
             dict(
@@ -422,10 +405,10 @@ class SPD3EuclideanMetricTestData(TestData):
                 expected=gs.array([-3.0, 1.0]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class SPD3EuclideanMetricPower05TestData(TestData):
+class SPD3EuclideanMetricPower05TestData(CaseData):
     def inner_product_test_data(self):
         data = [
             dict(
@@ -441,47 +424,42 @@ class SPD3EuclideanMetricPower05TestData(TestData):
                 expected=gs.array(3472 / 576),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class SPDLogEuclideanMetricTestData(PullbackDiffeoMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-
-class SPD2LogEuclideanMetricTestData(TestData):
+class SPD2LogEuclideanMetricTestData(CaseData):
     def exp_test_data(self):
         data = [
             dict(
                 tangent_vec=gs.array([[2.0, 0.0], [0.0, 2.0]]),
                 base_point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
-                expected=gs.array([[EXP_2, 0.0], [0.0, EXP_2]]),
+                expected=gs.array([[math.exp(2.0), 0.0], [0.0, math.exp(2.0)]]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def log_test_data(self):
         data = [
             dict(
                 point=gs.array([[2.0, 0.0], [0.0, 2.0]]),
                 base_point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
-                expected=gs.array([[LN_2, 0.0], [0.0, LN_2]]),
+                expected=gs.array([[math.log(2.0), 0.0], [0.0, math.log(2.0)]]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def dist_test_data(self):
         data = [
             dict(
                 point_a=gs.array([[1.0, 0.0], [0.0, 1.0]]),
-                point_b=gs.array([[EXP_1, 0.0], [0.0, EXP_1]]),
-                expected=gs.array(SQRT_2),
+                point_b=gs.array([[math.exp(1.0), 0.0], [0.0, math.exp(1.0)]]),
+                expected=gs.array(math.sqrt(2.0)),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class SPD3LogEuclideanMetricTestData(TestData):
+class SPD3LogEuclideanMetricTestData(CaseData):
     def inner_product_test_data(self):
         data = [
             dict(
@@ -494,13 +472,7 @@ class SPD3LogEuclideanMetricTestData(TestData):
                 base_point=gs.array(
                     [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]]
                 ),
-                expected=gs.array(5.0 + (4.0 * ((2 * LN_2) ** 2))),
+                expected=gs.array(5.0 + (4.0 * ((2 * math.log(2.0)) ** 2))),
             )
         ]
-        return self.generate_tests(data)
-
-
-class LieCholeskyMetricTestData(PullbackDiffeoMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-    skip_vec = True
+        return data

@@ -18,7 +18,6 @@ from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.poincare_half_space import PoincareHalfSpaceTestCase
 from geomstats.test_cases.geometry.product_manifold import ProductManifoldTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
-from geomstats.test_cases.geometry.spd_matrices import SPDMatricesTestCase
 from geomstats.test_cases.information_geometry.base import (
     InformationManifoldMixinTestCase,
 )
@@ -83,7 +82,7 @@ def centered_spaces(request):
 @pytest.mark.usefixtures("centered_spaces")
 class TestCenteredNormalDistributions(
     InformationManifoldMixinTestCase,
-    SPDMatricesTestCase,
+    VectorSpaceOpenSetTestCase,
     metaclass=DataBasedParametrizer,
 ):
     testing_data = CenteredNormalDistributionsTestData()
