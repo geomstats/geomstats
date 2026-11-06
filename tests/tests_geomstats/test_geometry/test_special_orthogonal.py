@@ -86,3 +86,14 @@ class TestSpecialOrthogonal3VectorsSmoke(
 ):
     space = SpecialOrthogonal(3, point_type="vector", equip=True)
     testing_data = SpecialOrthogonal3VectorsSmokeTestData()
+
+
+def test_so2_vectors_exp_log_default_to_identity():
+    import geomstats.backend as gs
+
+    space = SpecialOrthogonal(2, point_type="vector")
+    tangent_vec = gs.array([[0.3], [-1.2]])
+    point = space.exp(tangent_vec)
+    assert gs.allclose(point, space.exp(tangent_vec, space.identity))
+    assert gs.allclose(space.log(point), space.log(point, space.identity))
+    assert gs.allclose(space.log(point), tangent_vec)
