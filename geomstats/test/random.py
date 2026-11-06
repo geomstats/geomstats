@@ -3,6 +3,8 @@ from functools import singledispatch
 import geomstats.backend as gs
 from geomstats.geometry.base import (
     ComplexMatrixVectorSpace,
+    ComplexVectorSpace,
+    ComplexVectorSpaceOpenSet,
     DiffeomorphicManifold,
     DiffeomorphicMatrixVectorSpace,
     DiffeomorphicVectorSpace,
@@ -11,6 +13,7 @@ from geomstats.geometry.base import (
     OpenSet,
     VectorSpace,
 )
+from geomstats.geometry.complex_manifold import ComplexManifold
 from geomstats.geometry.diffeo import ReversedDiffeo
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import SquareMatrices
@@ -163,22 +166,26 @@ def get_data_generator(space, **kwargs):
 
 
 @get_data_generator.register(Manifold)
+@get_data_generator.register(ComplexManifold)
 def _(space, **kwargs):
     return RandomDataGenerator(space, **kwargs)
 
 
 @get_data_generator.register(VectorSpace)
+@get_data_generator.register(ComplexVectorSpace)
 def _(space, **kwargs):
     return VectorSpaceRandomDataGenerator(space, **kwargs)
 
 
 @get_data_generator.register(MatrixVectorSpace)
+@get_data_generator.register(ComplexMatrixVectorSpace)
 def _(space, **kwargs):
     return MatrixVectorSpaceRandomDataGenerator(space, **kwargs)
 
 
 @get_data_generator.register(LevelSet)
 @get_data_generator.register(OpenSet)
+@get_data_generator.register(ComplexVectorSpaceOpenSet)
 def _(space, **kwargs):
     return EmbeddedSpaceRandomDataGenerator(space, **kwargs)
 

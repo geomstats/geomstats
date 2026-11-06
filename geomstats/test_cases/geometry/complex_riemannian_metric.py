@@ -1,17 +1,24 @@
-import pytest
-
 import geomstats.backend as gs
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
 class ComplexRiemannianMetricTestCase(RiemannianMetricTestCase):
-    @pytest.mark.random
-    def test_inner_product_is_symmetric(self, n_points, atol):
-        """Check that the inner product is Hermitian."""
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+    def test_inner_product_is_symmetric(
+        self, tangent_vec_a, tangent_vec_b, base_point, atol=gs.atol
+    ):
+        """Check inner product is Hermitian.
 
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
         inner_product_ab = self.space.metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point
         )
@@ -20,37 +27,56 @@ class ComplexRiemannianMetricTestCase(RiemannianMetricTestCase):
         )
         self.assertAllClose(inner_product_ab, gs.conj(inner_product_ba), atol=atol)
 
-    @pytest.mark.type
-    def test_inner_product_is_complex(self, n_points):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+    def test_inner_product_is_complex(self, tangent_vec_a, tangent_vec_b, base_point):
+        """Check inner product is complex.
 
-        result = self.space.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-        self.assertTrue(gs.is_complex(result))
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        """
+        res = self.space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        self.assertTrue(gs.is_complex(res))
 
-    @pytest.mark.type
-    def test_dist_is_real(self, n_points):
-        point_a = self.data_generator.random_point(n_points)
-        point_b = self.data_generator.random_point(n_points)
+    def test_dist_is_real(self, point_a, point_b):
+        """Check distance is real.
 
-        result = self.space.metric.dist(point_a, point_b)
-        self.assertTrue(not gs.is_complex(result))
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        point_b : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        """
+        res = self.space.metric.dist(point_a, point_b)
+        self.assertTrue(not gs.is_complex(res))
 
-    @pytest.mark.type
-    def test_log_is_complex(self, n_points):
-        base_point = self.data_generator.random_point(n_points)
-        point = self.data_generator.random_point(n_points)
+    def test_log_is_complex(self, point, base_point):
+        """Check logarithm is complex.
 
-        result = self.space.metric.log(point, base_point)
-        self.assertTrue(gs.is_complex(result))
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        """
+        res = self.space.metric.log(point, base_point)
+        self.assertTrue(gs.is_complex(res))
 
-    @pytest.mark.type
-    def test_exp_is_complex(self, n_points):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+    def test_exp_is_complex(self, tangent_vec, base_point):
+        """Check exponential is complex.
 
-        result = self.space.metric.exp(tangent_vec, base_point)
-        self.assertTrue(gs.is_complex(result))
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        """
+        res = self.space.metric.exp(tangent_vec, base_point)
+        self.assertTrue(gs.is_complex(res))
