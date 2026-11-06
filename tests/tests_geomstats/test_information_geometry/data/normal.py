@@ -4,11 +4,8 @@ from ...test_geometry.data.product_manifold import (
     ProductManifoldTestData,
     ProductRiemannianMetricTestData,
 )
-from ...test_geometry.data.riemannian_metric import (
-    CoordinateRiemannianMetricTestData,
-    RiemannianMetricTestData,
-)
-from ...test_geometry.data.spd_matrices import SPDMatricesTestData
+from ...test_geometry.data.pullback_metric import PullbackDiffeoMetricTestData
+from ...test_geometry.data.riemannian_metric import RiemannianMetricTestData
 from .base import InformationManifoldMixinTestData
 
 
@@ -21,7 +18,7 @@ class UnivariateNormalDistributionsTestData(
         return self.generate_random_data_with_samples()
 
 
-class UnivariateNormalMetricTestData(CoordinateRiemannianMetricTestData):
+class UnivariateNormalMetricTestData(PullbackDiffeoMetricTestData):
     trials = 4
 
     fail_for_autodiff_exceptions = False
@@ -35,7 +32,7 @@ class UnivariateNormalMetricTestData(CoordinateRiemannianMetricTestData):
 
 
 class CenteredNormalDistributionsTestData(
-    InformationManifoldMixinTestData, SPDMatricesTestData
+    InformationManifoldMixinTestData, VectorSpaceOpenSetTestData
 ):
     fail_for_not_implemented_errors = False
 

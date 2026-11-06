@@ -23,6 +23,14 @@ class GroupExpMixinsTestData:
         )
 
 
+class ExpDomainMixinsTestData:
+    def exp_domain_vec_test_data(self):
+        return self.generate_vectorization_data(
+            arg_names=("base_point", "tangent_vec"),
+            on_metric=True,
+        )
+
+
 class DistMixinsTestData:
     def squared_dist_vec_test_data(self):
         return self.generate_vectorization_data(
