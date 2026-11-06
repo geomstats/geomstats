@@ -1,25 +1,26 @@
 import random
 
+from polpo.testing.parametrizers import GeometricDataBasedParametrizer
+
 from geomstats.geometry.poincare_polydisk import PoincarePolydisk
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.nfold_manifold import (
-    NFoldManifoldTestCase,
-    NFoldMetricTestCase,
-)
+from geomstats.test_cases.geometry.nfold_manifold import NFoldManifoldTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
-from .data.poincare_polydisk import (
-    PoincarePolydiskMetricTestData,
-    PoincarePolydiskTestData,
-)
+from .data.nfold_manifold import NFoldManifoldTestData
+from .data.riemannian_metric import RiemannianMetricTestData
 
 
-class TestPoincarePolydisk(NFoldManifoldTestCase, metaclass=DataBasedParametrizer):
-    n_disks = random.randint(2, 4)
-    space = PoincarePolydisk(n_disks=n_disks, equip=False)
-    testing_data = PoincarePolydiskTestData()
+class TestPoincarePolydisk(
+    NFoldManifoldTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = PoincarePolydisk(n_disks=random.randint(2, 4), equip=False)
+    testing_data = NFoldManifoldTestData(
+        space, method_defaults={"projection_belongs": {"atol": 1e-6}}
+    )
 
 
-class TestPoincarePolydiskMetric(NFoldMetricTestCase, metaclass=DataBasedParametrizer):
-    n_disks = random.randint(2, 4)
-    space = PoincarePolydisk(n_disks=n_disks)
-    testing_data = PoincarePolydiskMetricTestData()
+class TestPoincarePolydiskMetric(
+    RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = PoincarePolydisk(n_disks=random.randint(2, 4))
+    testing_data = RiemannianMetricTestData(space)
