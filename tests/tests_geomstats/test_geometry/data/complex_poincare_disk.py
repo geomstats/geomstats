@@ -14,6 +14,7 @@ SQRT_8 = math.sqrt(8.0)
 
 
 class ComplexPoincareDiskTestData(ComplexVectorSpaceOpenSetTestData):
+    @pytest.mark.smoke
     def belongs_test_data(self):
         data = [
             dict(point=gs.array([0.2 + 0.2j]), expected=gs.array(True)),
@@ -36,8 +37,9 @@ class ComplexPoincareDiskTestData(ComplexVectorSpaceOpenSetTestData):
                 expected=gs.array([[False, False], [False, False]]),
             ),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
+    @pytest.mark.smoke
     def projection_test_data(self):
         data = [
             dict(
@@ -54,49 +56,46 @@ class ComplexPoincareDiskTestData(ComplexVectorSpaceOpenSetTestData):
                 ),
             ),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
 
 class ComplexPoincareDiskMetricTestData(ComplexRiemannianMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
-
-    skips = ("sectional_curvature_vec",)
-
+    @pytest.mark.smoke
     def inner_product_test_data(self):
         data = [
             dict(
                 tangent_vec_a=gs.array([[1j]]),
                 tangent_vec_b=gs.array([[1j]]),
                 base_point=gs.array([[0j]]),
-                expected=gs.array([1.0]),
+                expected=gs.array([1.0 + 0j]),
             ),
             dict(
                 tangent_vec_a=gs.array([[3.0 + 4j]]),
                 tangent_vec_b=gs.array([[3.0 + 4j]]),
-                base_point=gs.array([[0.0]]),
-                expected=gs.array([25.0]),
+                base_point=gs.array([[0j]]),
+                expected=gs.array([25.0 + 0j]),
             ),
             dict(
                 tangent_vec_a=gs.array([[1j], [1j], [1j]]),
                 tangent_vec_b=gs.array([[1j], [2j], [3j]]),
                 base_point=gs.array([[0j], [0j], [0j]]),
-                expected=gs.array([1.0, 2.0, 3.0]),
+                expected=gs.array([1.0 + 0j, 2.0 + 0j, 3.0 + 0j]),
             ),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
+    @pytest.mark.smoke
     def exp_test_data(self):
         data = [
             dict(
                 tangent_vec=gs.array([[2.0 + 0j]]),
                 base_point=gs.array([[0.0 + 0j]]),
-                expected=gs.array([[(EXP_4 - 1) / (EXP_4 + 1)]]),
+                expected=gs.array([[(EXP_4 - 1) / (EXP_4 + 1) + 0j]]),
             ),
             dict(
                 tangent_vec=gs.array([[2.0 + 0j]]),
                 base_point=gs.array([[0.0 + 0j]]),
-                expected=gs.array([[(EXP_4 - 1) / (EXP_4 + 1)]]),
+                expected=gs.array([[(EXP_4 - 1) / (EXP_4 + 1) + 0j]]),
             ),
             dict(
                 tangent_vec=gs.array([[2.0 + 2j]]),
@@ -113,14 +112,15 @@ class ComplexPoincareDiskMetricTestData(ComplexRiemannianMetricTestData):
                 ),
             ),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
+    @pytest.mark.smoke
     def log_test_data(self):
         data = [
             dict(
-                point=gs.array([[0.5]]),
-                base_point=gs.array([[0.0]]),
-                expected=gs.array([[LN_3 / 2]]),
+                point=gs.array([[0.5 + 0j]]),
+                base_point=gs.array([[0j]]),
+                expected=gs.array([[LN_3 / 2 + 0j]]),
             )
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
