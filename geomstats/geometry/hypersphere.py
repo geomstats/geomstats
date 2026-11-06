@@ -471,12 +471,19 @@ class _Hypersphere(LevelSet):
         """Sample with the von Mises-Fisher distribution.
 
         This distribution corresponds to the maximum entropy distribution
-        given a mean. In dimension 2, a closed form expression is available.
+        given a mean. In dimension 1, rejection sampling is used according to
+        [BF79]_. In dimension 2, a closed form expression is available.
         In larger dimension, rejection sampling is used according to [Wood94]_
 
         References
         ----------
         https://en.wikipedia.org/wiki/Von_Mises-Fisher_distribution
+
+        .. [BF79]   Best, D. J. and Fisher, N. I. "Efficient Simulation of
+                    the von Mises Distribution." Journal of the Royal
+                    Statistical Society. Series C (Applied Statistics),
+                    vol. 28, no. 2, pp. 152--157, 1979.
+                    https://doi.org/10.2307/2346732.
 
         .. [W1994]   Wood, Andrew T. A. “Simulation of the von Mises Fisher
                       Distribution.” Communications in Statistics - Simulation
@@ -488,7 +495,10 @@ class _Hypersphere(LevelSet):
         mu : array-like, shape=[dim]
             Mean parameter of the distribution.
         kappa : float
-            Kappa parameter of the von Mises distribution.
+            Kappa parameter of the von Mises distribution. Must be
+            non-negative in dimension 1. The distribution is uniform on the
+            circle for ``kappa == 0``, in which case ``mu`` is not
+            identifiable.
             Optional, default: 10.
         n_samples : int
             Number of samples.
@@ -503,12 +513,24 @@ class _Hypersphere(LevelSet):
         point : array-like, shape=[n_samples, dim + 1]
             Points sampled on the sphere in extrinsic coordinates
             in Euclidean space of dimension dim + 1.
+
+        Raises
+        ------
+        ValueError
+            If ``kappa`` is negative, if ``n_samples`` is not positive, or if
+            no sample is accepted within ``max_iter`` trials in dimension 1.
         """
         dim = self.dim
         if dim == 1:
-            raise NotImplementedError("Not implemented for dim == 1")
+            if kappa < 0.0:
+                raise ValueError(f"kappa must be non-negative, got {kappa}.")
+            if n_samples < 1:
+                raise ValueError(
+                    f"n_samples must be a positive integer, got {n_samples}."
+                )
+            sample = self._sample_von_mises_circle(kappa, n_samples, max_iter)
 
-        if dim == 2:
+        elif dim == 2:
             angle = 2.0 * gs.pi * gs.random.rand(n_samples)
             angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
             unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
@@ -559,6 +581,84 @@ class _Hypersphere(LevelSet):
             sample = utils.rotate_points(sample, mu)
 
         return sample if (n_samples > 1) else sample[0]
+
+    def _sample_von_mises_circle(self, kappa, n_samples, max_iter):
+        """Sample from the von Mises distribution on the circle.
+
+        Rejection sampling following [BF79]_. This is the ``dim == 1`` case of
+        `random_von_mises_fisher`, kept separate because the generic sampler
+        for ``dim >= 3`` builds a ``_Hypersphere(dim - 1)`` and does not apply.
+
+        Parameters
+        ----------
+        kappa : float
+            Concentration parameter. Must be non-negative.
+        n_samples : int
+            Number of samples. Must be positive.
+        max_iter : int
+            Maximum number of rejection rounds.
+
+        Returns
+        -------
+        sample : array-like, shape=[n_samples, 2]
+            Points on the circle in extrinsic coordinates.
+
+        Raises
+        ------
+        ValueError
+            If no sample is accepted within ``max_iter`` rounds.
+        """
+        if kappa == 0.0:
+            # The distribution is uniform on the circle: no rejection is
+            # needed and the mean direction is not identifiable.
+            theta = 2.0 * gs.pi * gs.random.rand(n_samples)
+            return self.angle_to_extrinsic(theta[..., None])
+
+        tau = 1.0 + gs.sqrt(1.0 + 4.0 * kappa**2)
+        # Rationalized form of (tau - sqrt(2 * tau)) / (2 * kappa). The latter
+        # suffers from catastrophic cancellation when kappa is small: it
+        # returns exactly 0 for kappa ~ 1e-8, which makes the rejection
+        # sampler reject every candidate.
+        rho = 2.0 * kappa / (tau + gs.sqrt(2.0 * tau))
+        ratio = (1.0 + rho**2) / (2.0 * rho)
+
+        n_accepted, n_iter = 0, 0
+        result = []
+        while (n_accepted < n_samples) and (n_iter < max_iter):
+            n_candidates = n_samples - n_accepted
+            z_samples = gs.cos(gs.pi * gs.random.rand(n_candidates))
+            f_samples = (1.0 + ratio * z_samples) / (ratio + z_samples)
+            c_samples = kappa * (ratio - f_samples)
+            u_2 = gs.random.rand(n_candidates)
+            # Best & Fisher acceptance: accept when u_2 < c (2 - c), and
+            # otherwise when log(u_2) <= 1 - c + log(c). Both are evaluated
+            # because the test is vectorized; in the scalar algorithm of
+            # [BF79]_ the first branch is the cheap short-circuit that avoids
+            # evaluating the logarithm.
+            accept = gs.logical_or(
+                c_samples * (2.0 - c_samples) > u_2,
+                gs.log(u_2) <= 1.0 - c_samples + gs.log(c_samples),
+            )
+            # f_samples is in [-1, 1] in exact arithmetic; a rounding artefact
+            # could in principle push it outside the domain, where arccos
+            # would return nan and poison the batch.
+            theta = gs.sign(gs.random.rand(n_candidates) - 0.5) * gs.arccos(
+                gs.clip(f_samples, -1.0, 1.0)
+            )
+            result.append(self.angle_to_extrinsic(theta[accept][..., None]))
+            n_accepted += int(gs.sum(accept))
+            n_iter += 1
+
+        if n_accepted == 0:
+            raise ValueError(
+                "No sample was accepted within max_iter trials. Increase max_iter."
+            )
+        if n_accepted < n_samples:
+            logging.warning(
+                "Maximum number of iteration reached in rejection "
+                "sampling before n_samples were accepted."
+            )
+        return gs.concatenate(result)
 
     def random_riemannian_normal(
         self, mean=None, precision=None, n_samples=1, max_iter=100

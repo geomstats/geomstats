@@ -379,12 +379,9 @@ class HypersphereExtrinsicTestCase(LevelSetTestCase):
 
         kappa = self._get_random_kappa()
 
-        try:
-            point = self.space.random_von_mises_fisher(
-                n_samples=n_samples, mu=mu, kappa=kappa, max_iter=max_iter
-            )
-        except NotImplementedError:
-            return
+        point = self.space.random_von_mises_fisher(
+            n_samples=n_samples, mu=mu, kappa=kappa, max_iter=max_iter
+        )
 
         sum_point = gs.sum(point, axis=0)
         res = sum_point / gs.linalg.norm(sum_point)
@@ -399,12 +396,9 @@ class HypersphereExtrinsicTestCase(LevelSetTestCase):
     ):
         kappa = 1.0
 
-        try:
-            X = self.space.random_von_mises_fisher(
-                n_samples=n_samples, kappa=kappa, max_iter=max_iter
-            )
-        except NotImplementedError:
-            return
+        X = self.space.random_von_mises_fisher(
+            n_samples=n_samples, kappa=kappa, max_iter=max_iter
+        )
 
         kappa_estimate = _estimate_von_mises_kappa(X, n_steps=100)
         self.assertAllClose(kappa_estimate, gs.array(kappa), atol=atol)
@@ -416,12 +410,9 @@ class HypersphereExtrinsicTestCase(LevelSetTestCase):
         mu = self.space.random_point() if random_mu else None
         kappa = self._get_random_kappa()
 
-        try:
-            point = self.space.random_von_mises_fisher(
-                n_samples=n_points, mu=mu, kappa=kappa, max_iter=max_iter
-            )
-        except NotImplementedError:
-            return
+        point = self.space.random_von_mises_fisher(
+            n_samples=n_points, mu=mu, kappa=kappa, max_iter=max_iter
+        )
 
         expected = gs.ones(n_points, dtype=bool)
         self.test_belongs(point, expected, atol)
@@ -431,12 +422,9 @@ class HypersphereExtrinsicTestCase(LevelSetTestCase):
         mu = self.space.random_point() if random_mu else None
         kappa = self._get_random_kappa()
 
-        try:
-            point = self.space.random_von_mises_fisher(
-                n_samples=n_points, mu=mu, kappa=kappa, max_iter=max_iter
-            )
-        except NotImplementedError:
-            return
+        point = self.space.random_von_mises_fisher(
+            n_samples=n_points, mu=mu, kappa=kappa, max_iter=max_iter
+        )
 
         expected_ndim = self.space.point_ndim + int(n_points > 1)
         self.assertEqual(gs.ndim(point), expected_ndim)
