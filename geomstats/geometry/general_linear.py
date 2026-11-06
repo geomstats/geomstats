@@ -170,6 +170,7 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
         is_vec = gs.ndim(tangent_vec) > 2
 
         def path(time):
+            time = gs.to_ndarray(time, to_ndim=1, dtype=tangent_vec.dtype)
             vecs = gs.einsum("t,...ij->...tij", time, tangent_vec)
             if is_vec and base_point is None:
                 return gs.stack([cls.exp(vecs_) for vecs_ in vecs])
