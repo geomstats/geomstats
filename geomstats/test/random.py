@@ -31,6 +31,7 @@ from geomstats.geometry.lower_triangular_matrices import (
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.positive_reals import PositiveReals
+from geomstats.geometry.siegel import Siegel
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.symmetric_matrices import (
@@ -210,6 +211,11 @@ def _(space, **kwargs):
     return EmbeddedSpaceRandomDataGenerator(space, **kwargs)
 
 
+@get_data_generator.register(Siegel)
+def _(space, **kwargs):
+    return SiegelRandomDataGenerator(space, **kwargs)
+
+
 @get_data_generator.register(PositiveReals)
 def _(space, **kwargs):
     return PositiveRealsRandomDataGenerator(space, **kwargs)
@@ -262,6 +268,24 @@ class EmbeddedSpaceRandomDataGenerator(RandomDataGenerator):
         return self.space.projection(
             base_point + self.near_scale * self.random_tangent_vec(base_point)
         )
+
+
+class SiegelRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
+    def random_tangent_vec_at_zero(self, n_points=1):
+        """Sample tangent vectors at the zero matrix.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of tangent vectors.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vectors at zero.
+        """
+        zero = gs.zeros(self.space.shape, dtype=gs.get_default_cdtype())
+        return self.random_tangent_vec(repeat_point(zero, n_points))
 
 
 class PositiveRealsRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
