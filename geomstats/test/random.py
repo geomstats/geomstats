@@ -645,3 +645,28 @@ class ComplexMatrixOperationsRandomDataGenerator(MatrixOperationsRandomDataGener
         return ComplexMatrices.to_skew_hermitian(
             self.random_square_mat(n_points, shape=shape)
         )
+
+
+class GroupActionRandomDataGenerator:
+    """Random data generator for a group action.
+
+    Samples points with the data generator registered for `space`, and group
+    elements with `group.random_point`.
+
+    Parameters
+    ----------
+    space : Manifold
+        Space the group acts on.
+    group : object
+        Group acting on `space`. Must implement `random_point`.
+    """
+
+    def __init__(self, space, group, **kwargs):
+        self.space_data_generator = get_data_generator(space, **kwargs)
+        self.group = group
+
+    def random_point(self, n_points=1):
+        return self.space_data_generator.random_point(n_points)
+
+    def random_group_elem(self, n_points=1):
+        return self.group.random_point(n_points)
