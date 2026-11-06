@@ -29,12 +29,15 @@ References
     https://epubs.siam.org/doi/pdf/10.1137/15M102112X
 """
 
+import math
+
 import geomstats.backend as gs
 from geomstats.geometry.base import ComplexVectorSpaceOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian_matrices import expmh, powermh
 from geomstats.geometry.matrices import Matrices
+from geomstats.vectorization import repeat_out
 
 
 class Siegel(ComplexVectorSpaceOpenSet):
@@ -581,3 +584,21 @@ class SiegelMetric(ComplexRiemannianMetric):
                 tangent_vec_b, base_point
             )
         return self.sectional_curvature_at_zero(tangent_vec_a, tangent_vec_b, atol=atol)
+
+    def injectivity_radius(self, base_point=None):
+        """Compute the radius of the injectivity domain.
+
+        The Siegel disk is a Hadamard manifold, so it is infinite everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        radius = gs.array(math.inf)
+        return repeat_out(self._space.point_ndim, radius, base_point)
