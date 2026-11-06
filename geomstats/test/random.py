@@ -30,6 +30,7 @@ from geomstats.geometry.lower_triangular_matrices import (
 )
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.nfold_manifold import NFoldManifold
 from geomstats.geometry.positive_reals import PositiveReals
 from geomstats.geometry.siegel import Siegel
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
@@ -231,6 +232,11 @@ def _(space, **kwargs):
 @get_data_generator.register(FullRankCorrelationMatrices)
 def _(space, **kwargs):
     return FullRankCorrelationMatricesRandomDataGenerator(space, **kwargs)
+
+
+@get_data_generator.register(NFoldManifold)
+def _(space, **kwargs):
+    return NFoldManifoldRandomDataGenerator(space, **kwargs)
 
 
 @get_data_generator.register(DiffeomorphicManifold)

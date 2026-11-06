@@ -1,20 +1,17 @@
+from polpo.testing.data import CaseData
+from polpo.testing.geometric import GeometricCaseData
+
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 from .manifold import ManifoldTestData
 from .mixins import ProjectionMixinsTestData
-from .riemannian_metric import RiemannianMetricTestData
 
 
 class NFoldManifoldTestData(ProjectionMixinsTestData, ManifoldTestData):
     pass
 
 
-class NFoldMetricTestData(RiemannianMetricTestData):
-    pass
-
-
-class NFoldManifoldSOTestData(TestData):
+class NFoldManifoldSOTestData(CaseData):
     def belongs_test_data(self):
         data = [
             dict(
@@ -26,9 +23,11 @@ class NFoldManifoldSOTestData(TestData):
                 expected=gs.array(True),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class NFoldMetricScalesTestData(TestData):
+class NFoldMetricScalesTestData(GeometricCaseData):
     def inner_product_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(
+            arg_names=("base_point", "tangent_vec_a", "tangent_vec_b")
+        )
