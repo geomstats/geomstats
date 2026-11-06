@@ -107,6 +107,7 @@ BACKEND_ATTRIBUTES = {
         "logical_or",
         "mat_from_diag_triu_tril",
         "matmul",
+        "matmul_diagonal",
         "matvec",
         "maximum",
         "mean",
