@@ -1,7 +1,6 @@
-import random
+from polpo.testing.data import CaseData
 
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 from .base import VectorSpaceOpenSetTestData
 from .lie_group import MatrixLieGroupTestData
@@ -9,27 +8,37 @@ from .matrices import MatricesMetricTestData
 
 
 class GeneralLinearTestData(MatrixLieGroupTestData, VectorSpaceOpenSetTestData):
-    trials = 3
-    xfails = ("exp_after_log", "log_after_exp")
+    def __init__(self, space=None, **kwargs):
+        super().__init__(space, **kwargs)
+
+        # the matrix logarithm is not defined everywhere on GL(n)
+        xfails = set(self.method_marks.get("xfail", ())) | {
+            "exp_after_log",
+            "log_after_exp",
+        }
+        self.method_marks = {**self.method_marks, "xfail": xfails}
 
     def orbit_vec_test_data(self):
-        n_times = random.sample(range(1, 5), 1)
-        data = [dict(n_reps=n_reps, n_times=n_times) for n_reps in self.N_VEC_REPS]
-        return self.generate_tests(data)
+        return self.generate_timed_vectorization_data(
+            arg_names=("point", "base_point"),
+            op_name="orbit",
+        )
 
 
 class GeneralLinearMatricesMetricTestData(MatricesMetricTestData):
-    trials = 3
-    fail_for_not_implemented_errors = False
-    tolerances = {
-        "exp_belongs": {"atol": 1e-4},
-        "geodesic_bvp_belongs": {"atol": 1e-4},
-        "geodesic_ivp_belongs": {"atol": 1e-4},
-    }
-    xfails = tuple(tolerances.keys())
+    def __init__(self, space=None, **kwargs):
+        super().__init__(space, **kwargs)
+
+        # straight lines may leave GL(n)
+        xfails = set(self.method_marks.get("xfail", ())) | {
+            "exp_belongs",
+            "geodesic_bvp_belongs",
+            "geodesic_ivp_belongs",
+        }
+        self.method_marks = {**self.method_marks, "xfail": xfails}
 
 
-class GeneralLinear2TestData(TestData):
+class GeneralLinear2TestData(CaseData):
     def compose_test_data(self):
         data = [
             dict(
@@ -38,7 +47,7 @@ class GeneralLinear2TestData(TestData):
                 expected=2.0 * gs.eye(2),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def orbit_test_data(self):
         point = gs.array([[gs.exp(4.0), 0.0], [0.0, gs.exp(2.0)]])
@@ -64,10 +73,10 @@ class GeneralLinear2TestData(TestData):
                 ),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class GeneralLinear3TestData(TestData):
+class GeneralLinear3TestData(CaseData):
     def belongs_test_data(self):
         data = [
             dict(point=gs.eye(3), expected=True),
@@ -78,7 +87,7 @@ class GeneralLinear3TestData(TestData):
                 expected=[True, False],
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def inverse_test_data(self):
         mat_a = [[0.0, 1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]]
@@ -98,7 +107,7 @@ class GeneralLinear3TestData(TestData):
                 expected=gs.array([mat_a, -gs.eye(3, 3)]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def exp_test_data(self):
         data = [
@@ -126,7 +135,7 @@ class GeneralLinear3TestData(TestData):
                 ),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def log_test_data(self):
         data = [
@@ -154,14 +163,14 @@ class GeneralLinear3TestData(TestData):
                 ),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class SquareMatrices3TestData(TestData):
+class SquareMatrices3TestData(CaseData):
     def belongs_test_data(self):
         data = [
             dict(point=gs.eye(3), expected=gs.array(True)),
             dict(point=gs.ones((3, 3)), expected=gs.array(True)),
             dict(point=gs.ones(3), expected=gs.array(False)),
         ]
-        return self.generate_tests(data)
+        return data
