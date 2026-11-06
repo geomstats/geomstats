@@ -36,6 +36,7 @@ from geomstats.geometry.open_hemisphere import (
     OpenHemispheresProduct,
 )
 from geomstats.geometry.positive_reals import PositiveReals
+from geomstats.geometry.rank_k_psd_matrices import RankKPSDMatrices
 from geomstats.geometry.siegel import Siegel
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.spd_matrices import SPDMatrices
@@ -236,6 +237,11 @@ def _(space, **kwargs):
 @get_data_generator.register(FullRankCorrelationMatrices)
 def _(space, **kwargs):
     return FullRankCorrelationMatricesRandomDataGenerator(space, **kwargs)
+
+
+@get_data_generator.register(RankKPSDMatrices)
+def _(space, **kwargs):
+    return RankKPSDMatricesRandomDataGenerator(space, **kwargs)
 
 
 @get_data_generator.register(NFoldManifold)
