@@ -3,6 +3,7 @@
 from scipy.integrate import quad_vec
 
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
@@ -90,14 +91,13 @@ class FisherRaoMetric(RiemannianMetric):
                 pdf_x_derivative_at_base_point,
             ) = gs.autodiff.value_and_grad(pdf_x)(base_point)
 
-            return gs.einsum(
-                "...ij,...->...ij",
+            return scalarmatmul(
+                1 / pdf_x_at_base_point,
                 gs.einsum(
                     "...i,...j->...ij",
                     pdf_x_derivative_at_base_point,
                     pdf_x_derivative_at_base_point,
                 ),
-                1 / pdf_x_at_base_point,
             )
 
         return quad_vec(_function_to_integrate, *self.support)[0]

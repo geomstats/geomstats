@@ -32,6 +32,7 @@ References
 import math
 
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul
 from geomstats.geometry.base import ComplexVectorSpaceOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
@@ -122,7 +123,7 @@ class Siegel(ComplexVectorSpaceOpenSet):
         scalars = gs.where(
             (max_eigenvalues > 1.0 - gs.atol), (1 - atol) / max_eigenvalues, 1.0
         )
-        return gs.einsum("...,...ij->...ij", scalars, point)
+        return scalarmatmul(scalars, point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Generate random points in the Siegel space.
@@ -524,7 +525,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             return _scale(scalars, tangent_vec)
 
         def _scale(scalars, tangent_vec):
-            return gs.einsum("...,...ij->...ij", scalars, tangent_vec)
+            return scalarmatmul(scalars, tangent_vec)
 
         zero = gs.zeros([self._space.n, self._space.n], dtype=tangent_vec_a.dtype)
 

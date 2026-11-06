@@ -9,6 +9,7 @@ import math
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import GeneralLinear
@@ -840,8 +841,8 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         coef_1_ = utils.taylor_exp_even_func(sq_angle, utils.cosc_close_0, order=4)
         coef_2_ = utils.taylor_exp_even_func(sq_angle, utils.var_sinc_close_0, order=4)
 
-        term_1 = gs.einsum("...,...ij->...ij", coef_1_, skew_mat)
-        term_2 = gs.einsum("...,...ij->...ij", coef_2_, sq_skew_mat)
+        term_1 = scalarmatmul(coef_1_, skew_mat)
+        term_2 = scalarmatmul(coef_2_, sq_skew_mat)
         term_id = gs.eye(3)
         transform = term_id + term_1 + term_2
 
@@ -860,7 +861,6 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         Matrix to be applied to the translation part in log
         """
         angle = gs.linalg.norm(rot_vec, axis=-1)
-        angle = gs.to_ndarray(angle, to_ndim=gs.ndim(angle) + 1, axis=-1)
 
         skew_mat = self.rotations.skew.matrix_representation(rot_vec)
         sq_skew_mat = gs.matmul(skew_mat, skew_mat)
@@ -906,8 +906,8 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         psi = 0.5 * angle * gs.sin(angle) / (1 - gs.cos(angle))
         coef_2 += mask_else_float * (1 - psi) / (angle**2)
 
-        term_1 = gs.einsum("...,...j->...j", coef_1, skew_mat)
-        term_2 = gs.einsum("...,...j->...j", coef_2, sq_skew_mat)
+        term_1 = scalarmatmul(coef_1, skew_mat)
+        term_2 = scalarmatmul(coef_2, sq_skew_mat)
         term_id = gs.eye(3)
         transform = term_id + term_1 + term_2
 

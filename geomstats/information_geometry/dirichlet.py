@@ -10,6 +10,7 @@ from scipy.optimize import minimize
 from scipy.stats import dirichlet
 
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
@@ -191,7 +192,7 @@ class DirichletMetric(RiemannianMetric):
         poly_sum = gs.polygamma(1, gs.sum(base_point, axis=-1))
         mat_diag = from_vector_to_diagonal_matrix(gs.polygamma(1, base_point))
 
-        return mat_diag - gs.einsum("...,...jk->...jk", poly_sum, mat_ones)
+        return mat_diag - scalarmatmul(poly_sum, mat_ones)
 
     def christoffels(self, base_point):
         r"""Compute the Christoffel symbols.

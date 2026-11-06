@@ -23,6 +23,7 @@ References
 import math
 
 import geomstats.backend as gs
+from geomstats._einsum import scalarvecmul
 from geomstats.geometry.base import ComplexVectorSpaceOpenSet
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian import Hermitian
@@ -238,8 +239,7 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
             Riemannian logarithm.
         """
         angle = gs.angle(point - base_point) - gs.angle(1 - gs.conj(base_point) * point)
-        return gs.exp(1j * angle) * gs.einsum(
-            "...,...i->...i",
+        return gs.exp(1j * angle) * scalarvecmul(
             self._tau(base_point, point),
             (1 - gs.abs(base_point) ** 2),
         )

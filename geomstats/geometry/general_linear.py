@@ -2,6 +2,7 @@
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import MatrixLieGroup
@@ -60,9 +61,7 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
             Projected point.
         """
         belongs = self.belongs(point)
-        regularization = gs.einsum(
-            "...,ij->...ij", gs.where(~belongs, gs.atol, 0.0), self.identity
-        )
+        regularization = scalarmatmul(gs.where(~belongs, gs.atol, 0.0), self.identity)
         projected = point + regularization
         if self.positive_det:
             det = gs.linalg.det(point)

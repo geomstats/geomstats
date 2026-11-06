@@ -9,6 +9,7 @@ import math
 from scipy.interpolate import CubicSpline
 
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul, scalarvecmul
 from geomstats._logging import warn_max_iterations
 from geomstats._scipygs.interpolate import PchipInterpolator
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
@@ -272,7 +273,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
 
     def normalize(self, point):
         """Rescale discrete curve to have unit length."""
-        return gs.einsum("...ij,...->...ij", point, 1 / self.length(point))
+        return scalarmatmul(1 / self.length(point), point)
 
 
 class SRVTransform(Diffeo):
@@ -367,9 +368,7 @@ class SRVTransform(Diffeo):
 
         dt = 1 / (self.k_sampling_points - 1)
 
-        pointwise_delta_points = gs.einsum(
-            "...,...i->...i", dt * image_point_norm, image_point
-        )
+        pointwise_delta_points = scalarvecmul(dt * image_point_norm, image_point)
 
         return gs.cumsum(pointwise_delta_points, axis=-2)
 
@@ -1795,7 +1794,7 @@ class RotationBundle(FiberBundle):
         mat = gs.matmul(gs.transpose(initial_srv), end_srv)
         u_svd, _, vt_svd = gs.linalg.svd(mat)
         sign = gs.linalg.det(gs.matmul(u_svd, vt_svd))
-        vt_svd[..., -1, :] = gs.einsum("...,...j->...j", sign, vt_svd[..., -1, :])
+        vt_svd[..., -1, :] = scalarvecmul(sign, vt_svd[..., -1, :])
         rotation = gs.matmul(u_svd, vt_svd)
 
         point_aligned = self._rotate(point, rotation)

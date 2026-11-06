@@ -9,6 +9,7 @@ import math
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul, scalarvecmul
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
@@ -47,28 +48,6 @@ def _norm(vec):
     norm : array-like, shape=[...,]
     """
     return gs.linalg.norm(vec, axis=-1)
-
-
-def _scalarvecmul(scalar, vec):
-    """Vectorized scalar vector multiplication.
-
-    Parameters
-    ----------
-    scalar : array-like, shape=[...]
-    vec : array-like, shape=[..., dim]
-    """
-    return gs.einsum("...,...i->...i", scalar, vec)
-
-
-def _scalarmatmul(scalar, mat):
-    """Vectorized scalar matrix multiplication.
-
-    Parameters
-    ----------
-    scalar : array-like, shape=[...]
-    mat : array-like, shape=[n, m]
-    """
-    return gs.einsum("...,ij->...ij", scalar, mat)
 
 
 class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
@@ -147,7 +126,7 @@ class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
         """
         l2_norm = _norm(point)
         if gs.any(l2_norm >= 1 - gs.atol):
-            projected_point = _scalarvecmul(1.0 / l2_norm, point * (1 - gs.atol))
+            projected_point = scalarvecmul(1.0 / l2_norm, point * (1 - gs.atol))
             return -gs.maximum(-projected_point, -point)
 
         return gs.copy(point)
@@ -189,10 +168,10 @@ class PoincareBallMetric(RiemannianMetric):
         norm_tangent_vec_eps = gs.where(
             gs.isclose(norm_tangent_vec, 0.0), EPSILON, norm_tangent_vec
         )
-        direction = _scalarvecmul(1 / norm_tangent_vec_eps, tangent_vec)
+        direction = scalarvecmul(1 / norm_tangent_vec_eps, tangent_vec)
 
         factor = gs.tanh(half_conformal_factor * norm_tangent_vec)
-        return self.mobius_add(base_point, _scalarvecmul(factor, direction))
+        return self.mobius_add(base_point, scalarvecmul(factor, direction))
 
     def log(self, point, base_point):
         r"""Compute Riemannian logarithm of a point wrt a base point.
@@ -227,7 +206,7 @@ class PoincareBallMetric(RiemannianMetric):
         coef = (1 - squared_norm_bp) * utils.taylor_exp_even_func(
             squared_norm_add, utils.arctanh_card_close_0
         )
-        return _scalarvecmul(coef, mobius_addition)
+        return scalarvecmul(coef, mobius_addition)
 
     def mobius_add(self, point_a, point_b, project_first=True):
         r"""Compute the Mobius addition of two points.
@@ -267,9 +246,9 @@ class PoincareBallMetric(RiemannianMetric):
         inner = gs.sum(point_a * point_b, axis=-1)
         squared_norm_a = _squared_norm(point_a)
         squared_norm_b = _squared_norm(point_b)
-        num_1 = _scalarvecmul(1 + 2 * inner + squared_norm_b, point_a)
-        num_2 = _scalarvecmul(1 - squared_norm_a, point_b)
-        result = _scalarvecmul(
+        num_1 = scalarvecmul(1 + 2 * inner + squared_norm_b, point_a)
+        num_2 = scalarvecmul(1 - squared_norm_a, point_b)
+        result = scalarvecmul(
             1.0 / (1 + 2 * inner + squared_norm_b * squared_norm_a),
             num_1 + num_2,
         )
@@ -333,8 +312,8 @@ class PoincareBallMetric(RiemannianMetric):
         denominator = 1 + 2 * inner_ab + squared_norm_a * squared_norm_b
 
         return vector + 2 * (
-            _scalarvecmul(coef_a / denominator, point_a)
-            + _scalarvecmul(coef_b / denominator, point_b)
+            scalarvecmul(coef_a / denominator, point_a)
+            + scalarvecmul(coef_b / denominator, point_b)
         )
 
     def parallel_transport(
@@ -393,7 +372,7 @@ class PoincareBallMetric(RiemannianMetric):
 
         coef = (1 - _squared_norm(end_point)) / (1 - _squared_norm(base_point))
         gyrated_vec = self._gyration(end_point, -base_point, tangent_vec)
-        return _scalarvecmul(coef, gyrated_vec)
+        return scalarvecmul(coef, gyrated_vec)
 
     def squared_dist(self, point_a, point_b):
         """Squared geodesic distance between two points.
@@ -468,7 +447,7 @@ class PoincareBallMetric(RiemannianMetric):
         """
         retraction_factor = ((1 - _squared_norm(base_point)) ** 2) / 4
 
-        return base_point - _scalarvecmul(retraction_factor, tangent_vec)
+        return base_point - scalarvecmul(retraction_factor, tangent_vec)
 
     def metric_matrix(self, base_point=None):
         r"""Compute the inner product matrix.
@@ -496,7 +475,7 @@ class PoincareBallMetric(RiemannianMetric):
         lambda_base = (2 / (1 - _squared_norm(base_point))) ** 2
         identity = gs.eye(self._space.dim, self._space.dim)
 
-        return _scalarmatmul(lambda_base, identity)
+        return scalarmatmul(lambda_base, identity)
 
     def normalization_factor(self, variances):
         """Return normalization factor of the Gaussian distribution.
