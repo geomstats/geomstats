@@ -2,7 +2,6 @@ import geomstats.backend as gs
 from geomstats.geometry.base import ComplexMatrixVectorSpace
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import SquareMatrices
-from geomstats.vectorization import get_n_points
 
 
 def get_random_quaternion(n_points=1):
@@ -96,13 +95,6 @@ class NFoldManifoldRandomDataGenerator(RandomDataGenerator):
 
         shape = (n_points, n_copies) if n_points > 1 else (n_copies,)
         return gs.reshape(point, shape + base.shape)
-
-
-class HypersphereIntrinsicRandomDataGenerator(RandomDataGenerator):
-    def random_tangent_vec(self, base_point):
-        n_points = get_n_points(self.space.point_ndim, base_point)
-        batch_shape = (n_points,) if n_points > 1 else ()
-        return gs.random.uniform(size=batch_shape + (self.space.dim,)) / self.amplitude
 
 
 class RankKPSDMatricesRandomDataGenerator(RandomDataGenerator):
