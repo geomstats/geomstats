@@ -1,8 +1,6 @@
-import geomstats.backend as gs
-from geomstats.test.data import TestData
+from polpo.testing.data import CaseData
 
-from .manifold import ManifoldTestData
-from .riemannian_metric import RiemannianMetricTestData
+import geomstats.backend as gs
 
 
 def gaussian(x, mu, sig):
@@ -15,11 +13,7 @@ def gaussian(x, mu, sig):
     return gs.expand_dims(f_sinf, axis=0)
 
 
-class HilbertSphereTestData(ManifoldTestData):
-    skips = ("not_belongs",)
-
-
-class HilbertSphereSmokeTestData(TestData):
+class HilbertSphereSmokeTestData(CaseData):
     def belongs_test_data(self):
         domain = gs.linspace(0, 1, num=50)
         points = gs.squeeze(
@@ -32,21 +26,4 @@ class HilbertSphereSmokeTestData(TestData):
             dict(point=points, expected=gs.ones(points.shape[0], dtype=bool)),
         ]
 
-        return self.generate_tests(data)
-
-
-class HilbertSphereMetricTestData(RiemannianMetricTestData):
-    trials = 5
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
-
-    skips = (
-        "exp_after_log",
-        "exp_belongs",
-        "geodesic_boundary_points",
-        "geodesic_bvp_belongs",
-        "geodesic_bvp_reverse",
-        "geodesic_ivp_belongs",
-        "log_after_exp",
-        "log_is_tangent",
-    )
+        return data
