@@ -9,6 +9,7 @@ from scipy.stats import multivariate_normal, norm
 
 import geomstats.backend as gs
 import geomstats.errors as errors
+from geomstats._einsum import scalarmatmul, scalarvecmul
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.euclidean import Euclidean
@@ -245,7 +246,7 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
             )
 
             aux = gs.exp(-0.5 * gs.dot(x_, gs.matvec(inv_cov_, x_)))
-            return gs.einsum("...,...i->...i", pdf_normalization, aux)
+            return scalarvecmul(pdf_normalization, aux)
 
         return pdf
 
@@ -445,7 +446,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             )
 
             aux = gs.exp(-0.5 * gs.sum(((x_ - mean_) ** 2) / diagonal_, axis=-1))
-            return gs.einsum("...,...i->...i", pdf_normalization, aux)
+            return scalarvecmul(pdf_normalization, aux)
 
         return pdf
 
@@ -550,7 +551,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
             )
             aux_0 = x_ - mean_
             aux_1 = gs.exp(-0.5 * gs.dot(aux_0, gs.matvec(inv_cov_, aux_0)))
-            return gs.einsum("...,...i->...i", pdf_normalization, aux_1)
+            return scalarvecmul(pdf_normalization, aux_1)
 
         return pdf
 
@@ -675,7 +676,7 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         stds = base_point[..., 1]
         const = 1 / stds**2
         mat = gs.array([[1.0, 0], [0, 2]])
-        return gs.einsum("...,ij->...ij", const, mat)
+        return scalarmatmul(const, mat)
 
     def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the sectional curvature.

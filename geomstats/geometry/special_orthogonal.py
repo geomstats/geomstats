@@ -5,6 +5,7 @@ Lead authors: Nicolas Guigui and Nina Miolane.
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul, scalarvecmul
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import powermh
@@ -377,8 +378,8 @@ class _SpecialOrthogonalVectors(LieGroup):
         diag = utils.from_vector_to_diagonal_matrix(diag) + self.epsilon
 
         aux_mat = Matrices.mul(mat_unitary_u, diag)
-        rot_mat = rot_mat + gs.einsum(
-            "...,...jk->...jk", mask_float, Matrices.mul(aux_mat, mat_unitary_v)
+        rot_mat = rot_mat + scalarmatmul(
+            mask_float, Matrices.mul(aux_mat, mat_unitary_v)
         )
         return rot_mat
 
@@ -761,7 +762,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         # reverse sign if angle was greater than pi
         norm_ratio = gs.where(angle > gs.pi, -norm_ratio, norm_ratio)
-        return gs.einsum("...,...i->...i", norm_ratio, point)
+        return scalarvecmul(norm_ratio, point)
 
     def regularize_tangent_vec_at_identity(self, tangent_vec):
         """Regularize a tangent vector at the identity.
@@ -792,10 +793,10 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         coef = gs.where(
             tangent_vec_canonical_norm == 0.0, 1.0, tangent_vec_metric_norm / norm_eps
         )
-        coef_tangent_vec = gs.einsum("...,...i->...i", coef, tangent_vec)
+        coef_tangent_vec = scalarvecmul(coef, tangent_vec)
 
         regularized_vec = self.regularize(coef_tangent_vec)
-        return gs.einsum("...,...i->...i", 1.0 / coef, regularized_vec)
+        return scalarvecmul(1.0 / coef, regularized_vec)
 
     def regularize_tangent_vec(self, tangent_vec, base_point):
         """Regularize tangent vector at a base point.
@@ -876,9 +877,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         denominator = (
             (1 - angle**2 / 6) * mask_0 + 2 * gs.sin(angle) * mask_else + mask_pi
         )
-        rot_vec_not_pi = gs.einsum(
-            "...,...i->...i", numerator / denominator, rot_vec_not_pi
-        )
+        rot_vec_not_pi = scalarvecmul(numerator / denominator, rot_vec_not_pi)
 
         vector_outer = 0.5 * (gs.eye(3) + rot_mat)
         vector_outer = gs.set_diag(
@@ -896,7 +895,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         signs = gs.sign(selected_line)
         rot_vec_pi = gs.einsum("...,...i,...i->...i", angle, signs, diag_comp)
 
-        rot_vec = rot_vec_not_pi + gs.einsum("...,...i->...i", mask_pi, rot_vec_pi)
+        rot_vec = rot_vec_not_pi + scalarvecmul(mask_pi, rot_vec_pi)
 
         return self.regularize(rot_vec)
 
@@ -921,11 +920,11 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         coef_1 = utils.taylor_exp_even_func(squared_angle, utils.sinc_close_0)
         coef_2 = utils.taylor_exp_even_func(squared_angle, utils.cosc_close_0)
 
-        term_1 = gs.eye(self.dim) + gs.einsum("...,...jk->...jk", coef_1, skew_rot_vec)
+        term_1 = gs.eye(self.dim) + scalarmatmul(coef_1, skew_rot_vec)
 
         squared_skew_rot_vec = Matrices.mul(skew_rot_vec, skew_rot_vec)
 
-        term_2 = gs.einsum("...,...jk->...jk", coef_2, squared_skew_rot_vec)
+        term_2 = scalarmatmul(coef_2, squared_skew_rot_vec)
 
         return term_1 + term_2
 
@@ -968,7 +967,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         )
 
         quaternion = gs.concatenate(
-            (coef_cos[..., None], gs.einsum("...,...i->...i", coef_sinc, rot_vec)),
+            (coef_cos[..., None], scalarvecmul(coef_sinc, rot_vec)),
             axis=-1,
         )
 
@@ -995,7 +994,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             half_angle**2, utils.inv_sinc_close_0
         )
 
-        rot_vec = gs.einsum("...,...i->...i", coef_isinc, quaternion[..., 1:])
+        rot_vec = scalarvecmul(coef_isinc, quaternion[..., 1:])
 
         return self.regularize(rot_vec)
 
@@ -1503,8 +1502,8 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         sign = 1.0 if left else -1.0
 
         return (
-            gs.einsum("...,...ij->...ij", coef_1, gs.eye(self.dim))
-            + gs.einsum("...,...ij->...ij", coef_2, outer_)
+            scalarmatmul(coef_1, gs.eye(self.dim))
+            + scalarmatmul(coef_2, outer_)
             + sign * self.skew.matrix_representation(point) / 2.0
         )
 

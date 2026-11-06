@@ -14,6 +14,7 @@ from scipy.stats import beta
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
+from geomstats._einsum import scalarvecmul
 from geomstats.geometry.base import DiffeomorphicManifold, LevelSet
 from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.euclidean import Euclidean
@@ -23,17 +24,6 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import get_batch_shape, repeat_out
 
 logger = logging.getLogger(__name__)
-
-
-def _scalarvecmul(scalar, vec):
-    """Vectorized scalar vector multiplication.
-
-    Parameters
-    ----------
-    scalar : array-like, shape=[...]
-    vec : array-like, shape=[..., dim]
-    """
-    return gs.einsum("...,...i->...i", scalar, vec)
 
 
 class AngleToExtrinsicDiffeo(Diffeo):
@@ -345,7 +335,7 @@ class Hypersphere(LevelSet):
             Point projected on the hypersphere.
         """
         norm = gs.linalg.norm(point, axis=-1)
-        return _scalarvecmul(1.0 / norm, point)
+        return scalarvecmul(1.0 / norm, point)
 
     def to_tangent(self, vector, base_point):
         """Project a vector to the tangent space.
@@ -370,7 +360,7 @@ class Hypersphere(LevelSet):
         sq_norm = gs.sum(base_point**2, axis=-1)
         inner_prod = self.embedding_space.metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
-        return vector - _scalarvecmul(coef, base_point)
+        return vector - scalarvecmul(coef, base_point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in the hypersphere from the uniform distribution.
@@ -541,7 +531,7 @@ class HypersphereMetric(RiemannianMetric):
 
         coef_1 = utils.taylor_exp_even_func(norm2, utils.cos_close_0, order=4)
         coef_2 = utils.taylor_exp_even_func(norm2, utils.sinc_close_0, order=4)
-        return _scalarvecmul(coef_1, base_point) + _scalarvecmul(
+        return scalarvecmul(coef_1, base_point) + scalarvecmul(
             coef_2, proj_tangent_vec
         )
 
@@ -575,7 +565,7 @@ class HypersphereMetric(RiemannianMetric):
         coef_2_ = utils.taylor_exp_even_func(
             squared_angle, utils.inv_tanc_close_0, order=5
         )
-        return _scalarvecmul(coef_1_, point) - _scalarvecmul(coef_2_, base_point)
+        return scalarvecmul(coef_1_, point) - scalarvecmul(coef_2_, base_point)
 
     def dist(self, point_a, point_b):
         """Compute the geodesic distance between two points.
@@ -659,12 +649,12 @@ class HypersphereMetric(RiemannianMetric):
                 )
         theta = gs.linalg.norm(direction, axis=-1)
         eps = gs.where(theta == 0.0, 1.0, theta)
-        normalized_b = _scalarvecmul(1 / eps, direction)
+        normalized_b = scalarvecmul(1 / eps, direction)
         pb = gs.dot(tangent_vec, normalized_b)
-        p_orth = tangent_vec - _scalarvecmul(pb, normalized_b)
+        p_orth = tangent_vec - scalarvecmul(pb, normalized_b)
         return (
-            -_scalarvecmul(gs.sin(theta) * pb, base_point)
-            + _scalarvecmul(gs.cos(theta) * pb, normalized_b)
+            -scalarvecmul(gs.sin(theta) * pb, base_point)
+            + scalarvecmul(gs.cos(theta) * pb, normalized_b)
             + p_orth
         )
 
@@ -700,8 +690,8 @@ class HypersphereMetric(RiemannianMetric):
 
         inner_ac = self.inner_product(tangent_vec_a, tangent_vec_c)
         inner_bc = self.inner_product(tangent_vec_b, tangent_vec_c)
-        first_term = _scalarvecmul(inner_bc, tangent_vec_a)
-        second_term = _scalarvecmul(inner_ac, tangent_vec_b)
+        first_term = scalarvecmul(inner_bc, tangent_vec_a)
+        second_term = scalarvecmul(inner_ac, tangent_vec_b)
         return first_term - second_term
 
     def _normalization_factor_odd_dim(self, variances):
@@ -1340,7 +1330,7 @@ class HypersphereUniform(Distribution):
 
             samples[mask] = gs.random.normal(size=(num_bad_samples, self.space.dim + 1))
 
-        samples = _scalarvecmul(1 / norms, samples)
+        samples = scalarvecmul(1 / norms, samples)
         if n_samples == 1:
             samples = gs.squeeze(samples, axis=0)
 
@@ -1594,7 +1584,7 @@ class _HypersphereVonMisesFisher(_VonMisesFisherBase):
         coord_rest = HypersphereUniform(Hypersphere(dim - 1, equip=False)).sample(
             n_accepted
         )
-        coord_rest = _scalarvecmul(gs.sqrt(1 - coord_x**2), coord_rest)
+        coord_rest = scalarvecmul(gs.sqrt(1 - coord_x**2), coord_rest)
         sample = gs.concatenate([coord_x[..., None], coord_rest], axis=1)
         return sample
 

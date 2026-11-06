@@ -4,21 +4,11 @@ Lead author: Morten Pedersen.
 """
 
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul
 from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.lie_group import LieGroup
-
-
-def _scalarmatmul(scalar, mat):
-    """Vectorized scalar matrix multiplication.
-
-    Parameters
-    ----------
-    scalar : array-like, shape=[...]
-    mat : array-like, shape=[n, m]
-    """
-    return gs.einsum("...,ij->...ij", scalar, mat)
 
 
 class HeisenbergVectorsToMatrices(Diffeo):
@@ -259,14 +249,14 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         if left:
             return (
                 gs.eye(3)
-                + _scalarmatmul(-point[..., 1] / 2, e31)
-                + _scalarmatmul(point[..., 0] / 2, e32)
+                + scalarmatmul(-point[..., 1] / 2, e31)
+                + scalarmatmul(point[..., 0] / 2, e32)
             )
 
         return (
             gs.eye(3)
-            + _scalarmatmul(point[..., 1] / 2, e31)
-            + _scalarmatmul(-point[..., 0] / 2, e32)
+            + scalarmatmul(point[..., 1] / 2, e31)
+            + scalarmatmul(-point[..., 0] / 2, e32)
         )
 
     def exp_from_identity(self, tangent_vec):
