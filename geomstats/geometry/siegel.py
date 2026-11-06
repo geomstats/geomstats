@@ -1,11 +1,11 @@
 """The Siegel manifold.
 
-The Siegel manifold is a generalization of the Poincare disk to complex matrices
-of singular values strictly lower than one.
+The Siegel manifold is a generalization of the Poincaré disk to complex matrices
+of singular values strictly smaller than one.
 It is defined as the set of complex matrices M such that:
 I - M @ M.conj().T is a positive definite matrix.
 Warning: another more restrictive definition of the Siegel disk also exists
-which add a symmetry condition on the matrices.
+which adds a symmetry condition on the matrices.
 It has been proven in [Cabanes2022]_ that the sub-manifold of symmetric Siegel
 matrices is a totally geodesic sub-manifold of the Siegel space.
 The sub-manifold of real Siegel matrices is also a totally geodesic sub-manifold
@@ -20,11 +20,11 @@ References
     in Poincaré and Siegel disks: application for audio and radar
     clutter classification, PhD thesis, 2022
 .. [Cabanes2021] Yann Cabanes and Frank Nielsen.
-    New theoreticla tools in the Siegel space for vectorial
+    New theoretical tools in the Siegel space for vectorial
     autoregressive data classification,
     Geometric Science of Information, 2021.
     https://franknielsen.github.io/IG/GSI2021-SiegelLogExpClassification.pdf
-.. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
+.. [JV2016] B. Jeuris and R. Vandebril. The Kähler mean of Block-Toeplitz
     matrices with Toeplitz structured blocks, 2016.
     https://epubs.siam.org/doi/pdf/10.1137/15M102112X
 """
@@ -50,7 +50,6 @@ class Siegel(ComplexVectorSpaceOpenSet):
     symmetric : bool
         If symmetric is True, add a symmetry condition
         on the matrices to belong to the Siegel space.
-        Optional, default: False.
     """
 
     def __init__(self, n, symmetric=False, equip=True):
@@ -76,12 +75,11 @@ class Siegel(ComplexVectorSpaceOpenSet):
             Point to be checked.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Boolean denoting if mat belongs to the Siegel space.
+            Boolean denoting if point belongs to the Siegel space.
         """
         point_transconj = ComplexMatrices.transconjugate(point)
         aux = gs.matmul(point, point_transconj)
@@ -102,11 +100,10 @@ class Siegel(ComplexVectorSpaceOpenSet):
             Matrix to project.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
-        projected: array-like, shape=[..., n, n]
+        projected : array-like, shape=[..., n, n]
             Matrix in the Siegel space.
         """
         if self.symmetric:
@@ -127,21 +124,18 @@ class Siegel(ComplexVectorSpaceOpenSet):
         """Generate random points in the Siegel space.
 
         The Siegel space is the set of complex matrices of singular values
-        strictly lower than one.
-        The Frobenius norm of a matrix is greater than or equal to the spectral norm
-        which corresponds to the largest singular value of a matrix.
-        Then, simulating a matrix with Frobenius norm strictly lower than one,
-        its singular values are also strictly lower than one,
-        therefore this matrix belongs to the Siegel disk.
+        strictly smaller than one.
+        The Frobenius norm of a matrix is greater than or equal to its spectral
+        norm, i.e. its largest singular value.
+        Hence, a matrix with Frobenius norm strictly smaller than one has all its
+        singular values strictly smaller than one, and belongs to the Siegel disk.
 
         Parameters
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         bound : float
-            Bound of the interval in which to sample in the tangent space.
-            Optional, default: 1.
+            Bound of the interval in which to sample.
 
         Returns
         -------
@@ -163,10 +157,8 @@ class Siegel(ComplexVectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
-            Optional, default: None.
 
         Returns
         -------
@@ -242,7 +234,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at zero.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
             Point on the Siegel space.
 
@@ -271,7 +263,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point.
+            Tangent vector at zero (null matrix).
 
         Returns
         -------
@@ -297,14 +289,14 @@ class SiegelMetric(ComplexRiemannianMetric):
         """Define an isometry for the Siegel metric.
 
         Isometry for the Siegel metric sending point_to_zero
-        (parameter of the isometry) on zero.
+        (parameter of the isometry) to zero.
 
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
             Point on the Siegel space.
         point_to_zero : array-like, shape=[..., n, n]
-            Point send on zero (null matrix) by the isometry.
+            Point sent to zero (null matrix) by the isometry.
 
         Returns
         -------
@@ -413,7 +405,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         """Compute the Siegel logarithm map.
 
         Compute the Riemannian logarithm at point base_point
-        of point wrt the metric defined in inner_product.
+        of point with respect to the metric defined in inner_product.
         Return a tangent vector at point base_point.
 
         Parameters
@@ -509,7 +501,6 @@ class SiegelMetric(ComplexRiemannianMetric):
             Tangent vector at zero.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -565,10 +556,9 @@ class SiegelMetric(ComplexRiemannianMetric):
         tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
-            Base point. Optional, default is zero
+            Base point.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -587,7 +577,8 @@ class SiegelMetric(ComplexRiemannianMetric):
     def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
-        The Siegel disk is a Hadamard manifold, so it is infinite everywhere.
+        The Siegel disk is a Hadamard manifold, so the injectivity radius is
+        infinite everywhere.
 
         Parameters
         ----------
