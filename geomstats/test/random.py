@@ -31,6 +31,10 @@ from geomstats.geometry.lower_triangular_matrices import (
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.nfold_manifold import NFoldManifold
+from geomstats.geometry.open_hemisphere import (
+    OpenHemisphere,
+    OpenHemispheresProduct,
+)
 from geomstats.geometry.positive_reals import PositiveReals
 from geomstats.geometry.siegel import Siegel
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
@@ -239,6 +243,16 @@ def _(space, **kwargs):
     return NFoldManifoldRandomDataGenerator(space, **kwargs)
 
 
+@get_data_generator.register(OpenHemisphere)
+def _(space, **kwargs):
+    return OpenHemisphereRandomDataGenerator(space, **kwargs)
+
+
+@get_data_generator.register(OpenHemispheresProduct)
+def _(space, **kwargs):
+    return FactorwiseRandomDataGenerator(space, **kwargs)
+
+
 @get_data_generator.register(DiffeomorphicManifold)
 @get_data_generator.register(DiffeomorphicVectorSpace)
 @get_data_generator.register(DiffeomorphicMatrixVectorSpace)
@@ -328,6 +342,79 @@ class NFoldManifoldRandomDataGenerator(RandomDataGenerator):
 
         shape = (n_points, n_copies) if n_points > 1 else (n_copies,)
         return gs.reshape(point, shape + base.shape)
+
+
+class FactorwiseRandomDataGenerator(RandomDataGenerator):
+    """Random data generator sampling each factor of a product manifold.
+
+    Points and tangent vectors are sampled with the data generator of each
+    factor and embedded in the product. Useful when a factor needs its own
+    data generator; otherwise, a product manifold is sampled as any other
+    manifold.
+
+    Parameters
+    ----------
+    space : ProductManifold
+        Space to sample from.
+    amplitude : float
+        Passed to the data generator of each factor.
+    near_scale : float
+        Scale of the tangent vector used by ``random_point_near``.
+    """
+
+    def __init__(self, space, amplitude=2.0, near_scale=0.1):
+        super().__init__(space, amplitude=amplitude, near_scale=near_scale)
+        self.factor_data_generators = [
+            get_data_generator(factor, amplitude=amplitude, near_scale=near_scale)
+            for factor in space.factors
+        ]
+
+    def random_point(self, n_points=1):
+        return self.space.embed_to_product(
+            [
+                data_generator.random_point(n_points)
+                for data_generator in self.factor_data_generators
+            ]
+        )
+
+    def random_tangent_vec(self, base_point):
+        factor_base_points = self.space.project_from_product(base_point)
+        return self.space.embed_to_product(
+            [
+                data_generator.random_tangent_vec(factor_base_point)
+                for data_generator, factor_base_point in zip(
+                    self.factor_data_generators, factor_base_points
+                )
+            ]
+        )
+
+
+class OpenHemisphereRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
+    """Random data generator for the open hemisphere.
+
+    Tangent vectors sampled in the embedding have unbounded length for the
+    pullback metric near the equator (about ``|v| / x_0 ** 2``). If the space
+    is equipped, they are rescaled to a bounded metric norm, so geodesics
+    stay short enough for ``exp`` to be accurate.
+
+    Parameters
+    ----------
+    space : OpenHemisphere
+        Space to sample from.
+    amplitude : float
+        Random tangent vectors have metric norm at most ``1 / amplitude``.
+    near_scale : float
+        Scale of the tangent vector used by ``random_point_near``.
+    """
+
+    def random_tangent_vec(self, base_point):
+        tangent_vec = self.space.random_tangent_vec(base_point)
+        if not hasattr(self.space, "metric"):
+            return tangent_vec / self.amplitude
+
+        norm = self.space.metric.norm(tangent_vec, base_point)
+        radius = gs.random.uniform(size=norm.shape) / self.amplitude
+        return gs.einsum("...,...i->...i", radius / norm, tangent_vec)
 
 
 class RankKPSDMatricesRandomDataGenerator(RandomDataGenerator):
