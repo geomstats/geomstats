@@ -1,9 +1,13 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 from geomstats.geometry.hyperbolic import Hyperbolic, HyperbolicDiffeo
-from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.riemannian_metric import (
     RiemannianMetricComparisonTestCase,
@@ -11,76 +15,112 @@ from geomstats.test_cases.geometry.riemannian_metric import (
 
 from .data.diffeo import DiffeoTestData
 from .data.hyperbolic import ExtrinsicToBall3TestData, HalfSpaceToBall2TestData
-from .data.riemannian_metric import RiemannianMetricCmpWithPointTransformTestData
+from .data.riemannian_metric import RiemannianMetricComparisonTestData
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        (random.randint(2, 5), "ball", "half-space"),
-        (random.randint(2, 5), "ball", "extrinsic"),
-        (random.randint(2, 5), "extrinsic", "half-space"),
-    ],
-)
-def diffeos(request):
-    dim, from_, to = request.param
+def _pulled_back_space(dim, from_, to):
+    """Get a hyperbolic space equipped with the metric of another model.
 
-    request.cls.space = Hyperbolic(dim, from_, equip=False)
-    request.cls.image_space = Hyperbolic(dim, to, equip=False)
+    Parameters
+    ----------
+    dim : int
+        Dimension of the hyperbolic space.
+    from_ : str
+        Coordinates type of the space.
+    to : str
+        Coordinates type of the model whose metric is pulled back.
 
-    request.cls.diffeo = HyperbolicDiffeo(from_, to)
-
-
-@pytest.mark.usefixtures("diffeos")
-class TestHyperbolicDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
-    testing_data = DiffeoTestData()
+    Returns
+    -------
+    space : Manifold
+        Hyperbolic space in `from_` coordinates equipped with the pullback of
+        the metric in `to` coordinates.
+    """
+    return Hyperbolic(dim, from_, equip=False).equip_with_metric(
+        PullbackDiffeoMetric,
+        diffeo=HyperbolicDiffeo(from_, to),
+        image_space=Hyperbolic(dim, to),
+    )
 
 
 @pytest.mark.smoke
 class TestHalfSpaceToBall2(DiffeoTestCase, metaclass=DataBasedParametrizer):
-    _from = "half-space"
-    _to = "ball"
-
-    space = Hyperbolic(2, _from, equip=False)
-    image_space = Hyperbolic(2, _to, equip=False)
-
-    diffeo = HyperbolicDiffeo(_from, _to)
-
+    diffeo = HyperbolicDiffeo("half-space", "ball")
     testing_data = HalfSpaceToBall2TestData()
 
 
 @pytest.mark.smoke
 class TestExtrinsicToBall3(DiffeoTestCase, metaclass=DataBasedParametrizer):
-    _from = "extrinsic"
-    _to = "ball"
-
-    space = Hyperbolic(3, _from, equip=False)
-    image_space = Hyperbolic(3, _to, equip=False)
-
-    diffeo = HyperbolicDiffeo(_from, _to)
-
+    diffeo = HyperbolicDiffeo("extrinsic", "ball")
     testing_data = ExtrinsicToBall3TestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        (random.randint(3, 5), "extrinsic", "ball"),
-        (random.randint(3, 5), "extrinsic", "half-space"),
-        (random.randint(3, 5), "ball", "half-space"),
-    ],
-)
-def cmp_spaces(request):
-    dim, from_, to = request.param
+class TestBallToHalfSpace(DiffeoTestCase, metaclass=GeometricDataBasedParametrizer):
+    _dim = random.randint(2, 5)
+    domain_space = Hyperbolic(_dim, "ball", equip=False)
+    image_space = Hyperbolic(_dim, "half-space", equip=False)
+    diffeo = HyperbolicDiffeo("ball", "half-space")
 
-    request.cls.space = Hyperbolic(dim, from_)
-    request.cls.other_space = Hyperbolic(dim, to)
-
-    request.cls.diffeo = HyperbolicDiffeo(from_, to)
+    testing_data = DiffeoTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+        map_=diffeo,
+    )
 
 
-@pytest.mark.usefixtures("cmp_spaces")
-class TestHyperbolicCmpWithOther(
-    RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
+class TestBallToExtrinsic(DiffeoTestCase, metaclass=GeometricDataBasedParametrizer):
+    _dim = random.randint(2, 5)
+    domain_space = Hyperbolic(_dim, "ball", equip=False)
+    image_space = Hyperbolic(_dim, "extrinsic", equip=False)
+    diffeo = HyperbolicDiffeo("ball", "extrinsic")
+
+    testing_data = DiffeoTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+        map_=diffeo,
+    )
+
+
+class TestExtrinsicToHalfSpace(
+    DiffeoTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = RiemannianMetricCmpWithPointTransformTestData()
+    _dim = random.randint(2, 5)
+    domain_space = Hyperbolic(_dim, "extrinsic", equip=False)
+    image_space = Hyperbolic(_dim, "half-space", equip=False)
+    diffeo = HyperbolicDiffeo("extrinsic", "half-space")
+
+    testing_data = DiffeoTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+        map_=diffeo,
+    )
+
+
+class TestExtrinsicBallMetricCmp(
+    RiemannianMetricComparisonTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    _dim = random.randint(3, 5)
+    space = Hyperbolic(_dim, "extrinsic")
+    other_space = _pulled_back_space(_dim, "extrinsic", "ball")
+
+    testing_data = RiemannianMetricComparisonTestData(space)
+
+
+class TestExtrinsicHalfSpaceMetricCmp(
+    RiemannianMetricComparisonTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    _dim = random.randint(3, 5)
+    space = Hyperbolic(_dim, "extrinsic")
+    other_space = _pulled_back_space(_dim, "extrinsic", "half-space")
+
+    testing_data = RiemannianMetricComparisonTestData(space)
+
+
+class TestBallHalfSpaceMetricCmp(
+    RiemannianMetricComparisonTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    _dim = random.randint(3, 5)
+    space = Hyperbolic(_dim, "ball")
+    other_space = _pulled_back_space(_dim, "ball", "half-space")
+
+    testing_data = RiemannianMetricComparisonTestData(space)
