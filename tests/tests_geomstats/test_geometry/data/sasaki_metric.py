@@ -1,8 +1,9 @@
+from polpo.testing.data import CaseData
+
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 
-class SasakiMetricSphereTestData(TestData):
+class SasakiMetricSphereTestData(CaseData):
     pu0 = gs.array([[0.0, -1.0, 0.0], [1.0, 0.0, 1.0]])
     pu1 = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 1.0]])
     pu2 = gs.array(
@@ -27,7 +28,7 @@ class SasakiMetricSphereTestData(TestData):
                 expected=-0.61685,
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def exp_test_data(self):
         tangent_vec = gs.array(
@@ -43,7 +44,7 @@ class SasakiMetricSphereTestData(TestData):
             )
         ]
 
-        return self.generate_tests(data)
+        return data
 
     def log_test_data(self):
         expected = gs.array(
@@ -57,7 +58,7 @@ class SasakiMetricSphereTestData(TestData):
                 expected=expected,
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def geodesic_discrete_test_data(self):
         expected = gs.array(
@@ -82,4 +83,4 @@ class SasakiMetricSphereTestData(TestData):
                 atol=6e-06,
             )
         ]
-        return self.generate_tests(data)
+        return data
