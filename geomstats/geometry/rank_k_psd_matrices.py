@@ -185,7 +185,7 @@ class RankKPSDMatrices(Manifold):
         """
         vector_sym = Matrices.to_symmetric(vector)
         r, _, _ = gs.linalg.svd(base_point)
-        r_ort = r[..., :, : (self.rank - 1)]
+        r_ort = r[..., :, self.rank :]
         r_ort_t = gs.transpose(r_ort)
         rr = gs.matmul(r_ort, r_ort_t)
         return vector_sym - Matrices.mul(rr, vector_sym, rr)
@@ -228,7 +228,7 @@ class BuresWassersteinBundle(FiberBundle):
     """Class for the quotient structure on PSD matrices."""
 
     def __init__(self, total_space):
-        super().__init__(total_space=total_space, aligner=True)
+        super().__init__(total_space=total_space)
 
     @staticmethod
     def riemannian_submersion(point):
@@ -318,7 +318,7 @@ class BuresWassersteinBundle(FiberBundle):
         aligned : array-like, shape=[..., n, k]
             R.point.
         """
-        return Matrices.align_matrices(point, base_point)
+        return Matrices.align_matrices(point, base_point, flip=False)
 
 
 class PSDBuresWassersteinMetric(QuotientMetric):
