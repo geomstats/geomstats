@@ -147,23 +147,6 @@ class GammaRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
         )
 
 
-class HeisenbergVectorsRandomDataGenerator(VectorSpaceRandomDataGenerator):
-    def random_upper_triangular_matrix(self, n_points=1):
-        if n_points == 1:
-            size = 3
-            expected_shape = (3, 3)
-            indices = [(0, 1), (0, 2), (1, 2)]
-        else:
-            size = n_points * 3
-            expected_shape = (n_points, 3, 3)
-            indices = []
-            for k in range(n_points):
-                indices.extend([(k, 0, 1), (k, 0, 2), (k, 1, 2)])
-
-        vec = gs.random.uniform(size=size)
-        return gs.array_from_sparse(indices, vec, expected_shape) + gs.eye(3)
-
-
 class ShapeBundleRandomDataGenerator(RandomDataGenerator):
     def __init__(self, space, n_discretized_curves=5):
         super().__init__(space)
