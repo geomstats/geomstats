@@ -97,7 +97,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         return self.projection(super().random_point(n_samples, bound))
 
     @classmethod
-    def projection(cls, mat):
+    def projection(cls, point):
         r"""Compute the skew-symmetric component of a matrix.
 
         The skew-symmetric part of a matrix :math:`X` is defined by
@@ -107,7 +107,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
             Matrix.
 
         Returns
@@ -115,7 +115,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         skew_sym : array-like, shape=[..., n, n]
             Skew-symmetric matrix.
         """
-        return Matrices.to_skew_symmetric(mat)
+        return Matrices.to_skew_symmetric(point)
 
     def basis_representation(self, matrix_representation):
         """Calculate the coefficients of given matrix in the basis.

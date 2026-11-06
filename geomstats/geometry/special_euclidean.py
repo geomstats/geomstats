@@ -224,7 +224,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         translation = gs.einsum("...ij,...j->...i", transposed_rot, translation)
         return homogeneous_representation(transposed_rot, -translation)
 
-    def projection(self, mat):
+    def projection(self, point):
         """Project a matrix on SE(n).
 
         The upper-left n x n block is projected to SO(n) by minimizing the
@@ -233,7 +233,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n + 1, n + 1]
+        point : array-like, shape=[..., n + 1, n + 1]
             Matrix.
 
         Returns
@@ -241,13 +241,13 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         projected : array-like, shape=[..., n + 1, n + 1]
             Rotation-translation matrix in homogeneous representation.
         """
-        if gs.any(self.belongs(mat)):
+        if gs.any(self.belongs(point)):
             # otherwise, there will be problems with autodiff
-            return gs.copy(mat)
+            return gs.copy(point)
 
         n = self.n
-        projected_rot = self.rotations.projection(mat[..., :n, :n])
-        translation = mat[..., :n, -1]
+        projected_rot = self.rotations.projection(point[..., :n, :n])
+        translation = point[..., :n, -1]
         return homogeneous_representation(projected_rot, translation)
 
 
@@ -1334,14 +1334,14 @@ class SpecialEuclideanMatricesLieAlgebra(MatrixLieAlgebra):
         point = super().random_point(n_samples, bound)
         return self.projection(point)
 
-    def projection(self, mat):
+    def projection(self, point):
         """Project a matrix to the Lie Algebra.
 
         Compute the skew-symmetric projection of the rotation part of matrix.
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n + 1, n + 1]
+        point : array-like, shape=[..., n + 1, n + 1]
             Matrix.
 
         Returns
@@ -1349,9 +1349,9 @@ class SpecialEuclideanMatricesLieAlgebra(MatrixLieAlgebra):
         projected : array-like, shape=[..., n + 1, n + 1]
             Matrix belonging to Lie Algebra.
         """
-        rotation = mat[..., : self.n, : self.n]
+        rotation = point[..., : self.n, : self.n]
         skew = SkewSymmetricMatrices.projection(rotation)
-        return homogeneous_representation(skew, mat[..., : self.n, self.n], 0.0)
+        return homogeneous_representation(skew, point[..., : self.n, self.n], 0.0)
 
     def basis_representation(self, matrix_representation):
         """Calculate the coefficients of given matrix in the basis.
