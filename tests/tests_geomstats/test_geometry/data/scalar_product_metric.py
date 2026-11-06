@@ -1,42 +1,50 @@
-import pytest
 from polpo.testing.data import CaseData
-
-import geomstats.backend as gs
-
-
-class WrapperTestData(CaseData):
-    def wrap_attr_test_data(self):
-        def example_fnc():
-            return 2.0
-
-        data = [dict(func=example_fnc, scale=3)]
-
-        return data
-
-    def scaling_factor_test_data(self):
-        data = [
-            dict(func_name="dist", scale=2.0, expected=gs.sqrt(2)),
-            dict(func_name="metric_matrix", scale=2.0, expected=2.0),
-            dict(func_name="cometric_matrix", scale=2.0, expected=1.0 / 2.0),
-            dict(
-                func_name="normalize",
-                scale=2.0,
-                expected=1.0
-                / gs.sqrt(
-                    2,
-                ),
-            ),
-        ]
-        return data
-
-    def non_scaled_test_data(self):
-        data = [dict(func_name="non_scaled", scale=2.0)]
-        return data
+from polpo.testing.geometric import GeometricCaseData
 
 
-class InstantiationTestData(CaseData):
-    @pytest.mark.random
+class ScalarProductMetricComparisonTestData(GeometricCaseData):
+    def metric_matrix_test_data(self):
+        return self.generate_random_data(arg_names="base_point")
+
+    def cometric_matrix_test_data(self):
+        return self.generate_random_data(arg_names="base_point")
+
+    def inner_product_test_data(self):
+        return self.generate_random_data(
+            arg_names=("base_point", "tangent_vec_a", "tangent_vec_b")
+        )
+
+    def squared_norm_test_data(self):
+        return self.generate_random_data(arg_names=("base_point", "vector"))
+
+    def norm_test_data(self):
+        return self.generate_random_data(arg_names=("base_point", "vector"))
+
+    def normalize_test_data(self):
+        return self.generate_random_data(arg_names=("base_point", "vector"))
+
+    def squared_dist_test_data(self):
+        return self.generate_random_data(arg_names=("point_a", "point_b"))
+
+    def dist_test_data(self):
+        return self.generate_random_data(arg_names=("point_a", "point_b"))
+
+    def injectivity_radius_test_data(self):
+        return self.generate_random_data(arg_names="base_point")
+
+    def exp_test_data(self):
+        return self.generate_random_data(arg_names=("base_point", "tangent_vec"))
+
+    def log_test_data(self):
+        return self.generate_random_data(arg_names=("base_point", "point"))
+
+
+class MetricScalingTestData(CaseData):
     def scalar_metric_multiplication_test_data(self):
+        data = [dict(scale=2.0)]
+        return data
+
+    def scalar_metric_multiplication_not_equipped_test_data(self):
         data = [dict(scale=2.0)]
         return data
 
@@ -48,13 +56,12 @@ class InstantiationTestData(CaseData):
         data = [dict(scale=2.0)]
         return data
 
-    @pytest.mark.random
-    def scaling_scalar_metric_test_data(self):
-        data = [dict(scale=2.0)]
+    def scale_composition_test_data(self):
+        data = [dict(scale_a=2.0, scale_b=3.0)]
         return data
 
 
-class CustomizationTestData(CaseData):
+class ScaledMethodRegistrationTestData(CaseData):
     def register_scaled_method_invalid_test_data(self):
         data = [
             dict(func_name="dummy_func", scaling_type="unlisted"),
