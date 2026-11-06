@@ -1,4 +1,5 @@
 import pytest
+from polpo.testing.parametrizers import GeometricDataBasedParametrizer
 
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
@@ -6,14 +7,11 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.siegel import Siegel
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.product_manifold import ProductManifoldTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
-from .data.product_manifold import (
-    ProductManifoldTestData,
-    ProductRiemannianMetricTestData,
-)
+from .data.product_manifold import ProductManifoldTestData
+from .data.riemannian_metric import RiemannianMetricTestData
 
 
 @pytest.fixture(
@@ -47,13 +45,17 @@ from .data.product_manifold import (
 )
 def spaces(request):
     factors, point_ndim = request.param
-    request.cls.space = ProductManifold(
+    space = request.cls.space = ProductManifold(
         factors=factors, point_ndim=point_ndim, equip=False
     )
 
+    request.cls.testing_data.space = space
+
 
 @pytest.mark.usefixtures("spaces")
-class TestProductManifold(ProductManifoldTestCase, metaclass=DataBasedParametrizer):
+class TestProductManifold(
+    ProductManifoldTestCase, metaclass=GeometricDataBasedParametrizer
+):
     testing_data = ProductManifoldTestData()
 
 
@@ -88,14 +90,16 @@ class TestProductManifold(ProductManifoldTestCase, metaclass=DataBasedParametriz
 )
 def equipped_spaces(request):
     factors, point_ndim = request.param
-    request.cls.space = ProductManifold(
+    space = request.cls.space = ProductManifold(
         factors=factors,
         point_ndim=point_ndim,
     )
 
+    request.cls.testing_data.space = space
+
 
 @pytest.mark.usefixtures("equipped_spaces")
 class TestProductRiemannianMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = ProductRiemannianMetricTestData()
+    testing_data = RiemannianMetricTestData()
