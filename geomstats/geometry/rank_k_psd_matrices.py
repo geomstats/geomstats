@@ -18,14 +18,16 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 class RankKPSDMatrices(Manifold):
     r"""Class for PSD(n,k).
 
-    The manifold of Positive Semi Definite matrices of rank k: PSD(n,k).
+    The manifold of positive semi-definite matrices of rank k: PSD(n,k).
 
     Parameters
     ----------
     n : int
-        Integer representing the shape of the matrices: n x n.
+        Size of the matrices: n x n.
     k : int
-        Integer representing the rank of the matrix (k<n).
+        Rank of the matrices. Must be lower than `n`.
+    equip : bool
+        If True, equip the space with its default metric.
     """
 
     def __init__(self, n, k, equip=True):
@@ -48,20 +50,22 @@ class RankKPSDMatrices(Manifold):
         return PSDEuclideanMetric
 
     def belongs(self, point, atol=gs.atol):
-        r"""Check if the matrix belongs to the space.
+        r"""Check if a matrix belongs to the space.
+
+        A matrix belongs to PSD(n,k) if it is symmetric, positive
+        semi-definite and has exactly k eigenvalues larger than `atol`.
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n, n]
-            Matrix to be checked.
+        point : array-like, shape=[..., n, n]
+            Matrix to check.
         atol : float
-            Tolerance.
-            Optional, default: backend atol.
+            Absolute tolerance.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Boolean denoting if mat is an SPD matrix.
+            Boolean denoting if `point` is a PSD matrix of rank k.
         """
         shape_belongs = self.shape == point.shape[-self.point_ndim :]
         if not shape_belongs:
@@ -78,11 +82,11 @@ class RankKPSDMatrices(Manifold):
     def projection(self, point):
         r"""Project a matrix to the space of PSD matrices of rank k.
 
-        The nearest symmetric positive semidefinite matrix in the
-        Frobenius norm to an arbitrary real matrix A is shown to be (B + H)/2,
-        where H is the symmetric polar factor of B=(A + A')/2.
-        As [Higham1988]_ is turning the matrix into a PSD, the rank
-        is then forced to be k.
+        The nearest symmetric positive semi-definite matrix in the
+        Frobenius norm to an arbitrary real matrix :math:`A` is
+        :math:`(B + H) / 2`, where :math:`H` is the symmetric polar factor of
+        :math:`B = (A + A^T) / 2` [Higham1988]_. The rank is then forced to be
+        k by keeping the k largest eigenvalues and setting the others to zero.
 
         Parameters
         ----------
@@ -92,11 +96,17 @@ class RankKPSDMatrices(Manifold):
         Returns
         -------
         projected : array-like, shape=[..., n, n]
-            PSD matrix rank k.
+            PSD matrix of rank k.
+
+        Notes
+        -----
+        If :math:`B` has fewer than k positive eigenvalues, the nearest rank-k
+        PSD matrix does not exist. The k largest eigenvalues are shifted by
+        `2 * gs.atol` so that the result still has rank k.
 
         References
         ----------
-        .. [Higham1988] Highamm, N. J.
+        .. [Higham1988] Higham, N. J.
             “Computing a nearest symmetric positive semidefinite matrix.”
             Linear Algebra and Its Applications 103 (May 1, 1988):
             103-118. https://doi.org/10.1016/0024-3795(88)90223-6
@@ -116,16 +126,18 @@ class RankKPSDMatrices(Manifold):
         return Matrices.mul(reconstruction, gs.transpose(eigvecs))
 
     def random_point(self, n_samples=1, bound=1.0):
-        r"""Sample in PSD(n,k) from the log-uniform distribution.
+        r"""Sample random points in PSD(n,k).
+
+        Samples SPD matrices from the log-uniform distribution and projects
+        them to PSD(n,k).
 
         Parameters
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         bound : float
-            Bound of the interval in which to sample in the tangent space.
-            Optional, default: 1.
+            Bound of the interval in which to sample the symmetric matrices
+            whose matrix exponential is projected.
 
         Returns
         -------
@@ -139,24 +151,26 @@ class RankKPSDMatrices(Manifold):
         return self.projection(spd_mat)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
-        r"""Check if the vector belongs to the tangent space.
+        r"""Check if a vector belongs to the tangent space at a base point.
+
+        A symmetric matrix :math:`V` is tangent at :math:`P` if
+        :math:`U_\perp^T V U_\perp = 0`, where the columns of
+        :math:`U_\perp` span the null space of :math:`P`.
 
         Parameters
         ----------
         vector : array-like, shape=[..., n, n]
-            Matrix to check if it belongs to the tangent space.
+            Matrix to check.
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
-            Optional, default: None.
         atol : float
             Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
-        belongs : array-like, shape=[...,]
-            Boolean denoting if vector belongs to tangent space
-            at base_point.
+        is_tangent : array-like, shape=[...,]
+            Boolean denoting if `vector` belongs to the tangent space
+            at `base_point`.
         """
         vector_sym = Matrices.to_symmetric(vector)
 
@@ -168,20 +182,23 @@ class RankKPSDMatrices(Manifold):
         return gs.all(gs.isclose(candidates, 0.0, atol=atol), axis=(-2, -1))
 
     def to_tangent(self, vector, base_point):
-        r"""Project to the tangent space of PSD(n,k) at base_point.
+        r"""Project a vector to the tangent space at a base point.
+
+        The symmetric part :math:`V` of `vector` is projected to
+        :math:`V - R V R`, where :math:`R = U_\perp U_\perp^T` is the
+        orthogonal projector onto the null space of the base point.
 
         Parameters
         ----------
         vector : array-like, shape=[..., n, n]
-            Matrix to check if it belongs to the tangent space.
+            Matrix to project.
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
-            Optional, default: None.
 
         Returns
         -------
-        tangent : array-like, shape=[..., n, n]
-            Projection of the tangent vector at base_point.
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
         """
         vector_sym = Matrices.to_symmetric(vector)
         r, _, _ = gs.linalg.svd(base_point)
@@ -195,19 +212,20 @@ PSDEuclideanMetric = SPDEuclideanMetric
 
 
 class PSDMatrices:
-    r"""Class for the psd matrices.
+    r"""Class for the PSD matrices of a given rank.
 
-    The class is redirecting to the correct embedding manifold.
-    The stratum PSD rank k if the matrix is not full rank.
-    The top stratum SPD if the matrix is full rank.
-    The whole stratified space of PSD if no rank is specified.
+    Instantiates the stratum of PSD matrices of rank `k`:
+    `RankKPSDMatrices` if `k < n`, and `SPDMatrices` (the top stratum)
+    if `k == n`.
 
     Parameters
     ----------
     n : int
-        Integer representing the shapes of the matrices : n x n.
+        Size of the matrices: n x n.
     k : int
-        Integer representing the rank of the matrices.
+        Rank of the matrices.
+    equip : bool
+        If True, equip the space with its default metric.
     """
 
     def __new__(
@@ -216,7 +234,7 @@ class PSDMatrices:
         k,
         equip=True,
     ):
-        """Instantiate class from one of the parent classes."""
+        """Instantiate the stratum of PSD matrices of rank `k`."""
         if n > k:
             return RankKPSDMatrices(n, k, equip=equip)
         if n == k:
@@ -225,23 +243,72 @@ class PSDMatrices:
 
 
 class BuresWassersteinBundle(FiberBundle):
-    """Class for the quotient structure on PSD matrices."""
+    r"""Bures-Wasserstein fiber bundle over PSD matrices.
+
+    The total space is the space of full-rank n x k matrices with the
+    Euclidean metric, and the submersion is :math:`X \mapsto X X^T`.
+    The fiber over :math:`X X^T` is :math:`X O(k)`.
+
+    Parameters
+    ----------
+    total_space : FullRankMatrices
+        Space of full-rank n x k matrices.
+    """
 
     def __init__(self, total_space):
         super().__init__(total_space=total_space)
 
     @staticmethod
     def riemannian_submersion(point):
-        """Project."""
+        r"""Project a point of the total space to the base space.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, k]
+            Point on the total space.
+
+        Returns
+        -------
+        projected_point : array-like, shape=[..., n, n]
+            PSD matrix :math:`X X^T`.
+        """
         return Matrices.mul(point, gs.transpose(point))
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
-        """Differential."""
+        r"""Compute the differential of the submersion.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, k]
+            Tangent vector to the total space at `base_point`.
+        base_point : array-like, shape=[..., n, k]
+            Point on the total space.
+
+        Returns
+        -------
+        projected_tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector :math:`X W^T + W X^T` to the base space.
+        """
         product = Matrices.mul(base_point, gs.transpose(tangent_vec))
         return product + gs.transpose(product)
 
     def lift(self, point):
-        """Find a representer in top space."""
+        r"""Find a point of the total space in the fiber of a point.
+
+        Uses the eigendecomposition :math:`P = U \Lambda U^T`, and returns
+        :math:`U_k \Lambda_k^{1/2}`, where :math:`U_k` and :math:`\Lambda_k`
+        correspond to the k largest eigenvalues.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point on the base space.
+
+        Returns
+        -------
+        lift : array-like, shape=[..., n, k]
+            Point on the total space.
+        """
         k = self._total_space.k
         eigvals, eigvecs = gs.linalg.eigh(point)
         return gs.einsum(
@@ -249,7 +316,23 @@ class BuresWassersteinBundle(FiberBundle):
         )
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
-        """Horizontal lift of a tangent vector."""
+        """Compute the horizontal lift of a tangent vector.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector to the base space at `base_point`.
+        base_point : array-like, shape=[..., n, n]
+            Point on the base space. Used to compute `fiber_point` if it is
+            not given.
+        fiber_point : array-like, shape=[..., n, k]
+            Point on the total space in the fiber of `base_point`.
+
+        Returns
+        -------
+        horizontal_vec : array-like, shape=[..., n, k]
+            Horizontal tangent vector to the total space at `fiber_point`.
+        """
         n = self._total_space.n
         if fiber_point is None:
             fiber_point = self.lift(base_point)
@@ -266,30 +349,31 @@ class BuresWassersteinBundle(FiberBundle):
     def vertical_projection(self, tangent_vec, base_point, return_skew=False):
         r"""Project to vertical subspace.
 
-        Compute the vertical component of a tangent vector :math:`w` at a
-        base point :math:`x` by solving the sylvester equation:
+        Compute the vertical component of a tangent vector :math:`W` at a
+        point :math:`X` by solving the Sylvester equation
 
         .. math::
-            Axx^T + xx^TA = wx^T - xw^T
+            X^T X A + A X^T X = W^T X - X^T W
 
-        where A is skew-symmetric. Then Ax is the vertical projection of w.
+        for a skew-symmetric :math:`A`. The vertical component is then
+        :math:`-X A`.
 
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, k]
-            Tangent vector to the pre-shape space at `base_point`.
+            Tangent vector to the total space at `base_point`.
         base_point : array-like, shape=[..., n, k]
-            Point on the pre-shape space.
+            Point on the total space.
         return_skew : bool
-            Whether to return the skew-symmetric matrix A.
-            Optional, default: False
+            Whether to return the skew-symmetric matrix :math:`A`.
 
         Returns
         -------
         vertical : array-like, shape=[..., n, k]
             Vertical component of `tangent_vec`.
-        skew : array-like, shape=[..., m_ambient, m_ambient]
-            Vertical component of `tangent_vec`.
+        skew : array-like, shape=[..., k, k]
+            Skew-symmetric matrix :math:`A`. Only returned if `return_skew`
+            is True.
         """
         transposed_point = gs.transpose(base_point)
         left_term = gs.matmul(transposed_point, base_point)
@@ -301,28 +385,42 @@ class BuresWassersteinBundle(FiberBundle):
         return (vertical, skew) if return_skew else vertical
 
     def align(self, point, base_point):
-        """Align point to base_point.
+        r"""Align a point to a base point.
 
-        Find the optimal rotation R in SO(m) such that the base point and
-        R.point are well positioned.
+        Finds the orthogonal matrix :math:`R \in O(k)` minimizing
+        :math:`\|X R - Y\|`, where :math:`X` is `point` and :math:`Y` is
+        `base_point`. The alignment is over :math:`O(k)`, not :math:`SO(k)`,
+        since the fiber over :math:`X X^T` is :math:`X O(k)`.
 
         Parameters
         ----------
         point : array-like, shape=[..., n, k]
-            Point on the manifold.
+            Point on the total space.
         base_point : array-like, shape=[..., n, k]
-            Point on the manifold.
+            Point on the total space.
 
         Returns
         -------
         aligned : array-like, shape=[..., n, k]
-            R.point.
+            Aligned point :math:`X R`.
         """
         return Matrices.align_matrices(point, base_point, flip=False)
 
 
 class PSDBuresWassersteinMetric(QuotientMetric):
-    """Bures-Wasserstein metric for fixed rank PSD matrices."""
+    r"""Bures-Wasserstein metric on PSD matrices of fixed rank.
+
+    Quotient metric of the Euclidean metric on full-rank n x k matrices,
+    through the submersion :math:`X \mapsto X X^T`.
+
+    Parameters
+    ----------
+    space : RankKPSDMatrices or SPDMatrices
+        Space of PSD matrices of rank k.
+    total_space : FullRankMatrices
+        Space of full-rank n x k matrices. If None, it is created and
+        equipped with the Euclidean metric.
+    """
 
     def __init__(self, space, total_space=None):
         if total_space is None:
