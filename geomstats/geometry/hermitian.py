@@ -3,9 +3,12 @@
 Lead author: Yann Cabanes.
 """
 
+import math
+
 import geomstats.backend as gs
 from geomstats.geometry.base import ComplexVectorSpace
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
+from geomstats.vectorization import repeat_out
 
 
 class Hermitian(ComplexVectorSpace):
@@ -170,3 +173,57 @@ class HermitianMetric(ComplexRiemannianMetric):
             Riemannian logarithm.
         """
         return point - base_point
+
+    def parallel_transport(
+        self, tangent_vec, base_point=None, direction=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
+
+        On a Hermitian space, the parallel transport of a (tangent) vector
+        returns the vector itself.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold. Point to transport from.
+        direction : array-like, shape=[..., dim]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        end_point : array-like, shape=[..., dim]
+            Point on the manifold. Point to transport to.
+
+        Returns
+        -------
+        transported_tangent_vec : array-like, shape=[..., dim]
+            Transported tangent vector at `exp_(base_point)(direction)`.
+        """
+        transported_tangent_vec = gs.copy(tangent_vec)
+        return repeat_out(
+            self._space.point_ndim,
+            transported_tangent_vec,
+            tangent_vec,
+            base_point,
+            direction,
+            end_point,
+            out_shape=self._space.shape,
+        )
+
+    def injectivity_radius(self, base_point=None):
+        """Compute the radius of the injectivity domain.
+
+        In a Hermitian space, it is infinite everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        radius = gs.array(math.inf)
+        return repeat_out(self._space.point_ndim, radius, base_point)
