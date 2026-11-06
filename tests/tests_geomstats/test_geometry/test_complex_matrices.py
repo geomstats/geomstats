@@ -1,56 +1,34 @@
 import random
 
-import pytest
+from polpo.testing.parametrizers import GeometricDataBasedParametrizer
 
 from geomstats.geometry.complex_matrices import ComplexMatrices
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.complex_matrices import ComplexMatricesTestCase
-from geomstats.test_cases.geometry.hermitian import HermitianMetricTestCase
+from geomstats.test_cases.geometry.base import MatrixVectorSpaceTestCase
+from geomstats.test_cases.geometry.complex_matrices import (
+    ComplexMatrixOperationsTestCase,
+)
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.base import MatrixVectorSpaceTestData
-from .data.complex_matrices import (
-    ComplexMatrices33TestData,
-    ComplexMatricesMetricTestData,
-)
+from .data.complex_matrices import ComplexMatrixOperationsTestData
+from .data.riemannian_metric import RiemannianMetricTestData
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        (2, 3),
-        (random.randint(3, 5), random.randint(3, 5)),
-    ],
-)
-def spaces(request):
-    m, n = request.param
-    request.cls.space = ComplexMatrices(m=m, n=n, equip=False)
-
-
-@pytest.mark.usefixtures("spaces")
-class TestComplexMatrices(ComplexMatricesTestCase, metaclass=DataBasedParametrizer):
-    testing_data = MatrixVectorSpaceTestData()
-
-
-@pytest.mark.smoke
-class TestComplexMatrices33(ComplexMatricesTestCase, metaclass=DataBasedParametrizer):
-    space = ComplexMatrices(m=3, n=3, equip=False)
-    testing_data = ComplexMatrices33TestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        (2, 3),
-        (random.randint(3, 5), random.randint(3, 5)),
-    ],
-)
-def equipped_spaces(request):
-    m, n = request.param
-    request.cls.space = ComplexMatrices(m=m, n=n)
-
-
-@pytest.mark.usefixtures("equipped_spaces")
-class TestComplexMatricesMetric(
-    HermitianMetricTestCase, metaclass=DataBasedParametrizer
+class TestComplexMatrices(
+    MatrixVectorSpaceTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = ComplexMatricesMetricTestData()
+    space = ComplexMatrices(m=random.randint(2, 5), n=random.randint(2, 5), equip=False)
+    testing_data = MatrixVectorSpaceTestData(space)
+
+
+class TestComplexMatricesMetric(
+    RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = ComplexMatrices(m=random.randint(2, 5), n=random.randint(2, 5))
+    testing_data = RiemannianMetricTestData(space)
+
+
+class TestComplexMatrixOperations(
+    ComplexMatrixOperationsTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    testing_data = ComplexMatrixOperationsTestData()
