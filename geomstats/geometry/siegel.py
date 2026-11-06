@@ -86,8 +86,7 @@ class Siegel(ComplexVectorSpaceOpenSet):
         point_transconj = ComplexMatrices.transconjugate(point)
         aux = gs.matmul(point, point_transconj)
 
-        axis = -1 if gs.ndim(point) == 3 else None
-        belongs = gs.all(gs.linalg.eigvalsh(aux) <= 1 + atol, axis=axis)
+        belongs = gs.all(gs.linalg.eigvalsh(aux) <= 1 + atol, axis=-1)
 
         if self.symmetric:
             return gs.logical_and(belongs, Matrices.is_symmetric(point))
