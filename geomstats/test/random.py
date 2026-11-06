@@ -15,12 +15,15 @@ from geomstats.geometry.base import (
     VectorSpace,
 )
 from geomstats.geometry.complex_manifold import ComplexManifold
+from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.diffeo import ReversedDiffeo
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.full_rank_correlation_matrices import (
     FullRankCorrelationMatrices,
 )
 from geomstats.geometry.general_linear import SquareMatrices
+from geomstats.geometry.hermitian_matrices import HermitianMatrices
+from geomstats.geometry.hpd_matrices import HPDMatrices
 from geomstats.geometry.lower_triangular_matrices import (
     LowerTriangularMatrices,
     StrictlyLowerTriangularMatrices,
@@ -488,3 +491,40 @@ class MatrixOperationsRandomDataGenerator:
     def random_coefficients(n_points=1):
         """Sample two scalar coefficients, independent of `n_points`."""
         return gs.random.uniform(size=(2,))
+
+
+class ComplexMatrixOperationsRandomDataGenerator(MatrixOperationsRandomDataGenerator):
+    """Random data generator for complex matrix operations.
+
+    Same as `MatrixOperationsRandomDataGenerator`, but samples complex
+    matrices.
+    """
+
+    def random_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_shape()
+
+        return ComplexMatrices(*shape, equip=False).random_point(n_points)
+
+    def random_square_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_square_shape()
+
+        return self.random_mat(n_points, shape=shape * 2)
+
+    def random_hermitian_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_square_shape()
+
+        return HermitianMatrices(*shape, equip=False).random_point(n_points)
+
+    def random_hpd_mat(self, n_points=1, shape=None):
+        if shape is None:
+            shape = self._random_square_shape()
+
+        return HPDMatrices(*shape, equip=False).random_point(n_points)
+
+    def random_skew_hermitian_mat(self, n_points=1, shape=None):
+        return ComplexMatrices.to_skew_hermitian(
+            self.random_square_mat(n_points, shape=shape)
+        )
