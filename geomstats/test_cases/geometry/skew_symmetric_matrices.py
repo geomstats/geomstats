@@ -1,9 +1,23 @@
+import geomstats.backend as gs
 from geomstats.test_cases.geometry.lie_algebra import MatrixLieAlgebraTestCase
 
 
 class SkewSymmetricMatricesTestCase(MatrixLieAlgebraTestCase):
-    def test_baker_campbell_hausdorff_with_basis(self, atol):
-        # valid for n > 2
+    def test_baker_campbell_hausdorff_with_basis(self, atol=gs.atol):
+        """Check Baker-Campbell-Hausdorff approximation on basis elements.
+
+        Compares the approximations of orders 1 to 4 for the first two basis
+        elements against their expansion in terms of brackets.
+
+        Parameters
+        ----------
+        atol : float
+            Absolute tolerance.
+
+        Notes
+        -----
+        Only valid for n > 2.
+        """
         if self.space.n < 3:
             return
 
