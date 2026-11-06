@@ -3,30 +3,6 @@ from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTest
 
 
 class ComplexRiemannianMetricTestCase(RiemannianMetricTestCase):
-    def test_inner_product_is_symmetric(
-        self, tangent_vec_a, tangent_vec_b, base_point, atol=gs.atol
-    ):
-        """Check inner product is Hermitian.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., *space.shape]
-            Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., *space.shape]
-            Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., *space.shape]
-            Point on the manifold.
-        atol : float
-            Absolute tolerance.
-        """
-        inner_product_ab = self.space.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-        inner_product_ba = self.space.metric.inner_product(
-            tangent_vec_b, tangent_vec_a, base_point
-        )
-        self.assertAllClose(inner_product_ab, gs.conj(inner_product_ba), atol=atol)
-
     def test_inner_product_is_complex(self, tangent_vec_a, tangent_vec_b, base_point):
         """Check inner product is complex.
 

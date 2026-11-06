@@ -287,6 +287,8 @@ class RiemannianMetricTestCase(DistTestCaseMixins, ConnectionTestCase):
     ):
         """Check inner product is symmetric.
 
+        For a complex inner product, checks it is Hermitian.
+
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., *space.shape]
@@ -305,7 +307,7 @@ class RiemannianMetricTestCase(DistTestCaseMixins, ConnectionTestCase):
             tangent_vec_b, tangent_vec_a, base_point
         )
 
-        self.assertAllClose(inner_product_ab, inner_product_ba, atol=atol)
+        self.assertAllClose(inner_product_ab, gs.conj(inner_product_ba), atol=atol)
 
     def test_norm_is_positive(self, vector, base_point, atol=gs.atol):
         """Check norm is non-negative.
