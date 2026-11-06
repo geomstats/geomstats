@@ -15,6 +15,7 @@ from geomstats.geometry.diffeo import ReversedDiffeo
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import SquareMatrices
 from geomstats.geometry.manifold import Manifold
+from geomstats.vectorization import repeat_point
 
 
 def get_random_quaternion(n_points=1):
@@ -87,6 +88,22 @@ class RandomDataGenerator:
         """
         tangent_vec = self.near_scale * self.random_tangent_vec(base_point)
         return self.space.metric.exp(tangent_vec, base_point)
+
+    def random_tangent_vec_at_identity(self, n_points=1):
+        """Sample tangent vectors at the identity of a group.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of tangent vectors.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vectors at the identity.
+        """
+        identity = repeat_point(self.space.identity, n_points)
+        return self.random_tangent_vec(identity)
 
 
 class RandomDatasetGenerator:
