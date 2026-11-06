@@ -1,9 +1,12 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 from geomstats.test_cases.geometry.skew_symmetric_matrices import (
     SkewSymmetricMatricesTestCase,
@@ -17,23 +20,11 @@ from .data.skew_symmetric_matrices import (
 )
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        3,
-        random.randint(4, 9),
-    ],
-)
-def spaces(request):
-    request.cls.space = SkewSymmetricMatrices(n=request.param, equip=False)
-
-
-@pytest.mark.usefixtures("spaces")
 class TestSkewSymmetricMatrices(
-    SkewSymmetricMatricesTestCase, metaclass=DataBasedParametrizer
+    SkewSymmetricMatricesTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = SkewSymmetricMatricesTestData()
+    space = SkewSymmetricMatrices(n=random.randint(3, 9), equip=False)
+    testing_data = SkewSymmetricMatricesTestData(space)
 
 
 @pytest.mark.smoke
@@ -53,7 +44,8 @@ class TestSkewSymmetricMatrices3(
 
 
 @pytest.mark.redundant
-class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
-    n = random.randint(2, 5)
-    space = SkewSymmetricMatrices(n=n)
-    testing_data = MatricesMetricTestData()
+class TestMatricesMetric(
+    MatricesMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = SkewSymmetricMatrices(n=random.randint(2, 5))
+    testing_data = MatricesMetricTestData(space)
