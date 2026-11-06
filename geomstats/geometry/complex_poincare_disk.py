@@ -20,10 +20,13 @@ References
     https://ieeexplore.ieee.org/document/6514112
 """
 
+import math
+
 import geomstats.backend as gs
 from geomstats.geometry.base import ComplexVectorSpaceOpenSet
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian import Hermitian
+from geomstats.vectorization import repeat_out
 
 
 class ComplexPoincareDisk(ComplexVectorSpaceOpenSet):
@@ -58,7 +61,6 @@ class ComplexPoincareDisk(ComplexVectorSpaceOpenSet):
             Point to be checked.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -81,7 +83,6 @@ class ComplexPoincareDisk(ComplexVectorSpaceOpenSet):
             Point to project.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -103,10 +104,8 @@ class ComplexPoincareDisk(ComplexVectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         bound : float
-            Bound of the interval in which to sample in the tangent space.
-            Optional, default: 0.8.
+            Bound of the modulus of the sampled points.
 
         Returns
         -------
@@ -114,9 +113,31 @@ class ComplexPoincareDisk(ComplexVectorSpaceOpenSet):
             Points sampled in the unit disk.
         """
         size = (n_samples, 1) if n_samples != 1 else (1,)
-        modulus = gs.random.rand(*size, dtype=gs.get_default_cdtype())
+        modulus = bound * gs.random.rand(*size, dtype=gs.get_default_cdtype())
         angle = 2 * gs.pi * gs.random.rand(*size, dtype=gs.get_default_cdtype())
         return modulus * gs.exp(1j * angle)
+
+    def random_tangent_vec(self, base_point, n_samples=1):
+        r"""Sample tangent vectors at base point.
+
+        The samples are scaled by the inverse conformal factor
+        :math:`1 - |x|^2`, so that their norm for the Poincaré metric does not
+        depend on the base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+        n_samples : int
+            Number of samples.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vectors at base point.
+        """
+        tangent_vec = super().random_tangent_vec(base_point, n_samples=n_samples)
+        return (1 - gs.abs(base_point) ** 2) * tangent_vec
 
 
 class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
@@ -186,7 +207,6 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
             Point.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -257,7 +277,6 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
             Point.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -265,3 +284,68 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
             Riemannian distance.
         """
         return self._tau(point_a, point_b, atol=atol)
+
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
+
+        Denoting `base_point` by :math:`x` and `end_point` by :math:`y`,
+
+        .. math::
+
+            P_{x \rightarrow y}(v) = \frac{1 - |y|^2}{1 - |x|^2}
+            \frac{1 - y \bar{x}}{1 - \bar{y} x} v
+
+        i.e. the ratio of conformal factors times the gyration of the
+        Mobius addition, which is a rotation in the complex plane.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., 1]
+            Point in the complex Poincare disk.
+        direction : array-like, shape=[..., 1]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        end_point : array-like, shape=[..., 1]
+            Point in the complex Poincare disk to transport to. Unused if
+            `direction` is given.
+
+        Returns
+        -------
+        transported_tangent_vec : array-like, shape=[..., 1]
+            Transported tangent vector at `exp_(base_point)(direction)`.
+        """
+        if direction is not None:
+            end_point = self.exp(direction, base_point)
+        elif end_point is None:
+            raise ValueError(
+                "Either an end_point or a direction must be given to define the"
+                " geodesic along which to transport."
+            )
+
+        conformal_ratio = (1 - gs.abs(end_point) ** 2) / (1 - gs.abs(base_point) ** 2)
+        gyration = (1 - end_point * gs.conj(base_point)) / (
+            1 - gs.conj(end_point) * base_point
+        )
+        return conformal_ratio * gyration * tangent_vec
+
+    def injectivity_radius(self, base_point=None):
+        """Compute the radius of the injectivity domain.
+
+        In the complex Poincare disk, it is infinite everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        radius = gs.array(math.inf)
+        return repeat_out(self._space.point_ndim, radius, base_point)
