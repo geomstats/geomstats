@@ -15,7 +15,6 @@ from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.base import VectorSpaceOpenSetTestCase
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
-from geomstats.test_cases.geometry.poincare_half_space import PoincareHalfSpaceTestCase
 from geomstats.test_cases.geometry.product_manifold import ProductManifoldTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 from geomstats.test_cases.information_geometry.base import (
@@ -40,7 +39,7 @@ from .data.normal import (
 
 class TestUnivariateNormalDistributions(
     InformationManifoldMixinTestCase,
-    PoincareHalfSpaceTestCase,
+    VectorSpaceOpenSetTestCase,
     metaclass=DataBasedParametrizer,
 ):
     space = NormalDistributions(sample_dim=1, equip=False)
