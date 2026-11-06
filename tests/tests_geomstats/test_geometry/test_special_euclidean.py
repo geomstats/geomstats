@@ -156,3 +156,60 @@ class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer
     n = random.randint(2, 5)
     space = SpecialEuclideanMatricesLieAlgebra(n=n, equip=True)
     testing_data = MatricesMetricTestData()
+
+
+def _translation_differential(group, point, left):
+    """Finite-difference differential of the left/right translation at identity."""
+    step = 1e-6
+    columns = []
+    for i in range(group.dim):
+        direction = gs.array([step if j == i else 0.0 for j in range(group.dim)])
+        if left:
+            diff = group.compose(point, direction) - group.compose(point, -direction)
+        else:
+            diff = group.compose(direction, point) - group.compose(-direction, point)
+        columns.append(diff / (2 * step))
+    return gs.stack(columns, axis=-1)
+
+
+@pytest.mark.parametrize("n", [2, 3])
+@pytest.mark.parametrize("left", [True, False])
+def test_vector_jacobian_translation_matches_compose(n, left):
+    group = SpecialEuclidean(n, point_type="vector", equip=False)
+    points = group.random_point(3)
+    jacobians = group.jacobian_translation(points, left=left)
+    for point, jacobian in zip(points, jacobians):
+        expected = _translation_differential(group, point, left)
+        assert gs.allclose(jacobian, expected, atol=1e-5)
+    assert gs.allclose(group.jacobian_translation(points[0], left=left), jacobians[0])
+
+
+@pytest.mark.parametrize("n", [2, 3])
+@pytest.mark.parametrize("left", [True, False])
+def test_vector_invariant_metric_is_invariant(n, left):
+    from geomstats.geometry.invariant_metric import _InvariantMetricVector
+
+    group = SpecialEuclidean(n, point_type="vector", equip=False)
+    group.equip_with_metric(_InvariantMetricVector, left=left)
+    point, translation = group.random_point(), group.random_point()
+    tangent_vec_a = gs.random.normal(size=(group.dim,))
+    tangent_vec_b = gs.random.normal(size=(group.dim,))
+
+    def translate(x):
+        if left:
+            return group.compose(translation, x)
+        return group.compose(x, translation)
+
+    step = 1e-6
+
+    def push_forward(tangent_vec):
+        return (
+            translate(point + step * tangent_vec)
+            - translate(point - step * tangent_vec)
+        ) / (2 * step)
+
+    inner = group.metric.inner_product(tangent_vec_a, tangent_vec_b, point)
+    translated_inner = group.metric.inner_product(
+        push_forward(tangent_vec_a), push_forward(tangent_vec_b), translate(point)
+    )
+    assert gs.allclose(inner, translated_inner, atol=1e-5)
