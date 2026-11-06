@@ -174,7 +174,7 @@ class _IterateOverFactorsMixins:
     @staticmethod
     def _reshape_trailing(argument, factor):
         """Convert the trailing dimensions to match the shape of a factor manifold."""
-        space = factor._space if isinstance(factor, RiemannianMetric) else factor
+        space = factor._space if hasattr(factor, "_space") else factor
 
         if space.point_ndim == 1:
             return argument
