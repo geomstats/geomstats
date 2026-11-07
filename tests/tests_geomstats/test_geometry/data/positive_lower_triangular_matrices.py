@@ -1,11 +1,10 @@
 import math
 
-import geomstats.backend as gs
-from geomstats.test.data import TestData
+from polpo.testing.data import CaseData
 
-from .base import LevelSetTestData, VectorSpaceOpenSetTestData
-from .diffeo import DiffeoComparisonTestData
-from .invariant_metric import InvariantMetricMatrixTestData
+import geomstats.backend as gs
+
+from .base import VectorSpaceOpenSetTestData
 from .lie_group import MatrixLieGroupTestData
 from .riemannian_metric import RiemannianMetricTestData
 
@@ -16,10 +15,10 @@ SQRT_2 = math.sqrt(2)
 class PositiveLowerTriangularMatricesTestData(
     MatrixLieGroupTestData, VectorSpaceOpenSetTestData
 ):
-    xfails = ("log_after_exp",)
+    pass
 
 
-class PositiveLowerTriangularMatrices2TestData(TestData):
+class PositiveLowerTriangularMatrices2TestData(CaseData):
     def belongs_test_data(self):
         data = [
             dict(point=gs.array([[1.0, 0.0], [-1.0, 3.0]]), expected=True),
@@ -48,21 +47,28 @@ class PositiveLowerTriangularMatrices2TestData(TestData):
                 expected=gs.array([False, False, False, False]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
 class CholeskyMetricTestData(RiemannianMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
-
     def diag_inner_product_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names=("base_point", "tangent_vec_a", "tangent_vec_b"),
+            on_metric=True,
+        )
 
     def strictly_lower_inner_product_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names=("tangent_vec_a", "tangent_vec_b"),
+            samplers={
+                "tangent_vec_a": "random_tangent_vec_at_identity",
+                "tangent_vec_b": "random_tangent_vec_at_identity",
+            },
+            on_metric=True,
+        )
 
 
-class CholeskyMetric2TestData(TestData):
+class CholeskyMetric2TestData(CaseData):
     def diag_inner_product_test_data(self):
         data = [
             dict(
@@ -72,7 +78,7 @@ class CholeskyMetric2TestData(TestData):
                 expected=gs.array(2.0),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def strictly_lower_inner_product_test_data(self):
         data = [
@@ -82,7 +88,7 @@ class CholeskyMetric2TestData(TestData):
                 expected=gs.array(6.0),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def inner_product_test_data(self):
         data = [
@@ -106,7 +112,7 @@ class CholeskyMetric2TestData(TestData):
                 expected=gs.array([13.5, -23.0]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def exp_test_data(self):
         data = [
@@ -130,7 +136,7 @@ class CholeskyMetric2TestData(TestData):
                 ),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def log_test_data(self):
         data = [
@@ -154,7 +160,7 @@ class CholeskyMetric2TestData(TestData):
                 ),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def squared_dist_test_data(self):
         data = [
@@ -179,34 +185,4 @@ class CholeskyMetric2TestData(TestData):
                 expected=gs.array([9.0, 14.0]),
             ),
         ]
-        return self.generate_tests(data)
-
-
-class InvariantPositiveLowerTriangularMatricesMetricTestData(
-    InvariantMetricMatrixTestData
-):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-    skip_vec = True
-
-    skips = ("parallel_transport_ivp_norm",)
-
-    tolerances = {
-        "exp_after_log": {"atol": 1e-2},
-        "log_after_exp": {"atol": 1e-2},
-        "parallel_transport_bvp_norm": {"atol": 1e-2},
-    }
-
-
-class UnitNormedRowsPLTMatricesPullbackMetricTestData(RiemannianMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-
-class PLTUnitDiagMatricesTestData(LevelSetTestData):
-    pass
-
-
-class LowerMatrixLogCmpTestData(DiffeoComparisonTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
+        return data
