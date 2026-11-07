@@ -393,6 +393,21 @@ class FiberBundleTestCase(TestCase):
 
         assert_is_horizontal(self.total_space, log, base_point, atol=atol)
 
+    def test_align_in_same_fiber(self, point, base_point, atol=gs.atol):
+        """Check aligning a point of the fiber of a base point gives it back.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *total_space.shape]
+            Point on the total space, in the same fiber as `base_point`.
+        base_point : array-like, shape=[..., *total_space.shape]
+            Point on the total space.
+        atol : float
+            Absolute tolerance.
+        """
+        aligned_point = self.total_space.fiber_bundle.align(point, base_point)
+        self.assertAllClose(aligned_point, base_point, atol=atol)
+
     def test_projections_are_orthogonal(
         self, tangent_vec_a, tangent_vec_b, base_point, atol=gs.atol
     ):

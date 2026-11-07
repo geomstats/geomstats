@@ -2,8 +2,11 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.diffeo import AutodiffDiffeo
-from geomstats.test.assertions import assert_belongs, assert_is_tangent
-from geomstats.test.random import RandomDataGenerator
+from geomstats.test.assertions import (
+    assert_belongs,
+    assert_is_tangent,
+    assert_same_result,
+)
 from geomstats.test.test_case import TestCase
 
 
@@ -328,43 +331,80 @@ class AutodiffDiffeoTestCase(DiffeoTestCase):
 
 
 class DiffeoComparisonTestCase(TestCase):
-    def setup_method(self):
-        if not hasattr(self, "data_generator") and hasattr(self, "space"):
-            self.data_generator = RandomDataGenerator(self.space)
+    """Test case comparing two diffeomorphisms.
 
-        if not hasattr(self, "image_data_generator") and hasattr(self, "image_space"):
-            self.image_data_generator = RandomDataGenerator(self.image_space)
+    Each test checks a method gives the same result for `diffeo` and
+    `other_diffeo`.
+    """
 
-    @pytest.mark.random
-    def test_diffeomorphism(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
+    def test_diffeomorphism(self, base_point, atol=gs.atol):
+        """Check diffeomorphism is the same for both diffeomorphisms.
 
-        res = self.diffeo(base_point)
-        res_ = self.other_diffeo(base_point)
-        self.assertAllClose(res, res_, atol=atol)
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *domain_space.shape]
+            Point on the domain space.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda diffeo: diffeo(base_point),
+            self.diffeo,
+            self.other_diffeo,
+            atol=atol,
+        )
 
-    @pytest.mark.random
-    def test_inverse(self, n_points, atol):
-        image_point = self.image_data_generator.random_point(n_points)
+    def test_inverse(self, image_point, atol=gs.atol):
+        """Check inverse is the same for both diffeomorphisms.
 
-        res = self.diffeo.inverse(image_point)
-        res_ = self.other_diffeo.inverse(image_point)
-        self.assertAllClose(res, res_, atol=atol)
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., *image_space.shape]
+            Point on the image space.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda diffeo: diffeo.inverse(image_point),
+            self.diffeo,
+            self.other_diffeo,
+            atol=atol,
+        )
 
-    @pytest.mark.random
-    def test_tangent(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+    def test_tangent(self, tangent_vec, base_point, atol=gs.atol):
+        """Check tangent is the same for both diffeomorphisms.
 
-        res = self.diffeo.tangent(tangent_vec, base_point)
-        res_ = self.other_diffeo.tangent(tangent_vec, base_point)
-        self.assertAllClose(res, res_, atol=atol)
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *domain_space.shape]
+            Tangent vector to the domain space at `base_point`.
+        base_point : array-like, shape=[..., *domain_space.shape]
+            Point on the domain space.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda diffeo: diffeo.tangent(tangent_vec, base_point),
+            self.diffeo,
+            self.other_diffeo,
+            atol=atol,
+        )
 
-    @pytest.mark.random
-    def test_inverse_tangent(self, n_points, atol):
-        image_point = self.image_data_generator.random_point(n_points)
-        image_tangent_vec = self.image_data_generator.random_tangent_vec(image_point)
+    def test_inverse_tangent(self, image_tangent_vec, image_point, atol=gs.atol):
+        """Check inverse tangent is the same for both diffeomorphisms.
 
-        res = self.diffeo.inverse_tangent(image_tangent_vec, image_point)
-        res_ = self.other_diffeo.inverse_tangent(image_tangent_vec, image_point)
-        self.assertAllClose(res, res_, atol=atol)
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., *image_space.shape]
+            Tangent vector to the image space at `image_point`.
+        image_point : array-like, shape=[..., *image_space.shape]
+            Point on the image space.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda diffeo: diffeo.inverse_tangent(image_tangent_vec, image_point),
+            self.diffeo,
+            self.other_diffeo,
+            atol=atol,
+        )

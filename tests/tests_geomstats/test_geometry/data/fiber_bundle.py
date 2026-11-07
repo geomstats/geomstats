@@ -225,6 +225,21 @@ class FiberBundleTestData(FiberBundleCaseData):
         )
 
 
+class AlignInSameFiberTestData(GeometricCaseData):
+    """Data to align a point of the fiber of a base point.
+
+    `space` is the total space. Its data generator must implement
+    `random_point_in_fiber`.
+    """
+
+    def align_in_same_fiber_test_data(self):
+        return self.generate_random_data(
+            arg_names=("base_point", "point"),
+            samplers={"point": "random_point_in_fiber"},
+            dependencies={"point": "base_point"},
+        )
+
+
 class AlignComparisonTestData(GeometricCaseData):
     def align_test_data(self):
         return self.generate_random_data(arg_names=("base_point", "point"))

@@ -18,6 +18,7 @@ from geomstats.geometry.base import (
 from geomstats.geometry.complex_manifold import ComplexManifold
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.diffeo import ReversedDiffeo
+from geomstats.geometry.discrete_curves import DiscreteCurvesStartingAtOrigin
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.full_rank_correlation_matrices import (
     FullRankCorrelationMatrices,
@@ -42,6 +43,7 @@ from geomstats.geometry.rank_k_psd_matrices import RankKPSDMatrices
 from geomstats.geometry.siegel import Siegel
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.symmetric_matrices import (
     NullRowSumsSymmetricMatrices,
     SymmetricHollowMatrices,
@@ -252,6 +254,11 @@ def _(space, **kwargs):
     return RankKPSDMatricesRandomDataGenerator(space, **kwargs)
 
 
+@get_data_generator.register(DiscreteCurvesStartingAtOrigin)
+def _(space, **kwargs):
+    return DiscreteCurvesRandomDataGenerator(space, **kwargs)
+
+
 @get_data_generator.register(NFoldManifold)
 def _(space, **kwargs):
     return NFoldManifoldRandomDataGenerator(space, **kwargs)
@@ -356,6 +363,94 @@ class NFoldManifoldRandomDataGenerator(RandomDataGenerator):
 
         shape = (n_points, n_copies) if n_points > 1 else (n_copies,)
         return gs.reshape(point, shape + base.shape)
+
+
+class DiscreteCurvesRandomDataGenerator(NFoldManifoldRandomDataGenerator):
+    """Random data generator for discrete curves starting at the origin.
+
+    Points to project are curves with `k_sampling_points` points, not
+    necessarily starting at the origin.
+
+    Tangent vectors are smooth vector fields along the curve: random values
+    at `n_tangent_knots - 1` evenly spaced times, vanishing at the origin, are
+    interpolated with a cubic spline.
+
+    Parameters
+    ----------
+    space : DiscreteCurvesStartingAtOrigin
+        Space of discrete curves.
+    fiber_actions : tuple of str, {"rotations", "reparametrizations"}
+        Group actions used to sample points in the same fiber.
+    n_tangent_knots : int
+        Number of knots of the splines defining tangent vectors, including
+        the origin.
+    """
+
+    def __init__(self, space, fiber_actions=(), n_tangent_knots=5, **kwargs):
+        super().__init__(space, **kwargs)
+        self.fiber_actions = fiber_actions
+        self._knots_space = DiscreteCurvesStartingAtOrigin(
+            space.ambient_manifold.dim, n_tangent_knots, equip=False
+        )
+
+    def random_tangent_vec(self, base_point):
+        """Sample a smooth tangent vector at a base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Tangent vector at `base_point`.
+        """
+        is_batch = base_point.ndim > self.space.point_ndim
+        batch_shape = base_point.shape[:1] if is_batch else ()
+        knots = gs.random.normal(size=batch_shape + self._knots_space.shape)
+
+        times = gs.linspace(0.0, 1.0, self.space.k_sampling_points)[1:]
+        return self._knots_space.interpolate(knots)(times) / self.amplitude
+
+    def point_to_project(self, n_points=1):
+        return Matrices(
+            self.space.k_sampling_points,
+            self.space.ambient_manifold.dim,
+            equip=False,
+        ).random_point(n_points)
+
+    def random_point_in_fiber(self, base_point):
+        """Sample a point in the same fiber as a base point.
+
+        The base point is reparametrized by a random power of time and/or
+        rotated by a random rotation, depending on `fiber_actions`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve in the same fiber as `base_point`.
+        """
+        point = base_point
+        if "reparametrizations" in self.fiber_actions:
+            times = gs.linspace(0.0, 1.0, self.space.k_sampling_points)
+            power = random.uniform(1.5, 2.0)
+            curve = self.space.interpolate(point)
+            point = self.space.projection(curve(times**power))
+
+        if "rotations" in self.fiber_actions:
+            n_points = point.shape[0] if point.ndim > self.space.point_ndim else 1
+            rotation = SpecialOrthogonal(
+                self.space.ambient_manifold.dim, equip=False
+            ).random_point(n_points)
+            point = Matrices.mul(point, gs.transpose(rotation))
+
+        return point
 
 
 class FactorwiseRandomDataGenerator(RandomDataGenerator):
@@ -483,26 +578,6 @@ class GammaRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
 class FullRankCorrelationMatricesRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
     def random_diagonal_vec(self, n_points=1):
         return Matrices.diagonal(self.space.embedding_space.random_point(n_points))
-
-
-class ShapeBundleRandomDataGenerator(RandomDataGenerator):
-    def __init__(self, space, n_discretized_curves=5, near_scale=0.1):
-        super().__init__(space, near_scale=near_scale)
-        self.n_discretized_curves = n_discretized_curves
-
-    def random_tangent_vec(self, base_point):
-        n_points = base_point.shape[0] if base_point.ndim > 2 else 1
-        point = self.random_point(n_points=n_points)
-
-        geo = self.space.metric.geodesic(initial_point=base_point, end_point=point)
-
-        times = gs.linspace(0.0, 1.0, self.n_discretized_curves)
-
-        geod = geo(times)
-
-        return (
-            self.n_discretized_curves * (geod[..., 1, :, :] - geod[..., 0, :, :])
-        ) / self.amplitude
 
 
 class DiffeoBasedRandomDataGenerator(RandomDataGenerator):
