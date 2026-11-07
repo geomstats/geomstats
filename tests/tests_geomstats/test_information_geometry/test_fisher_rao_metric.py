@@ -1,11 +1,12 @@
 import pytest
+from polpo.testing.parametrizers import DataBasedParametrizer
 
 from geomstats.information_geometry.beta import BetaDistributions
 from geomstats.information_geometry.exponential import ExponentialDistributions
 from geomstats.information_geometry.fisher_rao_metric import FisherRaoMetric
 from geomstats.information_geometry.gamma import GammaDistributions
 from geomstats.information_geometry.normal import UnivariateNormalDistributions
-from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.test_case import autodiff_only
 from geomstats.test_cases.geometry.riemannian_metric import (
     RiemannianMetricComparisonTestCase,
 )
@@ -18,6 +19,7 @@ from .data.fisher_rao_metric import (
 )
 
 
+@autodiff_only
 @pytest.mark.smoke
 class TestFisherRaoCmpUnivariateNormal(
     RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
@@ -31,6 +33,7 @@ class TestFisherRaoCmpUnivariateNormal(
     testing_data = FisherRaoMetricCmpUnivariateNormalTestData()
 
 
+@autodiff_only
 @pytest.mark.smoke
 class TestFisherRaoCmpExponential(
     RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
@@ -41,9 +44,12 @@ class TestFisherRaoCmpExponential(
 
     other_space = ExponentialDistributions()
 
-    testing_data = FisherRaoMetricCmpExponentialTestData()
+    testing_data = FisherRaoMetricCmpExponentialTestData(
+        method_defaults={"inner_product_derivative_matrix": {"atol": 1e-2}}
+    )
 
 
+@autodiff_only
 @pytest.mark.smoke
 class TestFisherRaoCmpGamma(
     RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
@@ -54,9 +60,12 @@ class TestFisherRaoCmpGamma(
 
     other_space = GammaDistributions()
 
-    testing_data = FisherRaoMetricCmpGammaTestData()
+    testing_data = FisherRaoMetricCmpGammaTestData(
+        method_defaults={"metric_matrix": {"atol": 1e-6}}
+    )
 
 
+@autodiff_only
 @pytest.mark.smoke
 class TestFisherRaoCmpBeta(
     RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer

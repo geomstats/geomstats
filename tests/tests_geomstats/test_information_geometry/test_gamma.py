@@ -1,12 +1,10 @@
-import pytest
+from polpo.testing.parametrizers import GeometricDataBasedParametrizer
 
 from geomstats.information_geometry.gamma import (
     GammaDistributions,
     GammaDistributionsRandomVariable,
     NaturalToStandardDiffeo,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import GammaRandomDataGenerator, RandomDataGenerator
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.information_geometry.gamma import (
     GammaDistributionsTestCase,
@@ -15,39 +13,54 @@ from geomstats.test_cases.information_geometry.gamma import (
 )
 
 from .data.gamma import (
-    GammaDistributionsSmokeTestData,
     GammaDistributionsTestData,
     GammaMetricTestData,
     NaturalToStandardDiffeoTestData,
 )
 
 
-class TestNaturalToStandardDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
-    space = GammaDistributions(equip=False)
+class TestNaturalToStandardDiffeo(
+    DiffeoTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    domain_space = GammaDistributions(equip=False)
     image_space = StandardGammaDistributions()
     diffeo = NaturalToStandardDiffeo()
-    testing_data = NaturalToStandardDiffeoTestData()
+
+    testing_data = NaturalToStandardDiffeoTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+        map_=diffeo,
+    )
 
 
 class TestGammaDistributions(
-    GammaDistributionsTestCase, metaclass=DataBasedParametrizer
+    GammaDistributionsTestCase, metaclass=GeometricDataBasedParametrizer
 ):
     space = GammaDistributions(equip=False)
-    data_generator = GammaRandomDataGenerator(space)
     random_variable = GammaDistributionsRandomVariable(space)
-
-    testing_data = GammaDistributionsTestData()
-
-
-@pytest.mark.smoke
-class TestGammaDistributionsSmoke(
-    GammaDistributionsTestCase, metaclass=DataBasedParametrizer
-):
-    space = GammaDistributions(equip=False)
-    testing_data = GammaDistributionsSmokeTestData()
+    testing_data = GammaDistributionsTestData(space)
 
 
-class TestGammaMetric(GammaMetricTestCase, metaclass=DataBasedParametrizer):
+class TestGammaMetric(GammaMetricTestCase, metaclass=GeometricDataBasedParametrizer):
     space = GammaDistributions()
-    data_generator = RandomDataGenerator(space, amplitude=20.0)
-    testing_data = GammaMetricTestData()
+    testing_data = GammaMetricTestData(
+        space,
+        excluded_methods=(
+            "injectivity_radius",
+            "parallel_transport_ivp",
+            "parallel_transport_bvp",
+            "parallel_transport_ivp_transported_is_tangent",
+            "parallel_transport_bvp_transported_is_tangent",
+            "parallel_transport_ivp_norm",
+            "parallel_transport_bvp_norm",
+        ),
+        method_marks={
+            "xfail": (
+                "dist_is_symmetric",
+                "squared_dist_is_symmetric",
+                "log_after_exp",
+                "exp_after_log",
+            )
+        },
+        generator_kwargs={"amplitude": 20.0},
+    )

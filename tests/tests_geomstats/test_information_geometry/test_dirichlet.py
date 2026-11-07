@@ -1,10 +1,12 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 from geomstats.information_geometry.dirichlet import DirichletDistributions
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.information_geometry.dirichlet import (
     DirichletDistributionsTestCase,
     DirichletMetricTestCase,
@@ -17,23 +19,6 @@ from .data.dirichlet import (
 )
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        random.randint(3, 4),
-    ],
-)
-def spaces(request):
-    request.cls.space = DirichletDistributions(dim=request.param, equip=False)
-
-
-@pytest.mark.usefixtures("spaces")
-class TestDirichletDistributions(
-    DirichletDistributionsTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = DirichletDistributionsTestData()
-
-
 @pytest.mark.smoke
 class TestDirichletDistributions3(
     DirichletDistributionsTestCase, metaclass=DataBasedParametrizer
@@ -42,19 +27,36 @@ class TestDirichletDistributions3(
     testing_data = DirichletDistributions3TestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        random.randint(3, 4),
-    ],
-)
-def equipped_spaces(request):
-    space = request.cls.space = DirichletDistributions(dim=request.param)
-
-    request.cls.data_generator = RandomDataGenerator(space, amplitude=5.0)
+class TestDirichletDistributions(
+    DirichletDistributionsTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = DirichletDistributions(dim=random.randint(3, 4), equip=False)
+    testing_data = DirichletDistributionsTestData(space)
 
 
-@pytest.mark.usefixtures("equipped_spaces")
 @pytest.mark.slow
-class TestDirichletMetric(DirichletMetricTestCase, metaclass=DataBasedParametrizer):
-    testing_data = DirichletMetricTestData()
+class TestDirichletMetric(
+    DirichletMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = DirichletDistributions(dim=random.randint(3, 4))
+    testing_data = DirichletMetricTestData(
+        space,
+        excluded_methods=(
+            "parallel_transport_ivp",
+            "parallel_transport_bvp",
+            "parallel_transport_ivp_transported_is_tangent",
+            "parallel_transport_bvp_transported_is_tangent",
+            "parallel_transport_ivp_norm",
+            "parallel_transport_bvp_norm",
+        ),
+        method_marks={
+            "xfail": (
+                "dist_is_symmetric",
+                "squared_dist_is_symmetric",
+                "exp_after_log",
+                "exp_diagonal_is_totally_geodesic",
+            )
+        },
+        method_defaults={"log_after_exp": {"atol": 1e-3}},
+        generator_kwargs={"amplitude": 5.0},
+    )

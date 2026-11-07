@@ -39,6 +39,7 @@ from geomstats.geometry.open_hemisphere import (
     OpenHemisphere,
     OpenHemispheresProduct,
 )
+from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
@@ -59,6 +60,7 @@ from geomstats.geometry.symmetric_matrices import (
     SymmetricHollowMatrices,
     SymmetricMatrices,
 )
+from geomstats.information_geometry.normal import DiagonalNormalDistributions
 from geomstats.vectorization import repeat_point
 
 
@@ -242,9 +244,19 @@ def _(space, **kwargs):
     return PositiveRealsRandomDataGenerator(space, **kwargs)
 
 
+@get_data_generator.register(PoincareHalfSpace)
+def _(space, **kwargs):
+    return PoincareHalfSpaceRandomDataGenerator(space, **kwargs)
+
+
 @get_data_generator.register(PositiveLowerTriangularMatrices)
 def _(space, **kwargs):
     return PositiveLowerTriangularMatricesRandomDataGenerator(space, **kwargs)
+
+
+@get_data_generator.register(DiagonalNormalDistributions)
+def _(space, **kwargs):
+    return DiagonalNormalDistributionsRandomDataGenerator(space, **kwargs)
 
 
 @get_data_generator.register(NullRowSumsSymmetricMatrices)
@@ -375,6 +387,18 @@ class PositiveRealsRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
         return base_point * super().random_tangent_vec(base_point)
 
 
+class PoincareHalfSpaceRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
+    """Random data generator for the Poincare half-space.
+
+    Tangent vectors are scaled by the last coordinate of their base point,
+    so that their hyperbolic norm does not depend on the base point.
+    """
+
+    def random_tangent_vec(self, base_point):
+        tangent_vec = super().random_tangent_vec(base_point)
+        return tangent_vec * base_point[..., -1:]
+
+
 class PositiveLowerTriangularMatricesRandomDataGenerator(
     EmbeddedSpaceRandomDataGenerator
 ):
@@ -393,6 +417,22 @@ class PositiveLowerTriangularMatricesRandomDataGenerator(
         return Matrices.to_strictly_lower_triangular(tangent_vec) + gs.vec_to_diag(
             diag_tangent_vec
         )
+
+
+class DiagonalNormalDistributionsRandomDataGenerator(
+    EmbeddedSpaceRandomDataGenerator
+):
+    """Random data generator for diagonal normal distributions.
+
+    Tangent vectors are scaled by the standard deviations of their base point,
+    so that their norm for the Fisher-Rao metric does not depend on the base
+    point.
+    """
+
+    def random_tangent_vec(self, base_point):
+        tangent_vec = super().random_tangent_vec(base_point)
+        std = gs.sqrt(base_point[..., self.space.sample_dim :])
+        return tangent_vec * gs.concatenate([std, std], axis=-1)
 
 
 class LevelSetMatrixVectorSpaceRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
@@ -698,21 +738,6 @@ class KendalShapeRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
         tangent_vec = self.random_tangent_vec(base_point)
         return (
             self.space.fiber_bundle.vertical_projection(tangent_vec, base_point)
-            / self.amplitude
-        )
-
-
-class GammaRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
-    def random_point_standard(self, n_points=1):
-        return self.space.natural_to_standard(self.random_point(n_points=n_points))
-
-    def random_tangent_vec_standard(self, base_point):
-        base_point_natural = self.space.standard_to_natural(base_point)
-        tangent_vec_natural = self.random_tangent_vec(base_point_natural)
-        return (
-            self.space.tangent_natural_to_standard(
-                tangent_vec_natural, base_point_natural
-            )
             / self.amplitude
         )
 

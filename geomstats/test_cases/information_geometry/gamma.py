@@ -1,5 +1,3 @@
-import pytest
-
 import geomstats.backend as gs
 from geomstats.geometry.base import DiffeomorphicManifold
 from geomstats.geometry.diffeo import ReversedDiffeo
@@ -40,20 +38,48 @@ class GammaDistributionsTestCase(
     def _check_sample_belongs_to_support(self, sample, atol):
         self.assertTrue(gs.all(sample > 0.0))
 
-    def test_maximum_likelihood_fit(self, data, expected, atol):
+    def test_maximum_likelihood_fit(self, data, expected, atol=gs.atol):
+        """Check maximum likelihood fit.
+
+        Parameters
+        ----------
+        data : array-like or list[array-like]
+            Samples, or list of samples, to fit.
+        expected : array-like, shape=[..., 2]
+            Expected fitted parameters.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.maximum_likelihood_fit(data)
         self.assertAllClose(res, expected, atol=atol)
 
 
 class GammaMetricTestCase(RiemannianMetricTestCase):
-    def test_jacobian_christoffels(self, base_point, expected, atol):
+    def test_jacobian_christoffels(self, base_point, expected, atol=gs.atol):
+        """Check Jacobian of the Christoffel symbols.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point on the manifold.
+        expected : array-like, shape=[..., 2, 2, 2, 2]
+            Expected Jacobian.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.metric.jacobian_christoffels(base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.random
-    def test_scalar_curvature_against_closed_form(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
+    def test_scalar_curvature_against_closed_form(self, base_point, atol=gs.atol):
+        """Check scalar curvature against its closed form.
 
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.metric.scalar_curvature(base_point)
         expected = scalar_curvature(base_point)
         self.assertAllClose(res, expected, atol=atol)
