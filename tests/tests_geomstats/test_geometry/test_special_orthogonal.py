@@ -1,12 +1,15 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 from geomstats.geometry.special_orthogonal import (
     SpecialOrthogonal,
     _SpecialOrthogonalMatrices,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.special_orthogonal import (
     SpecialOrthogonal3VectorsTestCase,
     SpecialOrthogonalMatricesTestCase,
@@ -14,32 +17,12 @@ from geomstats.test_cases.geometry.special_orthogonal import (
 )
 
 from .data.special_orthogonal import (
-    SpecialOrthogonal2VectorsSmokeTestData,
     SpecialOrthogonal2VectorsTestData,
-    SpecialOrthogonal3VectorsSmokeTestData,
     SpecialOrthogonal3VectorsTestData,
     SpecialOrthogonalMatrices2TestData,
     SpecialOrthogonalMatrices3TestData,
     SpecialOrthogonalMatricesTestData,
 )
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        random.randint(2, 3),
-        random.randint(4, 6),
-    ],
-)
-def mat_spaces(request):
-    request.cls.space = _SpecialOrthogonalMatrices(n=request.param, equip=False)
-
-
-@pytest.mark.usefixtures("mat_spaces")
-class TestSpecialOrthogonalMatrices(
-    SpecialOrthogonalMatricesTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = SpecialOrthogonalMatricesTestData()
 
 
 @pytest.mark.smoke
@@ -58,31 +41,39 @@ class TestSpecialOrthogonalMatrices3(
     testing_data = SpecialOrthogonalMatrices3TestData()
 
 
+class TestSpecialOrthogonalMatrices(
+    SpecialOrthogonalMatricesTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = _SpecialOrthogonalMatrices(n=random.randint(2, 3), equip=False)
+    testing_data = SpecialOrthogonalMatricesTestData(space)
+
+
+class TestSpecialOrthogonalHighDimMatrices(
+    SpecialOrthogonalMatricesTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    """Special orthogonal matrices without rotation vectors, for n > 3."""
+
+    space = _SpecialOrthogonalMatrices(n=random.randint(4, 6), equip=False)
+    testing_data = SpecialOrthogonalMatricesTestData(
+        space,
+        excluded_methods=(
+            "rotation_vector_from_matrix",
+            "matrix_from_rotation_vector",
+            "rotation_vector_from_matrix_after_matrix_from_rotation_vector",
+            "matrix_from_rotation_vector_after_rotation_vector_from_matrix",
+        ),
+    )
+
+
 class TestSpecialOrthogonal2Vectors(
-    SpecialOrthogonalVectorsTestCase, metaclass=DataBasedParametrizer
+    SpecialOrthogonalVectorsTestCase, metaclass=GeometricDataBasedParametrizer
 ):
     space = SpecialOrthogonal(2, point_type="vector", equip=False)
-    testing_data = SpecialOrthogonal2VectorsTestData()
-
-
-@pytest.mark.smoke
-class TestSpecialOrthogonal2VectorsSmoke(
-    SpecialOrthogonalVectorsTestCase, metaclass=DataBasedParametrizer
-):
-    space = SpecialOrthogonal(2, point_type="vector", equip=False)
-    testing_data = SpecialOrthogonal2VectorsSmokeTestData()
+    testing_data = SpecialOrthogonal2VectorsTestData(space)
 
 
 class TestSpecialOrthogonal3Vectors(
-    SpecialOrthogonal3VectorsTestCase, metaclass=DataBasedParametrizer
+    SpecialOrthogonal3VectorsTestCase, metaclass=GeometricDataBasedParametrizer
 ):
     space = SpecialOrthogonal(3, point_type="vector", equip=True)
-    testing_data = SpecialOrthogonal3VectorsTestData()
-
-
-@pytest.mark.smoke
-class TestSpecialOrthogonal3VectorsSmoke(
-    SpecialOrthogonal3VectorsTestCase, metaclass=DataBasedParametrizer
-):
-    space = SpecialOrthogonal(3, point_type="vector", equip=True)
-    testing_data = SpecialOrthogonal3VectorsSmokeTestData()
+    testing_data = SpecialOrthogonal3VectorsTestData(space)

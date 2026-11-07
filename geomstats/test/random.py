@@ -45,7 +45,11 @@ from geomstats.geometry.rank_k_psd_matrices import RankKPSDMatrices
 from geomstats.geometry.siegel import Siegel
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.spd_matrices import SPDMatrices
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.special_orthogonal import (
+    SpecialOrthogonal,
+    _SpecialOrthogonalMatrices,
+    _SpecialOrthogonalVectors,
+)
 from geomstats.geometry.symmetric_matrices import (
     NullRowSumsSymmetricMatrices,
     SymmetricHollowMatrices,
@@ -264,6 +268,16 @@ def _(space, **kwargs):
 @get_data_generator.register(DiscreteCurvesStartingAtOrigin)
 def _(space, **kwargs):
     return DiscreteCurvesRandomDataGenerator(space, **kwargs)
+
+
+@get_data_generator.register(_SpecialOrthogonalMatrices)
+def _(space, **kwargs):
+    return SpecialOrthogonalMatricesRandomDataGenerator(space, **kwargs)
+
+
+@get_data_generator.register(_SpecialOrthogonalVectors)
+def _(space, **kwargs):
+    return SpecialOrthogonalVectorsRandomDataGenerator(space, **kwargs)
 
 
 @get_data_generator.register(NFoldManifold)
@@ -597,6 +611,45 @@ class LieGroupVectorRandomDataGenerator(RandomDataGenerator):
 
     def point_to_project(self, n_points=1):
         return self._euclidean.random_point(n_points)
+
+
+class _SpecialOrthogonalSamplersMixin:
+    """Samplers of the representations of rotations of `space`."""
+
+    def random_rotation_matrix(self, n_points=1):
+        return SpecialOrthogonal(self.space.n, equip=False).random_point(n_points)
+
+    def random_rotation_vector(self, n_points=1):
+        return SpecialOrthogonal(
+            self.space.n, point_type="vector", equip=False
+        ).random_point(n_points)
+
+    @staticmethod
+    def random_quaternion(n_points=1):
+        return get_random_quaternion(n_points)
+
+    @staticmethod
+    def random_tait_bryan_angles(n_points=1):
+        size = (n_points, 3) if n_points > 1 else (3,)
+        return gs.random.uniform(low=-gs.pi, high=gs.pi, size=size)
+
+
+class SpecialOrthogonalMatricesRandomDataGenerator(
+    _SpecialOrthogonalSamplersMixin, EmbeddedSpaceRandomDataGenerator
+):
+    """Random data generator for special orthogonal matrices."""
+
+
+class SpecialOrthogonalVectorsRandomDataGenerator(
+    _SpecialOrthogonalSamplersMixin, LieGroupVectorRandomDataGenerator
+):
+    """Random data generator for special orthogonal groups as rotation vectors.
+
+    Points to project are n x n matrices.
+    """
+
+    def point_to_project(self, n_points=1):
+        return Matrices(self.space.n, self.space.n, equip=False).random_point(n_points)
 
 
 class KendalShapeRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
