@@ -1,5 +1,3 @@
-import pytest
-
 import geomstats.backend as gs
 from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
 
@@ -24,21 +22,38 @@ def univariate_fisher_rao_dist(point_a, point_b):
 
 
 class UnivariateNormalMetricTestCase(PullbackDiffeoMetricTestCase):
-    @pytest.mark.random
-    def test_dist_against_closed_form(self, n_points, atol):
-        point_a = self.data_generator.random_point(n_points)
-        point_b = self.data_generator.random_point(n_points)
+    def test_dist_against_closed_form(self, point_a, point_b, atol=gs.atol):
+        """Check distance against its closed form.
 
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., 2]
+            Point on the manifold.
+        point_b : array-like, shape=[..., 2]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.metric.dist(point_a, point_b)
         expected = univariate_fisher_rao_dist(point_a, point_b)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.random
-    def test_sectional_curvature_value(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+    def test_sectional_curvature_value(
+        self, base_point, tangent_vec_a, tangent_vec_b, atol=gs.atol
+    ):
+        """Check sectional curvature is -1/2.
 
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point on the manifold.
+        tangent_vec_a : array-like, shape=[..., 2]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., 2]
+            Tangent vector at `base_point`.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.metric.sectional_curvature(
             tangent_vec_a, tangent_vec_b, base_point
         )
