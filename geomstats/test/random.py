@@ -36,6 +36,7 @@ from geomstats.geometry.open_hemisphere import (
     OpenHemispheresProduct,
 )
 from geomstats.geometry.positive_reals import PositiveReals
+from geomstats.geometry.pre_shape import PreShapeSpace
 from geomstats.geometry.rank_k_psd_matrices import RankKPSDMatrices
 from geomstats.geometry.siegel import Siegel
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
@@ -237,6 +238,11 @@ def _(space, **kwargs):
 @get_data_generator.register(FullRankCorrelationMatrices)
 def _(space, **kwargs):
     return FullRankCorrelationMatricesRandomDataGenerator(space, **kwargs)
+
+
+@get_data_generator.register(PreShapeSpace)
+def _(space, **kwargs):
+    return KendalShapeRandomDataGenerator(space, **kwargs)
 
 
 @get_data_generator.register(RankKPSDMatrices)
@@ -446,6 +452,13 @@ class KendalShapeRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
         tangent_vec = self.random_tangent_vec(base_point)
         return (
             self.space.fiber_bundle.horizontal_projection(tangent_vec, base_point)
+            / self.amplitude
+        )
+
+    def random_vertical_vec(self, base_point):
+        tangent_vec = self.random_tangent_vec(base_point)
+        return (
+            self.space.fiber_bundle.vertical_projection(tangent_vec, base_point)
             / self.amplitude
         )
 
