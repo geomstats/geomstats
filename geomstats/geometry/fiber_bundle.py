@@ -573,21 +573,21 @@ class FiberBundle:
 
         return self.horizontal_projection(tangent_vec, fiber_point)
 
-    def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
+    def integrability_tensor(self, tangent_vec_x, tangent_vec_e, base_point):
         r"""Compute the fundamental tensor A of the submersion.
 
         The fundamental integrability tensor A is defined for tangent vectors
-        :math:`X = tangent\_vec\_a` and :math:`Y = tangent\_vec\_b` of the
+        :math:`X = tangent\_vec\_x` and :math:`E = tangent\_vec\_e` of the
         total space by [ONeill]_ as
-        :math:`A_X Y = ver\nabla_{hor X} (hor Y) + hor \nabla_{hor X}( ver Y)`
+        :math:`A_X E = ver\nabla_{hor X} (hor E) + hor \nabla_{hor X}( ver E)`
         where :math:`hor, ver` are the horizontal and vertical projections
         and :math:`\nabla` is the connection of the total space.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., {total_space.dim, [n, m]}]
+        tangent_vec_x : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., {total_space.dim, [n, m]}]
+        tangent_vec_e : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point of the total space.
@@ -596,7 +596,7 @@ class FiberBundle:
         -------
         vector : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector at `base_point`, result of the A tensor applied to
-            `tangent_vec_a` and `tangent_vec_b`.
+            `tangent_vec_x` and `tangent_vec_e`.
 
         References
         ----------
