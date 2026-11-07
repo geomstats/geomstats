@@ -21,7 +21,6 @@ from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import ShapeBundleRandomDataGenerator
 from geomstats.test.test_case import TestCase
 from geomstats.test_cases.geometry.diffeo import (
-    AutodiffDiffeoTestCase,
     DiffeoComparisonTestCase,
     DiffeoTestCase,
 )
@@ -35,7 +34,6 @@ from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTe
 from geomstats.test_cases.geometry.quotient_metric import QuotientMetricTestCase
 
 from .data.diffeo import (
-    AutodiffDiffeoTestData,
     DiffeoComparisonTestData,
     DiffeoTestData,
 )
@@ -85,7 +83,7 @@ class TestSRVTransform(DiffeoTestCase, metaclass=DataBasedParametrizer):
     testing_data = DiffeoTestData()
 
 
-class TestFTransform(AutodiffDiffeoTestCase, metaclass=DataBasedParametrizer):
+class TestFTransform(DiffeoTestCase, metaclass=DataBasedParametrizer):
     _k_sampling_points = random.randint(5, 10)
     _a = gs.random.uniform(low=0.5, high=2.5, size=1)
 
@@ -101,7 +99,7 @@ class TestFTransform(AutodiffDiffeoTestCase, metaclass=DataBasedParametrizer):
 
     diffeo = FTransform(space.ambient_manifold, _k_sampling_points, _a)
 
-    testing_data = AutodiffDiffeoTestData()
+    testing_data = DiffeoTestData()
 
 
 class TestSRVVsFTransform(DiffeoComparisonTestCase, metaclass=DataBasedParametrizer):
