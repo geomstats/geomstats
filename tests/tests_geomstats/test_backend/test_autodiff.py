@@ -68,6 +68,18 @@ def _first_component_of_sphere_immersion_scalar(point):
     return radius * x
 
 
+def _expected_hessian_first_component_of_sphere_immersion(point):
+    """Closed-form hessian of `_first_component_of_sphere_immersion_scalar`."""
+    radius = 4.0
+    theta, phi = point[0], point[1]
+    return radius * gs.array(
+        [
+            [-gs.sin(theta) * gs.cos(phi), -gs.cos(theta) * gs.sin(phi)],
+            [-gs.cos(theta) * gs.sin(phi), -gs.sin(theta) * gs.cos(phi)],
+        ]
+    )
+
+
 @np_only
 class TestNumpyRaises(NumpyRaisesTestCase, metaclass=DataBasedParametrizer):
     dummy_func = lambda v: gs.sum(v**2)
@@ -257,3 +269,75 @@ class TestAutodiffOld(TestCase):
         self.assertAllClose(hessian_1ij.shape, (2, dim, dim))
         self.assertAllClose(hessian_1ij.shape, expected_1ij.shape)
         self.assertAllClose(hessian_1ij, expected_1ij)
+
+    @autograd_and_torch_only
+    def test_jacobian_of_jacobian_is_hessian(self):
+        """Derivatives compose: nested jacobians equal the hessian (#1801)."""
+        point = gs.array([gs.pi / 3, gs.pi])
+
+        jacobian_of_jacobian = gs.autodiff.jacobian(
+            gs.autodiff.jacobian(_first_component_of_sphere_immersion_scalar)
+        )(point)
+
+        expected = _expected_hessian_first_component_of_sphere_immersion(point)
+        self.assertAllClose(jacobian_of_jacobian, expected)
+
+    @autograd_and_torch_only
+    def test_jacobian_vec_of_jacobian_vec_is_hessian_vec(self):
+        """Nested vectorized jacobians equal the vectorized hessian (#1801)."""
+        points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 4, gs.pi / 2]])
+
+        jacobian_of_jacobian = gs.autodiff.jacobian_vec(
+            gs.autodiff.jacobian_vec(_first_component_of_sphere_immersion_scalar)
+        )(points)
+
+        expected = gs.stack(
+            [
+                _expected_hessian_first_component_of_sphere_immersion(point)
+                for point in points
+            ]
+        )
+        self.assertAllClose(jacobian_of_jacobian, expected)
+
+    @autograd_and_torch_only
+    def test_jacobian_of_hessian_with_constant_hessian(self):
+        """Nested derivatives of a function with constant hessian are zero."""
+        point = gs.array([0.3, -1.2])
+
+        third_derivative = gs.autodiff.jacobian(
+            gs.autodiff.hessian(lambda x: x[0] * x[1])
+        )(point)
+
+        self.assertAllClose(third_derivative, gs.zeros((2, 2, 2)))
+
+    @autograd_and_torch_only
+    def test_jacobian_vec_of_hessian_vec(self):
+        """Third derivative through jacobian_vec(hessian_vec(f)) is non-trivial.
+
+        This is the nesting depth used by riemann_tensor on a PullbackMetric
+        (#1928): d(christoffels) -> d(hessian_immersion) -> d(d(immersion)).
+        """
+        radius = 4.0
+        point = gs.array([gs.pi / 3, gs.pi])
+        theta, phi = point[0], point[1]
+
+        third_derivative = gs.autodiff.jacobian_vec(
+            gs.autodiff.hessian_vec(_first_component_of_sphere_immersion_scalar)
+        )(point)
+
+        expected_d_theta = radius * gs.array(
+            [
+                [-gs.cos(theta) * gs.cos(phi), gs.sin(theta) * gs.sin(phi)],
+                [gs.sin(theta) * gs.sin(phi), -gs.cos(theta) * gs.cos(phi)],
+            ]
+        )
+        expected_d_phi = radius * gs.array(
+            [
+                [gs.sin(theta) * gs.sin(phi), -gs.cos(theta) * gs.cos(phi)],
+                [-gs.cos(theta) * gs.cos(phi), gs.sin(theta) * gs.sin(phi)],
+            ]
+        )
+
+        self.assertAllClose(third_derivative.shape, (2, 2, 2))
+        self.assertAllClose(third_derivative[..., 0], expected_d_theta)
+        self.assertAllClose(third_derivative[..., 1], expected_d_phi)
