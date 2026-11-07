@@ -53,15 +53,48 @@ class SphereIntrinsic(ImmersedSet):
 
 
 class PullbackMetricTestCase(RiemannianMetricTestCase):
-    def test_second_fundamental_form(self, base_point, expected, atol):
+    def test_second_fundamental_form(self, base_point, expected, atol=gs.atol):
+        """Check second fundamental form.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        expected : array-like, shape=[..., embedding_dim, dim, dim]
+            Expected second fundamental form.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.metric.second_fundamental_form(base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    def test_mean_curvature_vector(self, base_point, expected, atol):
+    def test_mean_curvature_vector(self, base_point, expected, atol=gs.atol):
+        """Check mean curvature vector.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        expected : array-like, shape=[..., embedding_dim]
+            Expected mean curvature vector.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.metric.mean_curvature_vector(base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    def test_mean_curvature_vector_norm(self, base_point, expected, atol):
+    def test_mean_curvature_vector_norm(self, base_point, expected, atol=gs.atol):
+        """Check the norm of the mean curvature vector.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[dim]
+            Point on the manifold.
+        expected : float
+            Expected norm of the mean curvature vector.
+        atol : float
+            Absolute tolerance.
+        """
         mean_curvature = self.space.metric.mean_curvature_vector(base_point)
         res = gs.linalg.norm(mean_curvature)
         self.assertAllClose(res, expected, atol=atol)

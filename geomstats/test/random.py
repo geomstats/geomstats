@@ -9,6 +9,7 @@ from geomstats.geometry.base import (
     DiffeomorphicManifold,
     DiffeomorphicMatrixVectorSpace,
     DiffeomorphicVectorSpace,
+    ImmersedSet,
     LevelSet,
     MatrixVectorSpace,
     OpenSet,
@@ -211,6 +212,7 @@ def _(space, **kwargs):
     return MatrixVectorSpaceRandomDataGenerator(space, **kwargs)
 
 
+@get_data_generator.register(ImmersedSet)
 @get_data_generator.register(LevelSet)
 @get_data_generator.register(OpenSet)
 @get_data_generator.register(ComplexVectorSpaceOpenSet)

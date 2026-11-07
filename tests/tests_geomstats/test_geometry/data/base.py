@@ -104,22 +104,24 @@ class ComplexVectorSpaceOpenSetTestData(
 
 class ImmersedSetTestData(ProjectionMixinsTestData, ManifoldTestData):
     def immersion_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def immersion_belongs_test_data(self):
-        return self.generate_random_data()
+        return self.generate_vectorization_data(arg_names="point")
 
     def tangent_immersion_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def tangent_immersion_is_tangent_test_data(self):
-        return self.generate_random_data()
+        return self.generate_vectorization_data(
+            arg_names=("base_point", "tangent_vec"),
+        )
 
     def jacobian_immersion_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(arg_names="base_point")
 
     def hessian_immersion_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(arg_names="base_point")
+
+    def immersion_belongs_test_data(self):
+        return self.generate_random_data(arg_names="point")
+
+    def tangent_immersion_is_tangent_test_data(self):
+        return self.generate_random_data(arg_names=("base_point", "tangent_vec"))
 
 
 class DiffeomorphicManifoldTestData(ManifoldTestData):

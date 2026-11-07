@@ -1,8 +1,5 @@
-import pytest
-
 import geomstats.backend as gs
 from geomstats.test.assertions import assert_belongs, assert_is_tangent
-from geomstats.test.random import EmbeddedSpaceRandomDataGenerator
 from geomstats.test_cases.geometry.complex_manifold import ComplexManifoldTestCase
 
 from .manifold import ManifoldTestCase
@@ -302,50 +299,103 @@ class ComplexVectorSpaceOpenSetTestCase(
 
 
 class ImmersedSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = EmbeddedSpaceRandomDataGenerator(self.space)
-        super().setup_method()
+    def test_immersion(self, point, expected, atol=gs.atol):
+        """Check immersion.
 
-    def test_immersion(self, point, expected, atol):
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., *embedding_space.shape]
+            Expected image of `point`.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.immersion(point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.random
-    def test_immersion_belongs(self, n_points, atol):
-        point = self.data_generator.random_point(n_points)
+    def test_tangent_immersion(self, tangent_vec, base_point, expected, atol=gs.atol):
+        """Check tangent immersion.
 
-        embedded_point = self.space.immersion(point)
-
-        expected = gs.ones(n_points, dtype=bool)
-        res = self.space.embedding_space.belongs(embedded_point, atol=atol)
-        self.assertAllEqual(res, expected)
-
-    def test_tangent_immersion(self, tangent_vec, base_point, expected, atol):
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., *embedding_space.shape]
+            Expected image of `tangent_vec`.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.tangent_immersion(tangent_vec, base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.random
-    def test_tangent_immersion_is_tangent(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+    def test_jacobian_immersion(self, base_point, expected, atol=gs.atol):
+        """Check Jacobian of the immersion.
 
-        embedded_point = self.space.immersion(base_point)
-        embedded_tangent_vec = self.space.tangent_immersion(tangent_vec, base_point)
-
-        expected = gs.ones(n_points, dtype=bool)
-        res = self.space.embedding_space.is_tangent(
-            embedded_tangent_vec, embedded_point, atol=atol
-        )
-        self.assertAllEqual(res, expected)
-
-    def test_jacobian_immersion(self, base_point, expected, atol):
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., embedding_dim, dim]
+            Expected Jacobian.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.jacobian_immersion(base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    def test_hessian_immersion(self, base_point, expected, atol):
+    def test_hessian_immersion(self, base_point, expected, atol=gs.atol):
+        """Check Hessian of the immersion.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., embedding_dim, dim, dim]
+            Expected Hessian.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.hessian_immersion(base_point)
         self.assertAllClose(res, expected, atol=atol)
+
+    def test_immersion_belongs(self, point, atol=gs.atol):
+        """Check immersion belongs to the embedding space.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        embedded_point = self.space.immersion(point)
+
+        assert_belongs(self.space.embedding_space, embedded_point, atol=atol)
+
+    def test_tangent_immersion_is_tangent(self, tangent_vec, base_point, atol=gs.atol):
+        """Check tangent immersion is tangent to the embedding space.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        embedded_point = self.space.immersion(base_point)
+        embedded_tangent_vec = self.space.tangent_immersion(tangent_vec, base_point)
+
+        assert_is_tangent(
+            self.space.embedding_space,
+            embedded_tangent_vec,
+            embedded_point,
+            atol=atol,
+        )
 
 
 class DiffeomorphicManifoldTestCase(ManifoldTestCase):
