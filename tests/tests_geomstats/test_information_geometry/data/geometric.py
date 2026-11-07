@@ -24,6 +24,10 @@ class GeometricDistributionsSmokeTestData(TestData):
             dict(point=gs.array([[0.9], [-1.0]]), expected=gs.array([True, False])),
             dict(point=gs.array([[0.1], [0.7]]), expected=gs.array([True, True])),
             dict(point=gs.array([[-0.1], [3.7]]), expected=gs.array([False, False])),
+            dict(
+                point=0.5 * gs.ones((2, 1, 1)),
+                expected=gs.ones((2, 1), dtype=bool),
+            ),
         ]
         return self.generate_tests(data)
 

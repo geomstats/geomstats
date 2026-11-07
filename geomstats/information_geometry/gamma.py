@@ -37,22 +37,24 @@ from geomstats.vectorization import get_batch_shape
 class NaturalToStandardDiffeo(InvolutionDiffeomorphism):
     """Diffeomorphism between natural and standard coordinates."""
 
-    def __call__(self, point):
+    def __call__(self, base_point):
         """Convert point from natural coordinates to standard coordinates.
 
         The change of variable is symmetric.
 
         Parameters
         ----------
-        point : array-like, shape=[..., 2]
+        base_point : array-like, shape=[..., 2]
             Point of the Gamma manifold, given in natural coordinates.
 
         Returns
         -------
-        point : array-like, shape=[..., 2]
+        image_point : array-like, shape=[..., 2]
             Point of the Gamma manifold, given in standard coordinates.
         """
-        return gs.stack([point[..., 0], point[..., 0] / point[..., 1]], axis=-1)
+        return gs.stack(
+            [base_point[..., 0], base_point[..., 0] / base_point[..., 1]], axis=-1
+        )
 
     def tangent(self, tangent_vec, base_point=None, image_point=None):
         """Convert tangent vector from natural coordinates to standard coordinates.
