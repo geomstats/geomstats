@@ -1,6 +1,5 @@
 import geomstats.backend as gs
 from geomstats.test.assertions import assert_belongs
-from geomstats.vectorization import get_batch_shape
 
 
 class ProjectionTestCaseMixins:
@@ -154,10 +153,7 @@ class DistTestCaseMixins:
             Absolute tolerance.
         """
         squared_dist = self.space.metric.squared_dist(point, point)
-
-        batch_shape = get_batch_shape(self.space.point_ndim, point)
-        expected = gs.zeros(batch_shape)
-        self.assertAllClose(squared_dist, expected, atol=atol)
+        self.assertAllClose(squared_dist, gs.zeros_like(squared_dist), atol=atol)
 
     def test_dist_is_symmetric(self, point_a, point_b, atol=gs.atol):
         """Check distance is symmetric.

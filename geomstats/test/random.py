@@ -61,6 +61,7 @@ from geomstats.geometry.symmetric_matrices import (
     SymmetricMatrices,
 )
 from geomstats.information_geometry.normal import DiagonalNormalDistributions
+from geomstats.metric_geometry.point_set import PointSet
 from geomstats.vectorization import repeat_point
 
 
@@ -210,6 +211,7 @@ def get_data_generator(space, **kwargs):
 
 @get_data_generator.register(Manifold)
 @get_data_generator.register(ComplexManifold)
+@get_data_generator.register(PointSet)
 def _(space, **kwargs):
     return RandomDataGenerator(space, **kwargs)
 
@@ -433,6 +435,25 @@ class DiagonalNormalDistributionsRandomDataGenerator(
         tangent_vec = super().random_tangent_vec(base_point)
         std = gs.sqrt(base_point[..., self.space.sample_dim :])
         return tangent_vec * gs.concatenate([std, std], axis=-1)
+
+
+class RandomGroveDataGenerator(RandomDataGenerator):
+    """Random data generator for points of a grove of a Wald space.
+
+    Parameters
+    ----------
+    space : WaldSpace
+        Wald space.
+    topology : ForestTopology
+        Topology of the grove.
+    """
+
+    def __init__(self, space, topology, near_scale=0.1):
+        super().__init__(space, near_scale=near_scale)
+        self.topology = topology
+
+    def random_point(self, n_points=1):
+        return self.space.random_grove_point(self.topology, n_points)
 
 
 class LevelSetMatrixVectorSpaceRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
