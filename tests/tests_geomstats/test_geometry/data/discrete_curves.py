@@ -83,6 +83,13 @@ class ReparametrizationAlignerTestData(TestData):
         return self.generate_random_data()
 
 
+class DynamicProgrammingAlignerVariantTestData(TestData):
+    N_RANDOM_POINTS = [1]
+
+    def align_test_data(self):
+        return self.generate_random_data()
+
+
 class RotationBundleTestData(TestData):
     def align_test_data(self):
         return self.generate_random_data()
