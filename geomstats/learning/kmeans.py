@@ -4,7 +4,7 @@ Lead author: Hadi Zaatiti.
 """
 
 import logging
-from random import randint
+from random import randint, sample
 
 from scipy.stats import rv_discrete
 from sklearn.base import BaseEstimator, ClusterMixin
@@ -94,7 +94,8 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         if isinstance(self.init, str):
             if self.init == "kmeans++":
-                cluster_centers = [X[randint(0, n_samples - 1)]]
+                selected = [randint(0, n_samples - 1)]
+                cluster_centers = [X[selected[0]]]
                 for i in range(self.n_clusters - 1):
                     dists = gs.array(
                         [
@@ -103,18 +104,19 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                         ]
                     )
                     dists_to_closest_cluster_center = gs.amin(dists, axis=0)
-                    indices = gs.arange(n_samples)
-                    weights = dists_to_closest_cluster_center / gs.sum(
-                        dists_to_closest_cluster_center
-                    )
-                    index = rv_discrete(
-                        values=(gs.to_numpy(indices), gs.to_numpy(weights))
-                    ).rvs()
+                    weights = dists_to_closest_cluster_center**2
+                    total = gs.sum(weights)
+                    if total == 0:
+                        remaining = sorted(set(range(n_samples)).difference(selected))
+                        index = remaining[randint(0, len(remaining) - 1)]
+                    else:
+                        index = rv_discrete(
+                            values=(range(n_samples), gs.to_numpy(weights / total))
+                        ).rvs()
+                    selected.append(index)
                     cluster_centers.append(X[index])
             elif self.init == "random":
-                cluster_centers = [
-                    X[randint(0, n_samples - 1)] for i in range(self.n_clusters)
-                ]
+                cluster_centers = [X[i] for i in sample(range(n_samples), self.n_clusters)]
             else:
                 raise ValueError(
                     f"Unknown initial cluster centers method '{self.init}'."
@@ -130,11 +132,13 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             if cluster_centers.shape[0] != self.n_clusters:
                 raise ValueError("Need as many initial cluster centers as clusters.")
 
-            if cluster_centers.shape[1] != X.shape[1]:
+            if cluster_centers.shape[1:] != X.shape[1:]:
                 raise ValueError(
                     "Dimensions of initial cluster centers and "
                     "training data do not match."
                 )
+
+            cluster_centers = gs.copy(cluster_centers)
 
         return cluster_centers
 
@@ -156,6 +160,8 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             Returns self.
         """
         n_samples = X.shape[0]
+        if not 1 <= self.n_clusters <= n_samples:
+            raise ValueError("n_clusters must be between 1 and the number of samples.")
         if self.verbose > 0:
             logger.info("Initializing...")
 
