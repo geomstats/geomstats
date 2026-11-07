@@ -153,6 +153,23 @@ class PointSetMetric(ABC):
             Distance.
         """
 
+    def squared_dist(self, point_a, point_b):
+        """Squared distance between two points in the PointSet.
+
+        Parameters
+        ----------
+        point_a: Point or PointBatch
+            Point in the PointSet.
+        point_b: Point or PointBatch
+            Point in the PointSet.
+
+        Returns
+        -------
+        squared_distance : array-like, shape=[...]
+            Squared distance.
+        """
+        return self.dist(point_a, point_b) ** 2
+
     @abstractmethod
     def geodesic(self, initial_point, end_point):
         """Compute the geodesic in the PointSet.
