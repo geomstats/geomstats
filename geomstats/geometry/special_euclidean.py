@@ -302,13 +302,10 @@ class _SpecialEuclideanVectors(LieGroup):
         belongs : array-like, shape=[...,]
             Boolean indicating whether point belongs to SE(2) or SE(3).
         """
-        point_dim = point.shape[-1]
-        point_ndim = point.ndim
-        belongs = gs.logical_and(point_dim == self.dim, point_ndim < 3)
-        belongs = gs.logical_and(
+        belongs = point.shape[-1] == self.dim
+        return gs.logical_and(
             belongs, self.rotations.belongs(point[..., : self.rotations.dim], atol=atol)
         )
-        return belongs
 
     def projection(self, point):
         """Project a point to the group.
@@ -769,58 +766,6 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
             [jacobian_block_line_1, jacobian_block_line_2], axis=-2
         )
         return jacobian
-
-    def _exponential_matrix(self, rot_vec):
-        """Compute exponential of rotation matrix represented by rot_vec.
-
-        Parameters
-        ----------
-        rot_vec : array-like, shape=[..., 3]
-
-        Returns
-        -------
-        exponential_mat : Matrix exponential of rot_vec
-        """
-        # TODO (nguigs): find usecase for this method
-        rot_vec = self.rotations.regularize(rot_vec)
-        n_rot_vecs = 1 if rot_vec.ndim == 1 else len(rot_vec)
-
-        angle = gs.linalg.norm(rot_vec, axis=-1)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
-
-        skew_rot_vec = self.rotations.skew.matrix_representation(rot_vec)
-
-        coef_1 = gs.empty_like(angle)
-        coef_2 = gs.empty_like(coef_1)
-
-        mask_0 = gs.equal(angle, 0)
-        mask_0 = gs.squeeze(mask_0, axis=1)
-        mask_close_to_0 = gs.isclose(angle, 0)
-        mask_close_to_0 = gs.squeeze(mask_close_to_0, axis=1)
-        mask_else = ~mask_0 & ~mask_close_to_0
-
-        coef_1[mask_close_to_0] = 1.0 / 2.0 - angle[mask_close_to_0] ** 2 / 24.0
-        coef_2[mask_close_to_0] = 1.0 / 6.0 - angle[mask_close_to_0] ** 3 / 120.0
-
-        # TODO (nina): Check if the discontinuity at 0 is expected.
-        coef_1[mask_0] = 0
-        coef_2[mask_0] = 0
-
-        coef_1[mask_else] = angle[mask_else] ** (-2) * (1.0 - gs.cos(angle[mask_else]))
-        coef_2[mask_else] = angle[mask_else] ** (-2) * (
-            1.0 - (gs.sin(angle[mask_else]) / angle[mask_else])
-        )
-
-        term_1 = gs.zeros((n_rot_vecs, self.n, self.n))
-        term_2 = gs.zeros_like(term_1)
-
-        for i in range(n_rot_vecs):
-            term_1[i] = gs.eye(self.n) + skew_rot_vec[i] * coef_1[i]
-            term_2[i] = gs.matmul(skew_rot_vec[i], skew_rot_vec[i]) * coef_2[i]
-
-        exponential_mat = term_1 + term_2
-
-        return exponential_mat
 
     def _exp_translation_transform(self, rot_vec):
         """Compute matrix associated to rot_vec for the translation part in exp.

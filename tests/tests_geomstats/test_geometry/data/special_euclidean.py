@@ -110,6 +110,17 @@ class SpecialEuclideanVectorsTestData(ProjectionMixinsTestData, LieGroupTestData
 
 
 class SpecialEuclidean2VectorsTestData(TestData):
+    def belongs_test_data(self):
+        data = [
+            dict(point=elements_all["point_1"], expected=True),
+            dict(
+                point=gs.stack([gs.stack([elements_all["point_1"]] * 3)] * 2),
+                expected=gs.ones((2, 3), dtype=bool),
+            ),
+            dict(point=gs.zeros(4), expected=False),
+        ]
+        return self.generate_tests(data)
+
     def regularize_test_data(self):
         data = [
             dict(
