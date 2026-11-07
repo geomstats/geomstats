@@ -45,6 +45,7 @@ from geomstats.geometry.rank_k_psd_matrices import RankKPSDMatrices
 from geomstats.geometry.siegel import Siegel
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.geometry.special_euclidean import _SpecialEuclideanVectors
 from geomstats.geometry.special_orthogonal import (
     SpecialOrthogonal,
     _SpecialOrthogonalMatrices,
@@ -278,6 +279,11 @@ def _(space, **kwargs):
 @get_data_generator.register(_SpecialOrthogonalVectors)
 def _(space, **kwargs):
     return SpecialOrthogonalVectorsRandomDataGenerator(space, **kwargs)
+
+
+@get_data_generator.register(_SpecialEuclideanVectors)
+def _(space, **kwargs):
+    return LieGroupVectorRandomDataGenerator(space, **kwargs)
 
 
 @get_data_generator.register(NFoldManifold)
