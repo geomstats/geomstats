@@ -1299,10 +1299,38 @@ class BiInvariantMetric(RiemannianMetric):
                     "Either an end_point or a tangent_vec_b must be given to define the"
                     " geodesic along which to transport."
                 )
+        if self._space.point_ndim == 1:
+            return self._parallel_transport_vector(tangent_vec, base_point, direction)
+
         midpoint = self.exp(1.0 / 2.0 * direction, base_point)
         transposed = gs.transpose(tangent_vec)
         transported_vec = Matrices.mul(midpoint, transposed, midpoint)
         return (-1.0) * transported_vec
+
+    def _parallel_transport_vector(self, tangent_vec, base_point, direction):
+        r"""Parallel transport for groups parameterized by rotation vectors.
+
+        Writing :math:`u = x X` and :math:`w = x \xi` with :math:`X, \xi` in the
+        Lie algebra, the transport of :math:`u` along :math:`t \mapsto x\exp(t\xi)`
+        is :math:`y \, \mathrm{Ad}_{\exp(-\xi / 2)} X` with :math:`y = x\exp(\xi)`.
+        This is the matrix formula :math:`-m u^T m`, with midpoint
+        :math:`m = x \exp(\xi / 2)`, written with left translations.
+        """
+        end_point = self.exp(direction, base_point)
+        to_identity = self._space.tangent_translation_map(
+            base_point, left=True, inverse=True
+        )
+        from_identity = self._space.tangent_translation_map(
+            end_point, left=True, inverse=False
+        )
+        vec_at_identity = to_identity(tangent_vec)
+        direction_at_identity = to_identity(direction)
+        # Ad_R acts on rotation vectors (Lie algebra coordinates) as R v
+        adjoint = self._space.matrix_from_rotation_vector(-0.5 * direction_at_identity)
+        transported_at_identity = gs.einsum(
+            "...ij,...j->...i", adjoint, vec_at_identity
+        )
+        return from_identity(transported_at_identity)
 
     def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
