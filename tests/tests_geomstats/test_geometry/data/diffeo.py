@@ -1,7 +1,5 @@
 from polpo.testing.geometric import GeometricMapCaseData
 
-from geomstats.test.data import TestData
-
 
 class DiffeoTestData(GeometricMapCaseData):
     def diffeomorphism_vec_test_data(self):
@@ -93,17 +91,21 @@ class AutodiffDiffeoTestData(DiffeoTestData):
         )
 
 
-class DiffeoComparisonTestData(TestData):
-    fail_for_autodiff_exceptions = False
-
+class DiffeoComparisonTestData(GeometricMapCaseData):
     def diffeomorphism_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(arg_names="base_point")
 
     def inverse_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(
+            arg_names="image_point",
+            data_space="image",
+        )
 
     def tangent_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(arg_names=("base_point", "tangent_vec"))
 
     def inverse_tangent_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(
+            arg_names=("image_point", "image_tangent_vec"),
+            data_space="image",
+        )
