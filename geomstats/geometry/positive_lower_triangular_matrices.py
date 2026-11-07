@@ -9,6 +9,8 @@ References
     Geometry [math.DG]. Université Côte d'Azur, 2022.
 """
 
+import math
+
 import geomstats.backend as gs
 from geomstats.geometry.base import DiffeomorphicManifold, LevelSet, VectorSpaceOpenSet
 from geomstats.geometry.diffeo import Diffeo
@@ -19,6 +21,7 @@ from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.open_hemisphere import OpenHemisphere, OpenHemispheresProduct
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import repeat_out
 
 
 class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
@@ -80,6 +83,28 @@ class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
         diagonal = bound * gs.random.rand(*diag_shape) + gs.atol
 
         return gs.mat_from_diag_triu_tril(diagonal, gs.array([0.0]), lower_part)
+
+    def to_tangent(self, vector, base_point=None):
+        """Project a vector to a tangent space of the manifold.
+
+        The tangent space is the lower triangular matrices at every point,
+        so the vector is projected in the embedding space. The projection
+        of :class:`MatrixLieGroup`, which goes through the identity, is
+        ill-conditioned for points with small diagonal elements.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+            Vector.
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
+        return VectorSpaceOpenSet.to_tangent(self, vector, base_point)
 
     def belongs(self, point, atol=gs.atol):
         """Check if mat is lower triangular with >0 diagonal.
@@ -149,10 +174,10 @@ class CholeskyMetric(RiemannianMetric):
         ip_diagonal : array-like, shape=[...]
             Inner-product.
         """
-        inv_sqrt_diagonal = gs.power(Matrices.diagonal(base_point), -2)
+        inv_squared_diagonal = gs.power(Matrices.diagonal(base_point), -2)
         tangent_vec_a_diagonal = Matrices.diagonal(tangent_vec_a)
         tangent_vec_b_diagonal = Matrices.diagonal(tangent_vec_b)
-        prod = tangent_vec_a_diagonal * tangent_vec_b_diagonal * inv_sqrt_diagonal
+        prod = tangent_vec_a_diagonal * tangent_vec_b_diagonal * inv_squared_diagonal
         return gs.sum(prod, axis=-1)
 
     @staticmethod
@@ -171,9 +196,9 @@ class CholeskyMetric(RiemannianMetric):
         ip_sl : array-like, shape=[...]
             Inner-product.
         """
-        sl_tagnet_vec_a = gs.tril_to_vec(tangent_vec_a, k=-1)
-        sl_tagnet_vec_b = gs.tril_to_vec(tangent_vec_b, k=-1)
-        ip_sl = gs.dot(sl_tagnet_vec_a, sl_tagnet_vec_b)
+        sl_tangent_vec_a = gs.tril_to_vec(tangent_vec_a, k=-1)
+        sl_tangent_vec_b = gs.tril_to_vec(tangent_vec_b, k=-1)
+        ip_sl = gs.dot(sl_tangent_vec_a, sl_tangent_vec_b)
         return ip_sl
 
     @classmethod
@@ -262,6 +287,68 @@ class CholeskyMetric(RiemannianMetric):
         sl_log = sl_point - sl_base_point
         diag_log = gs.vec_to_diag(diag_base_point * diag_product_logm)
         return sl_log + diag_log
+
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector
+        along the geodesic between two points ``base_point`` and ``end_point``
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
+        t*direction)`.
+
+        .. math::
+
+            P_{L \rightarrow K}(X) = \lfloor X \rfloor
+            + \mathbb{D}(K) \mathbb{D}(L)^{-1} \mathbb{D}(X)
+
+        where :math:`\lfloor \cdot \rfloor` is the strictly lower triangular
+        part and :math:`\mathbb{D}` the diagonal part [TP2019]_.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold. Point to transport from.
+        direction : array-like, shape=[..., n, n]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        end_point : array-like, shape=[..., n, n]
+            Point on the manifold. Point to transport to.
+
+        Returns
+        -------
+        transported_tangent_vec : array-like, shape=[..., n, n]
+            Transported tangent vector at `end_point`.
+        """
+        if end_point is None:
+            end_point = self.exp(direction, base_point)
+
+        diag_ratio = Matrices.diagonal(end_point) / Matrices.diagonal(base_point)
+        sl_tangent_vec = Matrices.to_strictly_lower_triangular(tangent_vec)
+        diag_tangent_vec = Matrices.diagonal(tangent_vec)
+        return sl_tangent_vec + gs.vec_to_diag(diag_ratio * diag_tangent_vec)
+
+    def injectivity_radius(self, base_point=None):
+        """Radius of the largest ball where the exponential is injective.
+
+        The space is isometric to a Euclidean space, so the injectivity
+        radius is infinite everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        radius = gs.array(math.inf)
+        return repeat_out(self._space.point_ndim, radius, base_point)
 
     def squared_dist(self, point_a, point_b):
         """Compute the Cholesky Metric squared distance.
