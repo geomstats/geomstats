@@ -39,6 +39,9 @@ from geomstats.geometry.open_hemisphere import (
     OpenHemisphere,
     OpenHemispheresProduct,
 )
+from geomstats.geometry.positive_lower_triangular_matrices import (
+    PositiveLowerTriangularMatrices,
+)
 from geomstats.geometry.positive_reals import PositiveReals
 from geomstats.geometry.pre_shape import PreShapeSpace
 from geomstats.geometry.rank_k_psd_matrices import RankKPSDMatrices
@@ -239,6 +242,11 @@ def _(space, **kwargs):
     return PositiveRealsRandomDataGenerator(space, **kwargs)
 
 
+@get_data_generator.register(PositiveLowerTriangularMatrices)
+def _(space, **kwargs):
+    return PositiveLowerTriangularMatricesRandomDataGenerator(space, **kwargs)
+
+
 @get_data_generator.register(NullRowSumsSymmetricMatrices)
 @get_data_generator.register(StrictlyLowerTriangularMatrices)
 @get_data_generator.register(SymmetricHollowMatrices)
@@ -365,6 +373,26 @@ class PositiveRealsRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
 
     def random_tangent_vec(self, base_point):
         return base_point * super().random_tangent_vec(base_point)
+
+
+class PositiveLowerTriangularMatricesRandomDataGenerator(
+    EmbeddedSpaceRandomDataGenerator
+):
+    """Random data generator for positive lower triangular matrices.
+
+    The diagonal of tangent vectors is scaled by the diagonal of their base
+    point, so that their norm for the Cholesky metric does not depend on
+    the base point.
+    """
+
+    def random_tangent_vec(self, base_point):
+        tangent_vec = super().random_tangent_vec(base_point)
+        diag_tangent_vec = Matrices.diagonal(base_point) * Matrices.diagonal(
+            tangent_vec
+        )
+        return Matrices.to_strictly_lower_triangular(tangent_vec) + gs.vec_to_diag(
+            diag_tangent_vec
+        )
 
 
 class LevelSetMatrixVectorSpaceRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
