@@ -35,11 +35,6 @@ class SpecialOrthogonalMatricesTestData(
 ):
     fail_for_not_implemented_errors = False
 
-    tolerances = {
-        "projection_belongs": {"atol": 1e-5},
-        "matrix_from_rotation_vector_after_rotation_vector_from_matrix": {"atol": 1e-1},
-    }
-
     def are_antipodals_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -234,8 +229,6 @@ class SpecialOrthogonalVectorsTestData(
 
 
 class SpecialOrthogonal2VectorsTestData(SpecialOrthogonalVectorsTestData):
-    fail_for_not_implemented_errors = False
-
     trials = 3
     skips = ("projection_belongs",)
 
@@ -266,7 +259,7 @@ class SpecialOrthogonal2VectorsSmokeTestData(TestData):
         data = [
             dict(
                 point=gs.eye(2) + 1e-12 * gs.ones((2, 2)),
-                expected=gs.eye(2),
+                expected=gs.array([0.0]),
             )
         ]
         return self.generate_tests(data)
@@ -470,7 +463,7 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
         data = [
             dict(
                 point=gs.eye(3) + 1e-12 * gs.ones((3, 3)),
-                expected=gs.eye(3),
+                expected=gs.zeros(3),
             )
         ]
         return self.generate_tests(data)
