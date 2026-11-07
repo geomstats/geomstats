@@ -24,14 +24,14 @@ class SimplexToPositiveHypersphere(Diffeo):
     """Diffeomorphism between simplex and its image under componentwise square root."""
 
     @staticmethod
-    def __call__(point):
+    def __call__(base_point):
         """Send point of the simplex to the sphere.
 
         The map takes the square root of each component.
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim]
             Point on the simplex.
 
         Returns
@@ -39,7 +39,7 @@ class SimplexToPositiveHypersphere(Diffeo):
         image_point : array-like, shape=[..., dim]
             Point on the sphere.
         """
-        return point ** (1 / 2)
+        return base_point ** (1 / 2)
 
     @staticmethod
     def inverse(image_point):
@@ -82,13 +82,13 @@ class SimplexToPositiveHypersphere(Diffeo):
 
         return gs.einsum("...i,...i->...i", tangent_vec, 1 / (2 * image_point))
 
-    def inverse_tangent(self, tangent_vec, image_point=None, base_point=None):
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         """Send tangent vector of the sphere to tangent space of simplex.
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., dim]
-            Tangent vec to the sphere at base point.
+        image_tangent_vec : array-like, shape=[..., dim]
+            Tangent vec to the sphere at image point.
         image_point : array-like, shape=[..., dim]
             Point of the sphere.
         base_point : array-like, shape=[..., dim]
@@ -103,7 +103,7 @@ class SimplexToPositiveHypersphere(Diffeo):
         if image_point is None:
             image_point = self(base_point)
 
-        return gs.einsum("...i,...i->...i", tangent_vec, 2 * image_point)
+        return gs.einsum("...i,...i->...i", image_tangent_vec, 2 * image_point)
 
 
 class MultinomialDistributions(InformationManifoldMixin, LevelSet):

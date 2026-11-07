@@ -20,6 +20,10 @@ class PoissonDistributionsSmokeTestData(TestData):
         data = [
             dict(point=gs.array([5.0]), expected=True),
             dict(point=gs.array([-2.0]), expected=False),
+            dict(
+                point=gs.ones((2, 1, 1)),
+                expected=gs.ones((2, 1), dtype=bool),
+            ),
         ]
         return self.generate_tests(data)
 

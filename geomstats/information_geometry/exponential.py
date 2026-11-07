@@ -57,7 +57,7 @@ class ExponentialDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         if not belongs_shape:
             shape = point.shape[: -self.point_ndim]
             return gs.zeros(shape, dtype=bool)
-        return gs.squeeze(point >= -atol)
+        return gs.squeeze(point >= -atol, axis=-1)
 
     def random_point(self, n_samples=1, lower_bound=0.1, upper_bound=1.0):
         """Sample parameters of exponential distributions.
