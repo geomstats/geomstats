@@ -302,13 +302,10 @@ class _SpecialEuclideanVectors(LieGroup):
         belongs : array-like, shape=[...,]
             Boolean indicating whether point belongs to SE(2) or SE(3).
         """
-        point_dim = point.shape[-1]
-        point_ndim = point.ndim
-        belongs = gs.logical_and(point_dim == self.dim, point_ndim < 3)
-        belongs = gs.logical_and(
+        belongs = point.shape[-1] == self.dim
+        return gs.logical_and(
             belongs, self.rotations.belongs(point[..., : self.rotations.dim], atol=atol)
         )
-        return belongs
 
     def projection(self, point):
         """Project a point to the group.
