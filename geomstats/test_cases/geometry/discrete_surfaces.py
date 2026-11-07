@@ -1,83 +1,86 @@
-import math
-
 import geomstats.backend as gs
-from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
 from geomstats.vectorization import get_n_points
 
 
-class SurfacesLocalRandomDataGenerator(RandomDataGenerator):
-    def __init__(self, space, point, amplitude=2.0, near_scale=0.1):
-        super().__init__(space, amplitude, near_scale=near_scale)
-        self.point = point
-
-    def _get_deformation(self, n_points):
-        dim = self.point.shape[-1]
-        dof = self.point.shape[0] - 1
-
-        batch_shape = () if n_points == 1 else (n_points,)
-
-        rand_shape = batch_shape + (dof, dim)
-
-        return (
-            gs.concatenate(
-                [
-                    gs.zeros(batch_shape + (1, dim)),
-                    gs.reshape(
-                        gs.random.rand(math.prod(rand_shape)),
-                        rand_shape,
-                    ),
-                ],
-                axis=-2,
-            )
-            / self.amplitude
-        )
-
-    def random_point(self, n_points=1):
-        return self.point + self._get_deformation(n_points)
-
-    def random_tangent_vec(self, point):
-        n_points = 1 if point.ndim == 2 else point.shape[0]
-        return self._get_deformation(n_points)
-
-
 class SurfaceTestCase(TestCase):
-    def test_face_areas(self, point, expected, atol):
+    def test_face_areas(self, point, expected, atol=gs.atol):
+        """Check face areas.
+
+        Parameters
+        ----------
+        point : Surface
+            Surface.
+        expected : array-like, shape=[..., n_faces]
+            Expected face areas.
+        atol : float
+            Absolute tolerance.
+        """
         self.assertAllClose(point.face_areas, expected, atol=atol)
 
-    def test_face_normals(self, point, expected, atol):
+    def test_face_normals(self, point, expected, atol=gs.atol):
+        """Check face normals.
+
+        Parameters
+        ----------
+        point : Surface
+            Surface.
+        expected : array-like, shape=[..., n_faces, 3]
+            Expected face normals.
+        atol : float
+            Absolute tolerance.
+        """
         self.assertAllClose(point.face_normals, expected, atol=atol)
 
-    def test_face_centroids(self, point, expected, atol):
+    def test_face_centroids(self, point, expected, atol=gs.atol):
+        """Check face centroids.
+
+        Parameters
+        ----------
+        point : Surface
+            Surface.
+        expected : array-like, shape=[..., n_faces, 3]
+            Expected face centroids.
+        atol : float
+            Absolute tolerance.
+        """
         self.assertAllClose(point.face_centroids, expected, atol=atol)
 
 
 class DiscreteSurfacesTestCase(ManifoldTestCase):
-    def test_vertex_areas(self, point, expected, atol):
-        """Test vertex_areas.
+    def test_vertex_areas(self, point, expected, atol=gs.atol):
+        """Check vertex areas.
 
-        Vertex area is the area of all of the triangles who are in contact
-        with a specific vertex, according to the formula:
-        vertex_areas = 2 * sum_incident_areas / 3.0
+        The area of a vertex is two thirds of the sum of the areas of the
+        faces incident to it.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n_vertices, 3]
+            Surface.
+        expected : array-like, shape=[..., n_vertices]
+            Expected vertex areas.
+        atol : float
+            Absolute tolerance.
         """
         res = self.space.vertex_areas(point)
         self.assertAllClose(res, expected, atol=atol)
 
-    def test_normals(self, point, expected, atol):
-        """Test normals.
+    def test_normals(self, point, expected, atol=gs.atol):
+        """Check normals, up to orientation.
 
-        Recall that the magnitude of each normal vector is equal to
-        the area of the face it is normal to.
+        The norm of the normal of a face is its area. Normals may point in or
+        out of the surface, so each normal is compared up to its sign.
 
-        We compare the abs value of each normal vector array because:
-        note that the "normals" variable here calculates the normals
-        as pointing out of the surface, but the way that normals()
-        was constructed makes it so that the normal vector could be
-        pointing into the surface or out of the surface, (so it could
-        either be positive or negative). Because of this, we make all
-        of the normal vectors to the cube positive for testing
-        purposes.
+        Parameters
+        ----------
+        point : array-like, shape=[..., n_vertices, 3]
+            Surface.
+        expected : array-like, shape=[..., n_faces, 3]
+            Expected normals, up to their sign.
+        atol : float
+            Absolute tolerance.
         """
 
         def _check_normal(normal, normal_):
@@ -102,7 +105,15 @@ class DiscreteSurfacesTestCase(ManifoldTestCase):
                 _check_normal(normal, normal_)
 
     def test_surface_one_forms_prod(self, point, expected):
-        """Test surface one forms."""
+        """Check the inner products between the one-forms of each face.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n_vertices, 3]
+            Surface.
+        expected : array-like, shape=[..., n_values]
+            Values the inner products can take.
+        """
         res = self.space.surface_one_forms(point)
 
         first_vec = res[..., :, 0, :]
@@ -116,7 +127,17 @@ class DiscreteSurfacesTestCase(ManifoldTestCase):
         for inner_prods_, expected_ in zip(inner_prods, expected):
             self.assertTrue(gs.all([prod in expected_ for prod in inner_prods_]))
 
-    def test_faces_area(self, point, expected, atol):
-        """Test faces area."""
+    def test_faces_area(self, point, expected, atol=gs.atol):
+        """Check face areas.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n_vertices, 3]
+            Surface.
+        expected : array-like, shape=[..., n_faces]
+            Expected face areas.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.face_areas(point=point)
         self.assertAllClose(res, expected, atol=atol)

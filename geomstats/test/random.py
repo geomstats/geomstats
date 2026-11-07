@@ -1,3 +1,4 @@
+import math
 import random
 from functools import singledispatch
 
@@ -19,6 +20,7 @@ from geomstats.geometry.complex_manifold import ComplexManifold
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.diffeo import ReversedDiffeo
 from geomstats.geometry.discrete_curves import DiscreteCurvesStartingAtOrigin
+from geomstats.geometry.discrete_surfaces import DiscreteSurfaces
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.full_rank_correlation_matrices import (
     FullRankCorrelationMatrices,
@@ -254,6 +256,11 @@ def _(space, **kwargs):
     return RankKPSDMatricesRandomDataGenerator(space, **kwargs)
 
 
+@get_data_generator.register(DiscreteSurfaces)
+def _(space, **kwargs):
+    return DiscreteSurfacesRandomDataGenerator(space, **kwargs)
+
+
 @get_data_generator.register(DiscreteCurvesStartingAtOrigin)
 def _(space, **kwargs):
     return DiscreteCurvesRandomDataGenerator(space, **kwargs)
@@ -451,6 +458,54 @@ class DiscreteCurvesRandomDataGenerator(NFoldManifoldRandomDataGenerator):
             point = Matrices.mul(point, gs.transpose(rotation))
 
         return point
+
+
+class DiscreteSurfacesRandomDataGenerator(RandomDataGenerator):
+    """Random data generator for discrete surfaces.
+
+    If `point` is given, points are random deformations of it, and tangent
+    vectors random deformations. The first vertex is kept fixed.
+
+    Parameters
+    ----------
+    space : DiscreteSurfaces
+        Space of discrete surfaces.
+    point : array-like, shape=[n_vertices, 3]
+        Surface around which to sample.
+    """
+
+    def __init__(self, space, point=None, amplitude=2.0, near_scale=0.1):
+        super().__init__(space, amplitude=amplitude, near_scale=near_scale)
+        self.point = point
+
+    def _get_deformation(self, n_points):
+        dim = self.point.shape[-1]
+        dof = self.point.shape[0] - 1
+
+        batch_shape = () if n_points == 1 else (n_points,)
+        rand_shape = batch_shape + (dof, dim)
+
+        return (
+            gs.concatenate(
+                [
+                    gs.zeros(batch_shape + (1, dim)),
+                    gs.reshape(gs.random.rand(math.prod(rand_shape)), rand_shape),
+                ],
+                axis=-2,
+            )
+            / self.amplitude
+        )
+
+    def random_point(self, n_points=1):
+        if self.point is None:
+            return super().random_point(n_points)
+        return self.point + self._get_deformation(n_points)
+
+    def random_tangent_vec(self, base_point):
+        if self.point is None:
+            return super().random_tangent_vec(base_point)
+        n_points = 1 if base_point.ndim == 2 else base_point.shape[0]
+        return self._get_deformation(n_points)
 
 
 class FactorwiseRandomDataGenerator(RandomDataGenerator):
