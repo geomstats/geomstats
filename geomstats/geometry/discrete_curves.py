@@ -1114,13 +1114,14 @@ class IterativeHorizontalGeodesicAligner(AlignerAlgorithm):
             )
 
         if k_sampling_points % 2 > 0:
-            new_midindex = current[index + 1] + step * increment[index]
-            new_midindex_min = new[index] + tol
-            new_midindex_max = new[index + 2] - tol
+            midindex = max_index
+            new_midindex = current[midindex] + step * increment[midindex - 1]
+            new_midindex_min = new[midindex - 1] + tol
+            new_midindex_max = new[midindex + 1] - tol
             new_midindex = sign * gs.maximum(
                 sign * new_midindex, sign * new_midindex_min
             )
-            new[index + 1] = sign * gs.minimum(
+            new[midindex] = sign * gs.minimum(
                 sign * new_midindex, sign * new_midindex_max
             )
 
@@ -1184,7 +1185,9 @@ class IterativeHorizontalGeodesicAligner(AlignerAlgorithm):
                 repar_diff[:-1],
             )
             repar_time_deriv = repar_space_deriv * quotient[i, 1:-1]
-            repar = repar_i = self._euler_step(repar, repar_time_deriv, 1 / n_times)
+            repar = repar_i = self._euler_step(
+                repar, repar_time_deriv, 1 / (n_times - 1)
+            )
 
             repars.append(repar_i)
 
