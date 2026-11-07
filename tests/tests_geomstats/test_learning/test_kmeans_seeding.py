@@ -48,3 +48,10 @@ def test_validate_all_point_dimensions():
     model = kmeans.RiemannianKMeans(Euclidean(2), 2, init=gs.zeros((2, 2, 3)))
     with pytest.raises(ValueError, match="Dimensions"):
         model._pick_init_cluster_centers(gs.zeros((4, 2, 2)))
+
+
+@pytest.mark.parametrize("n_clusters", [0, 3])
+def test_fit_rejects_invalid_cluster_count(n_clusters):
+    model = kmeans.RiemannianKMeans(Euclidean(1), n_clusters)
+    with pytest.raises(ValueError, match="n_clusters must be between 1 and"):
+        model.fit(gs.array([[0.0], [1.0]]))
