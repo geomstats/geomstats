@@ -11,15 +11,17 @@ from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
 import geomstats.errors as error
-from geomstats.geometry.hypersphere import HypersphereMetric
+from geomstats._logging import warn_max_iterations
+from geomstats.geometry.hypersphere import AngleToExtrinsicDiffeo, HypersphereMetric
 
 from ._utils import (
     _is_elastic_metric,
     _is_geodesic_metric,
     _is_graph_space,
     _is_linear_metric,
-    _warn_max_iterations,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _scalarmul(scalar, array):
@@ -189,13 +191,14 @@ class GradientDescent(BaseGradientDescent):
                 step_size = step_size / 2.0
 
         if iteration == self.max_iter:
-            _warn_max_iterations(iteration, self.max_iter)
+            warn_max_iterations(logger, self.max_iter)
 
         if self.verbose:
-            logging.info(
-                "n_iter: {}, final variance: {}, final dist: {}".format(
-                    iteration, var, sq_dist
-                )
+            logger.info(
+                "n_iter: %d, final variance: %s, final dist: %s",
+                iteration,
+                var,
+                sq_dist,
             )
 
         return mean
@@ -245,10 +248,10 @@ class BatchGradientDescent(BaseGradientDescent):
                 step_size = step_size / 2.0
 
         if iteration == self.max_iter:
-            _warn_max_iterations(iteration, self.max_iter)
+            warn_max_iterations(logger, self.max_iter)
 
         if self.verbose:
-            logging.info(
+            logger.info(
                 "n_iter: %d, final dist: %e, final step size: %e",
                 iteration,
                 convergence,
@@ -345,13 +348,10 @@ class AdaptiveGradientDescent(BaseGradientDescent):
                 tau = max(tau_min, tau_mul_down * tau)
 
         if iteration == self.max_iter:
-            logging.warning(
-                "Maximum number of iterations %d reached. The mean may be inaccurate",
-                self.max_iter,
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         if self.verbose:
-            logging.info(
+            logger.info(
                 "n_iter: %d, final variance: %e, final dist: %e, final_step_size: %e",
                 iteration,
                 var,
@@ -506,6 +506,11 @@ class CircleMean(BaseEstimator):
         points : array-like, shape=[n_samples, 1]
             Data set of angles (intrinsic coordinates).
 
+        Returns
+        -------
+        mean : array-like, shape=[1]
+            Mean angle.
+
         Reference
         ---------
         .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the
@@ -518,7 +523,7 @@ class CircleMean(BaseEstimator):
         var0 = gs.sum((points - mean0) ** 2)
         sorted_points = gs.sort(points, axis=0)
         means = self._circle_variances(mean0, var0, sample_size, sorted_points)
-        return means[gs.argmin(means[:, 1]), 0]
+        return means[gs.argmin(means[:, 1]), :1]
 
     @staticmethod
     def _circle_variances(mean, var, n_samples, points):
@@ -584,9 +589,8 @@ class CircleMean(BaseEstimator):
         self : object
             Returns self.
         """
-        self.estimate_ = self.space.angle_to_extrinsic(
-            self._circle_mean(self.space.extrinsic_to_angle(X))
-        )
+        diffeo = AngleToExtrinsicDiffeo()
+        self.estimate_ = diffeo(self._circle_mean(diffeo.inverse(X)))
         return self
 
 
@@ -744,18 +748,18 @@ class SturmsMean(BaseEstimator):
             prev_mean_estimate = mean_estimate
 
             if self.verbose:
-                print(convergence, prev_mean_movements)
+                logger.info("n_iter: %d, convergence: %s", i, convergence)
 
             if convergence < self.epsilon:
                 break
         else:
-            logging.warning(
-                f"Maximum number of iterations {self.max_iter} reached. The mean may be inaccurate."
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         if i < 2 * len(X):
-            logging.warning(
-                f"Sampled <2*sample_size={2 * len(X)}. Due to stochastic nature, not guaranteed to have sampled all points. The mean may be inaccurate."
+            logger.warning(
+                "Sampled <2*sample_size=%d. Due to stochastic nature, not guaranteed "
+                "to have sampled all points. The mean may be inaccurate.",
+                2 * len(X),
             )
 
         self.estimate_ = mean_estimate
@@ -868,7 +872,7 @@ class AACFrechetMean(BaseEstimator):
 
             previous_estimate = new_estimate
         else:
-            _warn_max_iterations(iteration, self.max_iter)
+            warn_max_iterations(logger, self.max_iter)
 
         if self.save_last_X:
             self.aligned_X_ = aligned_X

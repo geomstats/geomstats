@@ -9,6 +9,7 @@ import math
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul, scalarvecmul
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
@@ -19,6 +20,34 @@ EPSILON = 1e-6
 NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
 PI_2_3 = gs.power(gs.array([2.0 * gs.pi]), gs.array([2 / 3]))
 SQRT_2 = gs.sqrt(2.0)
+
+
+def _squared_norm(vec):
+    """Compute the squared Euclidean norm of vectors.
+
+    Parameters
+    ----------
+    vec : array-like, shape=[..., dim]
+
+    Returns
+    -------
+    squared_norm : array-like, shape=[...,]
+    """
+    return gs.sum(vec**2, axis=-1)
+
+
+def _norm(vec):
+    """Compute the Euclidean norm of vectors.
+
+    Parameters
+    ----------
+    vec : array-like, shape=[..., dim]
+
+    Returns
+    -------
+    norm : array-like, shape=[...,]
+    """
+    return gs.linalg.norm(vec, axis=-1)
 
 
 class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
@@ -48,10 +77,10 @@ class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
         return PoincareBallMetric
 
     def belongs(self, point, atol=gs.atol):
-        """Test if a point belongs to the hyperbolic space.
+        r"""Test if a point belongs to the hyperbolic space.
 
         Test if a point belongs to the hyperbolic space based on
-        the poincare ball representation.
+        the poincare ball representation, i.e. if :math:`||x||^2 < 1`.
 
         Parameters
         ----------
@@ -68,13 +97,22 @@ class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
             Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
-        return gs.sum(point**2, axis=-1) < (1 - atol)
+        return _squared_norm(point) < (1 - atol)
 
     def projection(self, point):
-        """Project a point on the ball.
+        r"""Project a point on the ball.
 
         Project a point by clipping such that l2
         norm being lower than 1
+
+        .. math::
+
+            x \mapsto \begin{cases}
+            x & \text{if } ||x|| < 1 - \epsilon \\
+            (1 - \epsilon) \frac{x}{||x||} & \text{otherwise}
+            \end{cases}
+
+        where :math:`\epsilon` is the backend absolute tolerance.
 
         Parameters
         ----------
@@ -86,11 +124,9 @@ class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
         projected_point : array-like, shape=[..., dim]
             Point projected on the ball.
         """
-        l2_norm = gs.linalg.norm(point, axis=-1)
+        l2_norm = _norm(point)
         if gs.any(l2_norm >= 1 - gs.atol):
-            projected_point = gs.einsum(
-                "...j,...->...j", point * (1 - gs.atol), 1.0 / l2_norm
-            )
+            projected_point = scalarvecmul(1.0 / l2_norm, point * (1 - gs.atol))
             return -gs.maximum(-projected_point, -point)
 
         return gs.copy(point)
@@ -100,7 +136,17 @@ class PoincareBallMetric(RiemannianMetric):
     """Class that defines operations using a Poincare ball."""
 
     def exp(self, tangent_vec, base_point):
-        """Compute the Riemannian exponential of a tangent vector.
+        r"""Compute the Riemannian exponential of a tangent vector.
+
+        Denoting `base_point` by :math:`x` and `tangent_vec` by :math:`v`,
+
+        .. math::
+
+            \exp_x(v) = x \oplus \tanh\left(\frac{\lambda_x ||v||}{2}\right)
+            \frac{v}{||v||}
+
+        where :math:`\lambda_x = 2 / (1 - ||x||^2)` is the conformal factor
+        and :math:`\oplus` is the Mobius addition.
 
         Parameters
         ----------
@@ -115,22 +161,31 @@ class PoincareBallMetric(RiemannianMetric):
             Point in the Poincare ball equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        squared_norm_bp = gs.sum(base_point**2, axis=-1)
-        norm_tan = gs.linalg.norm(tangent_vec, axis=-1)
-        lambda_base_point = 1 / (1 - squared_norm_bp)
+        norm_tangent_vec = _norm(tangent_vec)
+        half_conformal_factor = 1 / (1 - _squared_norm(base_point))
 
-        # This avoids dividing by 0
-        norm_tan_eps = gs.where(gs.isclose(norm_tan, 0.0), EPSILON, norm_tan)
-        direction = gs.einsum("...i,...->...i", tangent_vec, 1 / norm_tan_eps)
-
-        factor = gs.tanh(lambda_base_point * norm_tan)
-
-        return self.mobius_add(
-            base_point, gs.einsum("...,...i->...i", factor, direction)
+        # avoids dividing by 0
+        norm_tangent_vec_eps = gs.where(
+            gs.isclose(norm_tangent_vec, 0.0), EPSILON, norm_tangent_vec
         )
+        direction = scalarvecmul(1 / norm_tangent_vec_eps, tangent_vec)
+
+        factor = gs.tanh(half_conformal_factor * norm_tangent_vec)
+        return self.mobius_add(base_point, scalarvecmul(factor, direction))
 
     def log(self, point, base_point):
-        """Compute Riemannian logarithm of a point wrt a base point.
+        r"""Compute Riemannian logarithm of a point wrt a base point.
+
+        Denoting `base_point` by :math:`x` and `point` by :math:`y`,
+
+        .. math::
+
+            \log_x(y) = (1 - ||x||^2) \, \mathrm{artanh}(||-x \oplus y||)
+            \frac{-x \oplus y}{||-x \oplus y||}
+
+        where :math:`\oplus` is the Mobius addition. The factor
+        :math:`1 - ||x||^2` is :math:`2 / \lambda_x`, with :math:`\lambda_x`
+        the conformal factor.
 
         Parameters
         ----------
@@ -146,12 +201,12 @@ class PoincareBallMetric(RiemannianMetric):
             of point at the base point.
         """
         mobius_addition = self.mobius_add(-base_point, point)
-        squared_norm_add = gs.sum(mobius_addition**2, axis=-1)
-        squared_norm_bp = gs.sum(base_point**2, axis=-1)
+        squared_norm_add = _squared_norm(mobius_addition)
+        squared_norm_bp = _squared_norm(base_point)
         coef = (1 - squared_norm_bp) * utils.taylor_exp_even_func(
             squared_norm_add, utils.arctanh_card_close_0
         )
-        return gs.einsum("...,...j->...j", coef, mobius_addition)
+        return scalarvecmul(coef, mobius_addition)
 
     def mobius_add(self, point_a, point_b, project_first=True):
         r"""Compute the Mobius addition of two points.
@@ -189,16 +244,135 @@ class PoincareBallMetric(RiemannianMetric):
                 raise ValueError("Points do not belong to the Poincare ball")
 
         inner = gs.sum(point_a * point_b, axis=-1)
-        squared_norm_a = gs.sum(point_a**2, axis=-1)
-        squared_norm_b = gs.sum(point_b**2, axis=-1)
-        num_1 = gs.einsum("...,...i->...i", 1 + 2 * inner + squared_norm_b, point_a)
-        num_2 = gs.einsum("...,...i->...i", 1 - squared_norm_a, point_b)
-        result = gs.einsum(
-            "...,...i->...i",
+        squared_norm_a = _squared_norm(point_a)
+        squared_norm_b = _squared_norm(point_b)
+        num_1 = scalarvecmul(1 + 2 * inner + squared_norm_b, point_a)
+        num_2 = scalarvecmul(1 - squared_norm_a, point_b)
+        result = scalarvecmul(
             1.0 / (1 + 2 * inner + squared_norm_b * squared_norm_a),
             num_1 + num_2,
         )
         return self._space.projection(result)
+
+    @staticmethod
+    def _gyration(point_a, point_b, vector):
+        r"""Compute the gyration of a vector.
+
+        The gyration :math:`\mathrm{gyr}[a, b]` measures the lack of
+        associativity of the Mobius addition and is the linear map
+        satisfying
+
+        .. math::
+
+            a \oplus (b \oplus w) = (a \oplus b) \oplus \mathrm{gyr}[a, b] w
+
+        Its closed form is
+
+        .. math::
+
+            \mathrm{gyr}[a, b] w = w + 2 \frac{A a + B b}{D}
+
+        with
+
+        .. math::
+
+            A = -\langle a, w\rangle ||b||^2 + \langle b, w\rangle
+            + 2 \langle a, b\rangle \langle b, w\rangle, \quad
+            B = -\langle b, w\rangle ||a||^2 - \langle a, w\rangle, \quad
+            D = 1 + 2 \langle a, b\rangle + ||a||^2 ||b||^2
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point in the Poincare ball.
+        point_b : array-like, shape=[..., dim]
+            Point in the Poincare ball.
+        vector : array-like, shape=[..., dim]
+            Vector.
+
+        Returns
+        -------
+        gyrated_vector : array-like, shape=[..., dim]
+            Gyration of the vector.
+
+        References
+        ----------
+        .. [U2008] Ungar, A. A. "A gyrovector space approach to hyperbolic
+            geometry." Synthesis Lectures on Mathematics and Statistics 1.1
+            (2008): 1-194.
+        """
+        squared_norm_a = _squared_norm(point_a)
+        squared_norm_b = _squared_norm(point_b)
+        inner_ab = gs.sum(point_a * point_b, axis=-1)
+        inner_aw = gs.sum(point_a * vector, axis=-1)
+        inner_bw = gs.sum(point_b * vector, axis=-1)
+
+        coef_a = -inner_aw * squared_norm_b + inner_bw + 2 * inner_ab * inner_bw
+        coef_b = -inner_bw * squared_norm_a - inner_aw
+        denominator = 1 + 2 * inner_ab + squared_norm_a * squared_norm_b
+
+        return vector + 2 * (
+            scalarvecmul(coef_a / denominator, point_a)
+            + scalarvecmul(coef_b / denominator, point_b)
+        )
+
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector
+        along the geodesic between two points `base_point` and `end_point`
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
+        t*direction)`.
+
+        Denoting `base_point` by :math:`x` and `end_point` by :math:`y`,
+
+        .. math::
+
+            P_{x \rightarrow y}(v) = \frac{\lambda_x}{\lambda_y}
+            \mathrm{gyr}[y, -x] v
+
+        where :math:`\lambda_x = 2 / (1 - ||x||^2)` is the conformal factor
+        and :math:`\mathrm{gyr}` is the gyration of the Mobius addition.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., dim]
+            Point in the Poincare ball.
+        direction : array-like, shape=[..., dim]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+            Optional, default: None.
+        end_point : array-like, shape=[..., dim]
+            Point in the Poincare ball to transport to. Unused if `direction`
+            is given.
+            Optional, default: None.
+
+        Returns
+        -------
+        transported_tangent_vec : array-like, shape=[..., dim]
+            Transported tangent vector at `exp_(base_point)(direction)`.
+
+        References
+        ----------
+        .. [GBH2018] Ganea, O., Bécigneul, G., Hofmann, T. "Hyperbolic neural
+            networks." Advances in Neural Information Processing Systems 31
+            (2018).
+        """
+        if direction is not None:
+            end_point = self.exp(direction, base_point)
+        elif end_point is None:
+            raise ValueError(
+                "Either an end_point or a direction must be given to define the"
+                " geodesic along which to transport."
+            )
+
+        coef = (1 - _squared_norm(end_point)) / (1 - _squared_norm(base_point))
+        gyrated_vec = self._gyration(end_point, -base_point, tangent_vec)
+        return scalarvecmul(coef, gyrated_vec)
 
     def squared_dist(self, point_a, point_b):
         """Squared geodesic distance between two points.
@@ -218,7 +392,12 @@ class PoincareBallMetric(RiemannianMetric):
         return self.dist(point_a, point_b) ** 2
 
     def dist(self, point_a, point_b):
-        """Compute the geodesic distance between two points.
+        r"""Compute the geodesic distance between two points.
+
+        .. math::
+
+            d(a, b) = \mathrm{arccosh}\left(1 + 2 \frac{||a - b||^2}
+            {(1 - ||a||^2)(1 - ||b||^2)}\right)
 
         Parameters
         ----------
@@ -232,18 +411,22 @@ class PoincareBallMetric(RiemannianMetric):
         dist : array-like, shape=[...,]
             Geodesic distance between the two points.
         """
-        point_a_norm = gs.clip(gs.sum(point_a**2, -1), 0.0, 1 - EPSILON)
-        point_b_norm = gs.clip(gs.sum(point_b**2, -1), 0.0, 1 - EPSILON)
+        point_a_norm = gs.clip(_squared_norm(point_a), 0.0, 1 - EPSILON)
+        point_b_norm = gs.clip(_squared_norm(point_b), 0.0, 1 - EPSILON)
 
-        diff_norm = gs.sum((point_a - point_b) ** 2, -1)
+        diff_norm = _squared_norm(point_a - point_b)
         norm_function = 1 + 2 * diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
 
         return gs.log(norm_function + gs.sqrt(norm_function**2 - 1))
 
     def retraction(self, tangent_vec, base_point):
-        """Poincaré ball model retraction.
+        r"""Poincaré ball model retraction.
 
         Approximate the exponential map of the Poincare ball
+
+        .. math::
+
+            R_x(v) = x - \frac{(1 - ||x||^2)^2}{4} v
 
         Parameters
         ----------
@@ -262,14 +445,18 @@ class PoincareBallMetric(RiemannianMetric):
         .. [1] Nickel et.al, "Poincaré Embedding for
             Learning Hierarchical Representation", 2017.
         """
-        retraction_factor = (
-            (1 - gs.sum(base_point**2, axis=-1, keepdims=True)) ** 2
-        ) / 4
+        retraction_factor = ((1 - _squared_norm(base_point)) ** 2) / 4
 
-        return base_point - gs.einsum("...i,...j->...j", retraction_factor, tangent_vec)
+        return base_point - scalarvecmul(retraction_factor, tangent_vec)
 
     def metric_matrix(self, base_point=None):
-        """Compute the inner product matrix.
+        r"""Compute the inner product matrix.
+
+        .. math::
+
+            G(x) = \lambda_x^2 I, \quad \lambda_x = \frac{2}{1 - ||x||^2}
+
+        where :math:`\lambda_x` is the conformal factor.
 
         Parameters
         ----------
@@ -285,10 +472,10 @@ class PoincareBallMetric(RiemannianMetric):
         if base_point is None:
             base_point = gs.zeros((1, self._space.dim))
 
-        lambda_base = (2 / (1 - gs.sum(base_point * base_point, axis=-1))) ** 2
+        lambda_base = (2 / (1 - _squared_norm(base_point))) ** 2
         identity = gs.eye(self._space.dim, self._space.dim)
 
-        return gs.einsum("...,jk->...jk", lambda_base, identity)
+        return scalarmatmul(lambda_base, identity)
 
     def normalization_factor(self, variances):
         """Return normalization factor of the Gaussian distribution.

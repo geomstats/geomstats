@@ -9,9 +9,11 @@ import math
 from scipy.interpolate import CubicSpline
 
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul, scalarvecmul
+from geomstats._logging import warn_max_iterations
 from geomstats._scipygs.interpolate import PchipInterpolator
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.diffeo import AutodiffDiffeo, Diffeo
+from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.fiber_bundle import AlignerAlgorithm, FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
@@ -30,6 +32,8 @@ from geomstats.numerics.interpolation import (
     UniformUnitIntervalLinearInterpolator,
 )
 from geomstats.vectorization import check_is_batch, get_batch_shape
+
+logger = logging.getLogger(__name__)
 
 
 def insert_zeros(array, axis=-1, end=False):
@@ -215,7 +219,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., k_sampling_points, ambient_dim]
+        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Discrete curve starting at the origin.
 
         Returns
@@ -269,7 +273,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
 
     def normalize(self, point):
         """Rescale discrete curve to have unit length."""
-        return gs.einsum("...ij,...->...ij", point, 1 / self.length(point))
+        return scalarmatmul(1 / self.length(point), point)
 
 
 class SRVTransform(Diffeo):
@@ -327,9 +331,7 @@ class SRVTransform(Diffeo):
         pointwise_velocity_norm = self.ambient_manifold.metric.norm(
             velocity, base_point_with_origin[..., :-1, :]
         )
-        return gs.einsum(
-            "...ij,...i->...ij", velocity, 1.0 / gs.sqrt(pointwise_velocity_norm)
-        )
+        return scalarvecmul(1.0 / gs.sqrt(pointwise_velocity_norm), velocity)
 
     def inverse(self, image_point):
         r"""Inverse of the Square Root Velocity Transform (SRVT).
@@ -364,9 +366,7 @@ class SRVTransform(Diffeo):
 
         dt = 1 / (self.k_sampling_points - 1)
 
-        pointwise_delta_points = gs.einsum(
-            "...,...i->...i", dt * image_point_norm, image_point
-        )
+        pointwise_delta_points = scalarvecmul(dt * image_point_norm, image_point)
 
         return gs.cumsum(pointwise_delta_points, axis=-2)
 
@@ -403,22 +403,14 @@ class SRVTransform(Diffeo):
         velocity_vec = forward_difference(base_point_with_origin, axis=-ndim)
 
         velocity_norm = self.ambient_manifold.metric.norm(velocity_vec)
-        unit_velocity_vec = gs.einsum(
-            "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
-        )
+        unit_velocity_vec = scalarvecmul(1 / velocity_norm, velocity_vec)
 
         pointwise_inner_prod = self.ambient_manifold.metric.inner_product(
             d_vec, unit_velocity_vec, base_point_with_origin[..., :-1, :]
         )
-        d_vec_tangential = gs.einsum(
-            "...ij,...i->...ij",
-            unit_velocity_vec,
-            pointwise_inner_prod,
-        )
+        d_vec_tangential = scalarvecmul(pointwise_inner_prod, unit_velocity_vec)
         d_srv_vec = d_vec - 1 / 2 * d_vec_tangential
-        d_srv_vec = gs.einsum(
-            "...ij,...i->...ij", d_srv_vec, 1 / velocity_norm ** (1 / 2)
-        )
+        d_srv_vec = scalarvecmul(1 / velocity_norm ** (1 / 2), d_srv_vec)
 
         return d_srv_vec
 
@@ -453,26 +445,22 @@ class SRVTransform(Diffeo):
         position = base_point_with_origin[..., :-1, :]
         velocity_vec = forward_difference(base_point_with_origin, axis=-ndim)
         velocity_norm = self.ambient_manifold.metric.norm(velocity_vec, position)
-        unit_velocity_vec = gs.einsum(
-            "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
-        )
+        unit_velocity_vec = scalarvecmul(1 / velocity_norm, velocity_vec)
 
         pointwise_inner_prod = self.ambient_manifold.metric.inner_product(
             image_tangent_vec,
             unit_velocity_vec,
             position,
         )
-        tangent_vec_tangential = gs.einsum(
-            "...ij,...i->...ij", unit_velocity_vec, pointwise_inner_prod
-        )
+        tangent_vec_tangential = scalarvecmul(pointwise_inner_prod, unit_velocity_vec)
         d_vec = image_tangent_vec + tangent_vec_tangential
-        d_vec = gs.einsum("...ij,...i->...ij", d_vec, velocity_norm ** (1 / 2))
+        d_vec = scalarvecmul(velocity_norm ** (1 / 2), d_vec)
         increment = d_vec / (self.k_sampling_points - 1)
 
         return gs.cumsum(increment, axis=-2)
 
 
-class FTransform(AutodiffDiffeo):
+class FTransform(Diffeo):
     r"""FTransform.
 
     The f_transform is defined on the space of curves
@@ -536,8 +524,7 @@ class FTransform(AutodiffDiffeo):
         self.ambient_manifold = ambient_manifold
         self.k_sampling_points = k_sampling_points
 
-        shape = (k_sampling_points - 1,) + self.ambient_manifold.shape
-        super().__init__(shape, shape)
+        self._point_ndim = self.ambient_manifold.point_ndim + 1
 
     def _check_ambient_manifold(self, ambient_manifold):
         if not (isinstance(ambient_manifold, Euclidean) and ambient_manifold.dim == 2):
@@ -623,7 +610,7 @@ class FTransform(AutodiffDiffeo):
         """
         coeff = self.k_sampling_points - 1
 
-        base_point_with_origin = insert_zeros(base_point, axis=-self._space_point_ndim)
+        base_point_with_origin = insert_zeros(base_point, axis=-self._point_ndim)
 
         velocity = coeff * (
             base_point_with_origin[..., 1:, :] - base_point_with_origin[..., :-1, :]
@@ -662,18 +649,163 @@ class FTransform(AutodiffDiffeo):
 
         dt = 1 / (self.k_sampling_points - 1)
 
-        delta_points_x = gs.einsum(
-            "...i,...i->...i", dt * f_norms**2, gs.cos(2 * self.b / self.a * f_args)
-        )
-        delta_points_y = gs.einsum(
-            "...i,...i->...i", dt * f_norms**2, gs.sin(2 * self.b / self.a * f_args)
-        )
+        delta_points_x = dt * f_norms**2 * gs.cos(2 * self.b / self.a * f_args)
+        delta_points_y = dt * f_norms**2 * gs.sin(2 * self.b / self.a * f_args)
 
         delta_points = gs.stack((delta_points_x, delta_points_y), axis=-1)
 
         delta_points = 1 / (4 * self.b**2) * delta_points
 
         return gs.cumsum(delta_points, axis=-2)
+
+    @staticmethod
+    def _unit_vecs(args):
+        """Compute unit vectors and their rotation by a quarter turn.
+
+        Parameters
+        ----------
+        args : array-like, shape=[..., k]
+            Angles.
+
+        Returns
+        -------
+        unit_vec : array-like, shape=[..., k, 2]
+            Unit vectors with angles `args`.
+        orth_unit_vec : array-like, shape=[..., k, 2]
+            Unit vectors with angles `args + pi / 2`.
+        """
+        cos, sin = gs.cos(args), gs.sin(args)
+        unit_vec = gs.stack([cos, sin], axis=-1)
+        orth_unit_vec = gs.stack([-sin, cos], axis=-1)
+        return unit_vec, orth_unit_vec
+
+    @staticmethod
+    def _polar_differentials(vec, d_vec):
+        r"""Compute the differentials of the polar coordinates of planar vectors.
+
+        .. math::
+            dr = \frac{\langle v, dv \rangle}{|v|},
+            \quad d\theta = \frac{v \times dv}{|v|^2}
+
+        Parameters
+        ----------
+        vec : array-like, shape=[..., k, 2]
+            Planar vectors.
+        d_vec : array-like, shape=[..., k, 2]
+            Variations of `vec`.
+
+        Returns
+        -------
+        d_norms : array-like, shape=[..., k]
+            Differentials of the norms.
+        d_args : array-like, shape=[..., k]
+            Differentials of the angles.
+        """
+        squared_norms = gs.sum(vec**2, axis=-1)
+        inner_prods = gs.sum(vec * d_vec, axis=-1)
+        cross_prods = vec[..., 0] * d_vec[..., 1] - vec[..., 1] * d_vec[..., 0]
+        return inner_prods / gs.sqrt(squared_norms), cross_prods / squared_norms
+
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
+        r"""Differential of the F_transform.
+
+        With :math:`r, \theta` the polar coordinates of the velocity
+        :math:`c'` and :math:`\lambda = a / (2b)`, the F_transform is
+        :math:`q = 2b \sqrt{r} u(\lambda \theta)`, with
+        :math:`u(\phi) = (\cos \phi, \sin \phi)`. Its differential is
+
+        .. math::
+            dq = 2b \left( \frac{dr}{2 \sqrt{r}} u(\lambda \theta)
+            + \lambda \sqrt{r} d\theta u^\perp(\lambda \theta) \right)
+
+        where :math:`u^\perp` is :math:`u` rotated by a quarter turn.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Tangent vector to curve.
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve.
+        image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            F_transform of the curve. Used to compute `base_point` if it is
+            not given.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Differential of the F_transform at `base_point` evaluated at
+            `tangent_vec`.
+        """
+        if base_point is None:
+            base_point = self.inverse(image_point)
+
+        ndim = self._point_ndim
+        velocity = forward_difference(insert_zeros(base_point, axis=-ndim), axis=-ndim)
+        d_velocity = forward_difference(
+            insert_zeros(tangent_vec, axis=-ndim), axis=-ndim
+        )
+
+        polar_velocity = self._cartesian_to_polar(velocity)
+        speeds = polar_velocity[..., :, 0]
+        args = polar_velocity[..., :, 1]
+        d_speeds, d_args = self._polar_differentials(velocity, d_velocity)
+
+        ratio = self.a / (2 * self.b)
+        unit_vec, orth_unit_vec = self._unit_vecs(ratio * args)
+
+        sqrt_speeds = gs.sqrt(speeds)
+        radial = self.b * d_speeds / sqrt_speeds
+        angular = self.a * sqrt_speeds * d_args
+        return scalarvecmul(radial, unit_vec) + scalarvecmul(angular, orth_unit_vec)
+
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
+        r"""Differential of the inverse F_transform.
+
+        With :math:`\rho, \theta` the polar coordinates of the F_transform
+        :math:`q` and :math:`\lambda = a / (2b)`, the velocity of the curve is
+        :math:`c' = r u(\phi)` with :math:`r = \rho^2 / (4 b^2)` and
+        :math:`\phi = \theta / \lambda`. Its differential is
+
+        .. math::
+            dc' = dr u(\phi) + r d\phi u^\perp(\phi)
+
+        where :math:`u^\perp` is :math:`u` rotated by a quarter turn, and the
+        variation of the curve is obtained by integration.
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Tangent vector to the F_transform of the curve.
+        image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            F_transform of the curve.
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve. Used to compute `image_point` if it is not given.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Differential of the inverse F_transform at `image_point` evaluated
+            at `image_tangent_vec`.
+        """
+        if image_point is None:
+            image_point = self(base_point)
+
+        f_polar = self._cartesian_to_polar(image_point)
+        f_norms = f_polar[..., :, 0]
+        f_args = f_polar[..., :, 1]
+        d_f_norms, d_f_args = self._polar_differentials(image_point, image_tangent_vec)
+
+        ratio = self.a / (2 * self.b)
+        unit_vec, orth_unit_vec = self._unit_vecs(f_args / ratio)
+
+        speeds = f_norms**2 / (4 * self.b**2)
+        d_speeds = f_norms * d_f_norms / (2 * self.b**2)
+        d_args = d_f_args / ratio
+        d_velocity = scalarvecmul(d_speeds, unit_vec) + scalarvecmul(
+            speeds * d_args, orth_unit_vec
+        )
+
+        return gs.cumsum(d_velocity / (self.k_sampling_points - 1), axis=-2)
 
 
 class L2CurvesMetric(NFoldMetric):
@@ -982,13 +1114,14 @@ class IterativeHorizontalGeodesicAligner(AlignerAlgorithm):
             )
 
         if k_sampling_points % 2 > 0:
-            new_midindex = current[index + 1] + step * increment[index]
-            new_midindex_min = new[index] + tol
-            new_midindex_max = new[index + 2] - tol
+            midindex = max_index
+            new_midindex = current[midindex] + step * increment[midindex - 1]
+            new_midindex_min = new[midindex - 1] + tol
+            new_midindex_max = new[midindex + 1] - tol
             new_midindex = sign * gs.maximum(
                 sign * new_midindex, sign * new_midindex_min
             )
-            new[index + 1] = sign * gs.minimum(
+            new[midindex] = sign * gs.minimum(
                 sign * new_midindex, sign * new_midindex_max
             )
 
@@ -1052,7 +1185,9 @@ class IterativeHorizontalGeodesicAligner(AlignerAlgorithm):
                 repar_diff[:-1],
             )
             repar_time_deriv = repar_space_deriv * quotient[i, 1:-1]
-            repar = repar_i = self._euler_step(repar, repar_time_deriv, 1 / n_times)
+            repar = repar_i = self._euler_step(
+                repar, repar_time_deriv, 1 / (n_times - 1)
+            )
 
             repars.append(repar_i)
 
@@ -1206,16 +1341,13 @@ class IterativeHorizontalGeodesicAligner(AlignerAlgorithm):
 
             if gap < self.threshold:
                 if self.verbose > 0:
-                    logging.info(
-                        f"Convergence of alignment reached after {index + 1} "
-                        "iterations."
+                    logger.info(
+                        "Convergence of alignment reached after %d iterations.",
+                        index + 1,
                     )
                 break
         else:
-            logging.warning(
-                "Maximum number of iterations %d reached. The result may be inaccurate",
-                self.max_iter,
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         if self.save_history:
             self.history = dict(
@@ -1322,6 +1454,14 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
     max_slope : int
         Maximum slope allowed for a reparametrization.
 
+    Notes
+    -----
+    The scalar products between the SRV functions are computed once. The
+    integral over a subinterval only depends on the increments
+    :math:`(\Delta x, \Delta y)` of gamma, so its breakpoints are computed once
+    per increment. The dynamic program is vectorized over the values of gamma,
+    and gamma is recovered by backtracking the best predecessors.
+
     References
     ----------
     .. [WAJ2007] M. Washington, S. Anuj & H. Joshi,
@@ -1367,79 +1507,41 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
         return srv_function[..., indices, :]
 
     @staticmethod
-    def _compute_restricted_integral(
-        srv_1, srv_2, x_min_index, x_max_index, y_min_index, y_max_index
-    ):
-        r"""Compute the value of an integral over a subinterval.
-
-        Compute n * the value of the integral of
-
-        .. math::
-
-            q_1(t)\cdot q_2(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}
-
-        over :math:`\left[\x_min,x_max\right]` where gamma restricted to
-        :math:`\left[\x_min,x_max\right]` is a linear.
+    def _segment_pattern(delta_x_index, delta_y_index):
+        """Compute the breakpoints of the integral over a subinterval.
 
         Parameters
         ----------
-        srv_1 : array, shape=[n, ambient_dim]
-            SRV function of the initial curve.
-        srv_2 : array, shape=[n, ambient_dim]
-            SRV function of the end curve.
-        x_min_index : int
-            Beginning of the subinterval.
-        x_max_index : int
-            End of the subinterval.
-        y_min_index : int
-            Value of gamma at x_min.
-        y_max_index : int
-            Value of gamma at x_max.
+        delta_x_index : int
+            Length of the subinterval.
+        delta_y_index : int
+            Increase of gamma over the subinterval.
 
         Returns
         -------
-        value : float
-            Value of the integral described above.
+        pattern : list of tuple
+            Offsets of the scalar products to sum, and the length over which
+            each one is integrated, as `(x_offset, y_offset, length)`.
         """
-        delta_y_index = y_max_index - y_min_index
-        delta_x_index = x_max_index - x_min_index
-
         gamma_slope = delta_y_index / delta_x_index
+        x_bounds = list(range(delta_x_index + 1))
+        y_bounds = [y_index / gamma_slope for y_index in range(delta_y_index + 1)]
 
-        x_bound_indices = list(range(x_min_index, x_max_index + 1))
-        y_bounds_indices = [
-            (y_index - y_min_index) / gamma_slope + x_min_index
-            for y_index in range(y_min_index, y_max_index + 1)
-        ]
-
-        lower_bound = x_min_index
+        lower_bound = 0
         x_index, y_index = 0, 0
-
-        value = 0.0
+        pattern = []
         while x_index < delta_x_index and y_index < delta_y_index:
-            upper_bound = min(
-                x_bound_indices[x_index + 1], y_bounds_indices[y_index + 1]
-            )
-
-            # NB: normalization is done outside
-            length = upper_bound - lower_bound
-            value += length * gs.dot(
-                srv_1[x_min_index + x_index], srv_2[y_min_index + y_index]
-            )
-
-            if (
-                gs.abs(x_bound_indices[x_index + 1] - y_bounds_indices[y_index + 1])
-                < gs.atol
-            ):
+            upper_bound = min(x_bounds[x_index + 1], y_bounds[y_index + 1])
+            pattern.append((x_index, y_index, upper_bound - lower_bound))
+            if gs.abs(x_bounds[x_index + 1] - y_bounds[y_index + 1]) < gs.atol:
                 x_index += 1
                 y_index += 1
-            elif x_bound_indices[x_index + 1] < y_bounds_indices[y_index + 1]:
+            elif x_bounds[x_index + 1] < y_bounds[y_index + 1]:
                 x_index += 1
             else:
                 y_index += 1
             lower_bound = upper_bound
-
-        return gamma_slope**0.5 * value
+        return pattern
 
     def _reparametrize(self, point_with_origin, gamma):
         """Reparametrize curve by gamma.
@@ -1473,16 +1575,10 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
 
     def _compute_squared_dist(self, initial_srv, end_srv, grid_last):
         """Compute squared distance using algorithmic information."""
-        n_space_grid = self.n_space_grid
-
-        norm_squared_initial_srv = self._compute_restricted_integral(
-            initial_srv, initial_srv, 0, n_space_grid - 1, 0, n_space_grid - 1
-        ) / (n_space_grid - 1)
-        norm_squared_end_srv = self._compute_restricted_integral(
-            end_srv, end_srv, 0, n_space_grid - 1, 0, n_space_grid - 1
-        ) / (n_space_grid - 1)
-
-        maximum_scalar_product = grid_last / (n_space_grid - 1)
+        normalization = self.n_space_grid - 1
+        norm_squared_initial_srv = gs.sum(initial_srv**2) / normalization
+        norm_squared_end_srv = gs.sum(end_srv**2) / normalization
+        maximum_scalar_product = grid_last / normalization
         return (
             norm_squared_initial_srv + norm_squared_end_srv - 2 * maximum_scalar_product
         )
@@ -1510,70 +1606,85 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
         max_slope = self.max_slope
         n_space_grid = self.n_space_grid
 
-        initial_srv = self._srv_transform(base_point)
-        end_srv = self._srv_transform(point)
+        initial_srv = self._resample_srv_function(self._srv_transform(base_point))
+        end_srv = self._resample_srv_function(self._srv_transform(point))
+        scalar_products = gs.matmul(initial_srv, gs.transpose(end_srv))
 
-        resampled_initial_srv = self._resample_srv_function(initial_srv)
-        resampled_end_srv = self._resample_srv_function(end_srv)
+        patterns = {
+            (delta_x_index, delta_y_index): self._segment_pattern(
+                delta_x_index, delta_y_index
+            )
+            for delta_x_index in range(1, max_slope + 1)
+            for delta_y_index in range(1, max_slope + 1)
+        }
 
-        grid = {(0, 0): 0.0}
-        gamma = {(0, 0): [(0, 0)]}
-
+        y_indices = gs.arange(n_space_grid)
+        minus_inf = -gs.inf * gs.ones(n_space_grid)
+        grid = [gs.where(y_indices == 0, 0.0, minus_inf)]
+        predecessors = [None]
         for x_max_index in range(1, n_space_grid):
-            max_y_max_index = max(n_space_grid, x_max_index + 1)
-            for y_max_index in range(1, max_y_max_index):
-                # NB: solves minimization part
-                min_x_min_index = max(0, x_max_index - max_slope)
-                min_y_min_index = max(0, y_max_index - max_slope)
-                for x_min_index in range(min_x_min_index, x_max_index):
-                    for y_min_index in range(min_y_min_index, y_max_index):
-                        if (x_min_index, y_min_index) not in grid:
-                            # jump borders
-                            continue
-                        elif (
-                            gs.abs(
-                                (y_max_index - y_min_index)
-                                / (x_max_index - x_min_index)
-                                - 1
-                            )
-                            < gs.atol
-                            and x_max_index - x_min_index != 1
-                            and y_max_index - y_max_index != 1
-                        ):
-                            # jump slope == 1 except last
-                            continue
+            best = minus_inf
+            best_x_min_index = -gs.ones(n_space_grid, dtype=int)
+            best_y_min_index = -gs.ones(n_space_grid, dtype=int)
 
-                        new_value = grid[
-                            x_min_index, y_min_index
-                        ] + self._compute_restricted_integral(
-                            resampled_initial_srv,
-                            resampled_end_srv,
-                            x_min_index,
-                            x_max_index,
-                            y_min_index,
-                            y_max_index,
+            # NB: increasing x_min, then increasing y_min, to break ties
+            for x_min_index in range(max(0, x_max_index - max_slope), x_max_index):
+                delta_x_index = x_max_index - x_min_index
+                for delta_y_index in range(max_slope, 0, -1):
+                    if delta_y_index == delta_x_index and delta_x_index != 1:
+                        # jump slope == 1 except last
+                        continue
+
+                    n_y_min = n_space_grid - delta_y_index
+                    integral = 0.0
+                    for x_offset, y_offset, length in patterns[
+                        delta_x_index, delta_y_index
+                    ]:
+                        integral += (
+                            length
+                            * scalar_products[
+                                x_min_index + x_offset, y_offset : y_offset + n_y_min
+                            ]
                         )
-                        if (x_max_index, y_max_index) not in grid or grid[
-                            (x_max_index, y_max_index)
-                        ] < new_value:
-                            grid[x_max_index, y_max_index] = new_value
-                            new_gamma = gamma[(x_min_index, y_min_index)].copy()
-                            new_gamma.append((x_max_index, y_max_index))
-                            gamma[(x_max_index, y_max_index)] = new_gamma
+                    integral = (delta_y_index / delta_x_index) ** 0.5 * integral
+
+                    new_value = gs.concatenate(
+                        [
+                            minus_inf[:delta_y_index],
+                            grid[x_min_index][:n_y_min] + integral,
+                        ]
+                    )
+                    is_better = new_value > best
+                    best = gs.where(is_better, new_value, best)
+                    best_x_min_index = gs.where(
+                        is_better, x_min_index, best_x_min_index
+                    )
+                    best_y_min_index = gs.where(
+                        is_better, y_indices - delta_y_index, best_y_min_index
+                    )
+
+            grid.append(best)
+            predecessors.append((best_x_min_index, best_y_min_index))
 
         last_index = n_space_grid - 1
-        point_with_origin = insert_zeros(point, axis=-2)
-        point_reparametrized = self._reparametrize(
-            point_with_origin, gamma[last_index, last_index]
-        )
+        gamma = [(last_index, last_index)]
+        while gamma[-1] != (0, 0):
+            x_index, y_index = gamma[-1]
+            best_x_min_index, best_y_min_index = predecessors[x_index]
+            gamma.append(
+                (int(best_x_min_index[y_index]), int(best_y_min_index[y_index]))
+            )
+        gamma = gamma[::-1]
 
+        point_with_origin = insert_zeros(point, axis=-2)
+        point_reparametrized = self._reparametrize(point_with_origin, gamma)
         if not return_sdist:
             return point_reparametrized
 
         return point_reparametrized, self._compute_squared_dist(
-            resampled_initial_srv,
-            resampled_end_srv,
-            grid[(last_index, last_index)],
+            initial_srv,
+            end_srv,
+            grid[last_index][last_index],
         )
 
     def align(self, point, base_point, return_sdist=False):
@@ -1736,12 +1847,8 @@ class ReparametrizationBundle(FiberBundle):
 
         vertical_norm = gs.linalg.solve(linear_system, vec_d)
 
-        unit_speed = gs.einsum(
-            "...ij,...i->...ij",
-            d_pos,
-            1 / pointwise_norm,
-        )
-        tangent_vec_ver = gs.einsum("...ij,...i->...ij", unit_speed, vertical_norm)
+        unit_speed = scalarvecmul(1 / pointwise_norm, d_pos)
+        tangent_vec_ver = scalarvecmul(vertical_norm, unit_speed)
 
         tangent_vec_ver = insert_zeros(tangent_vec_ver, axis=-ndim, end=True)
         if return_norm:
@@ -1795,7 +1902,7 @@ class RotationBundle(FiberBundle):
         mat = gs.matmul(gs.transpose(initial_srv), end_srv)
         u_svd, _, vt_svd = gs.linalg.svd(mat)
         sign = gs.linalg.det(gs.matmul(u_svd, vt_svd))
-        vt_svd[..., -1, :] = gs.einsum("...,...j->...j", sign, vt_svd[..., -1, :])
+        vt_svd[..., -1, :] = scalarvecmul(sign, vt_svd[..., -1, :])
         rotation = gs.matmul(u_svd, vt_svd)
 
         point_aligned = self._rotate(point, rotation)
@@ -1812,6 +1919,7 @@ register_quotient(
     FiberBundle=RotationBundle,
     QuotientMetric=QuotientMetric,
 )
+
 register_quotient(
     Space=DiscreteCurvesStartingAtOrigin,
     Metric=SRVMetric,

@@ -106,7 +106,6 @@ def convert_to_trihedron(point, space=None):
         )
 
     rot_mat = SO3_GROUP.matrix_from_rotation_vector(rot_vec)
-    rot_mat = SO3_GROUP.projection(rot_mat)
     basis_vec_1 = gs.array([1.0, 0.0, 0.0])
     basis_vec_2 = gs.array([0.0, 1.0, 0.0])
     basis_vec_3 = gs.array([0.0, 0.0, 1.0])

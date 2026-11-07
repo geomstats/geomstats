@@ -174,7 +174,7 @@ class _IterateOverFactorsMixins:
     @staticmethod
     def _reshape_trailing(argument, factor):
         """Convert the trailing dimensions to match the shape of a factor manifold."""
-        space = factor._space if isinstance(factor, RiemannianMetric) else factor
+        space = factor._space if hasattr(factor, "_space") else factor
 
         if space.point_ndim == 1:
             return argument
@@ -688,6 +688,26 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         args = {"point_a": point_a, "point_b": point_b}
         dists = gs.array(self._iterate_over_factors("dist", args))
         return gs.linalg.norm(dists, ord=2, axis=0)
+
+    def injectivity_radius(self, base_point=None):
+        """Compute the radius of the injectivity domain.
+
+        The injectivity radius of a product is the minimum of the injectivity
+        radii of its factors.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., self.shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        args = {"base_point": base_point}
+        radii = gs.array(self._iterate_over_factors("injectivity_radius", args))
+        return gs.amin(radii, axis=0)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None

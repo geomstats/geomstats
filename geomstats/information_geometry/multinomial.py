@@ -6,6 +6,7 @@ Lead author: Alice Le Brigant.
 from scipy.stats import dirichlet, multinomial
 
 import geomstats.backend as gs
+from geomstats._einsum import scalarvecmul
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.euclidean import Euclidean
@@ -207,7 +208,7 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         """
         point_quadrant = gs.where(point < atol, atol, point)
         norm = gs.sum(point_quadrant, axis=-1)
-        projected_point = gs.einsum("...,...i->...i", 1.0 / norm, point_quadrant)
+        projected_point = scalarvecmul(1.0 / norm, point_quadrant)
         return projected_point
 
     def to_tangent(self, vector, base_point=None):

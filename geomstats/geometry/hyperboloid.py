@@ -10,6 +10,7 @@ import math
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
+from geomstats._einsum import scalarvecmul
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.minkowski import Minkowski
@@ -94,7 +95,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         factor = gs.where(point[..., 0] == 0.0, 1.0, point[..., 0] + gs.atol)
 
         first_coord = gs.where(belongs, 1.0, 1.0 / factor)
-        intrinsic = gs.einsum("...,...i->...i", first_coord, point)[..., 1:]
+        intrinsic = scalarvecmul(first_coord, point)[..., 1:]
         return self.intrinsic_to_extrinsic_coords(intrinsic)
 
     def regularize(self, point):
@@ -121,7 +122,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
                 "Minkowski space to the hyperboloid"
             )
         real_norm = gs.sqrt(gs.abs(sq_norm))
-        return gs.einsum("...i,...->...i", point, 1.0 / real_norm)
+        return scalarvecmul(1.0 / real_norm, point)
 
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the hyperbolic space.
@@ -147,7 +148,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
 
         coef = inner_prod / sq_norm
 
-        return vector - gs.einsum("...,...j->...j", coef, base_point)
+        return vector - scalarvecmul(coef, base_point)
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert from intrinsic to extrinsic coordinates.
@@ -211,13 +212,8 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         inner_prod_2 = self.metric.inner_product(point, base_point)
         norm_v = self.metric.norm(tangent_vec, base_point)
         dist_to_proj = gs.arctanh(-inner_prod_1 / inner_prod_2 / norm_v)
-        gs.einsum("...,...i->...i", gs.cosh(dist_to_proj), base_point)
-        proj = gs.einsum(
-            "...,...i->...i", gs.cosh(dist_to_proj), base_point
-        ) + gs.einsum(
-            "...,...i->...i",
-            gs.sinh(dist_to_proj),
-            gs.einsum("..., ...i ->...i", 1 / norm_v, tangent_vec),
+        proj = scalarvecmul(gs.cosh(dist_to_proj), base_point) + scalarvecmul(
+            gs.sinh(dist_to_proj), scalarvecmul(1 / norm_v, tangent_vec)
         )
         return proj
 
@@ -310,9 +306,7 @@ class HyperboloidMetric(RiemannianMetric):
             sq_norm_tangent_vec, utils.sinch_close_0, order=5
         )
 
-        exp = gs.einsum("...,...j->...j", coef_1, base_point) + gs.einsum(
-            "...,...j->...j", coef_2, tangent_vec
-        )
+        exp = scalarvecmul(coef_1, base_point) + scalarvecmul(coef_2, tangent_vec)
 
         return self._space.regularize(exp)
 
@@ -341,8 +335,8 @@ class HyperboloidMetric(RiemannianMetric):
         coef_1_ = utils.taylor_exp_even_func(angle**2, utils.inv_sinch_close_0, order=4)
         coef_2_ = utils.taylor_exp_even_func(angle**2, utils.inv_tanh_close_0, order=4)
 
-        log_term_1 = gs.einsum("...,...j->...j", coef_1_, point)
-        log_term_2 = -gs.einsum("...,...j->...j", coef_2_, base_point)
+        log_term_1 = scalarvecmul(coef_1_, point)
+        log_term_2 = -scalarvecmul(coef_2_, base_point)
         return log_term_1 + log_term_2
 
     def squared_dist(self, point_a, point_b):
@@ -427,12 +421,12 @@ class HyperboloidMetric(RiemannianMetric):
                 )
         theta = self._space.embedding_space.metric.norm(direction)
         eps = gs.where(theta == 0.0, 1.0, theta)
-        normalized_b = gs.einsum("...,...i->...i", 1 / eps, direction)
+        normalized_b = scalarvecmul(1 / eps, direction)
         pb = self._space.embedding_space.metric.inner_product(tangent_vec, normalized_b)
-        p_orth = tangent_vec - gs.einsum("...,...i->...i", pb, normalized_b)
+        p_orth = tangent_vec - scalarvecmul(pb, normalized_b)
         transported = (
-            gs.einsum("...,...i->...i", gs.sinh(theta) * pb, base_point)
-            + gs.einsum("...,...i->...i", gs.cosh(theta) * pb, normalized_b)
+            scalarvecmul(gs.sinh(theta) * pb, base_point)
+            + scalarvecmul(gs.cosh(theta) * pb, normalized_b)
             + p_orth
         )
         return transported

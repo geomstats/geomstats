@@ -66,7 +66,7 @@ class FiberBundleTestData(TestData):
         return self.generate_vec_data()
 
 
-class GeneralLinearBuresWassersteinBundleTestData(FiberBundleTestData):
+class PositiveGeneralLinearGramBundleTestData(FiberBundleTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 

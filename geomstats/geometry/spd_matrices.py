@@ -764,6 +764,41 @@ class SPDAffineMetric(RiemannianMetric):
         radius = gs.array(math.inf)
         return repeat_out(self._space.point_ndim, radius, base_point)
 
+    def flat(self, tangent_vec, base_point):
+        """Map a tangent vector to a covector under the Frobenius pairing.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Symmetric tangent vector.
+        base_point : array-like, shape=[..., n, n]
+            SPD matrix.
+
+        Returns
+        -------
+        cotangent_vec : array-like, shape=[..., n, n]
+            Symmetric matrix representing the covector.
+        """
+        inverse_base_point = gs.linalg.inv(base_point)
+        return inverse_base_point @ tangent_vec @ inverse_base_point
+
+    def sharp(self, cotangent_vec, base_point):
+        """Map a covector to a tangent vector under the Frobenius pairing.
+
+        Parameters
+        ----------
+        cotangent_vec : array-like, shape=[..., n, n]
+            Symmetric matrix representing the covector.
+        base_point : array-like, shape=[..., n, n]
+            SPD matrix.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Symmetric tangent vector.
+        """
+        return base_point @ cotangent_vec @ base_point
+
 
 class SPDBuresWassersteinMetric(RiemannianMetric):
     """Class for the Bures-Wasserstein metric on the SPD manifold.

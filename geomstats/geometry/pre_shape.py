@@ -4,6 +4,7 @@ Lead authors: Elodie Maignant and Nicolas Guigui.
 """
 
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
@@ -120,7 +121,7 @@ class PreShapeSpace(LevelSet):
 
         centered_point = self.center(point)
         frob_norm = total_space_metric.norm(centered_point)
-        return gs.einsum("...,...ij->...ij", 1.0 / frob_norm, centered_point)
+        return scalarmatmul(1.0 / frob_norm, centered_point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in the pre-shape space from the uniform distribution.
@@ -234,7 +235,7 @@ class PreShapeSpace(LevelSet):
         sq_norm = Matrices.frobenius_product(base_point, base_point)
         inner_prod = total_space_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
-        return vector - gs.einsum("...,...ij->...ij", coef, base_point)
+        return vector - scalarmatmul(coef, base_point)
 
 
 class PreShapeBundle(FiberBundle):
@@ -490,7 +491,7 @@ class PreShapeBundle(FiberBundle):
             + gs.matmul(horizontal_vec_y, sylv_p(tmp_tangent_vec_y))
             + gs.matmul(nabla_x_y, omega_ep)
             + tangent_vec_b
-            + gs.einsum("...,...ij->...ij", scal_x_a_y_e, base_point)
+            + scalarmatmul(scal_x_a_y_e, base_point)
         )
 
         return nabla_x_a_y_e, a_y_e
@@ -670,7 +671,7 @@ class PreShapeBundle(FiberBundle):
         omega_yv_x = gs.matmul(horizontal_vec_x, omega_yv)
         omega_xy_v = gs.matmul(vertical_vec_v, omega_xy)
         norms = Matrices.frobenius_product(vertical_vec_v, vertical_vec_v)
-        sq_norm_v_p = gs.einsum("...,...ij->...ij", norms, base_point)
+        sq_norm_v_p = scalarmatmul(norms, base_point)
 
         tmp_mat = gs.matmul(p_top, 3.0 * omega_xv_y + 2.0 * omega_yv_x) + gs.matmul(
             y_top, omega_xy_x
@@ -906,7 +907,7 @@ class KendallShapeMetric(QuotientMetric):
                 horizontal_b, base_point, time * horizontal_b
             )
             coef = self.inner_product(speed, state, gamma_t)
-            normal = gs.einsum("...,...ij->...ij", coef, gamma_t)
+            normal = scalarmatmul(coef, gamma_t)
 
             align = gs.matmul(gs.transpose(speed), state)
             right = align - gs.transpose(align)

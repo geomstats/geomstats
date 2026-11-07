@@ -8,6 +8,9 @@ import logging
 from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
+from geomstats._logging import warn_max_iterations
+
+logger = logging.getLogger(__name__)
 
 
 class OnlineKMeans(BaseEstimator, ClusterMixin):
@@ -151,10 +154,7 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
             if gs.isclose(gap, 0.0, atol=self.atol):
                 break
         else:
-            logging.warning(
-                "Maximum number of iterations {} reached. The"
-                "clustering may be inaccurate".format(self.max_iter)
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         labels = self.space.metric.closest_neighbor_index(X, cluster_centers)
 

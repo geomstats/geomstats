@@ -41,10 +41,13 @@ References
     https://epubs.siam.org/doi/pdf/10.1137/15M102112X
 """
 
+import math
+
 import geomstats.backend as gs
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import repeat_out
 
 
 class PositiveReals(VectorSpaceOpenSet):
@@ -205,6 +208,43 @@ class PositiveRealsMetric(RiemannianMetric):
         """
         return base_point * gs.log(point / base_point)
 
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector
+        along the geodesic between `base_point` and `end_point`, or
+        alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
+        t*direction)`. Denoting `tangent_vec` by :math:`v`, `base_point` by
+        :math:`x` and `end_point` by :math:`y`, the parallel transport is:
+
+        .. math::
+            v' = v \frac{y}{x}
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., 1]
+            Point to transport from.
+        direction : array-like, shape=[..., 1]
+            Tangent vector at base point, initial speed of the geodesic along
+            which the parallel transport is computed. Unused if `end_point` is
+            given.
+        end_point : array-like, shape=[..., 1]
+            Point to transport to.
+
+        Returns
+        -------
+        transported_tangent_vec : array-like, shape=[..., 1]
+            Transported tangent vector at `end_point`.
+        """
+        if end_point is None:
+            end_point = self.exp(direction, base_point)
+
+        return tangent_vec * end_point / base_point
+
     def squared_dist(self, point_a, point_b):
         """Compute the positive reals squared distance.
 
@@ -244,3 +284,24 @@ class PositiveRealsMetric(RiemannianMetric):
         """
         ratio = gs.squeeze(point_b / point_a, axis=-1)
         return gs.abs(gs.log(ratio))
+
+    def injectivity_radius(self, base_point=None):
+        """Compute the radius of the injectivity domain.
+
+        This is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image. The positive reals are isometric to the real
+        line through the logarithm, so it is infinite.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        radius = gs.array(math.inf)
+        return repeat_out(self._space.point_ndim, radius, base_point)

@@ -8,11 +8,7 @@ from .quotient_metric import QuotientMetricTestData
 
 
 class RankKPSDMatricesTestData(ProjectionMixinsTestData, ManifoldTestData):
-    xfails = (
-        "to_tangent_is_tangent",
-        "random_tangent_vec_is_tangent",
-        "projection_belongs",
-    )
+    xfails = ("projection_belongs",)
 
 
 class RankKPSDMatrices32TestData(TestData):

@@ -374,3 +374,81 @@ class NFoldMetric(RiemannianMetric):
         point_ = gs.reshape(point_, (-1, *base_manifold.shape))
         each_log = base_manifold.metric.log(point_, base_point_)
         return gs.reshape(each_log, batch_shape + self._space.shape)
+
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
+        """Compute the parallel transport of a tangent vector.
+
+        Each copy is transported with the metric of the base manifold. Scales
+        do not change parallel transport.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n_copies, *base_shape]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., n_copies, *base_shape]
+            Point on the manifold.
+        direction : array-like, shape=[..., n_copies, *base_shape]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        end_point : array-like, shape=[..., n_copies, *base_shape]
+            Point on the manifold to transport to. Unused if `direction` is
+            given.
+
+        Returns
+        -------
+        transported_tangent_vec : array-like, shape=[..., n_copies, *base_shape]
+            Transported tangent vector at the end point of the geodesic.
+        """
+        base_manifold = self._space.base_manifold
+
+        kwargs = {
+            name: value
+            for name, value in zip(("direction", "end_point"), (direction, end_point))
+            if value is not None
+        }
+        arrays = gs.broadcast_arrays(tangent_vec, base_point, *kwargs.values())
+        batch_shape = get_batch_shape(self._space.point_ndim, *arrays)
+
+        tangent_vec_, base_point_, *others = [
+            gs.reshape(array, (-1, *base_manifold.shape)) for array in arrays
+        ]
+        each_transport = base_manifold.metric.parallel_transport(
+            tangent_vec_, base_point_, **dict(zip(kwargs, others))
+        )
+        return gs.reshape(each_transport, batch_shape + self._space.shape)
+
+    def injectivity_radius(self, base_point=None):
+        """Compute the radius of the injectivity domain.
+
+        The injectivity radius of a product is the minimum of the injectivity
+        radii of its factors. Scaling a copy by `scale` scales its injectivity
+        radius by `sqrt(scale)`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n_copies, *base_shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        base_manifold = self._space.base_manifold
+        if base_point is None:
+            radius = base_manifold.metric.injectivity_radius()
+            if self.scales is not None:
+                radius = gs.amin(gs.sqrt(self.scales)) * radius
+            return radius
+
+        batch_shape = get_batch_shape(self._space.point_ndim, base_point)
+        point_ = gs.reshape(base_point, (-1, *base_manifold.shape))
+        radii = base_manifold.metric.injectivity_radius(point_)
+        radii = gs.reshape(radii, batch_shape + (self._space.n_copies,))
+
+        if self.scales is not None:
+            radii = gs.einsum("j,...j->...j", gs.sqrt(self.scales), radii)
+
+        return gs.amin(radii, axis=-1)

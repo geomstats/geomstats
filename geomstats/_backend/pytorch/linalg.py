@@ -12,7 +12,6 @@ from torch.linalg import (
     inv,
     matrix_power,
     qr,
-    solve,
 )
 from torch.linalg import matrix_exp as expm
 
@@ -157,3 +156,21 @@ def polar(*args, **kwargs):
     unitary, hermitian = func = func(*args, **kwargs)
 
     return _torch.from_numpy(unitary), _torch.from_numpy(hermitian)
+
+
+def solve(a, b):
+    """Solve a linear system with vector right-hand sides.
+
+    Parameters
+    ----------
+    a : array-like, shape=[..., M, M]
+        Full-rank coefficient matrix.
+    b : array-like, shape=[..., M]
+        Right-hand-side vector. Batch dimensions must broadcast with `a`.
+
+    Returns
+    -------
+    x : array-like, shape=[..., M]
+        Solution to a x = b, with broadcast batch dimensions.
+    """
+    return _torch.linalg.solve(a, b.unsqueeze(-1)).squeeze(-1)

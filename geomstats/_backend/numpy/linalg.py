@@ -116,30 +116,18 @@ def polar(*args, **kwargs):
 
 
 def solve(a, b):
-    """
-    Solve a linear matrix equation, or system of linear scalar equations.
-
-    Computes the "exact" solution, `x`, of the well-determined, i.e., full
-    rank, linear matrix equation `ax = b`.
+    """Solve a linear system with vector right-hand sides.
 
     Parameters
     ----------
     a : array-like, shape=[..., M, M]
-        Coefficient matrix.
+        Full-rank coefficient matrix.
     b : array-like, shape=[..., M]
-        Ordinate or "dependent variable" values".
+        Right-hand-side vector. Batch dimensions must broadcast with `a`.
 
     Returns
     -------
     x : array-like, shape=[..., M]
-        Solution to the system a x = b.
+        Solution to a x = b, with broadcast batch dimensions.
     """
-    batch_shape = a.shape[:-2]
-    if batch_shape:
-        b = _np.expand_dims(b, axis=-1)
-
-    res = _np.linalg.solve(a, b)
-    if batch_shape:
-        return res[..., 0]
-
-    return res
+    return _np.linalg.solve(a, _np.expand_dims(b, axis=-1))[..., 0]

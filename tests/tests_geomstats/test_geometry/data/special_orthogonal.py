@@ -35,11 +35,6 @@ class SpecialOrthogonalMatricesTestData(
 ):
     fail_for_not_implemented_errors = False
 
-    tolerances = {
-        "projection_belongs": {"atol": 1e-5},
-        "matrix_from_rotation_vector_after_rotation_vector_from_matrix": {"atol": 1e-1},
-    }
-
     def are_antipodals_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -129,12 +124,55 @@ class SpecialOrthogonalMatrices3TestData(TestData):
     def are_antipodals_test_data(self):
         mat1 = gs.eye(3)
         mat2 = gs.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
+
+        rot = SpecialOrthogonal(
+            3, point_type="vector", equip=False
+        ).matrix_from_rotation_vector
+        base_mat = rot(gs.array([-1.5, -1.0, -1.0]))
+        nearby_mat = gs.matmul(base_mat, rot(gs.array([1e-6, 0.0, 0.0])))
+        antipodal_mat = gs.matmul(base_mat, rot(gs.pi * gs.array([0.0, 0.6, 0.8])))
+        near_antipodal_mat = gs.matmul(
+            base_mat, rot((gs.pi - 1e-3) * gs.array([0.0, 0.6, 0.8]))
+        )
+
         data = [
             dict(rotation_mat1=mat1, rotation_mat2=mat2, expected=gs.array(True)),
             dict(
                 rotation_mat1=gs.stack([mat1, mat2]),
                 rotation_mat2=gs.stack([mat2, mat2]),
                 expected=gs.array([True, False]),
+            ),
+            dict(
+                rotation_mat1=base_mat,
+                rotation_mat2=nearby_mat,
+                expected=gs.array(False),
+            ),
+            dict(
+                rotation_mat1=base_mat,
+                rotation_mat2=antipodal_mat,
+                expected=gs.array(True),
+            ),
+            dict(
+                rotation_mat1=base_mat,
+                rotation_mat2=near_antipodal_mat,
+                expected=gs.array(False),
+            ),
+        ]
+        return self.generate_tests(data)
+
+    def log_test_data(self):
+        rot = SpecialOrthogonal(
+            3, point_type="vector", equip=False
+        ).matrix_from_rotation_vector
+        base_mat = rot(gs.array([-1.5, -1.0, -1.0]))
+        nearby_mat = gs.matmul(base_mat, rot(gs.array([1e-6, 0.0, 0.0])))
+        skew = gs.array([[0.0, 0.0, 0.0], [0.0, 0.0, -1e-6], [0.0, 1e-6, 0.0]])
+
+        data = [
+            dict(
+                point=nearby_mat,
+                base_point=base_mat,
+                expected=gs.matmul(base_mat, skew),
             ),
         ]
         return self.generate_tests(data)
@@ -191,8 +229,6 @@ class SpecialOrthogonalVectorsTestData(
 
 
 class SpecialOrthogonal2VectorsTestData(SpecialOrthogonalVectorsTestData):
-    fail_for_not_implemented_errors = False
-
     trials = 3
     skips = ("projection_belongs",)
 
@@ -223,7 +259,7 @@ class SpecialOrthogonal2VectorsSmokeTestData(TestData):
         data = [
             dict(
                 point=gs.eye(2) + 1e-12 * gs.ones((2, 2)),
-                expected=gs.eye(2),
+                expected=gs.array([0.0]),
             )
         ]
         return self.generate_tests(data)
@@ -264,26 +300,6 @@ class SpecialOrthogonal2VectorsSmokeTestData(TestData):
                 point=gs.array([2 * gs.pi + 1]),
                 expected=gs.array([1.0]),
             )
-        ]
-        return self.generate_tests(data)
-
-    def jacobian_translation_test_data(self):
-        data = [
-            dict(
-                point=gs.array([0.12]),
-                left=True,
-                expected=gs.array([[1.0]]),
-            ),
-            dict(
-                point=gs.array([0.12]),
-                left=False,
-                expected=gs.array([[1.0]]),
-            ),
-            dict(
-                point=gs.array([[0.12], [-2.5]]),
-                left=True,
-                expected=gs.array([[[1.0]], [[1.0]]]),
-            ),
         ]
         return self.generate_tests(data)
 
@@ -447,7 +463,7 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
         data = [
             dict(
                 point=gs.eye(3) + 1e-12 * gs.ones((3, 3)),
-                expected=gs.eye(3),
+                expected=gs.zeros(3),
             )
         ]
         return self.generate_tests(data)
