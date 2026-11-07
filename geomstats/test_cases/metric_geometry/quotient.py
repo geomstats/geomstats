@@ -1,57 +1,27 @@
-import pytest
-
 import geomstats.backend as gs
-from geomstats.test.random import RandomDataGenerator, get_random_times
 from geomstats.test.test_case import TestCase
-from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.metric_geometry.point_set import (
     PointSetMetricWithArrayTestCase,
 )
 
 
-class AlignerAlgorithmTestCase(TestCase):
-    # TODO: add align against itself test
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = RandomDataGenerator(self.total_space)
+class AlignerTestCase(TestCase):
+    def test_align(self, point, base_point, expected, atol=gs.atol):
+        """Check alignment.
 
-    def test_align(self, point, base_point, expected, atol):
-        res = self.aligner.align(point, base_point)
+        Parameters
+        ----------
+        point : array-like, shape=[..., *total_space.shape]
+            Point to align.
+        base_point : array-like, shape=[..., *total_space.shape]
+            Point to align to.
+        expected : array-like, shape=[..., *total_space.shape]
+            Expected aligned point.
+        atol : float
+            Absolute tolerance.
+        """
+        res = self.total_space.aligner.align(point, base_point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_align_vec(self, n_reps, atol):
-        # TODO: extend vec_test generation to accept this case?
-        point = self.data_generator.random_point()
-        base_point = self.data_generator.random_point()
-
-        expected = self.aligner.align(point, base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(point=point, base_point=base_point, expected=expected, atol=atol)
-            ],
-            arg_names=["point", "base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-
-class AlignerAlgorithmCmpTestCase(TestCase):
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = RandomDataGenerator(self.total_space)
-
-    @pytest.mark.random
-    def test_align(self, n_points, atol):
-        point = self.data_generator.random_point(n_points)
-        base_point = self.data_generator.random_point(n_points)
-
-        aligned = self.aligner.align(point, base_point)
-        other_aligned = self.other_aligner.align(point, base_point)
-
-        self.assertAllClose(aligned, other_aligned, atol=atol)
 
 
 class QuotientMetricWithArrayTestCase(PointSetMetricWithArrayTestCase):
@@ -60,29 +30,41 @@ class QuotientMetricWithArrayTestCase(PointSetMetricWithArrayTestCase):
     Applies to discrete group actions.
     """
 
-    @pytest.mark.random
-    def test_geodesic_boundary_points(self, n_points, atol):
-        initial_point = self.data_generator.random_point(n_points)
-        end_point = self.data_generator.random_point(n_points)
+    def test_geodesic_boundary_points(self, initial_point, end_point, atol=gs.atol):
+        """Check geodesic goes from the initial point to the aligned end point.
 
-        time = gs.array([0.0, 1.0])
-
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., *space.shape]
+            Initial point of the geodesic.
+        end_point : array-like, shape=[..., *space.shape]
+            End point of the geodesic.
+        atol : float
+            Absolute tolerance.
+        """
         geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
 
-        res = geod_func(time)
+        res = geod_func(gs.array([0.0, 1.0]))
         aligned_end_point = self.total_space.aligner.align(end_point, initial_point)
         expected = gs.stack(
             [initial_point, aligned_end_point], axis=-(self.space.point_ndim + 1)
         )
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.random
-    def test_geodesic_bvp_reverse(self, n_points, n_times, atol):
-        initial_point = self.data_generator.random_point(n_points)
-        end_point = self.data_generator.random_point(n_points)
+    def test_geodesic_bvp_reverse(self, initial_point, end_point, time, atol=gs.atol):
+        """Check geodesic is the aligned reverse of the reversed geodesic.
 
-        time = get_random_times(n_times)
-
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., *space.shape]
+            Initial point of the geodesic.
+        end_point : array-like, shape=[..., *space.shape]
+            End point of the geodesic.
+        time : array-like, shape=[n_times,]
+            Times at which to evaluate the geodesics.
+        atol : float
+            Absolute tolerance.
+        """
         geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
         geod_func_reverse = self.space.metric.geodesic(
             end_point, end_point=initial_point
@@ -90,7 +72,7 @@ class QuotientMetricWithArrayTestCase(PointSetMetricWithArrayTestCase):
 
         res = geod_func(time)
         res_ = geod_func_reverse(1.0 - time)
-        if n_points > 1:
+        if initial_point.ndim > self.space.point_ndim:
             aligned_res_ = gs.stack(
                 [
                     self.total_space.aligner.align(point_res_, initial_point_)

@@ -1,10 +1,11 @@
 import random
 
+from polpo.testing.data import CaseData
+
 from geomstats.metric_geometry.trees import ForestTopology, Split
-from geomstats.test.data import TestData
 
 
-class GenerateSplitsTestData(TestData):
+class GenerateSplitsTestData(CaseData):
     def len_test_data(self):
         n = random.randint(6, 9)
 
@@ -19,10 +20,10 @@ class GenerateSplitsTestData(TestData):
             dict(n_labels=n, n_expected_splits=n - 3, exclude_singletons=True),
         ]
 
-        return self.generate_tests(data)
+        return data
 
 
-class SplitTestData(TestData):
+class SplitTestData(CaseData):
     def restrict_to_test_data(self):
         smoke_data = [
             dict(
@@ -37,7 +38,7 @@ class SplitTestData(TestData):
             ),
         ]
 
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
     def part_contains_test_data(self):
         smoke_data = [
@@ -53,7 +54,7 @@ class SplitTestData(TestData):
             ),
         ]
 
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
     def separates_test_data(self):
         smoke_data = [
@@ -70,7 +71,7 @@ class SplitTestData(TestData):
             ),
         ]
 
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
     def get_part_towards_test_data(self):
         split1 = Split(part1=[0, 4], part2=[1, 2, 3])
@@ -81,7 +82,7 @@ class SplitTestData(TestData):
             dict(split_a=split2, split_b=split1, expected={0, 1, 4}),
         ]
 
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
     def get_part_away_from_test_data(self):
         split1 = Split(part1=[0, 4], part2=[1, 2, 3])
@@ -100,7 +101,7 @@ class SplitTestData(TestData):
             ),
         ]
 
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
     def is_compatible_test_data(self):
         # TODO: add a non compatible example
@@ -113,7 +114,7 @@ class SplitTestData(TestData):
             ),
         ]
 
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
     def hash_test_data(self):
         smoke_data = [
@@ -134,10 +135,10 @@ class SplitTestData(TestData):
             ),
         ]
 
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
 
-class BaseTopologyTestData(TestData):
+class BaseTopologyTestData(CaseData):
     def partition_test_data(self):
         # TODO: add false example
         smoke_data = [
@@ -157,7 +158,7 @@ class BaseTopologyTestData(TestData):
             ),
         ]
 
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
     def partial_ordering_test_data(self):
         smoke_data = []
@@ -259,4 +260,4 @@ class BaseTopologyTestData(TestData):
             )
         )
 
-        return self.generate_tests(smoke_data)
+        return smoke_data
