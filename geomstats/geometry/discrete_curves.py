@@ -219,7 +219,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., k_sampling_points, ambient_dim]
+        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Discrete curve starting at the origin.
 
         Returns
@@ -331,9 +331,7 @@ class SRVTransform(Diffeo):
         pointwise_velocity_norm = self.ambient_manifold.metric.norm(
             velocity, base_point_with_origin[..., :-1, :]
         )
-        return gs.einsum(
-            "...ij,...i->...ij", velocity, 1.0 / gs.sqrt(pointwise_velocity_norm)
-        )
+        return scalarvecmul(1.0 / gs.sqrt(pointwise_velocity_norm), velocity)
 
     def inverse(self, image_point):
         r"""Inverse of the Square Root Velocity Transform (SRVT).
@@ -405,22 +403,14 @@ class SRVTransform(Diffeo):
         velocity_vec = forward_difference(base_point_with_origin, axis=-ndim)
 
         velocity_norm = self.ambient_manifold.metric.norm(velocity_vec)
-        unit_velocity_vec = gs.einsum(
-            "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
-        )
+        unit_velocity_vec = scalarvecmul(1 / velocity_norm, velocity_vec)
 
         pointwise_inner_prod = self.ambient_manifold.metric.inner_product(
             d_vec, unit_velocity_vec, base_point_with_origin[..., :-1, :]
         )
-        d_vec_tangential = gs.einsum(
-            "...ij,...i->...ij",
-            unit_velocity_vec,
-            pointwise_inner_prod,
-        )
+        d_vec_tangential = scalarvecmul(pointwise_inner_prod, unit_velocity_vec)
         d_srv_vec = d_vec - 1 / 2 * d_vec_tangential
-        d_srv_vec = gs.einsum(
-            "...ij,...i->...ij", d_srv_vec, 1 / velocity_norm ** (1 / 2)
-        )
+        d_srv_vec = scalarvecmul(1 / velocity_norm ** (1 / 2), d_srv_vec)
 
         return d_srv_vec
 
@@ -455,26 +445,22 @@ class SRVTransform(Diffeo):
         position = base_point_with_origin[..., :-1, :]
         velocity_vec = forward_difference(base_point_with_origin, axis=-ndim)
         velocity_norm = self.ambient_manifold.metric.norm(velocity_vec, position)
-        unit_velocity_vec = gs.einsum(
-            "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
-        )
+        unit_velocity_vec = scalarvecmul(1 / velocity_norm, velocity_vec)
 
         pointwise_inner_prod = self.ambient_manifold.metric.inner_product(
             image_tangent_vec,
             unit_velocity_vec,
             position,
         )
-        tangent_vec_tangential = gs.einsum(
-            "...ij,...i->...ij", unit_velocity_vec, pointwise_inner_prod
-        )
+        tangent_vec_tangential = scalarvecmul(pointwise_inner_prod, unit_velocity_vec)
         d_vec = image_tangent_vec + tangent_vec_tangential
-        d_vec = gs.einsum("...ij,...i->...ij", d_vec, velocity_norm ** (1 / 2))
+        d_vec = scalarvecmul(velocity_norm ** (1 / 2), d_vec)
         increment = d_vec / (self.k_sampling_points - 1)
 
         return gs.cumsum(increment, axis=-2)
 
 
-class FTransform(AutodiffDiffeo):
+class FTransform(Diffeo):
     r"""FTransform.
 
     The f_transform is defined on the space of curves
@@ -1879,12 +1865,8 @@ class ReparametrizationBundle(FiberBundle):
 
         vertical_norm = gs.linalg.solve(linear_system, vec_d)
 
-        unit_speed = gs.einsum(
-            "...ij,...i->...ij",
-            d_pos,
-            1 / pointwise_norm,
-        )
-        tangent_vec_ver = gs.einsum("...ij,...i->...ij", unit_speed, vertical_norm)
+        unit_speed = scalarvecmul(1 / pointwise_norm, d_pos)
+        tangent_vec_ver = scalarvecmul(vertical_norm, unit_speed)
 
         tangent_vec_ver = insert_zeros(tangent_vec_ver, axis=-ndim, end=True)
         if return_norm:
@@ -1955,6 +1937,7 @@ register_quotient(
     FiberBundle=RotationBundle,
     QuotientMetric=QuotientMetric,
 )
+
 register_quotient(
     Space=DiscreteCurvesStartingAtOrigin,
     Metric=SRVMetric,
