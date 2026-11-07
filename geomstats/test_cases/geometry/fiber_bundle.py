@@ -387,34 +387,34 @@ class FiberBundleTestCase(TestCase):
         self.assertAllClose(tangent_vec_, tangent_vec, atol=atol)
 
     def test_integrability_tensor(
-        self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
+        self, tangent_vec_x, tangent_vec_e, base_point, expected, atol
     ):
         res = self.total_space.fiber_bundle.integrability_tensor(
-            tangent_vec_a, tangent_vec_b, base_point
+            tangent_vec_x, tangent_vec_e, base_point
         )
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
     def test_integrability_tensor_vec(self, n_reps, atol):
         base_point = self.data_generator.random_point()
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_x = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_e = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.total_space.fiber_bundle.integrability_tensor(
-            tangent_vec_a, tangent_vec_b, base_point
+            tangent_vec_x, tangent_vec_e, base_point
         )
 
         vec_data = generate_vectorization_data(
             data=[
                 dict(
-                    tangent_vec_a=tangent_vec_a,
-                    tangent_vec_b=tangent_vec_b,
+                    tangent_vec_x=tangent_vec_x,
+                    tangent_vec_e=tangent_vec_e,
                     base_point=base_point,
                     expected=expected,
                     atol=atol,
                 )
             ],
-            arg_names=["tangent_vec_a", "tangent_vec_b", "base_point"],
+            arg_names=["tangent_vec_x", "tangent_vec_e", "base_point"],
             expected_name="expected",
             vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1",
             n_reps=n_reps,
