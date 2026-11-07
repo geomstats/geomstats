@@ -38,10 +38,14 @@ class SpecialOrthogonalMatricesTestData(
     tolerances = {
         "projection_belongs": {"atol": 1e-5},
         "matrix_from_rotation_vector_after_rotation_vector_from_matrix": {"atol": 1e-1},
+        "random_uniform_sample_mean": {"atol": 1e-1},
     }
 
     def are_antipodals_vec_test_data(self):
         return self.generate_vec_data()
+
+    def random_uniform_sample_mean_test_data(self):
+        return self.generate_tests([dict(n_samples=1000)])
 
 
 class SpecialOrthogonalMatrices2TestData(TestData):
