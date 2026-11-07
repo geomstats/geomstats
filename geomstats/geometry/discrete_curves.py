@@ -1451,6 +1451,14 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
     max_slope : int
         Maximum slope allowed for a reparametrization.
 
+    Notes
+    -----
+    The scalar products between the SRV functions are computed once. The
+    integral over a subinterval only depends on the increments
+    :math:`(\Delta x, \Delta y)` of gamma, so its breakpoints are computed once
+    per increment. The dynamic program is vectorized over the values of gamma,
+    and gamma is recovered by backtracking the best predecessors.
+
     References
     ----------
     .. [WAJ2007] M. Washington, S. Anuj & H. Joshi,
@@ -1496,79 +1504,41 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
         return srv_function[..., indices, :]
 
     @staticmethod
-    def _compute_restricted_integral(
-        srv_1, srv_2, x_min_index, x_max_index, y_min_index, y_max_index
-    ):
-        r"""Compute the value of an integral over a subinterval.
-
-        Compute n * the value of the integral of
-
-        .. math::
-
-            q_1(t)\cdot q_2(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}
-
-        over :math:`\left[\x_min,x_max\right]` where gamma restricted to
-        :math:`\left[\x_min,x_max\right]` is a linear.
+    def _segment_pattern(delta_x_index, delta_y_index):
+        """Compute the breakpoints of the integral over a subinterval.
 
         Parameters
         ----------
-        srv_1 : array, shape=[n, ambient_dim]
-            SRV function of the initial curve.
-        srv_2 : array, shape=[n, ambient_dim]
-            SRV function of the end curve.
-        x_min_index : int
-            Beginning of the subinterval.
-        x_max_index : int
-            End of the subinterval.
-        y_min_index : int
-            Value of gamma at x_min.
-        y_max_index : int
-            Value of gamma at x_max.
+        delta_x_index : int
+            Length of the subinterval.
+        delta_y_index : int
+            Increase of gamma over the subinterval.
 
         Returns
         -------
-        value : float
-            Value of the integral described above.
+        pattern : list of tuple
+            Offsets of the scalar products to sum, and the length over which
+            each one is integrated, as `(x_offset, y_offset, length)`.
         """
-        delta_y_index = y_max_index - y_min_index
-        delta_x_index = x_max_index - x_min_index
-
         gamma_slope = delta_y_index / delta_x_index
+        x_bounds = list(range(delta_x_index + 1))
+        y_bounds = [y_index / gamma_slope for y_index in range(delta_y_index + 1)]
 
-        x_bound_indices = list(range(x_min_index, x_max_index + 1))
-        y_bounds_indices = [
-            (y_index - y_min_index) / gamma_slope + x_min_index
-            for y_index in range(y_min_index, y_max_index + 1)
-        ]
-
-        lower_bound = x_min_index
+        lower_bound = 0
         x_index, y_index = 0, 0
-
-        value = 0.0
+        pattern = []
         while x_index < delta_x_index and y_index < delta_y_index:
-            upper_bound = min(
-                x_bound_indices[x_index + 1], y_bounds_indices[y_index + 1]
-            )
-
-            # NB: normalization is done outside
-            length = upper_bound - lower_bound
-            value += length * gs.dot(
-                srv_1[x_min_index + x_index], srv_2[y_min_index + y_index]
-            )
-
-            if (
-                gs.abs(x_bound_indices[x_index + 1] - y_bounds_indices[y_index + 1])
-                < gs.atol
-            ):
+            upper_bound = min(x_bounds[x_index + 1], y_bounds[y_index + 1])
+            pattern.append((x_index, y_index, upper_bound - lower_bound))
+            if gs.abs(x_bounds[x_index + 1] - y_bounds[y_index + 1]) < gs.atol:
                 x_index += 1
                 y_index += 1
-            elif x_bound_indices[x_index + 1] < y_bounds_indices[y_index + 1]:
+            elif x_bounds[x_index + 1] < y_bounds[y_index + 1]:
                 x_index += 1
             else:
                 y_index += 1
             lower_bound = upper_bound
-
-        return gamma_slope**0.5 * value
+        return pattern
 
     def _reparametrize(self, point_with_origin, gamma):
         """Reparametrize curve by gamma.
@@ -1602,16 +1572,10 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
 
     def _compute_squared_dist(self, initial_srv, end_srv, grid_last):
         """Compute squared distance using algorithmic information."""
-        n_space_grid = self.n_space_grid
-
-        norm_squared_initial_srv = self._compute_restricted_integral(
-            initial_srv, initial_srv, 0, n_space_grid - 1, 0, n_space_grid - 1
-        ) / (n_space_grid - 1)
-        norm_squared_end_srv = self._compute_restricted_integral(
-            end_srv, end_srv, 0, n_space_grid - 1, 0, n_space_grid - 1
-        ) / (n_space_grid - 1)
-
-        maximum_scalar_product = grid_last / (n_space_grid - 1)
+        normalization = self.n_space_grid - 1
+        norm_squared_initial_srv = gs.sum(initial_srv**2) / normalization
+        norm_squared_end_srv = gs.sum(end_srv**2) / normalization
+        maximum_scalar_product = grid_last / normalization
         return (
             norm_squared_initial_srv + norm_squared_end_srv - 2 * maximum_scalar_product
         )
@@ -1639,70 +1603,85 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
         max_slope = self.max_slope
         n_space_grid = self.n_space_grid
 
-        initial_srv = self._srv_transform(base_point)
-        end_srv = self._srv_transform(point)
+        initial_srv = self._resample_srv_function(self._srv_transform(base_point))
+        end_srv = self._resample_srv_function(self._srv_transform(point))
+        scalar_products = gs.matmul(initial_srv, gs.transpose(end_srv))
 
-        resampled_initial_srv = self._resample_srv_function(initial_srv)
-        resampled_end_srv = self._resample_srv_function(end_srv)
+        patterns = {
+            (delta_x_index, delta_y_index): self._segment_pattern(
+                delta_x_index, delta_y_index
+            )
+            for delta_x_index in range(1, max_slope + 1)
+            for delta_y_index in range(1, max_slope + 1)
+        }
 
-        grid = {(0, 0): 0.0}
-        gamma = {(0, 0): [(0, 0)]}
-
+        y_indices = gs.arange(n_space_grid)
+        minus_inf = -gs.inf * gs.ones(n_space_grid)
+        grid = [gs.where(y_indices == 0, 0.0, minus_inf)]
+        predecessors = [None]
         for x_max_index in range(1, n_space_grid):
-            max_y_max_index = max(n_space_grid, x_max_index + 1)
-            for y_max_index in range(1, max_y_max_index):
-                # NB: solves minimization part
-                min_x_min_index = max(0, x_max_index - max_slope)
-                min_y_min_index = max(0, y_max_index - max_slope)
-                for x_min_index in range(min_x_min_index, x_max_index):
-                    for y_min_index in range(min_y_min_index, y_max_index):
-                        if (x_min_index, y_min_index) not in grid:
-                            # jump borders
-                            continue
-                        elif (
-                            gs.abs(
-                                (y_max_index - y_min_index)
-                                / (x_max_index - x_min_index)
-                                - 1
-                            )
-                            < gs.atol
-                            and x_max_index - x_min_index != 1
-                            and y_max_index - y_max_index != 1
-                        ):
-                            # jump slope == 1 except last
-                            continue
+            best = minus_inf
+            best_x_min_index = -gs.ones(n_space_grid, dtype=int)
+            best_y_min_index = -gs.ones(n_space_grid, dtype=int)
 
-                        new_value = grid[
-                            x_min_index, y_min_index
-                        ] + self._compute_restricted_integral(
-                            resampled_initial_srv,
-                            resampled_end_srv,
-                            x_min_index,
-                            x_max_index,
-                            y_min_index,
-                            y_max_index,
+            # NB: increasing x_min, then increasing y_min, to break ties
+            for x_min_index in range(max(0, x_max_index - max_slope), x_max_index):
+                delta_x_index = x_max_index - x_min_index
+                for delta_y_index in range(max_slope, 0, -1):
+                    if delta_y_index == delta_x_index and delta_x_index != 1:
+                        # jump slope == 1 except last
+                        continue
+
+                    n_y_min = n_space_grid - delta_y_index
+                    integral = 0.0
+                    for x_offset, y_offset, length in patterns[
+                        delta_x_index, delta_y_index
+                    ]:
+                        integral += (
+                            length
+                            * scalar_products[
+                                x_min_index + x_offset, y_offset : y_offset + n_y_min
+                            ]
                         )
-                        if (x_max_index, y_max_index) not in grid or grid[
-                            (x_max_index, y_max_index)
-                        ] < new_value:
-                            grid[x_max_index, y_max_index] = new_value
-                            new_gamma = gamma[(x_min_index, y_min_index)].copy()
-                            new_gamma.append((x_max_index, y_max_index))
-                            gamma[(x_max_index, y_max_index)] = new_gamma
+                    integral = (delta_y_index / delta_x_index) ** 0.5 * integral
+
+                    new_value = gs.concatenate(
+                        [
+                            minus_inf[:delta_y_index],
+                            grid[x_min_index][:n_y_min] + integral,
+                        ]
+                    )
+                    is_better = new_value > best
+                    best = gs.where(is_better, new_value, best)
+                    best_x_min_index = gs.where(
+                        is_better, x_min_index, best_x_min_index
+                    )
+                    best_y_min_index = gs.where(
+                        is_better, y_indices - delta_y_index, best_y_min_index
+                    )
+
+            grid.append(best)
+            predecessors.append((best_x_min_index, best_y_min_index))
 
         last_index = n_space_grid - 1
-        point_with_origin = insert_zeros(point, axis=-2)
-        point_reparametrized = self._reparametrize(
-            point_with_origin, gamma[last_index, last_index]
-        )
+        gamma = [(last_index, last_index)]
+        while gamma[-1] != (0, 0):
+            x_index, y_index = gamma[-1]
+            best_x_min_index, best_y_min_index = predecessors[x_index]
+            gamma.append(
+                (int(best_x_min_index[y_index]), int(best_y_min_index[y_index]))
+            )
+        gamma = gamma[::-1]
 
+        point_with_origin = insert_zeros(point, axis=-2)
+        point_reparametrized = self._reparametrize(point_with_origin, gamma)
         if not return_sdist:
             return point_reparametrized
 
         return point_reparametrized, self._compute_squared_dist(
-            resampled_initial_srv,
-            resampled_end_srv,
-            grid[(last_index, last_index)],
+            initial_srv,
+            end_srv,
+            grid[last_index][last_index],
         )
 
     def align(self, point, base_point, return_sdist=False):

@@ -32,6 +32,9 @@ from geomstats.test_cases.geometry.discrete_curves import (
 from geomstats.test_cases.geometry.nfold_manifold import NFoldMetricTestCase
 from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
 from geomstats.test_cases.geometry.quotient_metric import QuotientMetricTestCase
+from geomstats.variants.geometry.discrete_curves import (
+    DynamicProgrammingAligner as NonVectorizedDynamicProgrammingAligner,
+)
 
 from .data.diffeo import (
     DiffeoComparisonTestData,
@@ -39,6 +42,7 @@ from .data.diffeo import (
 )
 from .data.discrete_curves import (
     DiscreteCurvesStartingAtOriginTestData,
+    DynamicProgrammingAlignerVariantTestData,
     ElasticMetricTestData,
     L2CurvesMetricTestData,
     ReparametrizationAlignerTestData,
@@ -248,6 +252,22 @@ class TestReparametrizationAligner(TestCase, metaclass=DataBasedParametrizer):
         aligned_point = self.total_space.fiber_bundle.align(point, base_point)
 
         self.assertAllClose(aligned_point, base_point, atol=atol)
+
+
+@pytest.mark.redundant
+class TestDynamicProgrammingAlignerVariant(TestCase, metaclass=DataBasedParametrizer):
+    total_space = DiscreteCurvesStartingAtOrigin(k_sampling_points=random.randint(4, 8))
+    testing_data = DynamicProgrammingAlignerVariantTestData()
+
+    def test_align(self, n_points, atol):
+        point = self.total_space.random_point(n_points)
+        base_point = self.total_space.random_point(n_points)
+
+        aligned = DynamicProgrammingAligner(self.total_space).align(point, base_point)
+        expected = NonVectorizedDynamicProgrammingAligner(self.total_space).align(
+            point, base_point
+        )
+        self.assertAllClose(aligned, expected, atol=atol)
 
 
 class TestRotationBundle(TestCase, metaclass=DataBasedParametrizer):
