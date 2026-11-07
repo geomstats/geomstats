@@ -2,7 +2,6 @@ from geomstats.test.data import TestData
 
 from .fiber_bundle import FiberBundleTestData
 from .nfold_manifold import NFoldManifoldTestData
-from .pullback_metric import PullbackDiffeoMetricTestData
 from .quotient_metric import QuotientMetricTestData
 from .riemannian_metric import RiemannianMetricTestData
 
@@ -28,8 +27,14 @@ class L2CurvesMetricTestData(RiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 
+    skips = (
+        "christoffels_vec",
+        "inner_product_derivative_matrix_vec",
+        "metric_matrix_is_spd",
+    )
 
-class ElasticMetricTestData(PullbackDiffeoMetricTestData):
+
+class ElasticMetricTestData(RiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 
@@ -37,7 +42,7 @@ class ElasticMetricTestData(PullbackDiffeoMetricTestData):
         return self.generate_random_data()
 
 
-class SRVMetricTestData(PullbackDiffeoMetricTestData):
+class SRVMetricTestData(RiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 

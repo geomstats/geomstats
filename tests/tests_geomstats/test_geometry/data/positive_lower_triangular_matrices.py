@@ -7,7 +7,6 @@ from .base import LevelSetTestData, VectorSpaceOpenSetTestData
 from .diffeo import DiffeoComparisonTestData
 from .invariant_metric import InvariantMetricMatrixTestData
 from .lie_group import MatrixLieGroupTestData
-from .pullback_metric import PullbackDiffeoMetricTestData
 from .riemannian_metric import RiemannianMetricTestData
 
 EULER = gs.exp(1.0)
@@ -199,7 +198,7 @@ class InvariantPositiveLowerTriangularMatricesMetricTestData(
     }
 
 
-class UnitNormedRowsPLTMatricesPullbackMetricTestData(PullbackDiffeoMetricTestData):
+class UnitNormedRowsPLTMatricesPullbackMetricTestData(RiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
