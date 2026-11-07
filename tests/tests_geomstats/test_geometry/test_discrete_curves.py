@@ -1,6 +1,10 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 import geomstats.backend as gs
 from geomstats.geometry.discrete_curves import (
@@ -11,15 +15,10 @@ from geomstats.geometry.discrete_curves import (
     IterativeHorizontalGeodesicAligner,
     L2CurvesMetric,
     ReparametrizationBundle,
-    RotationBundle,
     SRVTransform,
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.landmarks import Landmarks
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import ShapeBundleRandomDataGenerator
-from geomstats.test.test_case import TestCase
 from geomstats.test_cases.geometry.diffeo import (
     DiffeoComparisonTestCase,
     DiffeoTestCase,
@@ -27,352 +26,359 @@ from geomstats.test_cases.geometry.diffeo import (
 from geomstats.test_cases.geometry.discrete_curves import (
     DiscreteCurvesStartingAtOriginTestCase,
     ElasticMetricTestCase,
-    ReparametrizationBundleTestCase,
+)
+from geomstats.test_cases.geometry.fiber_bundle import (
+    AlignComparisonTestCase,
+    FiberBundleTestCase,
 )
 from geomstats.test_cases.geometry.nfold_manifold import NFoldMetricTestCase
 from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
-from geomstats.test_cases.geometry.quotient_metric import QuotientMetricTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 from geomstats.variants.geometry.discrete_curves import (
     DynamicProgrammingAligner as NonVectorizedDynamicProgrammingAligner,
 )
 
-from .data.diffeo import (
-    DiffeoComparisonTestData,
-    DiffeoTestData,
-)
+from .data.diffeo import DiffeoComparisonTestData, DiffeoTestData
 from .data.discrete_curves import (
     DiscreteCurvesStartingAtOriginTestData,
-    DynamicProgrammingAlignerVariantTestData,
-    ElasticMetricTestData,
-    L2CurvesMetricTestData,
-    ReparametrizationAlignerTestData,
-    ReparametrizationBundleTestData,
-    ReparametrizationQuotientMetricTestData,
-    RotationBundleTestData,
-    RotationQuotientMetricTestData,
-    RotationReparametrizationBundleTestData,
-    RotationReparametrizationQuotientMetricTestData,
-    SRVMetricTestData,
+    ElasticMetricDistanceTestData,
 )
+from .data.fiber_bundle import (
+    AlignComparisonTestData,
+    AlignInSameFiberTestData,
+    FiberBundleTestData,
+)
+from .data.quotient_metric import AlignQuotientMetricTestData
+from .data.riemannian_metric import RiemannianMetricTestData
+
+
+def _curves_bundle(group_action):
+    total_space = DiscreteCurvesStartingAtOrigin(
+        random.randint(2, 3), random.randint(5, 10)
+    )
+    total_space.equip_with_group_action(group_action)
+    total_space.equip_with_quotient()
+    return total_space
+
+
+def _curves_and_landmarks(ambient_dim, k_sampling_points):
+    space = DiscreteCurvesStartingAtOrigin(
+        ambient_dim=ambient_dim, k_sampling_points=k_sampling_points, equip=False
+    )
+    image_space = Landmarks(
+        ambient_manifold=space.ambient_manifold,
+        k_landmarks=space.k_sampling_points - 1,
+        equip=False,
+    )
+    return space, image_space
 
 
 class TestDiscreteCurvesStartingAtOrigin(
-    DiscreteCurvesStartingAtOriginTestCase, metaclass=DataBasedParametrizer
+    DiscreteCurvesStartingAtOriginTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    _ambient_dim = random.randint(2, 3)
-    _k_sampling_points = random.randint(5, 10)
-
     space = DiscreteCurvesStartingAtOrigin(
-        ambient_dim=_ambient_dim, k_sampling_points=_k_sampling_points, equip=False
-    )
-    testing_data = DiscreteCurvesStartingAtOriginTestData()
-
-
-class TestSRVTransform(DiffeoTestCase, metaclass=DataBasedParametrizer):
-    _ambient_dim = random.randint(2, 3)
-    _k_sampling_points = random.randint(5, 10)
-
-    space = DiscreteCurvesStartingAtOrigin(
-        ambient_dim=_ambient_dim, k_sampling_points=_k_sampling_points, equip=False
-    )
-
-    image_space = Landmarks(
-        ambient_manifold=space.ambient_manifold,
-        k_landmarks=space.k_sampling_points - 1,
+        ambient_dim=random.randint(2, 3),
+        k_sampling_points=random.randint(5, 10),
         equip=False,
     )
+    testing_data = DiscreteCurvesStartingAtOriginTestData(
+        space, excluded_methods=("not_belongs",)
+    )
 
-    diffeo = SRVTransform(space.ambient_manifold, _k_sampling_points)
 
-    testing_data = DiffeoTestData()
-
-
-class TestFTransform(DiffeoTestCase, metaclass=DataBasedParametrizer):
+class TestSRVTransform(DiffeoTestCase, metaclass=GeometricDataBasedParametrizer):
     _k_sampling_points = random.randint(5, 10)
-    _a = gs.random.uniform(low=0.5, high=2.5, size=1)
+    domain_space, image_space = _curves_and_landmarks(
+        random.randint(2, 3), _k_sampling_points
+    )
+    diffeo = SRVTransform(domain_space.ambient_manifold, _k_sampling_points)
 
-    space = DiscreteCurvesStartingAtOrigin(
-        ambient_dim=2, k_sampling_points=_k_sampling_points, equip=False
+    testing_data = DiffeoTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+        map_=diffeo,
     )
 
-    image_space = Landmarks(
-        ambient_manifold=space.ambient_manifold,
-        k_landmarks=space.k_sampling_points - 1,
-        equip=False,
-    )
 
-    diffeo = FTransform(space.ambient_manifold, _k_sampling_points, _a)
-
-    testing_data = DiffeoTestData()
-
-
-class TestSRVVsFTransform(DiffeoComparisonTestCase, metaclass=DataBasedParametrizer):
+class TestFTransform(DiffeoTestCase, metaclass=GeometricDataBasedParametrizer):
     _k_sampling_points = random.randint(5, 10)
-
-    space = DiscreteCurvesStartingAtOrigin(
-        ambient_dim=2, k_sampling_points=_k_sampling_points, equip=False
+    domain_space, image_space = _curves_and_landmarks(2, _k_sampling_points)
+    diffeo = FTransform(
+        domain_space.ambient_manifold,
+        _k_sampling_points,
+        gs.random.uniform(low=0.5, high=2.5, size=1),
     )
 
-    image_space = Landmarks(
-        ambient_manifold=space.ambient_manifold,
-        k_landmarks=space.k_sampling_points - 1,
-        equip=False,
+    testing_data = DiffeoTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+        map_=diffeo,
     )
-    diffeo = SRVTransform(space.ambient_manifold, _k_sampling_points)
-    other_diffeo = FTransform(space.ambient_manifold, _k_sampling_points)
-    testing_data = DiffeoComparisonTestData()
 
 
-class TestL2CurvesMetric(NFoldMetricTestCase, metaclass=DataBasedParametrizer):
-    _dim = random.randint(2, 3)
-    _k_landmarks = random.randint(5, 10)
+class TestFTransformAsSRVCmp(
+    DiffeoComparisonTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    _k_sampling_points = random.randint(5, 10)
+    domain_space, image_space = _curves_and_landmarks(2, _k_sampling_points)
+    diffeo = SRVTransform(domain_space.ambient_manifold, _k_sampling_points)
+    other_diffeo = FTransform(domain_space.ambient_manifold, _k_sampling_points)
 
+    testing_data = DiffeoComparisonTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+    )
+
+
+class TestL2CurvesMetric(NFoldMetricTestCase, metaclass=GeometricDataBasedParametrizer):
     space = Landmarks(
-        ambient_manifold=Euclidean(dim=_dim),
-        k_landmarks=_k_landmarks,
+        ambient_manifold=Euclidean(dim=random.randint(2, 3)),
+        k_landmarks=random.randint(5, 10),
         equip=False,
     ).equip_with_metric(L2CurvesMetric)
 
-    testing_data = L2CurvesMetricTestData()
-
-
-class TestSRVMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer):
-    _ambient_dim = random.randint(2, 3)
-    _k_sampling_points = random.randint(5, 10)
-
-    space = DiscreteCurvesStartingAtOrigin(
-        ambient_dim=_ambient_dim,
-        k_sampling_points=_k_sampling_points,
-    )
-    testing_data = SRVMetricTestData()
+    testing_data = RiemannianMetricTestData(space)
 
 
 @pytest.fixture(
     scope="class",
     params=[
-        (
-            2,
-            random.randint(5, 10),
-            float(gs.random.uniform(low=0.5, high=2.5, size=1)[0]),
-        ),
-        (
-            random.randint(3, 5),
-            random.randint(5, 10),
-            0.5,
-        ),
-        (
-            random.randint(3, 5),
-            random.randint(5, 10),
-            float(gs.random.uniform(low=0.5, high=2.5, size=1)[0]),
-        ),
+        (2, random.randint(5, 10), random.uniform(0.5, 2.5)),
+        (random.randint(3, 5), random.randint(5, 10), random.uniform(0.5, 2.5)),
     ],
 )
 def discrete_curves_with_elastic(request):
+    """Equip discrete curves with elastic metrics with :math:`a = 2b`.
+
+    Planar curves use the F transform, other curves a scaled SRV metric.
+    The F transform is only a diffeomorphism onto the whole image space when
+    :math:`a / (2b) = 1`.
+    """
     ambient_dim, k_sampling_points, b = request.param
+    a = 2 * b
 
-    lambda_ = 1.0
-    a = lambda_ * 2 * b
-
-    request.cls.space = DiscreteCurvesStartingAtOrigin(
+    space = request.cls.space = DiscreteCurvesStartingAtOrigin(
         ambient_dim=ambient_dim, k_sampling_points=k_sampling_points, equip=False
     ).equip_with_metric(ElasticMetric, a=a, b=b)
 
-
-@pytest.mark.usefixtures("discrete_curves_with_elastic")
-class TestElasticMetric(ElasticMetricTestCase, metaclass=DataBasedParametrizer):
-    testing_data = ElasticMetricTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        (random.randint(2, 3), random.choice([6, 8, 10])),
-        (random.randint(2, 3), random.choice([5, 7, 9])),
-    ],
-)
-def reparametrization_bundles(request):
-    ambient_dim, k_sampling_points = request.param
-
-    total_space = request.cls.total_space = request.cls.base = (
-        DiscreteCurvesStartingAtOrigin(ambient_dim, k_sampling_points)
-    )
-    total_space.fiber_bundle = ReparametrizationBundle(total_space)
-
-    request.cls.data_generator = request.cls.base_data_generator = (
-        ShapeBundleRandomDataGenerator(total_space)
-    )
-
-
-@pytest.mark.usefixtures("reparametrization_bundles")
-class TestReparametrizationBundle(
-    ReparametrizationBundleTestCase, metaclass=DataBasedParametrizer
-):
-    ambient_dim = random.randint(2, 3)
-    k_sampling_points = random.randint(4, 8)
-
-    total_space = base = DiscreteCurvesStartingAtOrigin(ambient_dim, k_sampling_points)
-    total_space.fiber_bundle = ReparametrizationBundle(total_space)
-
-    data_generator = base_data_generator = ShapeBundleRandomDataGenerator(total_space)
-    testing_data = ReparametrizationBundleTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        (DynamicProgrammingAligner, random.randint(4, 8)),
-        (IterativeHorizontalGeodesicAligner, random.choice([4, 6, 8])),
-        (IterativeHorizontalGeodesicAligner, random.choice([5, 7, 9])),
-    ],
-)
-def aligners(request):
-    Aligner, k_sampling_points = request.param
-
-    request.cls.total_space = total_space = DiscreteCurvesStartingAtOrigin(
-        k_sampling_points=k_sampling_points
-    )
-
-    aligner = Aligner(total_space)
-    total_space.fiber_bundle = ReparametrizationBundle(total_space, aligner=aligner)
-
-
-@pytest.mark.usefixtures("aligners")
-class TestReparametrizationAligner(TestCase, metaclass=DataBasedParametrizer):
-    testing_data = ReparametrizationAlignerTestData()
-
-    def test_align_in_same_fiber(self, n_points, atol):
-        base_point = self.total_space.random_point(n_points)
-        base_curve = self.total_space.interpolate(base_point)
-        k_sampling_points = self.total_space.k_sampling_points
-        sampling_points = gs.linspace(0.0, 1.0, k_sampling_points)
-
-        point = base_curve(sampling_points**2)
-
-        point = self.total_space.projection(point)
-        aligned_point = self.total_space.fiber_bundle.align(point, base_point)
-
-        self.assertAllClose(aligned_point, base_point, atol=atol)
+    request.cls.testing_data.space = space
 
 
 @pytest.mark.redundant
-class TestDynamicProgrammingAlignerVariant(TestCase, metaclass=DataBasedParametrizer):
-    total_space = DiscreteCurvesStartingAtOrigin(k_sampling_points=random.randint(4, 8))
-    testing_data = DynamicProgrammingAlignerVariantTestData()
-
-    def test_align(self, n_points, atol):
-        point = self.total_space.random_point(n_points)
-        base_point = self.total_space.random_point(n_points)
-
-        aligned = DynamicProgrammingAligner(self.total_space).align(point, base_point)
-        expected = NonVectorizedDynamicProgrammingAligner(self.total_space).align(
-            point, base_point
-        )
-        self.assertAllClose(aligned, expected, atol=atol)
+@pytest.mark.usefixtures("discrete_curves_with_elastic")
+class TestElasticMetric(
+    PullbackDiffeoMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    testing_data = RiemannianMetricTestData()
 
 
-class TestRotationBundle(TestCase, metaclass=DataBasedParametrizer):
-    _ambient_dim = random.randint(2, 3)
-    _k_sampling_points = random.randint(5, 10)
+@pytest.mark.usefixtures("discrete_curves_with_elastic")
+class TestElasticMetricDistance(
+    ElasticMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    testing_data = ElasticMetricDistanceTestData()
 
-    total_space = base = DiscreteCurvesStartingAtOrigin(
-        ambient_dim=_ambient_dim,
-        k_sampling_points=_k_sampling_points,
+
+@pytest.mark.redundant
+class TestSRVMetric(
+    PullbackDiffeoMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = DiscreteCurvesStartingAtOrigin(
+        ambient_dim=random.randint(2, 3),
+        k_sampling_points=random.randint(5, 10),
     )
-    bundle = RotationBundle(total_space)
-
-    testing_data = RotationBundleTestData()
-
-    def test_align(self, n_points, atol):
-        base_point = self.total_space.random_point(n_points)
-
-        rotation = SpecialOrthogonal(self._ambient_dim).random_point(n_points)
-        point = self.bundle._rotate(base_point, rotation)
-
-        aligned_point, inv_rotation = self.bundle.align(
-            point, base_point, return_rotation=True
-        )
-        result = gs.matmul(rotation, inv_rotation)
-        if n_points == 1:
-            expected = gs.eye(self._ambient_dim)
-        else:
-            expected = gs.stack([gs.eye(self._ambient_dim) for _ in range(n_points)])
-
-        self.assertAllClose(result, expected, atol=atol)
-        self.assertAllClose(aligned_point, base_point, atol=atol)
+    testing_data = RiemannianMetricTestData(space)
 
 
-class TestRotationReparametrizationBundle(TestCase, metaclass=DataBasedParametrizer):
-    _ambient_dim = random.randint(2, 3)
-    _k_sampling_points = random.randint(5, 10)
-
-    total_space = base = DiscreteCurvesStartingAtOrigin(
-        ambient_dim=_ambient_dim,
-        k_sampling_points=_k_sampling_points,
+@pytest.fixture(
+    scope="class",
+    params=[random.randrange(40, 62, 2), random.randrange(41, 62, 2)],
+)
+def horizontal_aligners(request):
+    total_space = request.cls.total_space = DiscreteCurvesStartingAtOrigin(
+        k_sampling_points=request.param
     )
-    total_space.equip_with_group_action(("rotations", "reparametrizations"))
-    total_space.equip_with_quotient()
+    total_space.fiber_bundle = ReparametrizationBundle(
+        total_space,
+        aligner=IterativeHorizontalGeodesicAligner(total_space),
+    )
 
-    testing_data = RotationReparametrizationBundleTestData()
+    request.cls.testing_data.space = total_space
 
-    def test_align(self, n_points, atol):
-        base_point = self.total_space.random_point(n_points)
 
-        base_curve = self.total_space.interpolate(base_point)
-        k_sampling_points = self.total_space.k_sampling_points
-        sampling_points = gs.linspace(0.0, 1.0, k_sampling_points)
+@pytest.mark.usefixtures("horizontal_aligners")
+class TestIterativeHorizontalGeodesicAligner(
+    FiberBundleTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    testing_data = AlignInSameFiberTestData(
+        point_counts=[1],
+        generator_kwargs={"fiber_actions": ("reparametrizations",)},
+        method_defaults={"align_in_same_fiber": {"atol": 1e-5}},
+    )
 
-        point = base_curve(sampling_points**2)
-        point = self.total_space.projection(point)
 
-        rotation_bundle = self.total_space.fiber_bundle.total_spaces[0].fiber_bundle
-        rotation = SpecialOrthogonal(self._ambient_dim).random_point(n_points)
-        point = rotation_bundle._rotate(point, rotation)
+class TestDynamicProgrammingAligner(
+    FiberBundleTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    total_space = DiscreteCurvesStartingAtOrigin(
+        k_sampling_points=random.randint(40, 60)
+    )
+    total_space.fiber_bundle = ReparametrizationBundle(
+        total_space, aligner=DynamicProgrammingAligner(total_space)
+    )
 
-        aligned_point = self.total_space.fiber_bundle.align(point, base_point)
-        self.assertAllClose(aligned_point, base_point, atol=atol)
+    testing_data = AlignInSameFiberTestData(
+        total_space,
+        point_counts=[1],
+        generator_kwargs={"fiber_actions": ("reparametrizations",)},
+        method_defaults={"align_in_same_fiber": {"atol": 1e-1}},
+    )
 
 
 @pytest.mark.redundant
 @pytest.mark.xfail
-class TestReparametrizationQuotientMetric(
-    QuotientMetricTestCase, metaclass=DataBasedParametrizer
+class TestReparametrizationAlignerCmp(
+    AlignComparisonTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    _ambient_dim = random.randint(2, 3)
-    _k_sampling_points = random.randint(5, 10)
-    _total_space = DiscreteCurvesStartingAtOrigin(_ambient_dim, _k_sampling_points)
-    _total_space.equip_with_group_action("reparametrizations")
-    _total_space.equip_with_quotient()
+    total_space = DiscreteCurvesStartingAtOrigin(
+        k_sampling_points=random.randint(40, 50)
+    )
+    total_space.fiber_bundle = ReparametrizationBundle(total_space)
 
-    space = _total_space.quotient
+    align = IterativeHorizontalGeodesicAligner(total_space).align
+    other_align = DynamicProgrammingAligner(total_space).align
 
-    testing_data = ReparametrizationQuotientMetricTestData()
+    testing_data = AlignComparisonTestData(
+        total_space,
+        point_counts=[1],
+        method_defaults={"align": {"atol": 1e-3}},
+    )
+
+
+@pytest.mark.redundant
+class TestDynamicProgrammingAlignerVariantCmp(
+    AlignComparisonTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    total_space = DiscreteCurvesStartingAtOrigin(k_sampling_points=random.randint(4, 8))
+
+    align = DynamicProgrammingAligner(total_space).align
+    other_align = NonVectorizedDynamicProgrammingAligner(total_space).align
+
+    testing_data = AlignComparisonTestData(
+        total_space,
+        point_counts=[1],
+        method_defaults={"align": {"atol": 1e-6}},
+    )
+
+
+# NB: `DataBasedParametrizer` skips vectorization tests, which are slow here
+class TestReparametrizationBundle(FiberBundleTestCase, metaclass=DataBasedParametrizer):
+    total_space = base_space = DiscreteCurvesStartingAtOrigin(
+        random.randint(2, 3), random.randint(20, 30)
+    )
+    total_space.fiber_bundle = ReparametrizationBundle(
+        total_space,
+        IterativeHorizontalGeodesicAligner(total_space),
+    )
+
+    testing_data = FiberBundleTestData(
+        total_space=total_space,
+        base_space=base_space,
+        method_marks={
+            "xfail": (
+                "tangent_riemannian_submersion_after_horizontal_lift",
+                "log_after_align_is_horizontal",
+                "projections_are_orthogonal",
+            )
+        },
+        method_defaults={
+            "projections_are_orthogonal": {"atol": 1e-2},
+            "log_after_align_is_horizontal": {"atol": 1e-2},
+            "vertical_projection_is_vertical": {"atol": 1e-1},
+            "horizontal_projection_is_horizontal": {"atol": 1e-1},
+            "horizontal_lift_is_horizontal": {"atol": 1e-1},
+            "tangent_riemannian_submersion_after_vertical_projection": {"atol": 5e-1},
+            "tangent_riemannian_submersion_after_horizontal_lift": {"atol": 5e-1},
+        },
+        point_counts=[1, 2],
+    ).with_redundancy(
+        projection_source="vertical", lift_uses_horizontal_projection=True
+    )
+
+
+class TestRotationAlign(FiberBundleTestCase, metaclass=GeometricDataBasedParametrizer):
+    total_space = _curves_bundle("rotations")
+
+    testing_data = AlignInSameFiberTestData(
+        total_space, generator_kwargs={"fiber_actions": ("rotations",)}
+    )
+
+
+@pytest.mark.xfail
+class TestRotationReparametrizationAlign(
+    FiberBundleTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    total_space = _curves_bundle(("rotations", "reparametrizations"))
+    testing_data = AlignInSameFiberTestData(
+        total_space,
+        generator_kwargs={"fiber_actions": ("rotations", "reparametrizations")},
+        method_defaults={"align_in_same_fiber": {"atol": 1e-2}},
+    )
+
+
+def _curves_quotient(group_action):
+    return _curves_bundle(group_action).quotient
+
+
+@pytest.mark.redundant
+@pytest.mark.slow
+@pytest.mark.xfail
+class TestReparametrizationQuotientMetric(
+    RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = _curves_quotient("reparametrizations")
+    testing_data = RiemannianMetricTestData(
+        space,
+        excluded_methods=(
+            "injectivity_radius",
+            "parallel_transport_ivp",
+            "parallel_transport_bvp",
+            "parallel_transport_ivp_transported_is_tangent",
+            "parallel_transport_bvp_transported_is_tangent",
+            "parallel_transport_ivp_norm",
+            "parallel_transport_bvp_norm",
+        ),
+    )
 
 
 @pytest.mark.redundant
 class TestRotationQuotientMetric(
-    QuotientMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    _ambient_dim = random.randint(2, 3)
-    _k_sampling_points = random.randint(5, 10)
-    _total_space = DiscreteCurvesStartingAtOrigin(_ambient_dim, _k_sampling_points)
-    _total_space.equip_with_group_action("rotations")
-    _total_space.equip_with_quotient()
-
-    space = _total_space.quotient
-
-    testing_data = RotationQuotientMetricTestData()
+    space = _curves_quotient("rotations")
+    testing_data = AlignQuotientMetricTestData(
+        space,
+        method_marks={
+            "xfail": ("geodesic_bvp_reverse", "geodesic_boundary_points"),
+        },
+    )
 
 
 @pytest.mark.redundant
 class TestRotationReparametrizationQuotientMetric(
-    QuotientMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    _ambient_dim = random.randint(2, 3)
-    _k_sampling_points = random.randint(5, 10)
-    _total_space = DiscreteCurvesStartingAtOrigin(_ambient_dim, _k_sampling_points)
-    _total_space.equip_with_group_action(("rotations", "reparametrizations"))
-    _total_space.equip_with_quotient()
-
-    space = _total_space.quotient
-
-    testing_data = RotationReparametrizationQuotientMetricTestData()
+    space = _curves_quotient(("rotations", "reparametrizations"))
+    testing_data = AlignQuotientMetricTestData(
+        space,
+        method_marks={
+            "xfail": (
+                "geodesic_bvp_reverse",
+                "geodesic_boundary_points",
+            )
+        },
+        method_defaults={
+            "dist_is_symmetric": {"atol": 1e-2},
+            "squared_dist_is_symmetric": {"atol": 1e-2},
+        },
+    )

@@ -1,29 +1,132 @@
-import pytest
-
 import geomstats.backend as gs
-from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test.assertions import assert_belongs, assert_is_tangent
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
 from geomstats.test_cases.geometry.mixins import GroupExpTestCaseMixins
-from geomstats.vectorization import repeat_point
 
 
 class _LieGroupTestCaseMixins(GroupExpTestCaseMixins):
-    def test_compose(self, point_a, point_b, expected, atol):
+    def test_identity(self, expected, atol=gs.atol):
+        """Check identity.
+
+        Parameters
+        ----------
+        expected : array-like, shape=[*space.shape]
+            Expected identity.
+        atol : float
+            Absolute tolerance.
+        """
+        self.assertAllClose(self.space.identity, expected, atol=atol)
+
+    def test_compose(self, point_a, point_b, expected, atol=gs.atol):
+        """Check composition.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., *space.shape]
+            Point on the group.
+        point_b : array-like, shape=[..., *space.shape]
+            Point on the group.
+        expected : array-like, shape=[..., *space.shape]
+            Expected composition.
+        atol : float
+            Absolute tolerance.
+        """
         composed = self.space.compose(point_a, point_b)
         self.assertAllClose(composed, expected, atol=atol)
 
-    def test_inverse(self, point, expected, atol):
+    def test_inverse(self, point, expected, atol=gs.atol):
+        """Check inverse.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the group.
+        expected : array-like, shape=[..., *space.shape]
+            Expected inverse.
+        atol : float
+            Absolute tolerance.
+        """
         inverse = self.space.inverse(point)
         self.assertAllClose(inverse, expected, atol=atol)
 
-    @pytest.mark.random
-    def test_compose_with_inverse_is_identity(self, n_points, atol):
-        point = self.data_generator.random_point(n_points)
-        inverse = self.space.inverse(point)
+    def test_log(self, point, base_point, expected, atol=gs.atol):
+        """Check group logarithm.
 
-        identity = self.space.identity
-        if n_points > 1:
-            identity = gs.broadcast_to(identity, (n_points, *identity.shape))
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the group.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the group.
+        expected : array-like, shape=[..., *space.shape]
+            Expected tangent vector at `base_point`.
+        atol : float
+            Absolute tolerance.
+        """
+        vec = self.space.log(point, base_point)
+        self.assertAllClose(vec, expected, atol=atol)
+
+    def test_tangent_translation_map(
+        self, point, tangent_vec, expected, atol=gs.atol, left=True, inverse=False
+    ):
+        """Check tangent translation map.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the group defining the translation.
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector to translate.
+        expected : array-like, shape=[..., *space.shape]
+            Expected translated tangent vector.
+        atol : float
+            Absolute tolerance.
+        left : bool
+            Whether to use left or right translation.
+            Optional, default: True.
+        inverse : bool
+            Whether to translate by the inverse of `point`.
+            Optional, default: False.
+        """
+        res = self.space.tangent_translation_map(point, left=left, inverse=inverse)(
+            tangent_vec
+        )
+        self.assertAllClose(res, expected, atol=atol)
+
+    def test_lie_bracket(
+        self, tangent_vec_a, tangent_vec_b, expected, atol=gs.atol, base_point=None
+    ):
+        """Check Lie bracket.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        expected : array-like, shape=[..., *space.shape]
+            Expected Lie bracket.
+        atol : float
+            Absolute tolerance.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the group.
+            Optional, default: identity.
+        """
+        bracket = self.space.lie_bracket(tangent_vec_a, tangent_vec_b, base_point)
+        self.assertAllClose(bracket, expected, atol=atol)
+
+    def test_compose_with_inverse_is_identity(self, point, atol=gs.atol):
+        """Check composing with the inverse gives the identity.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the group.
+        atol : float
+            Absolute tolerance.
+        """
+        inverse = self.space.inverse(point)
+        identity = gs.broadcast_to(self.space.identity, point.shape)
 
         identity_ = self.space.compose(point, inverse)
         self.assertAllClose(identity_, identity, atol=atol)
@@ -31,183 +134,189 @@ class _LieGroupTestCaseMixins(GroupExpTestCaseMixins):
         identity_ = self.space.compose(inverse, point)
         self.assertAllClose(identity_, identity, atol=atol)
 
-    @pytest.mark.random
-    def test_compose_with_identity_is_itself(self, n_points, atol):
-        point = self.data_generator.random_point(n_points)
+    def test_compose_with_identity_is_itself(self, point, atol=gs.atol):
+        """Check composing with the identity gives the point itself.
 
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the group.
+        atol : float
+            Absolute tolerance.
+        """
         point_ = self.space.compose(point, self.space.identity)
         self.assertAllClose(point_, point, atol=atol)
 
         point_ = self.space.compose(self.space.identity, point)
         self.assertAllClose(point_, point, atol=atol)
 
-    def test_log(self, point, base_point, expected, atol):
-        vec = self.space.log(point, base_point)
-        self.assertAllClose(vec, expected, atol=atol)
+    def test_exp_after_log(self, point, base_point, atol=gs.atol):
+        """Check group exponential is a left inverse of the group logarithm.
 
-    @pytest.mark.random
-    def test_exp_after_log(self, n_points, atol):
-        point = self.data_generator.random_point(n_points)
-        base_point = self.data_generator.random_point(n_points)
-
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the group.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the group.
+        atol : float
+            Absolute tolerance.
+        """
         vec = self.space.log(point, base_point)
         point_ = self.space.exp(vec, base_point)
 
         self.assertAllClose(point_, point, atol=atol)
 
-    @pytest.mark.random
-    def test_log_after_exp(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+    def test_log_after_exp(self, tangent_vec, base_point, atol=gs.atol):
+        """Check group logarithm is a left inverse of the group exponential.
 
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the group.
+        atol : float
+            Absolute tolerance.
+        """
         point = self.space.exp(tangent_vec, base_point)
         tangent_vec_ = self.space.log(point, base_point)
 
         self.assertAllClose(tangent_vec_, tangent_vec, atol=atol)
 
-    @pytest.mark.random
-    def test_to_tangent_at_identity_belongs_to_lie_algebra(self, n_points, atol):
-        tangent_vec = self.data_generator.random_tangent_vec(
-            repeat_point(self.space.identity, n_points)
-        )
-
-        res = self.space.lie_algebra.belongs(tangent_vec, atol=atol)
-        expected = gs.ones(n_points, dtype=bool)
-        self.assertAllEqual(res, expected)
-
-    def test_tangent_translation_map(
-        self, point, left, inverse, tangent_vec, expected, atol
+    def test_to_tangent_at_identity_belongs_to_lie_algebra(
+        self, tangent_vec, atol=gs.atol
     ):
-        res = self.space.tangent_translation_map(point, left=left, inverse=inverse)(
-            tangent_vec
-        )
-        self.assertAllClose(res, expected, atol=atol)
+        """Check tangent vectors at the identity belong to the Lie algebra.
 
-    @pytest.mark.vec
-    def test_tangent_translation_map_vec(self, n_reps, left, inverse, atol):
-        point = self.data_generator.random_point()
-        tangent_vec = self.data_generator.random_tangent_vec(point)
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at the identity.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_belongs(self.space.lie_algebra, tangent_vec, atol=atol)
 
-        expected = self.space.tangent_translation_map(
-            point, left=left, inverse=inverse
-        )(tangent_vec)
+    def test_tangent_translation_map_is_tangent(
+        self, tangent_vec, base_point, point, atol=gs.atol, left=True
+    ):
+        """Check tangent translation map gives a tangent vector.
 
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    point=point,
-                    tangent_vec=tangent_vec,
-                    left=left,
-                    inverse=inverse,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["point", "tangent_vec"],
-            expected_name="expected",
-            vectorization_type="repeat-1",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
+        Translating `tangent_vec` at `base_point` by `point` gives a tangent
+        vector at the composition of `point` and `base_point`.
 
-    @pytest.mark.random
-    def test_tangent_translation_map_is_tangent(self, n_points, left, atol):
-        group_elem_1 = self.data_generator.random_point(n_points)
-        group_elem_2 = self.data_generator.random_point(n_points)
-
-        tangent_vec_11 = self.data_generator.random_tangent_vec(group_elem_1)
-
-        dtrans_2 = self.space.tangent_translation_map(
-            group_elem_2, left=left, inverse=False
-        )
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the group.
+        point : array-like, shape=[..., *space.shape]
+            Point on the group defining the translation.
+        atol : float
+            Absolute tolerance.
+        left : bool
+            Whether to use left or right translation.
+            Optional, default: True.
+        """
+        translate = self.space.tangent_translation_map(point, left=left, inverse=False)
 
         if left:
-            group_elem_3 = self.space.compose(group_elem_2, group_elem_1)
+            end_point = self.space.compose(point, base_point)
         else:
-            group_elem_3 = self.space.compose(group_elem_1, group_elem_2)
+            end_point = self.space.compose(base_point, point)
 
-        tangent_vec_31 = dtrans_2(tangent_vec_11)
+        assert_is_tangent(self.space, translate(tangent_vec), end_point, atol=atol)
 
-        res = self.space.is_tangent(tangent_vec_31, group_elem_3, atol=atol)
-        expected = gs.ones(n_points, dtype=bool)
-        self.assertAllEqual(res, expected)
+    def test_lie_bracket_belongs(self, tangent_vec_a, tangent_vec_b, atol=gs.atol):
+        """Check Lie bracket at the identity belongs to the Lie algebra.
 
-    def test_lie_bracket(
-        self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *space.shape]
+            Tangent vector at the identity.
+        tangent_vec_b : array-like, shape=[..., *space.shape]
+            Tangent vector at the identity.
+        atol : float
+            Absolute tolerance.
+        """
+        bracket = self.space.lie_bracket(tangent_vec_a, tangent_vec_b)
+        assert_belongs(self.space.lie_algebra, bracket, atol=atol)
+
+    def test_lie_bracket_antisymmetry(
+        self, tangent_vec_a, tangent_vec_b, atol=gs.atol
     ):
-        bracket = self.space.lie_bracket(tangent_vec_a, tangent_vec_b, base_point)
-        self.assertAllClose(bracket, expected, atol=atol)
+        """Check Lie bracket is antisymmetric.
 
-    @pytest.mark.random
-    def test_lie_bracket_belongs(self, n_points, atol):
-        identity = repeat_point(self.space.identity, n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(identity)
-        tangent_vec_b = self.data_generator.random_tangent_vec(identity)
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *space.shape]
+            Tangent vector at the identity.
+        tangent_vec_b : array-like, shape=[..., *space.shape]
+            Tangent vector at the identity.
+        atol : float
+            Absolute tolerance.
+        """
+        bracket = self.space.lie_bracket(tangent_vec_a, tangent_vec_b)
+        bracket_ = -self.space.lie_bracket(tangent_vec_b, tangent_vec_a)
+        self.assertAllClose(bracket, bracket_, atol=atol)
 
-        tangent_vec_c = self.space.lie_bracket(tangent_vec_a, tangent_vec_b)
+    def test_lie_bracket_jacobi_identity(
+        self, tangent_vec_a, tangent_vec_b, tangent_vec_c, atol=gs.atol
+    ):
+        """Check Lie bracket satisfies the Jacobi identity.
 
-        res = self.space.lie_algebra.belongs(tangent_vec_c, atol=atol)
-        expected = gs.ones(n_points, dtype=bool)
-        self.assertAllEqual(res, expected)
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *space.shape]
+            Tangent vector at the identity.
+        tangent_vec_b : array-like, shape=[..., *space.shape]
+            Tangent vector at the identity.
+        tangent_vec_c : array-like, shape=[..., *space.shape]
+            Tangent vector at the identity.
+        atol : float
+            Absolute tolerance.
+        """
+        lie_bracket = self.space.lie_bracket
 
-    @pytest.mark.random
-    def test_lie_bracket_antisymmetry(self, n_points, atol):
-        identity = repeat_point(self.space.identity, n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(identity)
-        tangent_vec_b = self.data_generator.random_tangent_vec(identity)
-
-        tangent_vec_c = self.space.lie_bracket(tangent_vec_a, tangent_vec_b)
-        tangent_vec_c_ = -self.space.lie_bracket(tangent_vec_b, tangent_vec_a)
-        self.assertAllClose(tangent_vec_c, tangent_vec_c_, atol=atol)
-
-    @pytest.mark.random
-    def test_lie_bracket_jacobi_identity(self, n_points, atol):
-        identity = repeat_point(self.space.identity, n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(identity)
-        tangent_vec_b = self.data_generator.random_tangent_vec(identity)
-        tangent_vec_c = self.data_generator.random_tangent_vec(identity)
-
-        lhs = self.space.lie_bracket(
-            self.space.lie_bracket(tangent_vec_a, tangent_vec_b), tangent_vec_c
-        )
-        rhs_1 = self.space.lie_bracket(
-            tangent_vec_a, self.space.lie_bracket(tangent_vec_b, tangent_vec_c)
-        )
-        rhs_2 = -self.space.lie_bracket(
-            tangent_vec_b, self.space.lie_bracket(tangent_vec_a, tangent_vec_c)
-        )
-        rhs = rhs_1 + rhs_2
+        lhs = lie_bracket(lie_bracket(tangent_vec_a, tangent_vec_b), tangent_vec_c)
+        rhs = lie_bracket(
+            tangent_vec_a, lie_bracket(tangent_vec_b, tangent_vec_c)
+        ) - lie_bracket(tangent_vec_b, lie_bracket(tangent_vec_a, tangent_vec_c))
 
         self.assertAllClose(lhs, rhs, atol=atol)
 
-    @pytest.mark.random
-    def test_lie_bracket_bilinearity(self, n_points, atol):
-        identity = repeat_point(self.space.identity, n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(identity)
-        tangent_vec_b = self.data_generator.random_tangent_vec(identity)
-        tangent_vec_c = self.data_generator.random_tangent_vec(identity)
+    def test_lie_bracket_bilinearity(
+        self, tangent_vec_a, tangent_vec_b, tangent_vec_c, atol=gs.atol
+    ):
+        """Check Lie bracket is bilinear.
 
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *space.shape]
+            Tangent vector at the identity.
+        tangent_vec_b : array-like, shape=[..., *space.shape]
+            Tangent vector at the identity.
+        tangent_vec_c : array-like, shape=[..., *space.shape]
+            Tangent vector at the identity.
+        atol : float
+            Absolute tolerance.
+        """
+        lie_bracket = self.space.lie_bracket
         a, b = gs.random.rand(2)
 
-        lhs = self.space.lie_bracket(
-            a * tangent_vec_a + b * tangent_vec_b, tangent_vec_c
+        lhs = lie_bracket(a * tangent_vec_a + b * tangent_vec_b, tangent_vec_c)
+        rhs = a * lie_bracket(tangent_vec_a, tangent_vec_c) + b * lie_bracket(
+            tangent_vec_b, tangent_vec_c
         )
-        rhs_1 = a * self.space.lie_bracket(tangent_vec_a, tangent_vec_c)
-        rhs_2 = b * self.space.lie_bracket(tangent_vec_b, tangent_vec_c)
-        rhs = rhs_1 + rhs_2
         self.assertAllClose(lhs, rhs, atol=atol)
 
-        lhs = self.space.lie_bracket(
-            tangent_vec_c, a * tangent_vec_a + b * tangent_vec_b
+        lhs = lie_bracket(tangent_vec_c, a * tangent_vec_a + b * tangent_vec_b)
+        rhs = a * lie_bracket(tangent_vec_c, tangent_vec_a) + b * lie_bracket(
+            tangent_vec_c, tangent_vec_b
         )
-        rhs_1 = a * self.space.lie_bracket(tangent_vec_c, tangent_vec_a)
-        rhs_2 = b * self.space.lie_bracket(tangent_vec_c, tangent_vec_b)
-        rhs = rhs_1 + rhs_2
-
         self.assertAllClose(lhs, rhs, atol=atol)
-
-    def test_identity(self, expected, atol):
-        self.assertAllClose(self.space.identity, expected, atol=atol)
 
 
 class MatrixLieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
@@ -215,73 +324,81 @@ class MatrixLieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
 
 
 class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
-    # TODO: exp and log not from identity: are they enough tested with log and exp?
+    def test_jacobian_translation(self, point, expected, atol=gs.atol, left=True):
+        """Check Jacobian of the translation.
 
-    def test_jacobian_translation(self, point, left, expected, atol):
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the group defining the translation.
+        expected : array-like, shape=[..., dim, dim]
+            Expected Jacobian.
+        atol : float
+            Absolute tolerance.
+        left : bool
+            Whether to use left or right translation.
+            Optional, default: True.
+        """
         res = self.space.jacobian_translation(point, left=left)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_jacobian_translation_vec(self, n_reps, left, atol):
-        point = self.data_generator.random_point()
-        expected = self.space.jacobian_translation(point, left=left)
+    def test_exp_from_identity(self, tangent_vec, expected, atol=gs.atol):
+        """Check group exponential from the identity.
 
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, left=left, expected=expected, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    def test_exp_from_identity(self, tangent_vec, expected, atol):
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at the identity.
+        expected : array-like, shape=[..., *space.shape]
+            Expected point on the group.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.exp_from_identity(tangent_vec)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_exp_from_identity_vec(self, n_reps, atol):
-        tangent_vec = self.data_generator.random_tangent_vec(self.space.identity)
-        expected = self.space.exp_from_identity(tangent_vec)
+    def test_log_from_identity(self, point, expected, atol=gs.atol):
+        """Check group logarithm from the identity.
 
-        vec_data = generate_vectorization_data(
-            data=[dict(tangent_vec=tangent_vec, expected=expected, atol=atol)],
-            arg_names=["tangent_vec"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    def test_log_from_identity(self, point, expected, atol):
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the group.
+        expected : array-like, shape=[..., *space.shape]
+            Expected tangent vector at the identity.
+        atol : float
+            Absolute tolerance.
+        """
         vec = self.space.log_from_identity(point)
         self.assertAllClose(vec, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_log_from_identity_vec(self, n_reps, atol):
-        point = self.data_generator.random_point()
-        expected = self.space.log_from_identity(point)
+    def test_exp_from_identity_after_log_from_identity(self, point, atol=gs.atol):
+        """Check exponential from identity is a left inverse of the logarithm.
 
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, expected=expected, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    @pytest.mark.random
-    def test_exp_from_identity_after_log_from_identity(self, n_points, atol):
-        point = self.data_generator.random_point(n_points)
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the group.
+        atol : float
+            Absolute tolerance.
+        """
         tangent_vec = self.space.log_from_identity(point)
-
         point_ = self.space.exp_from_identity(tangent_vec)
+
         self.assertAllClose(point_, point, atol=atol)
 
-    @pytest.mark.random
-    def test_log_from_identity_after_exp_from_identity(self, n_points, atol):
-        tangent_vec = self.data_generator.random_tangent_vec(
-            repeat_point(self.space.identity, n_points)
-        )
+    def test_log_from_identity_after_exp_from_identity(
+        self, tangent_vec, atol=gs.atol
+    ):
+        """Check logarithm from identity is a left inverse of the exponential.
 
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at the identity.
+        atol : float
+            Absolute tolerance.
+        """
         point = self.space.exp_from_identity(tangent_vec)
         tangent_vec_ = self.space.log_from_identity(point)
 

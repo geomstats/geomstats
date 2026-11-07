@@ -1,101 +1,76 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import GeometricDataBasedParametrizer
 
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.open_hemisphere import (
     OpenHemisphere,
     OpenHemispheresProduct,
+    OpenHemispheresProductMetric,
     OpenHemisphereToHyperboloidDiffeo,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.base import OpenSetTestCase
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.product_manifold import ProductManifoldTestCase
-from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.base import OpenSetTestData
 from .data.diffeo import DiffeoTestData
-from .data.open_hemisphere import OpenHemispherePullbackMetricTestData
-from .data.product_manifold import (
-    ProductManifoldTestData,
-    ProductRiemannianMetricTestData,
-)
+from .data.product_manifold import ProductManifoldTestData
+from .data.riemannian_metric import RiemannianMetricTestData
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        1,
-        random.randint(2, 4),
-    ],
-)
-def diffeos(request):
-    dim = request.param
-    request.cls.space = OpenHemisphere(dim, equip=False)
-    request.cls.image_space = Hyperboloid(dim, equip=False)
-
-
-@pytest.mark.usefixtures("diffeos")
 class TestOpenHemisphereToHyperboloidDiffeo(
-    DiffeoTestCase, metaclass=DataBasedParametrizer
+    DiffeoTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    _n = random.randint(2, 5)
+    _dim = random.randint(1, 4)
+    domain_space = OpenHemisphere(_dim, equip=False)
+    image_space = Hyperboloid(_dim, equip=False)
     diffeo = OpenHemisphereToHyperboloidDiffeo()
-    testing_data = DiffeoTestData()
+
+    testing_data = DiffeoTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+        map_=diffeo,
+    )
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        1,
-        random.randint(2, 4),
-    ],
-)
-def open_hemispheres(request):
-    dim = request.param
-    request.cls.space = OpenHemisphere(dim, equip=False)
+class TestOpenHemisphere(OpenSetTestCase, metaclass=GeometricDataBasedParametrizer):
+    space = OpenHemisphere(random.randint(1, 4), equip=False)
+    testing_data = OpenSetTestData(space)
 
 
-@pytest.mark.usefixtures("open_hemispheres")
-class TestOpenHemisphere(OpenSetTestCase, metaclass=DataBasedParametrizer):
-    testing_data = OpenSetTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        1,
-        random.randint(2, 4),
-    ],
-)
-def equipped_open_hemispheres(request):
-    dim = request.param
-    space = request.cls.space = OpenHemisphere(dim)
-    request.cls.data_generator = RandomDataGenerator(space, amplitude=5.0)
-
-
-@pytest.mark.usefixtures("equipped_open_hemispheres")
 class TestOpenHemispherePullbackMetric(
-    PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = OpenHemispherePullbackMetricTestData()
+    space = OpenHemisphere(random.randint(1, 4))
+    testing_data = RiemannianMetricTestData(space)
 
 
+@pytest.mark.redundant
 class TestOpenHemispheresProduct(
-    ProductManifoldTestCase, metaclass=DataBasedParametrizer
+    ProductManifoldTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    _n = random.randint(3, 5)
-    space = OpenHemispheresProduct(_n, equip=False)
-    testing_data = ProductManifoldTestData()
+    space = OpenHemispheresProduct(random.randint(3, 5), equip=False)
+    testing_data = ProductManifoldTestData(space)
 
 
+@pytest.mark.redundant
 class TestOpenHemispheresProductMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    _n = random.randint(3, 5)
-    space = OpenHemispheresProduct(_n)
-    data_generator = RandomDataGenerator(space, amplitude=5.0)
-    testing_data = ProductRiemannianMetricTestData()
+    space = OpenHemispheresProduct(random.randint(3, 5))
+    testing_data = RiemannianMetricTestData(space, sample_locally=True)
+
+
+@pytest.mark.smoke
+def test_open_hemispheres_product_structure():
+    """Check the factors, dimension, shape and metric of the product."""
+    n = random.randint(2, 5)
+    space = OpenHemispheresProduct(n)
+
+    assert [factor.dim for factor in space.factors] == list(range(1, n))
+    assert space.dim == n * (n - 1) // 2
+    assert space.shape == (n * (n + 1) // 2 - 1,)
+    assert isinstance(space.metric, OpenHemispheresProductMetric)

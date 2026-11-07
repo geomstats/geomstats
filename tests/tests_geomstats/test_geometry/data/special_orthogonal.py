@@ -1,9 +1,11 @@
 import itertools
 import math
 
+import pytest
+from polpo.testing.data import CaseData
+
 import geomstats.backend as gs
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.test.data import TestData
 
 from .base import LevelSetTestData
 from .lie_group import LieGroupTestData, MatrixLieGroupTestData
@@ -18,28 +20,44 @@ def sample_matrix(theta, mul=1.0):
 
 class _SpecialOrthogonalMixinsTestData:
     def rotation_vector_from_matrix_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names="rot_mat",
+            samplers={"rot_mat": "random_rotation_matrix"},
+        )
 
     def matrix_from_rotation_vector_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names="rot_vec",
+            samplers={"rot_vec": "random_rotation_vector"},
+        )
 
     def rotation_vector_from_matrix_after_matrix_from_rotation_vector_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(
+            arg_names="rot_vec",
+            samplers={"rot_vec": "random_rotation_vector"},
+        )
 
     def matrix_from_rotation_vector_after_rotation_vector_from_matrix_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(
+            arg_names="rot_mat",
+            samplers={"rot_mat": "random_rotation_matrix"},
+        )
 
 
 class SpecialOrthogonalMatricesTestData(
     _SpecialOrthogonalMixinsTestData, MatrixLieGroupTestData, LevelSetTestData
 ):
-    fail_for_not_implemented_errors = False
-
     def are_antipodals_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names=("rotation_mat1", "rotation_mat2"),
+            samplers={
+                "rotation_mat1": "random_rotation_matrix",
+                "rotation_mat2": "random_rotation_matrix",
+            },
+        )
 
 
-class SpecialOrthogonalMatrices2TestData(TestData):
+class SpecialOrthogonalMatrices2TestData(CaseData):
     def belongs_test_data(self):
         theta = gs.pi / 3
         data = [
@@ -57,13 +75,13 @@ class SpecialOrthogonalMatrices2TestData(TestData):
                 expected=gs.array([True, False]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def identity_test_data(self):
         data = [
             dict(expected=gs.eye(2)),
         ]
-        return self.generate_tests(data)
+        return data
 
     def is_tangent_test_data(self):
         theta = gs.pi / 3
@@ -73,7 +91,7 @@ class SpecialOrthogonalMatrices2TestData(TestData):
             dict(vector=vec_1, base_point=None, expected=True),
             dict(vector=vec_2, base_point=None, expected=False),
         ]
-        return self.generate_tests(data)
+        return data
 
     def to_tangent_test_data(self):
         theta = 1.0
@@ -94,7 +112,7 @@ class SpecialOrthogonalMatrices2TestData(TestData):
                 expected=gs.array([[0.0, -math.pi], [math.pi, 0.0]]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def matrix_from_rotation_vector_test_data(self):
         data = [
@@ -105,21 +123,21 @@ class SpecialOrthogonalMatrices2TestData(TestData):
                 ),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class SpecialOrthogonalMatrices3TestData(TestData):
+class SpecialOrthogonalMatrices3TestData(CaseData):
     def belongs_test_data(self):
         data = [
             dict(point=gs.zeros((2, 3)), expected=False),
         ]
-        return self.generate_tests(data)
+        return data
 
     def identity_test_data(self):
         data = [
             dict(expected=gs.eye(3)),
         ]
-        return self.generate_tests(data)
+        return data
 
     def are_antipodals_test_data(self):
         mat1 = gs.eye(3)
@@ -158,7 +176,7 @@ class SpecialOrthogonalMatrices3TestData(TestData):
                 expected=gs.array(False),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def log_test_data(self):
         rot = SpecialOrthogonal(
@@ -175,7 +193,7 @@ class SpecialOrthogonalMatrices3TestData(TestData):
                 expected=gs.matmul(base_mat, skew),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def matrix_from_rotation_vector_test_data(self):
         rot_vec_3 = 1e-11 * gs.array([12.0, 1.0, -81.0])
@@ -219,7 +237,7 @@ class SpecialOrthogonalMatrices3TestData(TestData):
             dict(rot_vec=rot_vec_3, expected=expected_3),
             dict(rot_vec=rot_vec_4, expected=expected_4),
         ]
-        return self.generate_tests(data)
+        return data
 
 
 class SpecialOrthogonalVectorsTestData(
@@ -229,17 +247,14 @@ class SpecialOrthogonalVectorsTestData(
 
 
 class SpecialOrthogonal2VectorsTestData(SpecialOrthogonalVectorsTestData):
-    trials = 3
-    skips = ("projection_belongs",)
-
-
-class SpecialOrthogonal2VectorsSmokeTestData(TestData):
+    @pytest.mark.smoke
     def identity_test_data(self):
         data = [
             dict(expected=gs.zeros(1)),
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def rotation_vector_from_matrix_test_data(self):
         angle = 0.12
         data = [
@@ -253,8 +268,9 @@ class SpecialOrthogonal2VectorsSmokeTestData(TestData):
                 expected=gs.array([0.12]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def projection_test_data(self):
         data = [
             dict(
@@ -262,8 +278,9 @@ class SpecialOrthogonal2VectorsSmokeTestData(TestData):
                 expected=gs.array([0.0]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def compose_test_data(self):
         data = [
             dict(
@@ -272,8 +289,9 @@ class SpecialOrthogonal2VectorsSmokeTestData(TestData):
                 expected=gs.array([-0.03]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def log_test_data(self):
         data = [
             dict(
@@ -282,8 +300,9 @@ class SpecialOrthogonal2VectorsSmokeTestData(TestData):
                 expected=gs.array([1 * gs.pi / 5]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def exp_test_data(self):
         data = [
             dict(
@@ -292,8 +311,9 @@ class SpecialOrthogonal2VectorsSmokeTestData(TestData):
                 expected=gs.array([3 * gs.pi / 5]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def regularize_test_data(self):
         data = [
             dict(
@@ -301,111 +321,10 @@ class SpecialOrthogonal2VectorsSmokeTestData(TestData):
                 expected=gs.array([1.0]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
 
 class SpecialOrthogonal3VectorsTestData(SpecialOrthogonalVectorsTestData):
-    skips = ("projection_belongs",)
-    tolerances = {
-        "tait_bryan_angles_from_quaternion_after_quaternion_from_tait_bryan_angles": {
-            "atol": 1e-6
-        },
-    }
-
-    def _generate_tait_bryan_angles_vec_data(self, marks=()):
-        data = []
-        for extrinsic in [True, False]:
-            for zyx in [True, False]:
-                for n_reps in self.N_VEC_REPS:
-                    data.append(dict(n_reps=n_reps, extrinsic=extrinsic, zyx=zyx))
-        return self.generate_tests(data, marks=marks)
-
-    def _generate_tait_bryan_angles_random_data(self, marks=()):
-        data = []
-        for extrinsic in [True, False]:
-            for zyx in [True, False]:
-                for n_points in self.N_RANDOM_POINTS:
-                    data.append(dict(n_points=n_points, extrinsic=extrinsic, zyx=zyx))
-        return self.generate_tests(data, marks=marks)
-
-    def quaternion_from_matrix_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def matrix_from_quaternion_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def quaternion_from_matrix_after_matrix_from_quaternion_test_data(self):
-        return self.generate_random_data()
-
-    def matrix_from_quaternion_after_quaternion_from_matrix_test_data(self):
-        return self.generate_random_data()
-
-    def quaternion_from_rotation_vector_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def rotation_vector_from_quaternion_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def quaternion_from_rotation_vector_after_rotation_vector_from_quaternion_test_data(
-        self,
-    ):
-        return self.generate_random_data()
-
-    def rotation_vector_from_quaternion_after_quaternion_from_rotation_vector_test_data(
-        self,
-    ):
-        return self.generate_random_data()
-
-    def matrix_from_tait_bryan_angles_vec_test_data(self):
-        return self._generate_tait_bryan_angles_vec_data()
-
-    def tait_bryan_angles_from_matrix_vec_test_data(self):
-        return self._generate_tait_bryan_angles_vec_data()
-
-    def tait_bryan_angles_from_matrix_after_matrix_from_tait_bryan_angles_test_data(
-        self,
-    ):
-        return self._generate_tait_bryan_angles_random_data()
-
-    def matrix_from_tait_bryan_angles_after_tait_bryan_angles_from_matrix_test_data(
-        self,
-    ):
-        return self._generate_tait_bryan_angles_random_data()
-
-    def quaternion_from_tait_bryan_angles_vec_test_data(self):
-        return self._generate_tait_bryan_angles_vec_data()
-
-    def tait_bryan_angles_from_quaternion_vec_test_data(self):
-        return self._generate_tait_bryan_angles_vec_data()
-
-    def quaternion_from_tait_bryan_angles_after_tait_bryan_angles_from_quaternion_test_data(
-        self,
-    ):
-        return self._generate_tait_bryan_angles_random_data()
-
-    def tait_bryan_angles_from_quaternion_after_quaternion_from_tait_bryan_angles_test_data(
-        self,
-    ):
-        return self._generate_tait_bryan_angles_random_data()
-
-    def rotation_vector_from_tait_bryan_angles_vec_test_data(self):
-        return self._generate_tait_bryan_angles_vec_data()
-
-    def tait_bryan_angles_from_rotation_vector_vec_test_data(self):
-        return self._generate_tait_bryan_angles_vec_data()
-
-    def tait_bryan_angles_from_rotation_vector_after_rotation_vector_from_tait_bryan_angles_test_data(
-        self,
-    ):
-        return self._generate_tait_bryan_angles_random_data()
-
-    def rotation_vector_from_tait_bryan_angles_after_tait_bryan_angles_from_rotation_vector_test_data(
-        self,
-    ):
-        return self._generate_tait_bryan_angles_random_data()
-
-
-class SpecialOrthogonal3VectorsSmokeTestData(TestData):
     angle_0 = gs.zeros(3)
     angle_close_0 = 1e-10 * gs.array([1.0, -1.0, 1.0])
     angle_close_pi_low = (gs.pi - 1e-9) / gs.sqrt(2.0) * gs.array([0.0, 1.0, -1.0])
@@ -443,6 +362,7 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
         "angle_close_pi_high",
     ]
 
+    @pytest.mark.smoke
     def rotation_vector_from_matrix_test_data(self):
         angle = 0.12
         data = [
@@ -457,8 +377,9 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
                 expected=0.12 * gs.array([1.0, 0.0, 0.0]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def projection_test_data(self):
         data = [
             dict(
@@ -466,8 +387,9 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
                 expected=gs.zeros(3),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def tait_bryan_angles_from_matrix_test_data(self):
         cos_angle_pi_6 = self.cos_angle_pi_6
         sin_angle_pi_6 = self.sin_angle_pi_6
@@ -515,8 +437,9 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
                     expected=gs.zeros(3),
                 )
             ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def tait_bryan_angles_from_quaternion_test_data(self):
         cos_angle_pi_12 = self.cos_angle_pi_12
         sin_angle_pi_12 = self.sin_angle_pi_12
@@ -549,8 +472,9 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
             data += [
                 dict(quaternion=e1, extrinsic=extrinsic, zyx=zyx, expected=gs.zeros(3))
             ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def lie_bracket_test_data(self):
         data = [
             dict(
@@ -566,8 +490,9 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
                 expected=gs.array([-1.0, 0.0, 0.0]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def left_jacobian_translation_det_test_data(self):
         space = SpecialOrthogonal(3, point_type="vector")
         elements = self.elements
@@ -586,7 +511,7 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
                 expected = angle**2 / (4 * gs.sin(angle / 2) ** 2)
             smoke_data += [dict(point=point, expected=expected)]
 
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
     def _regularize_extreme_data(self):
         smoke_data = []
@@ -628,6 +553,7 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
         smoke_data += [dict(point=point, expected=expected)]
         return smoke_data
 
+    @pytest.mark.smoke
     def regularize_test_data(self):
         point = (gs.pi + 1e-6) * gs.array(
             [[1.0, 0.0, 0.0], [2, 0.5, 0.0], [0.0, 0.0, 0.0], [0.5, 0.0, 0.0]]
@@ -647,7 +573,7 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
         smoke_data = [
             dict(point=point, expected=expected)
         ] + self._regularize_extreme_data()
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
     def _angles_close_to_pi_data(self):
         smoke_data = [
@@ -655,8 +581,9 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
             for angle_type in self.angles_close_to_pi
         ]
 
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
+    @pytest.mark.smoke
     def group_exp_after_log_with_angles_close_to_pi_test_data(self):
         smoke_data = []
         for angle_type in self.angles_close_to_pi:
@@ -664,8 +591,9 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
                 smoke_data.append(
                     dict(point=self.elements[angle_type], base_point=angle_type_base)
                 )
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
+    @pytest.mark.smoke
     def group_log_after_exp_with_angles_close_to_pi_test_data(self):
         smoke_data = []
         for angle_type in self.angles_close_to_pi:
@@ -676,16 +604,161 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
                         base_point=angle_type_base,
                     )
                 )
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
+    @pytest.mark.smoke
     def rotation_vector_and_rotation_matrix_with_angles_close_to_pi_test_data(self):
         return self._angles_close_to_pi_data()
 
+    @pytest.mark.smoke
     def quaternion_and_rotation_vector_with_angles_close_to_pi_test_data(self):
         return self._angles_close_to_pi_data()
 
+    @pytest.mark.smoke
     def quaternion_and_matrix_with_angles_close_to_pi_test_data(self):
         return self._angles_close_to_pi_data()
 
+    @pytest.mark.smoke
     def compose_regularize_angles_close_to_pi_test_data(self):
         return self._angles_close_to_pi_data()
+
+    def _tait_bryan_angles_vec_data(self, arg_name, sampler):
+        data = []
+        for extrinsic, zyx in itertools.product([True, False], repeat=2):
+            data.extend(
+                self.generate_vectorization_data(
+                    arg_names=arg_name,
+                    samplers={arg_name: sampler},
+                    op_evaluator=lambda op, extrinsic=extrinsic, zyx=zyx, **kwargs: op(
+                        **kwargs, extrinsic=extrinsic, zyx=zyx
+                    ),
+                    extrinsic=extrinsic,
+                    zyx=zyx,
+                )
+            )
+        return data
+
+    def _tait_bryan_angles_random_data(self, arg_name, sampler):
+        data = []
+        for extrinsic, zyx in itertools.product([True, False], repeat=2):
+            data.extend(
+                self.generate_random_data(
+                    arg_names=arg_name,
+                    samplers={arg_name: sampler},
+                    extrinsic=extrinsic,
+                    zyx=zyx,
+                )
+            )
+        return data
+
+    def quaternion_from_matrix_vec_test_data(self):
+        return self.generate_vectorization_data(
+            arg_names="rot_mat",
+            samplers={"rot_mat": "random_rotation_matrix"},
+        )
+
+    def matrix_from_quaternion_vec_test_data(self):
+        return self.generate_vectorization_data(
+            arg_names="quaternion",
+            samplers={"quaternion": "random_quaternion"},
+        )
+
+    def quaternion_from_rotation_vector_vec_test_data(self):
+        return self.generate_vectorization_data(
+            arg_names="rot_vec",
+            samplers={"rot_vec": "random_rotation_vector"},
+        )
+
+    def rotation_vector_from_quaternion_vec_test_data(self):
+        return self.generate_vectorization_data(
+            arg_names="quaternion",
+            samplers={"quaternion": "random_quaternion"},
+        )
+
+    def matrix_from_tait_bryan_angles_vec_test_data(self):
+        return self._tait_bryan_angles_vec_data(
+            "tait_bryan_angles", "random_tait_bryan_angles"
+        )
+
+    def tait_bryan_angles_from_matrix_vec_test_data(self):
+        return self._tait_bryan_angles_vec_data("rot_mat", "random_rotation_matrix")
+
+    def quaternion_from_tait_bryan_angles_vec_test_data(self):
+        return self._tait_bryan_angles_vec_data(
+            "tait_bryan_angles", "random_tait_bryan_angles"
+        )
+
+    def tait_bryan_angles_from_quaternion_vec_test_data(self):
+        return self._tait_bryan_angles_vec_data("quaternion", "random_quaternion")
+
+    def rotation_vector_from_tait_bryan_angles_vec_test_data(self):
+        return self._tait_bryan_angles_vec_data(
+            "tait_bryan_angles", "random_tait_bryan_angles"
+        )
+
+    def tait_bryan_angles_from_rotation_vector_vec_test_data(self):
+        return self._tait_bryan_angles_vec_data("rot_vec", "random_rotation_vector")
+
+    def quaternion_from_matrix_after_matrix_from_quaternion_test_data(self):
+        return self.generate_random_data(
+            arg_names="quaternion",
+            samplers={"quaternion": "random_quaternion"},
+        )
+
+    def matrix_from_quaternion_after_quaternion_from_matrix_test_data(self):
+        return self.generate_random_data(
+            arg_names="rot_mat",
+            samplers={"rot_mat": "random_rotation_matrix"},
+        )
+
+    def quaternion_from_rotation_vector_after_rotation_vector_from_quaternion_test_data(
+        self,
+    ):
+        return self.generate_random_data(
+            arg_names="quaternion",
+            samplers={"quaternion": "random_quaternion"},
+        )
+
+    def rotation_vector_from_quaternion_after_quaternion_from_rotation_vector_test_data(
+        self,
+    ):
+        return self.generate_random_data(
+            arg_names="rot_vec",
+            samplers={"rot_vec": "random_rotation_vector"},
+        )
+
+    def tait_bryan_angles_from_matrix_after_matrix_from_tait_bryan_angles_test_data(
+        self,
+    ):
+        return self._tait_bryan_angles_random_data(
+            "tait_bryan_angles", "random_tait_bryan_angles"
+        )
+
+    def matrix_from_tait_bryan_angles_after_tait_bryan_angles_from_matrix_test_data(
+        self,
+    ):
+        return self._tait_bryan_angles_random_data("rot_mat", "random_rotation_matrix")
+
+    def quaternion_from_tait_bryan_angles_after_tait_bryan_angles_from_quaternion_test_data(
+        self,
+    ):
+        return self._tait_bryan_angles_random_data("quaternion", "random_quaternion")
+
+    def tait_bryan_angles_from_quaternion_after_quaternion_from_tait_bryan_angles_test_data(
+        self,
+    ):
+        return self._tait_bryan_angles_random_data(
+            "tait_bryan_angles", "random_tait_bryan_angles"
+        )
+
+    def tait_bryan_angles_from_rotation_vector_after_rotation_vector_from_tait_bryan_angles_test_data(
+        self,
+    ):
+        return self._tait_bryan_angles_random_data(
+            "tait_bryan_angles", "random_tait_bryan_angles"
+        )
+
+    def rotation_vector_from_tait_bryan_angles_after_tait_bryan_angles_from_rotation_vector_test_data(
+        self,
+    ):
+        return self._tait_bryan_angles_random_data("rot_vec", "random_rotation_vector")

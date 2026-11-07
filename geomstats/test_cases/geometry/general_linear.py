@@ -1,38 +1,25 @@
-import pytest
-
 import geomstats.backend as gs
-from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import VectorSpaceOpenSetTestCase
 from geomstats.test_cases.geometry.lie_group import MatrixLieGroupTestCase
 
 
 class GeneralLinearTestCase(MatrixLieGroupTestCase, VectorSpaceOpenSetTestCase):
-    def test_orbit(self, point, base_point, time, expected, atol):
+    def test_orbit(self, point, base_point, time, expected, atol=gs.atol):
+        """Check one-parameter orbit of base point passing through point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Target point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+        time : array-like, shape=[n_times,]
+            Times at which to evaluate the orbit.
+        expected : array-like, shape=[..., n_times, n, n]
+            Expected points on the orbit.
+        atol : float
+            Absolute tolerance.
+        """
         path = self.space.orbit(point, base_point)
         res = path(time)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_orbit_vec(self, n_reps, n_times, atol):
-        point = self.space.random_point()
-        base_point = self.space.random_point()
-
-        path = self.space.orbit(point, base_point)
-        time = gs.random.uniform(size=n_times)
-        expected = path(time)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    point=point,
-                    base_point=base_point,
-                    time=time,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["point", "base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)

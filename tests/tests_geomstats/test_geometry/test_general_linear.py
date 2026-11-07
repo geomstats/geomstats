@@ -1,9 +1,16 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
-from geomstats.geometry.general_linear import GeneralLinear, SquareMatrices
-from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.geometry.general_linear import (
+    GeneralLinear,
+    PositiveGeneralLinear,
+    SquareMatrices,
+)
 from geomstats.test_cases.geometry.general_linear import GeneralLinearTestCase
 from geomstats.test_cases.geometry.lie_algebra import MatrixLieAlgebraTestCase
 from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
@@ -19,29 +26,23 @@ from .data.lie_algebra import MatrixLieAlgebraTestData
 from .data.matrices import MatricesMetricTestData
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        (2, True),
-        (2, False),
-        (random.randint(3, 5), True),
-        (random.randint(3, 5), False),
-    ],
-)
-def spaces(request):
-    n, positive_det = request.param
-    request.cls.space = GeneralLinear(n=n, positive_det=positive_det, equip=False)
+class TestGeneralLinear(
+    GeneralLinearTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = GeneralLinear(n=random.randint(2, 5), equip=False)
+    testing_data = GeneralLinearTestData(space)
 
 
-@pytest.mark.usefixtures("spaces")
-class TestGeneralLinear(GeneralLinearTestCase, metaclass=DataBasedParametrizer):
-    trials = 3
-    testing_data = GeneralLinearTestData()
+class TestPositiveGeneralLinear(
+    GeneralLinearTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = PositiveGeneralLinear(n=random.randint(2, 5), equip=False)
+    testing_data = GeneralLinearTestData(space)
 
 
 @pytest.mark.smoke
 class TestGeneralLinear2(GeneralLinearTestCase, metaclass=DataBasedParametrizer):
-    space = GeneralLinear(n=3, equip=False)
+    space = GeneralLinear(n=2, equip=False)
     testing_data = GeneralLinear2TestData()
 
 
@@ -51,38 +52,27 @@ class TestGeneralLinear3(GeneralLinearTestCase, metaclass=DataBasedParametrizer)
     testing_data = GeneralLinear3TestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        (random.randint(2, 5), True),
-        (random.randint(2, 5), False),
-    ],
-)
-def equipped_spaces(request):
-    n, positive_det = request.param
-    request.cls.space = GeneralLinear(n=n, positive_det=positive_det)
+@pytest.mark.redundant
+class TestGeneralLinearMatricesMetric(
+    MatricesMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = GeneralLinear(n=random.randint(2, 5))
+    testing_data = GeneralLinearMatricesMetricTestData(space)
 
 
 @pytest.mark.redundant
-@pytest.mark.usefixtures("equipped_spaces")
-class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
-    testing_data = GeneralLinearMatricesMetricTestData()
+class TestPositiveGeneralLinearMatricesMetric(
+    MatricesMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = PositiveGeneralLinear(n=random.randint(2, 5))
+    testing_data = GeneralLinearMatricesMetricTestData(space)
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def square_matrices_spaces(request):
-    request.cls.space = SquareMatrices(n=request.param, equip=False)
-
-
-@pytest.mark.usefixtures("square_matrices_spaces")
-class TestSquareMatrices(MatrixLieAlgebraTestCase, metaclass=DataBasedParametrizer):
-    testing_data = MatrixLieAlgebraTestData()
+class TestSquareMatrices(
+    MatrixLieAlgebraTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = SquareMatrices(n=random.randint(2, 5), equip=False)
+    testing_data = MatrixLieAlgebraTestData(space)
 
 
 @pytest.mark.smoke
@@ -92,7 +82,8 @@ class TestSquareMatrices3(MatrixLieAlgebraTestCase, metaclass=DataBasedParametri
 
 
 @pytest.mark.redundant
-class TestSquareMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
-    n = random.randint(2, 5)
-    space = SquareMatrices(n=n)
-    testing_data = MatricesMetricTestData()
+class TestSquareMatricesMetric(
+    MatricesMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = SquareMatrices(n=random.randint(2, 5))
+    testing_data = MatricesMetricTestData(space)

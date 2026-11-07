@@ -1,6 +1,10 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 from geomstats.geometry.lower_triangular_matrices import StrictlyLowerTriangularMatrices
 from geomstats.geometry.positive_lower_triangular_matrices import (
@@ -12,8 +16,6 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     UnitNormedRowsPLTDiffeo,
     UnitNormedRowsPLTMatrices,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.base import (
     DiffeomorphicManifoldTestCase,
     LevelSetTestCase,
@@ -33,26 +35,16 @@ from geomstats.variants.geometry.positive_lower_triangular_matrices import (
     LowerMatrixLog as OtherLowerMatrixLog,
 )
 
-from .data.base import DiffeomorphicManifoldTestData
-from .data.diffeo import DiffeoTestData
+from .data.base import DiffeomorphicManifoldTestData, LevelSetTestData
+from .data.diffeo import DiffeoComparisonTestData, DiffeoTestData
+from .data.invariant_metric import InvariantMetricMatrixTestData
 from .data.positive_lower_triangular_matrices import (
     CholeskyMetric2TestData,
     CholeskyMetricTestData,
-    InvariantPositiveLowerTriangularMatricesMetricTestData,
-    LowerMatrixLogCmpTestData,
-    PLTUnitDiagMatricesTestData,
     PositiveLowerTriangularMatrices2TestData,
     PositiveLowerTriangularMatricesTestData,
-    UnitNormedRowsPLTMatricesPullbackMetricTestData,
 )
-
-
-class TestPositiveLowerTriangularMatrices(
-    MatrixLieGroupTestCase, VectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer
-):
-    _n = random.randint(2, 5)
-    space = PositiveLowerTriangularMatrices(n=_n, equip=False)
-    testing_data = PositiveLowerTriangularMatricesTestData()
+from .data.riemannian_metric import RiemannianMetricTestData
 
 
 @pytest.mark.smoke
@@ -63,19 +55,17 @@ class TestPositiveLowerTriangularMatrices2(
     testing_data = PositiveLowerTriangularMatrices2TestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        random.randint(2, 5),
-    ],
-)
-def equipped_spaces(request):
-    request.cls.space = PositiveLowerTriangularMatrices(n=request.param)
-
-
-@pytest.mark.usefixtures("equipped_spaces")
-class TestCholeskyMetric(CholeskyMetricTestCase, metaclass=DataBasedParametrizer):
-    testing_data = CholeskyMetricTestData()
+class TestPositiveLowerTriangularMatrices(
+    MatrixLieGroupTestCase,
+    VectorSpaceOpenSetTestCase,
+    metaclass=GeometricDataBasedParametrizer,
+):
+    space = PositiveLowerTriangularMatrices(n=random.randint(2, 5), equip=False)
+    testing_data = PositiveLowerTriangularMatricesTestData(
+        space,
+        # NB: the inverse of base points near the boundary is ill-conditioned
+        method_marks={"xfail": ("log_after_exp",)},
+    )
 
 
 @pytest.mark.smoke
@@ -85,6 +75,14 @@ class TestCholeskyMetric2(CholeskyMetricTestCase, metaclass=DataBasedParametrize
     testing_data = CholeskyMetric2TestData()
 
 
+class TestCholeskyMetric(
+    CholeskyMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = PositiveLowerTriangularMatrices(n=random.randint(2, 5))
+    testing_data = CholeskyMetricTestData(space)
+
+
+# NB: `DataBasedParametrizer` skips vectorization tests, which are slow here
 @pytest.mark.slow
 @pytest.mark.redundant
 class TestInvariantPositiveLowerTriangularMatricesMetric(
@@ -93,56 +91,74 @@ class TestInvariantPositiveLowerTriangularMatricesMetric(
     space = PositiveLowerTriangularMatrices(n=2, equip=False).equip_with_metric(
         InvariantPositiveLowerTriangularMatricesMetric
     )
-    testing_data = InvariantPositiveLowerTriangularMatricesMetricTestData()
+    testing_data = InvariantMetricMatrixTestData(
+        space,
+        excluded_methods=("parallel_transport_ivp_norm",),
+        method_marks={
+            "xfail": ("exp_after_log", "log_after_exp", "parallel_transport_bvp_norm")
+        },
+    )
 
 
-class TestUnitNormedRowsPLTDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+class TestUnitNormedRowsPLTDiffeo(
+    DiffeoTestCase, metaclass=GeometricDataBasedParametrizer
+):
     _n = random.randint(2, 5)
-    space = UnitNormedRowsPLTMatrices(n=_n, equip=False)
-    image_space = space.image_space
+    domain_space = UnitNormedRowsPLTMatrices(n=_n, equip=False)
+    image_space = domain_space.image_space
     diffeo = UnitNormedRowsPLTDiffeo(_n)
-    testing_data = DiffeoTestData()
+
+    testing_data = DiffeoTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+        map_=diffeo,
+    )
 
 
 class TestUnitNormedRowsPLTMatrices(
-    DiffeomorphicManifoldTestCase, metaclass=DataBasedParametrizer
+    DiffeomorphicManifoldTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    _n = random.randint(2, 5)
-    space = UnitNormedRowsPLTMatrices(n=_n, equip=False)
-    testing_data = DiffeomorphicManifoldTestData()
+    space = UnitNormedRowsPLTMatrices(n=random.randint(2, 5), equip=False)
+    testing_data = DiffeomorphicManifoldTestData(space)
 
 
 class TestUnitNormedRowsPLTMatricesPullbackMetric(
-    PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
+    PullbackDiffeoMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
+    space = UnitNormedRowsPLTMatrices(n=random.randint(2, 5))
+    testing_data = RiemannianMetricTestData(space, generator_kwargs={"amplitude": 5.0})
+
+
+class TestPLTUnitDiagMatrices(
+    LevelSetTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = PLTUnitDiagMatrices(n=random.randint(2, 5), equip=False)
+    testing_data = LevelSetTestData(space)
+
+
+class TestLowerMatrixLog(DiffeoTestCase, metaclass=GeometricDataBasedParametrizer):
     _n = random.randint(2, 5)
-    space = UnitNormedRowsPLTMatrices(n=_n)
-    data_generator = RandomDataGenerator(space, amplitude=5.0)
-    testing_data = UnitNormedRowsPLTMatricesPullbackMetricTestData()
-
-
-class TestPLTUnitDiagMatrices(LevelSetTestCase, metaclass=DataBasedParametrizer):
-    _n = random.randint(2, 5)
-    space = PLTUnitDiagMatrices(n=_n, equip=False)
-    testing_data = PLTUnitDiagMatricesTestData()
-
-
-class TestLowerMatrixLog(DiffeoTestCase, metaclass=DataBasedParametrizer):
-    _n = random.randint(2, 5)
-
-    space = PLTUnitDiagMatrices(n=_n, equip=False)
+    domain_space = PLTUnitDiagMatrices(n=_n, equip=False)
     image_space = StrictlyLowerTriangularMatrices(n=_n, equip=False)
     diffeo = LowerMatrixLog()
-    testing_data = DiffeoTestData()
+
+    testing_data = DiffeoTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+        map_=diffeo,
+    )
 
 
-class TestLowerMatrixLogCmp(DiffeoComparisonTestCase, metaclass=DataBasedParametrizer):
+class TestLowerMatrixLogCmp(
+    DiffeoComparisonTestCase, metaclass=GeometricDataBasedParametrizer
+):
     _n = random.randint(2, 5)
-
-    space = PLTUnitDiagMatrices(n=_n, equip=False)
+    domain_space = PLTUnitDiagMatrices(n=_n, equip=False)
     image_space = StrictlyLowerTriangularMatrices(n=_n, equip=False)
-
     diffeo = LowerMatrixLog()
     other_diffeo = OtherLowerMatrixLog()
 
-    testing_data = LowerMatrixLogCmpTestData()
+    testing_data = DiffeoComparisonTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+    )

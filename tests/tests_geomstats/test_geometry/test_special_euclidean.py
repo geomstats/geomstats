@@ -1,6 +1,10 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 import geomstats.backend as gs
 from geomstats.geometry.special_euclidean import (
@@ -8,7 +12,6 @@ from geomstats.geometry.special_euclidean import (
     SpecialEuclideanMatricesLieAlgebra,
     _SpecialEuclideanMatrices,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.base import LevelSetTestCase
 from geomstats.test_cases.geometry.invariant_metric import InvariantMetricMatrixTestCase
 from geomstats.test_cases.geometry.lie_algebra import MatrixLieAlgebraTestCase
@@ -17,27 +20,19 @@ from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 from geomstats.test_cases.geometry.special_euclidean import (
     SpecialEuclideanVectorsTestCase,
     homogeneous_representation_test_case,
-    homogeneous_representation_vec_test_case,
 )
 
+from .data.invariant_metric import InvariantMetricMatrixTestData
 from .data.lie_algebra import MatrixLieAlgebraTestData
 from .data.matrices import MatricesMetricTestData
 from .data.special_euclidean import (
     SpecialEuclidean2VectorsTestData,
     SpecialEuclideanMatrices2TestData,
-    SpecialEuclideanMatricesCanonicalLeftMetricTestData,
     SpecialEuclideanMatricesLieAlgebra2TestData,
     SpecialEuclideanMatricesTestData,
     SpecialEuclideanVectorsTestData,
     homogeneous_representation_test_data,
 )
-
-
-@pytest.mark.parametrize("n_reps", random.sample(range(2, 5), 1))
-@pytest.mark.parametrize("n", [2] + random.sample(range(3, 6), 1))
-@pytest.mark.vec
-def test_homogeneous_representation_vec(n, n_reps):
-    return homogeneous_representation_vec_test_case(n, n_reps, atol=gs.atol)
 
 
 @pytest.mark.parametrize(
@@ -49,24 +44,6 @@ def test_homogeneous_representation(rotation, translation, constant, expected):
     )
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def spaces_mlg(request):
-    request.cls.space = _SpecialEuclideanMatrices(n=request.param, equip=False)
-
-
-@pytest.mark.usefixtures("spaces_mlg")
-class TestSpecialEuclideanMatrices(
-    MatrixLieGroupTestCase, LevelSetTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = SpecialEuclideanMatricesTestData()
-
-
 @pytest.mark.smoke
 class TestSpecialEuclideanMatrices2(
     MatrixLieGroupTestCase, LevelSetTestCase, metaclass=DataBasedParametrizer
@@ -75,72 +52,52 @@ class TestSpecialEuclideanMatrices2(
     testing_data = SpecialEuclideanMatrices2TestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        3,
-    ],
-)
-def spaces_vectors(request):
-    request.cls.space = SpecialEuclidean(
-        n=request.param, point_type="vector", equip=True
+class TestSpecialEuclideanMatrices(
+    MatrixLieGroupTestCase, LevelSetTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = _SpecialEuclideanMatrices(n=random.randint(2, 5), equip=False)
+    testing_data = SpecialEuclideanMatricesTestData(space)
+
+
+class TestSpecialEuclidean2Vectors(
+    SpecialEuclideanVectorsTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = SpecialEuclidean(n=2, point_type="vector", equip=True)
+    testing_data = SpecialEuclidean2VectorsTestData(
+        space,
+        excluded_methods=(
+            "lie_bracket",
+            "lie_bracket_belongs",
+            "lie_bracket_antisymmetry",
+            "lie_bracket_jacobi_identity",
+            "lie_bracket_bilinearity",
+        ),
     )
 
 
-@pytest.mark.usefixtures("spaces_vectors")
-class TestSpecialEuclideanVectors(
-    SpecialEuclideanVectorsTestCase, metaclass=DataBasedParametrizer
+class TestSpecialEuclidean3Vectors(
+    SpecialEuclideanVectorsTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = SpecialEuclideanVectorsTestData()
+    space = SpecialEuclidean(n=3, point_type="vector", equip=True)
+    testing_data = SpecialEuclideanVectorsTestData(
+        space,
+        excluded_methods=(
+            "lie_bracket",
+            "lie_bracket_belongs",
+            "lie_bracket_antisymmetry",
+            "lie_bracket_jacobi_identity",
+            "lie_bracket_bilinearity",
+        ),
+    )
 
 
-@pytest.mark.smoke
-class TestSpecialEuclidean2Vectors(
-    SpecialEuclideanVectorsTestCase, metaclass=DataBasedParametrizer
-):
-    space = SpecialEuclidean(n=2, point_type="vector", equip=False)
-    testing_data = SpecialEuclidean2VectorsTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[random.randint(2, 3)],
-)
-def equipped_SE_matrix_groups(request):
-    n = request.param
-    request.cls.space = SpecialEuclidean(n)
-
-
-@pytest.mark.usefixtures("equipped_SE_matrix_groups")
 class TestSpecialEuclideanMatricesCanonicalLeftMetric(
-    InvariantMetricMatrixTestCase, metaclass=DataBasedParametrizer
+    InvariantMetricMatrixTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = SpecialEuclideanMatricesCanonicalLeftMetricTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def spaces_mla(request):
-    request.cls.space = SpecialEuclideanMatricesLieAlgebra(n=request.param, equip=False)
-
-
-@pytest.mark.usefixtures("spaces_mla")
-class TestSpecialEuclideanMatricesLieAlgebra(
-    MatrixLieAlgebraTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = MatrixLieAlgebraTestData()
-
-
-@pytest.mark.parametrize("n,expected", [(2, 3), (3, 6), (10, 55)])
-def test_dim_mla(n, expected):
-    space = SpecialEuclideanMatricesLieAlgebra(n=n, equip=False)
-    assert space.dim == expected
+    space = SpecialEuclidean(random.randint(2, 3))
+    testing_data = InvariantMetricMatrixTestData(
+        space, excluded_methods=("injectivity_radius",)
+    )
 
 
 @pytest.mark.smoke
@@ -151,8 +108,16 @@ class TestSpecialEuclideanMatricesLieAlgebra2(
     testing_data = SpecialEuclideanMatricesLieAlgebra2TestData()
 
 
+class TestSpecialEuclideanMatricesLieAlgebra(
+    MatrixLieAlgebraTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = SpecialEuclideanMatricesLieAlgebra(n=random.randint(2, 5), equip=False)
+    testing_data = MatrixLieAlgebraTestData(space)
+
+
 @pytest.mark.redundant
-class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
-    n = random.randint(2, 5)
-    space = SpecialEuclideanMatricesLieAlgebra(n=n, equip=True)
-    testing_data = MatricesMetricTestData()
+class TestMatricesMetric(
+    MatricesMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = SpecialEuclideanMatricesLieAlgebra(n=random.randint(2, 5), equip=True)
+    testing_data = MatricesMetricTestData(space)

@@ -1,13 +1,16 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.information_geometry.multinomial import (
     MultinomialDistributions,
     SimplexToPositiveHypersphere,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import DiffeoBasedRandomDataGenerator
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.information_geometry.multinomial import (
@@ -24,31 +27,23 @@ from .data.multinomial import (
 )
 
 
-class TestSimplexToPositiveHypersphere(DiffeoTestCase, metaclass=DataBasedParametrizer):
-    dim = random.randint(2, 5)
-    space = MultinomialDistributions(dim=dim, n_draws=1, equip=False)
-    image_space = Hypersphere(dim=dim, equip=False)
+class TestSimplexToPositiveHypersphere(
+    DiffeoTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    _dim = random.randint(2, 5)
+    domain_space = MultinomialDistributions(dim=_dim, n_draws=1, equip=False)
+    image_space = Hypersphere(dim=_dim, equip=False)
     diffeo = SimplexToPositiveHypersphere()
 
-    image_data_generator = DiffeoBasedRandomDataGenerator(space, diffeo)
-
-    testing_data = DiffeoTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[(2, 5), (random.randint(3, 5), random.randint(2, 10))],
-)
-def spaces(request):
-    dim, n_draws = request.param
-    request.cls.space = MultinomialDistributions(dim=dim, n_draws=n_draws, equip=False)
-
-
-@pytest.mark.usefixtures("spaces")
-class TestMultinomialDistributions(
-    MultinomialDistributionsTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = MultinomialDistributionsTestData()
+    testing_data = DiffeoTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+        map_=diffeo,
+    )
+    # NB: image points must lie in the positive orthant
+    testing_data.image_space_data_generator = DiffeoBasedRandomDataGenerator(
+        domain_space, diffeo
+    )
 
 
 @pytest.mark.smoke
@@ -67,18 +62,21 @@ class TestMultinomialDistributions3(
     testing_data = MultinomialDistributions3TestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        (2, 5),
-        (random.randint(3, 5), random.randint(2, 10)),
-    ],
-)
-def equipped_spaces(request):
-    dim, n_draws = request.param
-    request.cls.space = MultinomialDistributions(dim=dim, n_draws=n_draws)
+class TestMultinomialDistributions(
+    MultinomialDistributionsTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = MultinomialDistributions(
+        dim=random.randint(2, 5), n_draws=random.randint(2, 10), equip=False
+    )
+    testing_data = MultinomialDistributionsTestData(space)
 
 
-@pytest.mark.usefixtures("equipped_spaces")
-class TestMultinomialMetric(MultinomialMetricTestCase, metaclass=DataBasedParametrizer):
-    testing_data = MultinomialMetricTestData()
+class TestMultinomialMetric(
+    MultinomialMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = MultinomialDistributions(
+        dim=random.randint(2, 5), n_draws=random.randint(2, 10)
+    )
+    testing_data = MultinomialMetricTestData(
+        space, method_marks={"xfail": ("log_after_exp",)}
+    )

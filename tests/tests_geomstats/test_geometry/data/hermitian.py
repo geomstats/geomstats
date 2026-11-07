@@ -1,27 +1,12 @@
+from polpo.testing.data import CaseData
+
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 from .base import ComplexVectorSpaceTestData
-from .complex_riemannian_metric import ComplexRiemannianMetricTestData
 from .mixins import GroupExpMixinsTestData
 
 
-class HermitianTestData(GroupExpMixinsTestData, ComplexVectorSpaceTestData):
-    def exp_random_test_data(self):
-        return self.generate_random_data()
-
-    def identity_belongs_test_data(self):
-        return self.generate_tests([dict()])
-
-
-class HermitianMetricTestData(ComplexRiemannianMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-    skips = ("sectional_curvature_vec",)
-
-
-class Hermitian2MetricTestData(TestData):
+class Hermitian2MetricTestData(CaseData):
     def exp_test_data(self):
         data = [
             dict(
@@ -30,7 +15,7 @@ class Hermitian2MetricTestData(TestData):
                 expected=gs.array([2.0 + 2.0j, 11.0 + 11.0j]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def log_test_data(self):
         data = [
@@ -40,10 +25,18 @@ class Hermitian2MetricTestData(TestData):
                 expected=gs.array([2.0 + 2.0j, 9.0 + 9.0j]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def metric_matrix_test_data(self):
         data = [
             dict(base_point=None, expected=gs.eye(2, dtype=gs.get_default_cdtype())),
         ]
-        return self.generate_tests(data)
+        return data
+
+
+class HermitianTestData(GroupExpMixinsTestData, ComplexVectorSpaceTestData):
+    def exp_random_test_data(self):
+        return self.generate_random_data(arg_names=("base_point", "tangent_vec"))
+
+    def identity_belongs_test_data(self):
+        return [dict()]

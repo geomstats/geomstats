@@ -1,13 +1,7 @@
-import pytest
-
 import geomstats.backend as gs
 from geomstats.numerics.finite_differences import forward_difference
-from geomstats.test.random import get_random_times
-from geomstats.test.vectorization import generate_vectorization_data
-from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
 from geomstats.test_cases.geometry.nfold_manifold import NFoldManifoldTestCase
 from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
-from geomstats.vectorization import get_batch_shape
 
 
 def elastic_distance(space, point_a, point_b, a=1.0, b=0.5):
@@ -88,42 +82,79 @@ def elastic_distance(space, point_a, point_b, a=1.0, b=0.5):
 
 
 class DiscreteCurvesStartingAtOriginTestCase(NFoldManifoldTestCase):
-    def test_interpolate(self, point, param, expected, atol):
-        points = self.space.interpolate(point)(param)
+    def test_interpolate(self, point, time, expected, atol=gs.atol):
+        """Check interpolation.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve.
+        time : array-like, shape=[n_times]
+            Parameters at which to evaluate the interpolated curve.
+        expected : array-like, shape=[..., n_times, ambient_dim]
+            Expected points of the interpolated curve.
+        atol : float
+            Absolute tolerance.
+        """
+        points = self.space.interpolate(point)(time)
         self.assertAllClose(points, expected, atol=atol)
 
-    def test_interpolate_vec(self, n_reps, n_times, atol):
-        point = self.data_generator.random_point()
-        param = get_random_times(n_times)
+    def test_length(self, point, expected, atol=gs.atol):
+        """Check length.
 
-        expected = self.space.interpolate(point)(param)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    point=point,
-                    param=param,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    def test_length(self, point, expected, atol):
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve.
+        expected : array-like, shape=[...]
+            Expected length.
+        atol : float
+            Absolute tolerance.
+        """
         length = self.space.length(point)
         self.assertAllClose(length, expected, atol=atol)
 
-    def test_normalize(self, point, expected, atol):
-        normalized_point = self.space.normalize(point)
-        self.assertAllClose(normalized_point, expected, atol)
+    def test_normalize(self, point, expected, atol=gs.atol):
+        """Check normalization.
 
-    @pytest.mark.random
-    def test_normalize_is_unit_length(self, n_points, atol):
-        point = self.data_generator.random_point(n_points)
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve.
+        expected : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Expected normalized curve.
+        atol : float
+            Absolute tolerance.
+        """
+        normalized_point = self.space.normalize(point)
+        self.assertAllClose(normalized_point, expected, atol=atol)
+
+    def test_interpolate_at_sampling_points(self, point, atol=gs.atol):
+        """Check interpolation passes through the sampling points.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve.
+        atol : float
+            Absolute tolerance.
+        """
+        sampling_times = gs.linspace(0.0, 1.0, self.space.k_sampling_points)
+
+        res = self.space.interpolate(point)(sampling_times)
+        expected = self.space.insert_origin(point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    def test_normalize_is_unit_length(self, point, atol=gs.atol):
+        """Check normalized curves have unit length.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve.
+        atol : float
+            Absolute tolerance.
+        """
         normalized_point = self.space.normalize(point)
         normalize_lengths = self.space.length(normalized_point)
         self.assertAllClose(
@@ -131,39 +162,19 @@ class DiscreteCurvesStartingAtOriginTestCase(NFoldManifoldTestCase):
         )
 
 
-class ReparametrizationBundleTestCase(FiberBundleTestCase):
-    @pytest.mark.random
-    def test_tangent_vector_projections_orthogonality_with_metric(self, n_points, atol):
-        """Test horizontal and vertical projections.
-
-        Check that horizontal and vertical parts of any tangent
-        vector are orthogonal with respect to the SRVMetric inner
-        product.
-        """
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
-        tangent_vec_hor = self.total_space.fiber_bundle.horizontal_projection(
-            tangent_vec, base_point
-        )
-        tangent_vec_ver = self.total_space.fiber_bundle.vertical_projection(
-            tangent_vec, base_point
-        )
-
-        res = self.total_space.metric.inner_product(
-            tangent_vec_hor, tangent_vec_ver, base_point
-        )
-        expected_shape = get_batch_shape(self.total_space.point_ndim, base_point)
-        expected = gs.zeros(expected_shape)
-        self.assertAllClose(res, expected, atol=atol)
-
-
 class ElasticMetricTestCase(PullbackDiffeoMetricTestCase):
-    @pytest.mark.random
-    def test_dist_against_no_transform(self, n_points, atol):
-        point_a = self.data_generator.random_point(n_points)
-        point_b = self.data_generator.random_point(n_points)
+    def test_dist_against_no_transform(self, point_a, point_b, atol=gs.atol):
+        """Check distance against a closed form not using the transform.
 
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve.
+        point_b : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve.
+        atol : float
+            Absolute tolerance.
+        """
         dist = self.space.metric.dist(point_a, point_b)
         dist_ = elastic_distance(
             self.space,

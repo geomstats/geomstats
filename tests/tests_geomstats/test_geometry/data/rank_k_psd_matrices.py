@@ -1,17 +1,16 @@
-import geomstats.backend as gs
-from geomstats.test.data import TestData
+from polpo.testing.data import CaseData
 
-from .fiber_bundle import FiberBundleTestData
+import geomstats.backend as gs
+
 from .manifold import ManifoldTestData
 from .mixins import ProjectionMixinsTestData
-from .quotient_metric import QuotientMetricTestData
 
 
 class RankKPSDMatricesTestData(ProjectionMixinsTestData, ManifoldTestData):
-    xfails = ("projection_belongs",)
+    pass
 
 
-class RankKPSDMatrices32TestData(TestData):
+class Rank2PSD3MatricesTestData(CaseData):
     def belongs_test_data(self):
         data = [
             dict(
@@ -29,33 +28,10 @@ class RankKPSDMatrices32TestData(TestData):
                 expected=True,
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class BuresWassersteinBundleTestData(FiberBundleTestData):
-    fail_for_not_implemented_errors = False
-    skips = (
-        "horizontal_lift_vec",
-        "horizontal_lift_is_horizontal",
-        "integrability_tensor_derivative_vec",
-    )
-
-    xfails = ("tangent_riemannian_submersion_after_horizontal_lift",)
-
-
-class PSDBuresWassersteinMetricTestData(QuotientMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-    skips = (
-        "curvature_derivative_vec",
-        "directional_curvature_derivative_vec",
-    )
-
-    xfails = ("log_after_exp",)
-
-
-class PSD22BuresWassersteinMetricTestData(TestData):
+class Rank2PSD2BuresWassersteinMetricTestData(CaseData):
     def exp_test_data(self):
         data = [
             dict(
@@ -64,7 +40,7 @@ class PSD22BuresWassersteinMetricTestData(TestData):
                 expected=gs.array([[4.0, 0.0], [0.0, 4.0]]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def log_test_data(self):
         data = [
@@ -74,7 +50,7 @@ class PSD22BuresWassersteinMetricTestData(TestData):
                 expected=gs.array([[2.0, 0.0], [0.0, 2.0]]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def squared_dist_test_data(self):
         data = [
@@ -84,10 +60,10 @@ class PSD22BuresWassersteinMetricTestData(TestData):
                 expected=gs.array(2 + 4 - (2 * 2 * 2**0.5)),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class PSD33BuresWassersteinMetricTestData(TestData):
+class Rank3PSD3BuresWassersteinMetricTestData(CaseData):
     def inner_product_test_data(self):
         data = [
             dict(
@@ -103,4 +79,4 @@ class PSD33BuresWassersteinMetricTestData(TestData):
                 expected=gs.array(4.0),
             )
         ]
-        return self.generate_tests(data)
+        return data

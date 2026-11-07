@@ -1,51 +1,34 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import GeometricDataBasedParametrizer
 
 from geomstats.information_geometry.categorical import CategoricalDistributions
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.information_geometry.multinomial import (
     MultinomialDistributionsTestCase,
     MultinomialMetricTestCase,
 )
 
-from .data.categorical import CategoricalMetricTestData
-from .data.multinomial import MultinomialDistributionsTestData
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
+from .data.multinomial import (
+    MultinomialDistributionsTestData,
+    MultinomialMetricTestData,
 )
-def spaces(request):
-    request.cls.space = CategoricalDistributions(dim=request.param, equip=False)
 
 
-@pytest.mark.usefixtures("spaces")
 class TestCategoricalDistributions(
-    MultinomialDistributionsTestCase, metaclass=DataBasedParametrizer
+    MultinomialDistributionsTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = MultinomialDistributionsTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def equipped_spaces(request):
-    space = request.cls.space = CategoricalDistributions(dim=request.param)
-
-    request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
+    space = CategoricalDistributions(dim=random.randint(2, 5), equip=False)
+    testing_data = MultinomialDistributionsTestData(space)
 
 
 @pytest.mark.redundant
-@pytest.mark.usefixtures("equipped_spaces")
-class TestCategoricalMetric(MultinomialMetricTestCase, metaclass=DataBasedParametrizer):
-    testing_data = CategoricalMetricTestData()
+class TestCategoricalMetric(
+    MultinomialMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = CategoricalDistributions(dim=random.randint(2, 5))
+    testing_data = MultinomialMetricTestData(
+        space,
+        method_marks={"xfail": ("log_after_exp",)},
+        generator_kwargs={"amplitude": 10.0},
+    )

@@ -1,5 +1,6 @@
+import pytest
+
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 from ...test_geometry.data.base import VectorSpaceOpenSetTestData
 from ...test_geometry.data.riemannian_metric import RiemannianMetricTestData
@@ -9,13 +10,10 @@ from .base import InformationManifoldMixinTestData
 class ExponentialDistributionsTestData(
     InformationManifoldMixinTestData, VectorSpaceOpenSetTestData
 ):
-    fail_for_not_implemented_errors = False
-
     def point_to_pdf_against_scipy_test_data(self):
-        return self.generate_random_data_with_samples()
+        return self._generate_random_data_with_samples()
 
-
-class ExponentialDistributionsSmokeTestData(TestData):
+    @pytest.mark.smoke
     def belongs_test_data(self):
         data = [
             dict(point=gs.array([5.0]), expected=True),
@@ -28,15 +26,11 @@ class ExponentialDistributionsSmokeTestData(TestData):
                 expected=gs.ones((2, 1), dtype=bool),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
 class ExponentialMetricTestData(RiemannianMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-
-class ExponentialMetricSmokeTestData(TestData):
+    @pytest.mark.smoke
     def squared_dist_test_data(self):
         data = [
             dict(
@@ -55,8 +49,9 @@ class ExponentialMetricSmokeTestData(TestData):
                 expected=gs.array(0.48045301),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def metric_matrix_test_data(self):
         data = [
             dict(
@@ -68,4 +63,4 @@ class ExponentialMetricSmokeTestData(TestData):
                 expected=gs.array([[[4.0]], [[25.0]]]),
             ),
         ]
-        return self.generate_tests(data)
+        return data

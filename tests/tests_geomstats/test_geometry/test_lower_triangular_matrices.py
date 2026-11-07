@@ -1,46 +1,38 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 from geomstats.geometry.lower_triangular_matrices import (
     LowerTriangularMatrices,
     StrictlyLowerTriangularMatrices,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.base import (
     LevelSetTestCase,
     MatrixVectorSpaceTestCase,
 )
 from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 
+from .data.base import MatrixVectorSpaceTestData
 from .data.lower_triangular_matrices import (
     LowerTriangularMatrices2TestData,
     LowerTriangularMatrices3TestData,
-    LowerTriangularMatricesTestData,
     StrictlyLowerTriangularMatricesTestData,
 )
-from .data.matrices import (
-    MatricesMetricTestData,
-)
+from .data.matrices import MatricesMetricTestData
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def spaces(request):
-    request.cls.space = LowerTriangularMatrices(n=request.param)
-
-
-@pytest.mark.usefixtures("spaces")
 class TestLowerTriangularMatrices(
     MatrixVectorSpaceTestCase,
-    metaclass=DataBasedParametrizer,
+    metaclass=GeometricDataBasedParametrizer,
 ):
-    testing_data = LowerTriangularMatricesTestData()
+    _n = random.randint(2, 5)
+    space = LowerTriangularMatrices(n=_n, equip=False)
+
+    testing_data = MatrixVectorSpaceTestData(space)
 
 
 @pytest.mark.smoke
@@ -62,17 +54,19 @@ class TestLowerTriangularMatrices3(
 
 
 @pytest.mark.redundant
-class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
+class TestMatricesMetric(
+    MatricesMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
     space = LowerTriangularMatrices(n=random.randint(3, 5))
-    testing_data = MatricesMetricTestData()
+    testing_data = MatricesMetricTestData(space)
 
 
 class TestStrictlyLowerTriangularMatrices(
     LevelSetTestCase,
     MatrixVectorSpaceTestCase,
-    metaclass=DataBasedParametrizer,
+    metaclass=GeometricDataBasedParametrizer,
 ):
     _n = random.randint(2, 6)
     space = StrictlyLowerTriangularMatrices(n=_n, equip=False)
 
-    testing_data = StrictlyLowerTriangularMatricesTestData()
+    testing_data = StrictlyLowerTriangularMatricesTestData(space)

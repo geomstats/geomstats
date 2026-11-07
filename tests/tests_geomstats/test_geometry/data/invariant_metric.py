@@ -1,205 +1,178 @@
-"""Invariant metric test data.
-
-Given the slowness of these tests, I've decided to separate the data that
-computes a method at identity (because the normal tests will call those
-methods). Just use such data if interested in more detailed tests (notice
-the tests are already defined).
-"""
+from polpo.testing.data import CaseData
 
 import geomstats.backend as gs
-from geomstats.test.data import TestData
+from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 from .riemannian_metric import RiemannianMetricTestData
 
-
-class _InvariantMetricAtIdentityMixinsTestData(TestData):
-    def inner_product_at_identity_vec_test_data(self):
-        return self.generate_vec_data()
+_AT_IDENTITY = "random_tangent_vec_at_identity"
 
 
-class _InvariantMetricMixinsTestData(RiemannianMetricTestData):
+class InvariantMetricTestData(RiemannianMetricTestData):
     def invariance_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(
+            arg_names=("point_a", "point_b", "tangent_vec_a", "tangent_vec_b"),
+            dependencies={"tangent_vec_a": "point_a", "tangent_vec_b": "point_a"},
+        )
 
 
-class InvariantMetricMatrixAtIdentityTestData(_InvariantMetricAtIdentityMixinsTestData):
-    def connection_at_identity_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def curvature_at_identity_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def sectional_curvature_at_identity_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def curvature_derivative_at_identity_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def exp_at_identity_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def log_after_exp_at_identity_test_data(self):
-        return self.generate_random_data()
-
-    def exp_after_log_at_identity_test_data(self):
-        return self.generate_random_data()
-
-
-class InvariantMetricMatrixTestData(_InvariantMetricMixinsTestData):
+class InvariantMetricMatrixTestData(InvariantMetricTestData):
     def structure_constant_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names=("tangent_vec_a", "tangent_vec_b", "tangent_vec_c"),
+            samplers={
+                "tangent_vec_a": _AT_IDENTITY,
+                "tangent_vec_b": _AT_IDENTITY,
+                "tangent_vec_c": _AT_IDENTITY,
+            },
+            on_metric=True,
+        )
 
     def dual_adjoint_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def dual_adjoint_structure_constant_test_data(self):
-        return self.generate_random_data()
+        return self.generate_vectorization_data(
+            arg_names=("tangent_vec_a", "tangent_vec_b"),
+            samplers={"tangent_vec_a": _AT_IDENTITY, "tangent_vec_b": _AT_IDENTITY},
+            on_metric=True,
+        )
 
     def connection_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names=("base_point", "tangent_vec_a", "tangent_vec_b"),
+            on_metric=True,
+        )
+
+    def dual_adjoint_structure_constant_test_data(self):
+        return self.generate_random_data(
+            arg_names=("tangent_vec_a", "tangent_vec_b", "tangent_vec_c"),
+            samplers={
+                "tangent_vec_a": _AT_IDENTITY,
+                "tangent_vec_b": _AT_IDENTITY,
+                "tangent_vec_c": _AT_IDENTITY,
+            },
+        )
+
+    def connection_is_invariant_test_data(self):
+        return self.generate_random_data(
+            arg_names=("base_point", "tangent_vec_a", "tangent_vec_b"),
+            dependencies={},
+            samplers={"tangent_vec_a": _AT_IDENTITY, "tangent_vec_b": _AT_IDENTITY},
+        )
 
 
-class InvariantMetricMatrixSOTestData(InvariantMetricMatrixTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-    _atol = 1e-3
-    tolerances = {
-        "dist_triangle_inequality": {"atol": _atol},
-        "dist_is_symmetric": {"atol": _atol * 10},
-        "squared_dist_is_symmetric": {"atol": _atol * 10},
-        "exp_after_log": {"atol": _atol},
-        "log_after_exp": {"atol": _atol},
-        "geodesic_boundary_points": {"atol": _atol},
-        "geodesic_bvp_reverse": {"atol": _atol},
-        "geodesic_ivp_belongs": {"atol": _atol},
-        "geodesic_bvp_belongs": {"atol": _atol},
-        "parallel_transport_bvp_transported_is_tangent": {"atol": _atol},
-        "parallel_transport_ivp_transported_is_tangent": {"atol": _atol},
-        "parallel_transport_bvp_norm": {"atol": _atol},
-        "parallel_transport_bvp_vec": {"atol": _atol},
-    }
-    xfails = ("geodesic_bvp_belongs", "geodesic_bvp_reverse")
+def _so3_normal_basis():
+    space = SpecialOrthogonal(3, equip=False)
+    space.equip_with_metric(_InvariantMetricMatrix, left=True)
+    return space.metric.normal_basis(space.lie_algebra.basis)
 
 
-class InvariantMetricMatrixSO3TestData(TestData):
-    def connection_translation_map_test_data(self):
-        return self.generate_random_data()
-
-    def connection_smoke_test_data(self):
-        return self.generate_tests([dict()])
-
-    def sectional_curvature_smoke_test_data(self):
-        return self.generate_tests([dict()])
-
-    def curvature_smoke_test_data(self):
-        return self.generate_tests([dict()])
-
-    def structure_constant_smoke_test_data(self):
-        return self.generate_tests([dict()])
-
-    def curvature_derivative_at_identity_smoke_test_data(self):
-        return self.generate_tests([dict()])
-
-    def inner_product_from_vec_representation_test_data(self):
+class InvariantMetricMatrixSO3TestData(CaseData):
+    def inner_product_test_data(self):
+        algebra = SpecialOrthogonal(3, equip=False).lie_algebra
         data = [
             dict(
-                tangent_vec_a=gs.array([1.0, 0, 2.0]),
-                tangent_vec_b=gs.array([1.0, 0, 0.5]),
+                tangent_vec_a=algebra.matrix_representation(gs.array([1.0, 0, 2.0])),
+                tangent_vec_b=algebra.matrix_representation(gs.array([1.0, 0, 0.5])),
+                base_point=None,
                 expected=4.0,
             ),
             dict(
-                tangent_vec_a=gs.array([[1.0, 0, 2.0], [0, 3.0, 5.0]]),
-                tangent_vec_b=gs.array([1.0, 0, 0.5]),
+                tangent_vec_a=algebra.matrix_representation(
+                    gs.array([[1.0, 0, 2.0], [0, 3.0, 5.0]])
+                ),
+                tangent_vec_b=algebra.matrix_representation(gs.array([1.0, 0, 0.5])),
+                base_point=None,
                 expected=gs.array([4.0, 5.0]),
             ),
         ]
+        return data
 
-        return self.generate_tests(data)
+    def structure_constant_test_data(self):
+        x, y, z = _so3_normal_basis()
+        value = 2.0**0.5 / 2.0
+        data = [
+            dict(tangent_vec_a=x, tangent_vec_b=y, tangent_vec_c=z, expected=value),
+            dict(tangent_vec_a=y, tangent_vec_b=x, tangent_vec_c=z, expected=-value),
+            dict(tangent_vec_a=y, tangent_vec_b=z, tangent_vec_c=x, expected=value),
+            dict(tangent_vec_a=z, tangent_vec_b=y, tangent_vec_c=x, expected=-value),
+            dict(tangent_vec_a=z, tangent_vec_b=x, tangent_vec_c=y, expected=value),
+            dict(tangent_vec_a=x, tangent_vec_b=z, tangent_vec_c=y, expected=-value),
+            dict(tangent_vec_a=x, tangent_vec_b=x, tangent_vec_c=y, expected=0.0),
+        ]
+        return data
 
+    def connection_test_data(self):
+        x, y, z = _so3_normal_basis()
+        data = [
+            dict(
+                tangent_vec_a=x,
+                tangent_vec_b=y,
+                base_point=gs.eye(3),
+                expected=1.0 / 2**0.5 / 2.0 * z,
+            ),
+        ]
+        return data
 
-class InvariantMetricMatrixSETestData(InvariantMetricMatrixTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-    skip_vec = True
+    def curvature_test_data(self):
+        x, y, z = _so3_normal_basis()
+        data = [
+            dict(
+                tangent_vec_a=x,
+                tangent_vec_b=y,
+                tangent_vec_c=x,
+                base_point=gs.eye(3),
+                expected=1.0 / 8 * y,
+            ),
+            dict(
+                tangent_vec_a=gs.stack([x, x]),
+                tangent_vec_b=gs.stack([y] * 2),
+                tangent_vec_c=gs.stack([x, x]),
+                base_point=gs.eye(3),
+                expected=gs.array([1.0 / 8 * y] * 2),
+            ),
+            dict(
+                tangent_vec_a=y,
+                tangent_vec_b=y,
+                tangent_vec_c=z,
+                base_point=gs.eye(3),
+                expected=gs.zeros_like(z),
+            ),
+        ]
+        return data
 
-    _atol = 1e-2
-    tolerances = {
-        "dist_vec": {"atol": _atol},
-        "dist_is_log_norm": {"atol": _atol},
-        "dist_point_to_itself_is_zero": {"atol": _atol},
-        "dist_is_symmetric": {"atol": _atol},
-        "dist_triangle_inequality": {"atol": _atol},
-        "exp_belongs": {"atol": _atol},
-        "exp_after_log": {"atol": _atol},
-        "log_after_exp": {"atol": _atol},
-        "log_vec": {"atol": _atol},
-        "geodesic_bvp_vec": {"atol": _atol},
-        "geodesic_boundary_points": {"atol": _atol},
-        "geodesic_bvp_reverse": {"atol": _atol},
-        "geodesic_bvp_belongs": {"atol": _atol},
-        "parallel_transport_bvp_transported_is_tangent": {"atol": _atol},
-        "parallel_transport_ivp_transported_is_tangent": {"atol": _atol},
-        "parallel_transport_bvp_norm": {"atol": _atol},
-        "parallel_transport_bvp_vec": {"atol": _atol},
-        "squared_dist_is_symmetric": {"atol": _atol},
-        "squared_dist_vec": {"atol": _atol},
-    }
-    xfails = ("geodesic_bvp_belongs", "geodesic_bvp_reverse")
+    def sectional_curvature_test_data(self):
+        x, y, z = _so3_normal_basis()
+        data = [
+            dict(
+                tangent_vec_a=x,
+                tangent_vec_b=y,
+                base_point=gs.eye(3),
+                expected=1.0 / 8,
+            ),
+            dict(
+                tangent_vec_a=y,
+                tangent_vec_b=y,
+                base_point=gs.eye(3),
+                expected=0.0,
+            ),
+            dict(
+                tangent_vec_a=gs.stack([y, y]),
+                tangent_vec_b=gs.stack([z] * 2),
+                base_point=gs.eye(3),
+                expected=gs.array([1.0 / 8, 1.0 / 8]),
+            ),
+        ]
+        return data
 
-
-class InvariantMetricVectorAtIdentityTestData(_InvariantMetricAtIdentityMixinsTestData):
-    def left_exp_from_identity_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def left_log_from_identity_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def left_exp_from_identity_after_left_log_from_identity_test_data(self):
-        return self.generate_random_data()
-
-    def left_log_from_identity_after_left_exp_from_identity_test_data(self):
-        return self.generate_random_data()
-
-    def exp_from_identity_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def log_from_identity_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def exp_from_identity_after_log_from_identity_test_data(self):
-        return self.generate_random_data()
-
-    def log_from_identity_after_exp_from_identity_test_data(self):
-        return self.generate_random_data()
-
-
-class InvariantMetricVectorTestData(_InvariantMetricMixinsTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-    skip_vec = True
-    skips = ("invariance",)
-
-
-class BiInvariantMetricTestData(RiemannianMetricTestData):
-    def invariance_test_data(self):
-        return self.generate_random_data()
-
-
-class BiInvariantMetricVectorsSOTestData(BiInvariantMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-    skips = (
-        "parallel_transport_bvp_norm",
-        "parallel_transport_ivp_norm",
-        "parallel_transport_bvp_transported_is_tangent",
-        "parallel_transport_ivp_transported_is_tangent",
-        "parallel_transport_bvp_vec",
-        "parallel_transport_ivp_vec",
-        "invariance",
-    )
-
-
-class BiInvariantMetricMatrixTestData(BiInvariantMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
+    def curvature_derivative_at_identity_test_data(self):
+        x, y, z = _so3_normal_basis()
+        data = [
+            dict(
+                tangent_vec_a=x,
+                tangent_vec_b=y,
+                tangent_vec_c=z,
+                tangent_vec_d=x,
+                expected=gs.zeros_like(x),
+            ),
+        ]
+        return data

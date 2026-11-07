@@ -1,51 +1,70 @@
-import pytest
+from polpo.testing.parametrizers import GeometricDataBasedParametrizer
 
 import geomstats.backend as gs
 from geomstats.geometry.klein_bottle import KleinBottle
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import RandomDataGenerator
-from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.klein_bottle import KleinBottleMetricTestData, KleinBottleTestData
 
 
-class TestKleinBottle(ManifoldTestCase, metaclass=DataBasedParametrizer):
+class TestKleinBottle(ManifoldTestCase, metaclass=GeometricDataBasedParametrizer):
     space = KleinBottle(equip=False)
-    testing_data = KleinBottleTestData()
+    testing_data = KleinBottleTestData(space)
 
-    def test_equivalent(self, point_a, point_b, expected, atol):
+    def test_equivalent(self, point_a, point_b, expected, atol=gs.atol):
+        """Check equivalence of representatives.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., 2]
+            Point.
+        point_b : array-like, shape=[..., 2]
+            Point.
+        expected : array-like, shape=[...]
+            Boolean evaluating if `point_a` and `point_b` represent the same
+            point of the Klein bottle.
+        atol : float
+            Absolute tolerance.
+        """
         is_equivalent = self.space.equivalent(point_a, point_b, atol=atol)
         self.assertAllEqual(is_equivalent, expected)
 
-    @pytest.mark.random
-    def test_regularize_correct_domain(self, n_points):
-        points = self.data_generator.random_point(n_points)
-        regularized_computed = self.space.regularize(points)
-        greater_zero = gs.all(regularized_computed >= 0)
-        smaller_one = gs.all(regularized_computed < 1)
+    def test_to_coords(self, point, coords_type, expected, atol=gs.atol):
+        """Check coordinates change.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 2]
+            Point.
+        coords_type : str
+            Coordinates type.
+        expected : array-like, shape=[..., k]
+            Expected point in the given coordinates.
+        atol : float
+            Absolute tolerance.
+        """
+        transformed_point = self.space.to_coords(point, coords_type)
+        self.assertAllClose(transformed_point, expected, atol=atol)
+
+    def test_regularize_correct_domain(self, point):
+        """Check regularized point is in the fundamental domain.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 2]
+            Point.
+        """
+        regularized_point = self.space.regularize(point)
+        greater_zero = gs.all(regularized_point >= 0)
+        smaller_one = gs.all(regularized_point < 1)
         self.assertTrue(greater_zero and smaller_one)
 
-    def test_to_coords(self, point, coords_type, expected, atol):
-        transformed_point = self.space.to_coords(point, coords_type)
-        self.assertAllClose(transformed_point, expected, atol)
 
-    @pytest.mark.vec
-    def test_to_coords_vec(self, coords_type, n_reps, atol):
-        point = self.data_generator.random_point()
-        res = self.space.to_coords(point, coords_type)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, coords_type=coords_type, expected=res, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-
-class TestKleinBottleMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+class TestKleinBottleMetric(
+    RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
     space = KleinBottle()
-    data_generator = RandomDataGenerator(space, amplitude=10.0)
-    testing_data = KleinBottleMetricTestData()
+    testing_data = KleinBottleMetricTestData(
+        space, generator_kwargs={"amplitude": 10.0}
+    )
