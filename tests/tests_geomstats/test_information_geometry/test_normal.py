@@ -1,6 +1,7 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import GeometricDataBasedParametrizer
 
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 from geomstats.information_geometry.normal import (
@@ -11,8 +12,7 @@ from geomstats.information_geometry.normal import (
     UnivariateNormalDistributionsRandomVariable,
     UnivariateNormalToPoincareHalfSpaceDiffeo,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import RandomDataGenerator
+from geomstats.test.test_case import autodiff_backend
 from geomstats.test_cases.geometry.base import VectorSpaceOpenSetTestCase
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.product_manifold import ProductManifoldTestCase
@@ -25,13 +25,12 @@ from geomstats.test_cases.information_geometry.normal import (
 )
 
 from ..test_geometry.data.diffeo import DiffeoTestData
+from ..test_geometry.data.riemannian_metric import RiemannianMetricTestData
 from ..test_geometry.data.spd_matrices import SPDAffineMetricTestData
 from .data.normal import (
     CenteredNormalDistributionsTestData,
     DiagonalNormalDistributionsTestData,
-    DiagonalNormalMetricTestData,
     GeneralNormalDistributionsTestData,
-    GeneralNormalMetricTestData,
     UnivariateNormalDistributionsTestData,
     UnivariateNormalMetricTestData,
 )
@@ -40,152 +39,113 @@ from .data.normal import (
 class TestUnivariateNormalDistributions(
     InformationManifoldMixinTestCase,
     VectorSpaceOpenSetTestCase,
-    metaclass=DataBasedParametrizer,
+    metaclass=GeometricDataBasedParametrizer,
 ):
     space = NormalDistributions(sample_dim=1, equip=False)
     random_variable = UnivariateNormalDistributionsRandomVariable(space)
-    testing_data = UnivariateNormalDistributionsTestData()
+    testing_data = UnivariateNormalDistributionsTestData(
+        space, excluded_methods=("sample_belongs_to_support",)
+    )
 
 
 class TestUnivariateNormalToPoincareHalfSpaceDiffeo(
-    DiffeoTestCase, metaclass=DataBasedParametrizer
+    DiffeoTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    space = NormalDistributions(sample_dim=1, equip=False)
+    domain_space = NormalDistributions(sample_dim=1, equip=False)
     image_space = PoincareHalfSpace(dim=2, equip=False)
     diffeo = UnivariateNormalToPoincareHalfSpaceDiffeo()
-    testing_data = DiffeoTestData()
+
+    testing_data = DiffeoTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+        map_=diffeo,
+    )
 
 
 class TestUnivariateNormalMetric(
-    UnivariateNormalMetricTestCase, metaclass=DataBasedParametrizer
+    UnivariateNormalMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
     space = NormalDistributions(sample_dim=1)
-    data_generator = RandomDataGenerator(space, amplitude=5.0)
-
-    testing_data = UnivariateNormalMetricTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        random.randint(3, 5),
-    ],
-)
-def centered_spaces(request):
-    space = request.cls.space = NormalDistributions(
-        sample_dim=request.param, distribution_type="centered", equip=False
+    testing_data = UnivariateNormalMetricTestData(
+        space,
+        excluded_methods=() if autodiff_backend() else ("sectional_curvature_value",),
+        generator_kwargs={"amplitude": 5.0},
     )
-    request.cls.random_variable = SharedMeanNormalDistributionsRandomVariable(space)
 
 
-@pytest.mark.usefixtures("centered_spaces")
 class TestCenteredNormalDistributions(
     InformationManifoldMixinTestCase,
     VectorSpaceOpenSetTestCase,
-    metaclass=DataBasedParametrizer,
+    metaclass=GeometricDataBasedParametrizer,
 ):
-    testing_data = CenteredNormalDistributionsTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        random.randint(3, 5),
-    ],
-)
-def equipped_centered_spaces(request):
-    request.cls.space = NormalDistributions(
-        sample_dim=request.param, distribution_type="centered"
+    space = NormalDistributions(
+        sample_dim=random.randint(3, 5), distribution_type="centered", equip=False
+    )
+    random_variable = SharedMeanNormalDistributionsRandomVariable(space)
+    testing_data = CenteredNormalDistributionsTestData(
+        space, excluded_methods=("sample_belongs_to_support",)
     )
 
 
 @pytest.mark.redundant
-@pytest.mark.usefixtures("equipped_centered_spaces")
 class TestCenteredNormalMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = SPDAffineMetricTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def diagonal_spaces(request):
-    space = request.cls.space = NormalDistributions(
-        sample_dim=request.param, distribution_type="diagonal", equip=False
+    space = NormalDistributions(
+        sample_dim=random.randint(3, 5), distribution_type="centered"
     )
-    request.cls.random_variable = DiagonalNormalDistributionsRandomVariable(space)
+    testing_data = SPDAffineMetricTestData(space)
 
 
-@pytest.mark.usefixtures("diagonal_spaces")
 class TestDiagonalNormalDistributions(
     InformationManifoldMixinTestCase,
     VectorSpaceOpenSetTestCase,
-    metaclass=DataBasedParametrizer,
+    metaclass=GeometricDataBasedParametrizer,
 ):
-    testing_data = DiagonalNormalDistributionsTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def equipped_diagonal_spaces(request):
-    space = request.cls.space = NormalDistributions(
-        sample_dim=request.param, distribution_type="diagonal"
+    space = NormalDistributions(
+        sample_dim=random.randint(2, 5), distribution_type="diagonal", equip=False
     )
-    request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
+    random_variable = DiagonalNormalDistributionsRandomVariable(space)
+    testing_data = DiagonalNormalDistributionsTestData(
+        space, excluded_methods=("sample_belongs_to_support",)
+    )
 
 
-@pytest.mark.usefixtures("equipped_diagonal_spaces")
 class TestDiagonalNormalMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = DiagonalNormalMetricTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        random.randint(3, 5),
-    ],
-)
-def general_spaces(request):
-    space = request.cls.space = NormalDistributions(
-        sample_dim=request.param, equip=False
+    space = NormalDistributions(
+        sample_dim=random.randint(2, 5), distribution_type="diagonal"
     )
-    request.cls.random_variable = MultivariateNormalDistributionsRandomVariable(space)
+    testing_data = RiemannianMetricTestData(
+        space,
+        excluded_methods=(
+            "parallel_transport_ivp",
+            "parallel_transport_bvp",
+            "parallel_transport_ivp_transported_is_tangent",
+            "parallel_transport_bvp_transported_is_tangent",
+            "parallel_transport_ivp_norm",
+            "parallel_transport_bvp_norm",
+        ),
+        generator_kwargs={"amplitude": 10.0},
+    )
 
 
-@pytest.mark.usefixtures("general_spaces")
 class TestGeneralNormalDistributions(
     InformationManifoldMixinTestCase,
     ProductManifoldTestCase,
-    metaclass=DataBasedParametrizer,
+    metaclass=GeometricDataBasedParametrizer,
 ):
-    testing_data = GeneralNormalDistributionsTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        random.randint(3, 5),
-    ],
-)
-def equipped_general_spaces(request):
-    request.cls.space = NormalDistributions(sample_dim=request.param)
+    space = NormalDistributions(sample_dim=random.randint(3, 5), equip=False)
+    random_variable = MultivariateNormalDistributionsRandomVariable(space)
+    testing_data = GeneralNormalDistributionsTestData(
+        space, excluded_methods=("sample_belongs_to_support",)
+    )
 
 
 @pytest.mark.redundant
-@pytest.mark.usefixtures("equipped_general_spaces")
 class TestGeneralNormalMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = GeneralNormalMetricTestData()
+    space = NormalDistributions(sample_dim=random.randint(3, 5))
+    testing_data = RiemannianMetricTestData(space)

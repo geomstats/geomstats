@@ -1,51 +1,88 @@
 import pytest
+from polpo.testing.parametrizers import GeometricDataBasedParametrizer
 
 from geomstats.information_geometry.geometric import (
     GeometricDistributions,
     GeometricDistributionsRandomVariable,
-    GeometricMetric,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import RandomDataGenerator
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+from geomstats.test.test_case import autodiff_only
+from geomstats.test_cases.geometry.riemannian_metric import (
+    CoordinateRiemannianMetricComparisonTestCase,
+    CoordinateRiemannianMetricTestCase,
+)
 from geomstats.test_cases.information_geometry.geometric import (
     GeometricDistributionsTestCase,
 )
-
-from .data.geometric import (
-    GeometricDistributionsSmokeTestData,
-    GeometricDistributionsTestData,
-    GeometricMetricSmokeTestData,
-    GeometricMetricTestData,
+from geomstats.variants.information_geometry.geometric import (
+    GeometricMetric as MetricMatrixGeometricMetric,
 )
+from geomstats.variants.information_geometry.geometric import PullbackGeometricMetric
+
+from ..test_geometry.data.riemannian_metric import (
+    CoordinateRiemannianMetricComparisonTestData,
+)
+from .data.geometric import GeometricDistributionsTestData, GeometricMetricTestData
 
 
 class TestGeometricDistributions(
-    GeometricDistributionsTestCase, metaclass=DataBasedParametrizer
+    GeometricDistributionsTestCase, metaclass=GeometricDataBasedParametrizer
 ):
     space = GeometricDistributions(equip=False)
     random_variable = GeometricDistributionsRandomVariable(space)
-    testing_data = GeometricDistributionsTestData()
+    testing_data = GeometricDistributionsTestData(space)
 
 
-@pytest.mark.smoke
-class TestGeometricDistributionsSmoke(
-    GeometricDistributionsTestCase, metaclass=DataBasedParametrizer
+class TestGeometricMetric(
+    CoordinateRiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    space = GeometricDistributions(equip=False)
-    testing_data = GeometricDistributionsSmokeTestData()
-
-
-class TestGeometricMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     space = GeometricDistributions()
-    data_generator = RandomDataGenerator(space, amplitude=10.0)
-    testing_data = GeometricMetricTestData()
+    testing_data = GeometricMetricTestData(
+        space,
+        excluded_methods=("sectional_curvature",),
+        generator_kwargs={"within_injectivity_radius": True},
+    )
 
 
-@pytest.mark.smoke
-class TestGeometricMetricSmoke(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+@autodiff_only
+@pytest.mark.redundant
+class TestGeometricMetricCmp(
+    CoordinateRiemannianMetricComparisonTestCase,
+    metaclass=GeometricDataBasedParametrizer,
 ):
-    space = GeometricDistributions(equip=False)
-    space.equip_with_metric(GeometricMetric)
-    testing_data = GeometricMetricSmokeTestData()
+    space = GeometricDistributions()
+    other_space = GeometricDistributions(equip=False).equip_with_metric(
+        MetricMatrixGeometricMetric
+    )
+    testing_data = CoordinateRiemannianMetricComparisonTestData(
+        space,
+        included_methods=(
+            "christoffels",
+            "inner_product_derivative_matrix",
+            "jacobian_christoffels",
+            "curvature",
+            "scalar_curvature",
+        ),
+    )
+
+
+@autodiff_only
+@pytest.mark.redundant
+class TestPullbackGeometricMetricCmp(
+    CoordinateRiemannianMetricComparisonTestCase,
+    metaclass=GeometricDataBasedParametrizer,
+):
+    space = GeometricDistributions()
+    other_space = GeometricDistributions(equip=False).equip_with_metric(
+        PullbackGeometricMetric
+    )
+    testing_data = CoordinateRiemannianMetricComparisonTestData(
+        space,
+        included_methods=(
+            "metric_matrix",
+            "christoffels",
+            "inner_product_derivative_matrix",
+            "jacobian_christoffels",
+            "curvature",
+            "scalar_curvature",
+        ),
+    )
