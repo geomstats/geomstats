@@ -13,7 +13,7 @@ from geomstats._einsum import scalarmatmul, scalarvecmul
 from geomstats._logging import warn_max_iterations
 from geomstats._scipygs.interpolate import PchipInterpolator
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.diffeo import AutodiffDiffeo, Diffeo
+from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.fiber_bundle import AlignerAlgorithm, FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
@@ -538,8 +538,7 @@ class FTransform(AutodiffDiffeo):
         self.ambient_manifold = ambient_manifold
         self.k_sampling_points = k_sampling_points
 
-        shape = (k_sampling_points - 1,) + self.ambient_manifold.shape
-        super().__init__(shape, shape)
+        self._point_ndim = self.ambient_manifold.point_ndim + 1
 
     def _check_ambient_manifold(self, ambient_manifold):
         if not (isinstance(ambient_manifold, Euclidean) and ambient_manifold.dim == 2):
@@ -625,7 +624,7 @@ class FTransform(AutodiffDiffeo):
         """
         coeff = self.k_sampling_points - 1
 
-        base_point_with_origin = insert_zeros(base_point, axis=-self._space_point_ndim)
+        base_point_with_origin = insert_zeros(base_point, axis=-self._point_ndim)
 
         velocity = coeff * (
             base_point_with_origin[..., 1:, :] - base_point_with_origin[..., :-1, :]
@@ -664,18 +663,163 @@ class FTransform(AutodiffDiffeo):
 
         dt = 1 / (self.k_sampling_points - 1)
 
-        delta_points_x = gs.einsum(
-            "...i,...i->...i", dt * f_norms**2, gs.cos(2 * self.b / self.a * f_args)
-        )
-        delta_points_y = gs.einsum(
-            "...i,...i->...i", dt * f_norms**2, gs.sin(2 * self.b / self.a * f_args)
-        )
+        delta_points_x = dt * f_norms**2 * gs.cos(2 * self.b / self.a * f_args)
+        delta_points_y = dt * f_norms**2 * gs.sin(2 * self.b / self.a * f_args)
 
         delta_points = gs.stack((delta_points_x, delta_points_y), axis=-1)
 
         delta_points = 1 / (4 * self.b**2) * delta_points
 
         return gs.cumsum(delta_points, axis=-2)
+
+    @staticmethod
+    def _unit_vecs(args):
+        """Compute unit vectors and their rotation by a quarter turn.
+
+        Parameters
+        ----------
+        args : array-like, shape=[..., k]
+            Angles.
+
+        Returns
+        -------
+        unit_vec : array-like, shape=[..., k, 2]
+            Unit vectors with angles `args`.
+        orth_unit_vec : array-like, shape=[..., k, 2]
+            Unit vectors with angles `args + pi / 2`.
+        """
+        cos, sin = gs.cos(args), gs.sin(args)
+        unit_vec = gs.stack([cos, sin], axis=-1)
+        orth_unit_vec = gs.stack([-sin, cos], axis=-1)
+        return unit_vec, orth_unit_vec
+
+    @staticmethod
+    def _polar_differentials(vec, d_vec):
+        r"""Compute the differentials of the polar coordinates of planar vectors.
+
+        .. math::
+            dr = \frac{\langle v, dv \rangle}{|v|},
+            \quad d\theta = \frac{v \times dv}{|v|^2}
+
+        Parameters
+        ----------
+        vec : array-like, shape=[..., k, 2]
+            Planar vectors.
+        d_vec : array-like, shape=[..., k, 2]
+            Variations of `vec`.
+
+        Returns
+        -------
+        d_norms : array-like, shape=[..., k]
+            Differentials of the norms.
+        d_args : array-like, shape=[..., k]
+            Differentials of the angles.
+        """
+        squared_norms = gs.sum(vec**2, axis=-1)
+        inner_prods = gs.sum(vec * d_vec, axis=-1)
+        cross_prods = vec[..., 0] * d_vec[..., 1] - vec[..., 1] * d_vec[..., 0]
+        return inner_prods / gs.sqrt(squared_norms), cross_prods / squared_norms
+
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
+        r"""Differential of the F_transform.
+
+        With :math:`r, \theta` the polar coordinates of the velocity
+        :math:`c'` and :math:`\lambda = a / (2b)`, the F_transform is
+        :math:`q = 2b \sqrt{r} u(\lambda \theta)`, with
+        :math:`u(\phi) = (\cos \phi, \sin \phi)`. Its differential is
+
+        .. math::
+            dq = 2b \left( \frac{dr}{2 \sqrt{r}} u(\lambda \theta)
+            + \lambda \sqrt{r} d\theta u^\perp(\lambda \theta) \right)
+
+        where :math:`u^\perp` is :math:`u` rotated by a quarter turn.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Tangent vector to curve.
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve.
+        image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            F_transform of the curve. Used to compute `base_point` if it is
+            not given.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Differential of the F_transform at `base_point` evaluated at
+            `tangent_vec`.
+        """
+        if base_point is None:
+            base_point = self.inverse(image_point)
+
+        ndim = self._point_ndim
+        velocity = forward_difference(insert_zeros(base_point, axis=-ndim), axis=-ndim)
+        d_velocity = forward_difference(
+            insert_zeros(tangent_vec, axis=-ndim), axis=-ndim
+        )
+
+        polar_velocity = self._cartesian_to_polar(velocity)
+        speeds = polar_velocity[..., :, 0]
+        args = polar_velocity[..., :, 1]
+        d_speeds, d_args = self._polar_differentials(velocity, d_velocity)
+
+        ratio = self.a / (2 * self.b)
+        unit_vec, orth_unit_vec = self._unit_vecs(ratio * args)
+
+        sqrt_speeds = gs.sqrt(speeds)
+        radial = self.b * d_speeds / sqrt_speeds
+        angular = self.a * sqrt_speeds * d_args
+        return scalarvecmul(radial, unit_vec) + scalarvecmul(angular, orth_unit_vec)
+
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
+        r"""Differential of the inverse F_transform.
+
+        With :math:`\rho, \theta` the polar coordinates of the F_transform
+        :math:`q` and :math:`\lambda = a / (2b)`, the velocity of the curve is
+        :math:`c' = r u(\phi)` with :math:`r = \rho^2 / (4 b^2)` and
+        :math:`\phi = \theta / \lambda`. Its differential is
+
+        .. math::
+            dc' = dr u(\phi) + r d\phi u^\perp(\phi)
+
+        where :math:`u^\perp` is :math:`u` rotated by a quarter turn, and the
+        variation of the curve is obtained by integration.
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Tangent vector to the F_transform of the curve.
+        image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            F_transform of the curve.
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve. Used to compute `image_point` if it is not given.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Differential of the inverse F_transform at `image_point` evaluated
+            at `image_tangent_vec`.
+        """
+        if image_point is None:
+            image_point = self(base_point)
+
+        f_polar = self._cartesian_to_polar(image_point)
+        f_norms = f_polar[..., :, 0]
+        f_args = f_polar[..., :, 1]
+        d_f_norms, d_f_args = self._polar_differentials(image_point, image_tangent_vec)
+
+        ratio = self.a / (2 * self.b)
+        unit_vec, orth_unit_vec = self._unit_vecs(f_args / ratio)
+
+        speeds = f_norms**2 / (4 * self.b**2)
+        d_speeds = f_norms * d_f_norms / (2 * self.b**2)
+        d_args = d_f_args / ratio
+        d_velocity = scalarvecmul(d_speeds, unit_vec) + scalarvecmul(
+            speeds * d_args, orth_unit_vec
+        )
+
+        return gs.cumsum(d_velocity / (self.k_sampling_points - 1), axis=-2)
 
 
 class L2CurvesMetric(NFoldMetric):
