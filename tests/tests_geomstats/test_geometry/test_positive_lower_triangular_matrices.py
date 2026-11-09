@@ -2,6 +2,7 @@ import random
 
 import pytest
 
+import geomstats.backend as gs
 from geomstats.geometry.lower_triangular_matrices import StrictlyLowerTriangularMatrices
 from geomstats.geometry.positive_lower_triangular_matrices import (
     CholeskyMetric,
@@ -146,3 +147,15 @@ class TestLowerMatrixLogCmp(DiffeoComparisonTestCase, metaclass=DataBasedParamet
     other_diffeo = OtherLowerMatrixLog()
 
     testing_data = LowerMatrixLogCmpTestData()
+
+def test_projection_with_batch_axis_of_size_one():
+    """Check that a batch shape with an axis of size one is kept as it is."""
+    space = PositiveLowerTriangularMatrices(3, equip=False)
+    points = gs.random.normal(size=(2, 1, 3, 3))
+
+    projected_points = space.projection(points)
+    assert projected_points.shape == points.shape
+
+    for i in range(2):
+        assert gs.allclose(projected_points[i, 0], space.projection(points[i, 0]))
+        
