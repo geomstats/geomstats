@@ -262,7 +262,7 @@ def array_from_sparse(indices, data, target_shape):
 def vec_to_diag(vec):
     """Convert vector to diagonal matrix."""
     d = vec.shape[-1]
-    return _np.squeeze(vec[..., None, :] * eye(d, dtype=vec.dtype)[None, :, :])
+    return vec[..., None] * eye(d, dtype=vec.dtype)
 
 
 def tril_to_vec(x, k=0):
