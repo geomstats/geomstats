@@ -1,161 +1,162 @@
-import math
-
-import pytest
-
 import geomstats.backend as gs
-from geomstats.test.random import RandomDataGenerator, get_random_times
+from geomstats.test.assertions import (
+    assert_belongs,
+    assert_is_tangent,
+    assert_same_result,
+)
 from geomstats.test.test_case import TestCase
-from geomstats.test.utils import IdentityPointTransformer, PointTransformerFromDiffeo
-from geomstats.test.vectorization import generate_vectorization_data
-from geomstats.test_cases.geometry.mixins import GeodesicBVPTestCaseMixins
-from geomstats.vectorization import get_batch_shape
+
+from .mixins import GeodesicBVPTestCaseMixins
 
 
 class ConnectionTestCase(GeodesicBVPTestCaseMixins, TestCase):
-    tangent_to_multiple = False
-    is_metric = True
+    def test_christoffels(self, base_point, expected, atol=gs.atol):
+        """Check Christoffel symbols.
 
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = RandomDataGenerator(self.space)
-
-    def test_christoffels(self, base_point, expected, atol):
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., dim, dim, dim]
+            Expected Christoffel symbols.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.metric.christoffels(base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    def test_geodesic_equation(self, state, expected, atol):
+    def test_geodesic_equation(self, tangent_vec, base_point, expected, atol=gs.atol):
+        """Check geodesic equation.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., 2, dim]
+            Expected velocity and acceleration.
+        atol : float
+            Absolute tolerance.
+        """
+        state = gs.stack([base_point, tangent_vec])
+
         res = self.space.metric.geodesic_equation(state)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_geodesic_equation_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+    def test_exp(self, tangent_vec, base_point, expected, atol=gs.atol):
+        """Check exponential.
 
-        state = gs.stack([base_point, tangent_vec])
-        expected = self.space.metric.geodesic_equation(state)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    state=state,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["state"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    def test_exp(self, tangent_vec, base_point, expected, atol):
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., *space.shape]
+            Expected point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.metric.exp(tangent_vec, base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.random
-    def test_exp_belongs(self, n_points, atol):
-        """Check exponential gives point in the manifold.
+    def test_log(self, point, base_point, expected, atol=gs.atol):
+        """Check logarithm.
 
         Parameters
         ----------
-        n_points : int
-            Number of random points to generate.
+        point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., *space.shape]
+            Expected tangent vector at `base_point`.
         atol : float
             Absolute tolerance.
         """
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
-        point = self.space.metric.exp(tangent_vec, base_point)
-
-        res = self.space.belongs(point, atol=atol)
-        expected_shape = get_batch_shape(self.space.point_ndim, base_point)
-        expected = gs.ones(expected_shape, dtype=bool)
-        self.assertAllEqual(res, expected)
-
-    def test_log(self, point, base_point, expected, atol):
         res = self.space.metric.log(point, base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.random
-    def test_log_is_tangent(self, n_points, atol):
-        """Check logarithm gives a tangent vector.
+    def test_riemann_tensor(self, base_point, expected, atol=gs.atol):
+        """Check Riemann tensor.
 
         Parameters
         ----------
-        n_points : int
-            Number of random points to generate.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., dim, dim, dim, dim]
+            Expected Riemann tensor.
         atol : float
             Absolute tolerance.
         """
-        base_point = self.data_generator.random_point(n_points)
-        point = self.data_generator.random_point(n_points)
-
-        tangent_vec = self.space.metric.log(point, base_point)
-
-        res = self.space.is_tangent(tangent_vec, base_point, atol=atol)
-        expected_shape = get_batch_shape(self.space.point_ndim, base_point)
-        expected = gs.ones(expected_shape, dtype=bool)
-        self.assertAllEqual(res, expected)
-
-    @pytest.mark.random
-    def test_exp_after_log(self, n_points, atol):
-        """Check exp and log are inverse.
-
-        Parameters
-        ----------
-        n_points : int
-            Number of random points to generate.
-        atol : float
-            Absolute tolerance.
-        """
-        base_point = self.data_generator.random_point(n_points)
-        end_point = self.data_generator.random_point(n_points)
-
-        tangent_vec = self.space.metric.log(end_point, base_point)
-        end_point_ = self.space.metric.exp(tangent_vec, base_point)
-
-        self.assertAllClose(end_point_, end_point, atol=atol)
-
-    @pytest.mark.random
-    def test_log_after_exp(self, n_points, atol):
-        """Check log and exp are inverse.
-
-        Parameters
-        ----------
-        n_points : int
-            Number of random points to generate.
-        atol : float
-            Absolute tolerance.
-        """
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
-        end_point = self.space.metric.exp(tangent_vec, base_point)
-        tangent_vec_ = self.space.metric.log(end_point, base_point)
-
-        self.assertAllClose(tangent_vec_, tangent_vec, atol=atol)
-
-    def test_riemann_tensor(self, base_point, expected, atol):
         res = self.space.metric.riemann_tensor(base_point)
         self.assertAllClose(res, expected, atol=atol)
 
     def test_curvature(
-        self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point, expected, atol
+        self,
+        tangent_vec_a,
+        tangent_vec_b,
+        tangent_vec_c,
+        base_point,
+        expected,
+        atol=gs.atol,
     ):
+        """Check curvature.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., *space.shape]
+            Expected tangent vector at `base_point`.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.metric.curvature(
             tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
         )
         self.assertAllClose(res, expected, atol=atol)
 
-    def test_ricci_tensor(self, base_point, expected, atol):
+    def test_ricci_tensor(self, base_point, expected, atol=gs.atol):
+        """Check Ricci tensor.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., dim, dim]
+            Expected Ricci tensor.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.metric.ricci_tensor(base_point)
         self.assertAllClose(res, expected, atol=atol)
 
     def test_directional_curvature(
-        self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
+        self, tangent_vec_a, tangent_vec_b, base_point, expected, atol=gs.atol
     ):
+        """Check directional curvature.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., *space.shape]
+            Expected tangent vector at `base_point`.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.metric.directional_curvature(
             tangent_vec_a, tangent_vec_b, base_point
         )
@@ -169,16 +170,50 @@ class ConnectionTestCase(GeodesicBVPTestCaseMixins, TestCase):
         tangent_vec_d,
         base_point,
         expected,
-        atol,
+        atol=gs.atol,
     ):
+        """Check covariant derivative of the curvature.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_d : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., *space.shape]
+            Expected tangent vector at `base_point`.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.metric.curvature_derivative(
             tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d, base_point
         )
         self.assertAllClose(res, expected, atol=atol)
 
     def test_directional_curvature_derivative(
-        self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
+        self, tangent_vec_a, tangent_vec_b, base_point, expected, atol=gs.atol
     ):
+        """Check covariant derivative of the directional curvature.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., *space.shape]
+            Expected tangent vector at `base_point`.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.metric.directional_curvature_derivative(
             tangent_vec_a, tangent_vec_b, base_point
         )
@@ -189,90 +224,259 @@ class ConnectionTestCase(GeodesicBVPTestCaseMixins, TestCase):
         initial_point,
         time,
         expected,
-        atol,
+        atol=gs.atol,
         end_point=None,
         initial_tangent_vec=None,
     ):
+        """Check geodesic.
+
+        The geodesic is defined by `end_point` (boundary value problem)
+        or by `initial_tangent_vec` (initial value problem).
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., *space.shape]
+            Initial point of the geodesic.
+        time : array-like, shape=[n_times,]
+            Times at which to evaluate the geodesic.
+        expected : array-like, shape=[..., n_times, *space.shape]
+            Expected points on the geodesic.
+        atol : float
+            Absolute tolerance.
+        end_point : array-like, shape=[..., *space.shape]
+            End point of the geodesic.
+            Optional, default: None.
+        initial_tangent_vec : array-like, shape=[..., *space.shape]
+            Initial velocity of the geodesic.
+            Optional, default: None.
+        """
         geod_func = self.space.metric.geodesic(
             initial_point, end_point=end_point, initial_tangent_vec=initial_tangent_vec
         )
         res = geod_func(time)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_geodesic_ivp_vec(self, n_reps, n_times, atol):
-        initial_point = self.data_generator.random_point()
-        initial_tangent_vec = self.data_generator.random_tangent_vec(initial_point)
-        time = get_random_times(n_times)
-
-        expected = self.space.metric.geodesic(
-            initial_point, initial_tangent_vec=initial_tangent_vec
-        )(time)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    initial_point=initial_point,
-                    initial_tangent_vec=initial_tangent_vec,
-                    time=time,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["initial_point", "initial_tangent_vec"],
-            expected_name="expected",
-            n_reps=n_reps,
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-1",
-        )
-        self._test_vectorization(vec_data, test_fnc_name="test_geodesic")
-
-    @pytest.mark.random
-    def test_geodesic_ivp_belongs(self, n_points, n_times, atol):
-        """Check geodesic belongs to manifold.
-
-        This is for geodesics defined by the initial value problem (ivp).
+    def test_geodesic_ivp(
+        self,
+        initial_point,
+        initial_tangent_vec,
+        time,
+        expected,
+        atol=gs.atol,
+    ):
+        """Check geodesic defined by the initial value problem.
 
         Parameters
         ----------
-        n_points : int
-            Number of random points to generate.
+        initial_point : array-like, shape=[..., *space.shape]
+            Initial point of the geodesic.
+        initial_tangent_vec : array-like, shape=[..., *space.shape]
+            Initial velocity of the geodesic.
+        time : array-like, shape=[n_times,]
+            Times at which to evaluate the geodesic.
+        expected : array-like, shape=[..., n_times, *space.shape]
+            Expected points on the geodesic.
         atol : float
             Absolute tolerance.
         """
-        initial_point = self.data_generator.random_point(n_points)
-        initial_tangent_vec = self.data_generator.random_tangent_vec(initial_point)
+        self.test_geodesic(
+            initial_point,
+            time,
+            expected,
+            atol=atol,
+            initial_tangent_vec=initial_tangent_vec,
+        )
 
-        time = get_random_times(n_times)
+    def test_parallel_transport(
+        self,
+        tangent_vec,
+        base_point,
+        expected,
+        atol=gs.atol,
+        direction=None,
+        end_point=None,
+    ):
+        """Check parallel transport.
 
+        The geodesic along which to transport is defined by `direction`
+        (initial value problem) or by `end_point` (boundary value problem).
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point` to transport.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., *space.shape]
+            Expected transported tangent vector.
+        atol : float
+            Absolute tolerance.
+        direction : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point` along which to transport.
+            Optional, default: None.
+        end_point : array-like, shape=[..., *space.shape]
+            Point on the manifold to transport to.
+            Optional, default: None.
+        """
+        res = self.space.metric.parallel_transport(
+            tangent_vec,
+            base_point,
+            direction=direction,
+            end_point=end_point,
+        )
+        self.assertAllClose(res, expected, atol=atol)
+
+    def test_parallel_transport_ivp(
+        self, tangent_vec, base_point, direction, expected, atol=gs.atol
+    ):
+        """Check parallel transport along a direction.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point` to transport.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        direction : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point` along which to transport.
+        expected : array-like, shape=[..., *space.shape]
+            Expected transported tangent vector.
+        atol : float
+            Absolute tolerance.
+        """
+        self.test_parallel_transport(
+            tangent_vec, base_point, expected, atol, direction=direction
+        )
+
+    def test_parallel_transport_bvp(
+        self, tangent_vec, base_point, end_point, expected, atol=gs.atol
+    ):
+        """Check parallel transport to an end point.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point` to transport.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        end_point : array-like, shape=[..., *space.shape]
+            Point on the manifold to transport to.
+        expected : array-like, shape=[..., *space.shape]
+            Expected transported tangent vector.
+        atol : float
+            Absolute tolerance.
+        """
+        self.test_parallel_transport(
+            tangent_vec, base_point, expected, atol, end_point=end_point
+        )
+
+    def test_exp_belongs(self, tangent_vec, base_point, atol=gs.atol):
+        """Check exponential gives a point on the manifold.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        point = self.space.metric.exp(tangent_vec, base_point)
+
+        assert_belongs(self.space, point, atol=atol)
+
+    def test_log_is_tangent(self, point, base_point, atol=gs.atol):
+        """Check logarithm gives a tangent vector.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        tangent_vec = self.space.metric.log(point, base_point)
+
+        assert_is_tangent(self.space, tangent_vec, base_point, atol=atol)
+
+    def test_exp_after_log(self, point, base_point, atol=gs.atol):
+        """Check exponential is a left inverse of the logarithm.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        tangent_vec = self.space.metric.log(point, base_point)
+        point_ = self.space.metric.exp(tangent_vec, base_point)
+
+        self.assertAllClose(point_, point, atol=atol)
+
+    def test_log_after_exp(self, tangent_vec, base_point, atol=gs.atol):
+        """Check logarithm is a left inverse of the exponential.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        end_point = self.space.metric.exp(tangent_vec, base_point)
+        tangent_vec_ = self.space.metric.log(end_point, base_point)
+
+        self.assertAllClose(tangent_vec_, tangent_vec, atol=atol)
+
+    def test_geodesic_ivp_belongs(
+        self, initial_point, initial_tangent_vec, time, atol=gs.atol
+    ):
+        """Check geodesic belongs to the manifold.
+
+        The geodesic is defined by the initial value problem.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., *space.shape]
+            Initial point of the geodesic.
+        initial_tangent_vec : array-like, shape=[..., *space.shape]
+            Initial velocity of the geodesic.
+        time : array-like, shape=[n_times,]
+            Times at which to evaluate the geodesic.
+        atol : float
+            Absolute tolerance.
+        """
         geod_func = self.space.metric.geodesic(
             initial_point, initial_tangent_vec=initial_tangent_vec
         )
 
         points = geod_func(time)
 
-        res = self.space.belongs(gs.reshape(points, (-1, *self.space.shape)), atol=atol)
+        assert_belongs(self.space, points, atol=atol)
 
-        expected_shape = (
-            math.prod(get_batch_shape(self.space.point_ndim, initial_point)) * n_times,
-        )
-
-        expected = gs.ones(expected_shape, dtype=bool)
-        self.assertAllEqual(res, expected)
-
-    @pytest.mark.random
-    def test_exp_geodesic_ivp(self, n_points, atol):
+    def test_exp_geodesic_ivp(self, tangent_vec, base_point, atol=gs.atol):
         """Check end point of a geodesic matches exponential.
+
+        The geodesic starts at `base_point` with velocity `tangent_vec`
+        and is evaluated at time 1.
 
         Parameters
         ----------
-        n_points : int
-            Number of random points to generate.
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
         atol : float
             Absolute tolerance.
         """
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
         geod_func = self.space.metric.geodesic(
             base_point, initial_tangent_vec=tangent_vec
         )
@@ -282,241 +486,202 @@ class ConnectionTestCase(GeodesicBVPTestCaseMixins, TestCase):
 
         self.assertAllClose(end_point_, end_point, atol=atol)
 
-    def test_parallel_transport(
-        self, tangent_vec, base_point, expected, atol, direction=None, end_point=None
+    def test_parallel_transport_ivp_transported_is_tangent(
+        self, tangent_vec, base_point, direction, atol=gs.atol
     ):
-        res = self.space.metric.parallel_transport(
-            tangent_vec,
-            base_point,
-            direction=direction,
-            end_point=end_point,
-        )
-        self.assertAllClose(res, expected, atol=atol)
+        """Check parallel transport along a direction gives a tangent vector.
 
-    @pytest.mark.vec
-    def test_parallel_transport_ivp_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-        direction = self.data_generator.random_tangent_vec(base_point)
+        The transported vector is tangent at the exponential of `direction`.
 
-        expected = self.space.metric.parallel_transport(
-            tangent_vec, base_point, direction=direction
-        )
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec=tangent_vec,
-                    base_point=base_point,
-                    direction=direction,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec", "base_point", "direction"],
-            expected_name="expected",
-            n_reps=n_reps,
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-2",
-        )
-        self._test_vectorization(vec_data, test_fnc_name="test_parallel_transport")
-
-    @pytest.mark.vec
-    def test_parallel_transport_bvp_vec(self, n_reps, atol):
-        base_point, end_point = self.data_generator.random_point(2)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.parallel_transport(
-            tangent_vec, base_point, end_point=end_point
-        )
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec=tangent_vec,
-                    base_point=base_point,
-                    end_point=end_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec", "base_point", "end_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
-        )
-        self._test_vectorization(vec_data, test_fnc_name="test_parallel_transport")
-
-    @pytest.mark.random
-    def test_parallel_transport_bvp_transported_is_tangent(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        end_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
-        transported = self.space.metric.parallel_transport(
-            tangent_vec, base_point, end_point=end_point
-        )
-
-        res = self.space.is_tangent(transported, end_point, atol=atol)
-
-        expected_shape = get_batch_shape(self.space.point_ndim, base_point)
-        expected = gs.ones(expected_shape, dtype=bool)
-
-        self.assertAllEqual(res, expected)
-
-    @pytest.mark.random
-    def test_parallel_transport_ivp_transported_is_tangent(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        direction = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point` to transport.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        direction : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point` along which to transport.
+        atol : float
+            Absolute tolerance.
+        """
         transported = self.space.metric.parallel_transport(
             tangent_vec, base_point, direction=direction
         )
 
         end_point = self.space.metric.exp(direction, base_point)
 
-        res = self.space.is_tangent(transported, end_point, atol=atol)
+        assert_is_tangent(self.space, transported, end_point, atol=atol)
 
-        expected_shape = get_batch_shape(self.space.point_ndim, base_point)
-        expected = gs.ones(expected_shape, dtype=bool)
+    def test_parallel_transport_bvp_transported_is_tangent(
+        self, tangent_vec, base_point, end_point, atol=gs.atol
+    ):
+        """Check parallel transport to an end point gives a tangent vector.
 
-        self.assertAllEqual(res, expected)
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point` to transport.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        end_point : array-like, shape=[..., *space.shape]
+            Point on the manifold to transport to.
+        atol : float
+            Absolute tolerance.
+        """
+        transported = self.space.metric.parallel_transport(
+            tangent_vec, base_point, end_point=end_point
+        )
+
+        assert_is_tangent(self.space, transported, end_point, atol=atol)
 
 
 class ConnectionComparisonTestCase(TestCase):
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = RandomDataGenerator(self.space)
+    """Test case comparing the connections of two spaces.
 
-        if not hasattr(self, "point_transformer") and hasattr(self, "diffeo"):
-            self.point_transformer = PointTransformerFromDiffeo(self.diffeo)
+    Each test checks a method gives the same result for `space` and
+    `other_space`.
+    """
 
-        if not hasattr(self, "point_transformer"):
-            self.point_transformer = IdentityPointTransformer()
+    def test_christoffels(self, base_point, atol=gs.atol):
+        """Check Christoffel symbols is the same for both spaces.
 
-    def test_christoffels(self, base_point, atol):
-        res = self.space.metric.christoffels(base_point)
-        res_ = self.other_space.metric.christoffels(base_point)
-        self.assertAllClose(res, res_, atol=atol)
-
-    @pytest.mark.random
-    def test_christoffels_random(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-
-        self.test_christoffels(base_point, atol)
-
-    def test_exp(self, tangent_vec, base_point, atol):
-        base_point_ = self.point_transformer.transform_point(base_point)
-        tangent_vec_ = self.point_transformer.transform_tangent_vec(
-            tangent_vec, base_point
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda space: space.metric.christoffels(base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
 
-        res = self.space.metric.exp(tangent_vec, base_point)
-        res_ = self.other_space.metric.exp(tangent_vec_, base_point_)
+    def test_exp(self, tangent_vec, base_point, atol=gs.atol):
+        """Check exponential is the same for both spaces.
 
-        res_ = self.point_transformer.inverse_transform_point(res_)
-        self.assertAllClose(res, res_, atol=atol)
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda space: space.metric.exp(tangent_vec, base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
-    @pytest.mark.random
-    def test_exp_random(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+    def test_log(self, point, base_point, atol=gs.atol):
+        """Check logarithm is the same for both spaces.
 
-        self.test_exp(tangent_vec, base_point, atol)
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda space: space.metric.log(point, base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
-    def test_log(self, point, base_point, atol):
-        base_point_ = self.point_transformer.transform_point(base_point)
-        point_ = self.point_transformer.transform_point(point)
+    def test_riemann_tensor(self, base_point, atol=gs.atol):
+        """Check Riemann tensor is the same for both spaces.
 
-        res = self.space.metric.log(point, base_point)
-        res_ = self.other_space.metric.log(point_, base_point_)
-
-        res_ = self.point_transformer.inverse_transform_tangent_vec(res_, base_point_)
-        self.assertAllClose(res, res_, atol=atol)
-
-    @pytest.mark.random
-    def test_log_random(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        point = self.data_generator.random_point(n_points)
-
-        self.test_log(point, base_point, atol)
-
-    def test_riemann_tensor(self, base_point, atol):
-        base_point_ = self.point_transformer.transform_point(base_point)
-
-        res = self.space.metric.riemann_tensor(base_point)
-        res_ = self.other_space.metric.riemann_tensor(base_point_)
-        self.assertAllClose(res, res_, atol=atol)
-
-    @pytest.mark.random
-    def test_riemann_tensor_random(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-
-        self.test_riemann_tensor(base_point, atol)
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda space: space.metric.riemann_tensor(base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_curvature(
-        self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point, atol
+        self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point, atol=gs.atol
     ):
-        base_point_ = self.point_transformer.transform_point(base_point)
-        tangent_vec_a_ = self.point_transformer.transform_tangent_vec(
-            tangent_vec_a, base_point
-        )
-        tangent_vec_b_ = self.point_transformer.transform_tangent_vec(
-            tangent_vec_b, base_point
-        )
-        tangent_vec_c_ = self.point_transformer.transform_tangent_vec(
-            tangent_vec_c, base_point
-        )
+        """Check curvature is the same for both spaces.
 
-        res = self.space.metric.curvature(
-            tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
-        )
-        res_ = self.other_space.metric.curvature(
-            tangent_vec_a_, tangent_vec_b_, tangent_vec_c_, base_point_
-        )
-        res_ = self.point_transformer.inverse_transform_tangent_vec(res_, base_point_)
-        self.assertAllClose(res, res_, atol=atol)
-
-    @pytest.mark.random
-    def test_curvature_random(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_c = self.data_generator.random_tangent_vec(base_point)
-
-        self.test_curvature(
-            tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point, atol
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda space: space.metric.curvature(
+                tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
 
-    def test_ricci_tensor(self, base_point, atol):
-        res = self.space.metric.ricci_tensor(base_point)
-        res_ = self.other_space.metric.ricci_tensor(base_point)
-        self.assertAllClose(res, res_, atol=atol)
+    def test_ricci_tensor(self, base_point, atol=gs.atol):
+        """Check Ricci tensor is the same for both spaces.
 
-    @pytest.mark.random
-    def test_ricci_tensor_random(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-
-        self.test_ricci_tensor(base_point, atol)
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda space: space.metric.ricci_tensor(base_point),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_directional_curvature(
-        self, tangent_vec_a, tangent_vec_b, base_point, atol
+        self, tangent_vec_a, tangent_vec_b, base_point, atol=gs.atol
     ):
-        res = self.space.metric.directional_curvature(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-        res_ = self.other_space.metric.directional_curvature(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-        self.assertAllClose(res, res_, atol=atol)
+        """Check directional curvature is the same for both spaces.
 
-    @pytest.mark.random
-    def test_directional_curvature_random(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
-
-        self.test_directional_curvature(tangent_vec_a, tangent_vec_b, base_point, atol)
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda space: space.metric.directional_curvature(
+                tangent_vec_a, tangent_vec_b, base_point
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
+        )
 
     def test_curvature_derivative(
         self,
@@ -525,141 +690,155 @@ class ConnectionComparisonTestCase(TestCase):
         tangent_vec_c,
         tangent_vec_d,
         base_point,
-        atol,
+        atol=gs.atol,
     ):
-        res = self.space.metric.curvature_derivative(
-            tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d, base_point
-        )
-        res_ = self.other_space.metric.curvature_derivative(
-            tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d, base_point
-        )
-        self.assertAllClose(res, res_, atol=atol)
+        """Check covariant derivative of the curvature is the same for both spaces.
 
-    @pytest.mark.random
-    def test_curvature_derivative_random(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_c = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_d = self.data_generator.random_tangent_vec(base_point)
-
-        self.test_curvature_derivative(
-            tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d, base_point, atol
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_d : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda space: space.metric.curvature_derivative(
+                tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d, base_point
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
 
     def test_directional_curvature_derivative(
-        self, tangent_vec_a, tangent_vec_b, base_point, atol
+        self, tangent_vec_a, tangent_vec_b, base_point, atol=gs.atol
     ):
-        res = self.space.metric.directional_curvature_derivative(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-        res_ = self.other_space.metric.directional_curvature_derivative(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-        self.assertAllClose(res, res_, atol=atol)
+        """Check directional curvature derivative is the same for both spaces.
 
-    @pytest.mark.random
-    def test_directional_curvature_derivative_random(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
-
-        self.test_directional_curvature_derivative(
-            tangent_vec_a, tangent_vec_b, base_point, atol
-        )
-
-    def test_geodesic_bvp(self, initial_point, end_point, time, atol):
-        initial_point_ = self.point_transformer.transform_point(initial_point)
-        end_point_ = self.point_transformer.transform_point(end_point)
-
-        res = self.space.metric.geodesic(initial_point, end_point=end_point)(time)
-        res_ = self.other_space.metric.geodesic(initial_point_, end_point=end_point_)(
-            time
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda space: space.metric.directional_curvature_derivative(
+                tangent_vec_a, tangent_vec_b, base_point
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
 
-        res_ = self.point_transformer.inverse_transform_point(res_)
-        self.assertAllClose(res, res_, atol=atol)
+    def test_geodesic_bvp(self, initial_point, end_point, time, atol=gs.atol):
+        """Check geodesic is the same for both spaces.
 
-    @pytest.mark.random
-    def test_geodesic_bvp_random(self, n_points, n_times, atol):
-        initial_point = self.data_generator.random_point(n_points)
-        end_point = self.data_generator.random_point(n_points)
-        time = get_random_times(n_times)
+        The geodesic is defined by the boundary value problem.
 
-        self.test_geodesic_bvp(initial_point, end_point, time, atol)
-
-    def test_geodesic_ivp(self, initial_point, initial_tangent_vec, time, atol):
-        initial_point_ = self.point_transformer.transform_point(initial_point)
-        initial_tangent_vec_ = self.point_transformer.transform_tangent_vec(
-            initial_tangent_vec, initial_point
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., *space.shape]
+            Initial point of the geodesic.
+        end_point : array-like, shape=[..., *space.shape]
+            End point of the geodesic.
+        time : array-like, shape=[n_times,]
+            Times at which to evaluate the geodesic.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda space: space.metric.geodesic(initial_point, end_point=end_point)(
+                time
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
 
-        res = self.space.metric.geodesic(
-            initial_point, initial_tangent_vec=initial_tangent_vec
-        )(time)
+    def test_geodesic_ivp(self, initial_point, initial_tangent_vec, time, atol=gs.atol):
+        """Check geodesic is the same for both spaces.
 
-        res_ = self.other_space.metric.geodesic(
-            initial_point_, initial_tangent_vec=initial_tangent_vec_
-        )(time)
+        The geodesic is defined by the initial value problem.
 
-        res_ = self.point_transformer.inverse_transform_point(res_)
-        self.assertAllClose(res, res_, atol=atol)
-
-    @pytest.mark.random
-    def test_geodesic_ivp_random(self, n_points, n_times, atol):
-        initial_point = self.data_generator.random_point(n_points)
-        initial_tangent_vec = self.data_generator.random_tangent_vec(initial_point)
-        time = get_random_times(n_times)
-
-        self.test_geodesic_ivp(initial_point, initial_tangent_vec, time, atol)
-
-    def test_parallel_transport_ivp(self, base_point, tangent_vec, direction, atol):
-        base_point_ = self.point_transformer.transform_point(base_point)
-        tangent_vec_ = self.point_transformer.transform_tangent_vec(
-            tangent_vec, base_point
-        )
-        direction_ = self.point_transformer.transform_tangent_vec(direction, base_point)
-
-        res = self.space.metric.parallel_transport(
-            tangent_vec, base_point, direction=direction
-        )
-        res_ = self.other_space.metric.parallel_transport(
-            tangent_vec_, base_point_, direction=direction_
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., *space.shape]
+            Initial point of the geodesic.
+        initial_tangent_vec : array-like, shape=[..., *space.shape]
+            Initial velocity of the geodesic.
+        time : array-like, shape=[n_times,]
+            Times at which to evaluate the geodesic.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda space: space.metric.geodesic(
+                initial_point, initial_tangent_vec=initial_tangent_vec
+            )(time),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
 
-        end_point_ = self.other_space.metric.exp(direction_, base_point_)
-        res_ = self.point_transformer.inverse_transform_tangent_vec(res_, end_point_)
-        self.assertAllClose(res, res_, atol=atol)
+    def test_parallel_transport_ivp(
+        self, tangent_vec, base_point, direction, atol=gs.atol
+    ):
+        """Check parallel transport along a direction is the same for both spaces.
 
-    @pytest.mark.random
-    def test_parallel_transport_ivp_random(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-        direction = self.data_generator.random_tangent_vec(base_point)
-
-        self.test_parallel_transport_ivp(base_point, tangent_vec, direction, atol)
-
-    def test_parallel_transport_bvp(self, base_point, end_point, tangent_vec, atol):
-        base_point_ = self.point_transformer.transform_point(base_point)
-        end_point_ = self.point_transformer.transform_point(end_point)
-        tangent_vec_ = self.point_transformer.transform_tangent_vec(
-            tangent_vec, base_point
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point` to transport.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        direction : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point` along which to transport.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda space: space.metric.parallel_transport(
+                tangent_vec, base_point, direction=direction
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
 
-        res = self.space.metric.parallel_transport(
-            tangent_vec, base_point, end_point=end_point
+    def test_parallel_transport_bvp(
+        self, tangent_vec, base_point, end_point, atol=gs.atol
+    ):
+        """Check parallel transport to an end point is the same for both spaces.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point` to transport.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        end_point : array-like, shape=[..., *space.shape]
+            Point on the manifold to transport to.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_same_result(
+            lambda space: space.metric.parallel_transport(
+                tangent_vec, base_point, end_point=end_point
+            ),
+            self.space,
+            self.other_space,
+            atol=atol,
         )
-        res_ = self.other_space.metric.parallel_transport(
-            tangent_vec_, base_point_, end_point=end_point_
-        )
-
-        res_ = self.point_transformer.inverse_transform_tangent_vec(res_, end_point_)
-        self.assertAllClose(res, res_, atol=atol)
-
-    @pytest.mark.random
-    def test_parallel_transport_bvp_random(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        end_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
-        self.test_parallel_transport_bvp(base_point, end_point, tangent_vec, atol)

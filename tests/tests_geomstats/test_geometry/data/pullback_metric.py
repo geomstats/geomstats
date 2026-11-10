@@ -1,10 +1,7 @@
-import geomstats.backend as gs
-from geomstats.test.data import TestData
+from polpo.testing.data import CaseData
 
-from .riemannian_metric import (
-    RiemannianMetricComparisonTestData,
-    RiemannianMetricTestData,
-)
+import geomstats.backend as gs
+
 
 
 def _expected_jacobian_circle_immersion(point):
@@ -114,9 +111,7 @@ def _expected_sphere_inner_product_derivativ_matrix(base_point):
     return expected_1, expected_2
 
 
-class CircleIntrinsicTestData(TestData):
-    fail_for_autodiff_exceptions = False
-
+class CircleIntrinsicTestData(CaseData):
     def tangent_immersion_test_data(self):
         data = [
             dict(
@@ -125,7 +120,7 @@ class CircleIntrinsicTestData(TestData):
                 expected=gs.array([0.0, 1.0]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def jacobian_immersion_test_data(self):
         base_points = [gs.array([0.0]), gs.array([0.2]), gs.array([4.0])]
@@ -138,12 +133,10 @@ class CircleIntrinsicTestData(TestData):
                 ),
             )
 
-        return self.generate_tests(data)
+        return data
 
 
-class SphereIntrinsicTestData(TestData):
-    fail_for_autodiff_exceptions = False
-
+class SphereIntrinsicTestData(CaseData):
     def immersion_test_data(self):
         data = [
             dict(
@@ -159,7 +152,7 @@ class SphereIntrinsicTestData(TestData):
                 expected=gs.array([-1.0, 0.0, 0.0]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def tangent_immersion_test_data(self):
         data = [
@@ -184,7 +177,7 @@ class SphereIntrinsicTestData(TestData):
                 expected=gs.array([0.0, 1.0, 0.0]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def jacobian_immersion_test_data(self):
         base_points = [
@@ -200,7 +193,7 @@ class SphereIntrinsicTestData(TestData):
                     expected=_expected_jacobian_sphere_immersion(base_point),
                 )
             )
-        return self.generate_tests(data)
+        return data
 
     def hessian_immersion_test_data(self):
         base_points = [
@@ -216,12 +209,10 @@ class SphereIntrinsicTestData(TestData):
                     expected=_expected_hessian_sphere_immersion(base_point),
                 )
             )
-        return self.generate_tests(data)
+        return data
 
 
-class CircleIntrinsicMetricTestData(TestData):
-    fail_for_autodiff_exceptions = False
-
+class CircleIntrinsicMetricTestData(CaseData):
     def metric_matrix_test_data(self):
         base_points = [gs.array([0.0]), gs.array([1.0]), gs.array([4.0])]
         data = []
@@ -233,7 +224,7 @@ class CircleIntrinsicMetricTestData(TestData):
                 )
             )
 
-        return self.generate_tests(data)
+        return data
 
     def cometric_matrix_test_data(self):
         base_points = [gs.array([0.6]), gs.array([0.8])]
@@ -246,7 +237,7 @@ class CircleIntrinsicMetricTestData(TestData):
                 )
             )
 
-        return self.generate_tests(data)
+        return data
 
     def second_fundamental_form_test_data(self):
         base_points = [gs.array([0.22]), gs.array([0.88])]
@@ -261,7 +252,7 @@ class CircleIntrinsicMetricTestData(TestData):
                 )
             )
 
-        return self.generate_tests(data)
+        return data
 
     def mean_curvature_vector_norm_test_data(self):
         radius = 1.0
@@ -270,19 +261,17 @@ class CircleIntrinsicMetricTestData(TestData):
             dict(base_point=gs.array([0.1]), expected=expected),
             dict(base_point=gs.array([0.88]), expected=expected),
         ]
-        return self.generate_tests(data)
+        return data
 
     def christoffels_test_data(self):
         data = [
             dict(base_point=gs.array([0.1]), expected=gs.zeros((1, 1, 1))),
             dict(base_point=gs.array([0.88]), expected=gs.zeros((1, 1, 1))),
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class SphereIntrinsicMetricTestData(TestData):
-    fail_for_autodiff_exceptions = False
-
+class SphereIntrinsicMetricTestData(CaseData):
     def metric_matrix_test_data(self):
         base_points = [gs.array([0.0, 0.0]), gs.array([1.0, 1.0]), gs.array([0.3, 0.8])]
         data = []
@@ -294,7 +283,7 @@ class SphereIntrinsicMetricTestData(TestData):
                 )
             )
 
-        return self.generate_tests(data)
+        return data
 
     def cometric_matrix_test_data(self):
         base_points = [gs.array([0.6, -1.0]), gs.array([0.8, -0.8])]
@@ -307,7 +296,7 @@ class SphereIntrinsicMetricTestData(TestData):
                 )
             )
 
-        return self.generate_tests(data)
+        return data
 
     def second_fundamental_form_test_data(self):
         base_points = [gs.array([0.22, 0.1]), gs.array([0.1, 0.88])]
@@ -323,7 +312,7 @@ class SphereIntrinsicMetricTestData(TestData):
                     expected_22=expected_22,
                 )
             )
-        return self.generate_tests(data)
+        return data
 
     def mean_curvature_vector_norm_test_data(self):
         radius = 1.0
@@ -332,7 +321,7 @@ class SphereIntrinsicMetricTestData(TestData):
             dict(base_point=gs.array([0.22, 0.1]), expected=expected),
             dict(base_point=gs.array([0.1, 0.88]), expected=expected),
         ]
-        return self.generate_tests(data)
+        return data
 
     def inner_product_derivative_matrix_test_data(self):
         base_points = [gs.array([0.6, -1.0]), gs.array([0.8, -0.8])]
@@ -348,13 +337,4 @@ class SphereIntrinsicMetricTestData(TestData):
                     expected_2=expected_2,
                 )
             )
-        return self.generate_tests(data)
-
-
-class CircleAsSO2PullbackDiffeoMetricCmpTestData(RiemannianMetricComparisonTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-
-class PullbackDiffeoMetricTestData(RiemannianMetricTestData):
-    pass
+        return data

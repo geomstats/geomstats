@@ -1,31 +1,36 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 from geomstats.geometry.minkowski import Minkowski
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.euclidean import (
     EuclideanMetricTestCase,
     EuclideanTestCase,
 )
 
+from .data.euclidean import EuclideanTestData
 from .data.minkowski import (
     Minkowski2MetricTestData,
     MinkowskiMetricTestData,
-    MinkowskiTestData,
 )
 
 
 @pytest.mark.redundant
-class TestMinkowski(EuclideanTestCase, metaclass=DataBasedParametrizer):
+class TestMinkowski(EuclideanTestCase, metaclass=GeometricDataBasedParametrizer):
     space = Minkowski(dim=random.randint(2, 5), equip=False)
 
-    testing_data = MinkowskiTestData()
+    testing_data = EuclideanTestData(space)
 
 
-class TestMinkowskiMetric(EuclideanMetricTestCase, metaclass=DataBasedParametrizer):
+class TestMinkowskiMetric(
+    EuclideanMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
     space = Minkowski(dim=random.randint(2, 5))
-    testing_data = MinkowskiMetricTestData()
+    testing_data = MinkowskiMetricTestData(space)
 
 
 @pytest.mark.smoke

@@ -1,23 +1,27 @@
-from geomstats.test.data import TestData
-
-from .quotient import AlignerAlgorithmCmpTestData
+from .quotient import AlignerCaseData
 
 
-class GraphAlignerCmpTestData(AlignerAlgorithmCmpTestData):
-    N_RANDOM_POINTS = [1, 2]
-    trials = 5
+class PointToGeodesicAlignerTestData(AlignerCaseData):
+    def _geodesic(self, initial_point, end_point):
+        return self.space.quotient.metric.geodesic(initial_point, end_point)
 
+    def align_with_endpoints_vec_test_data(self):
+        return self.generate_vectorization_data(
+            arg_names=("initial_point", "end_point", "point"),
+            op_name="align_point_to_geodesic",
+            op_evaluator=lambda op, initial_point, end_point, point: op(
+                self._geodesic(initial_point, end_point), point
+            ),
+        )
 
-class PointToGeodesicAlignerTestData(TestData):
-    fail_for_not_implemented_errors = False
-
-    tolerances = {"dist_along_geodesic_is_zero": {"atol": 1e-2}}
-
-    def align_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def dist_vec_test_data(self):
-        return self.generate_vec_data()
+    def dist_with_endpoints_vec_test_data(self):
+        return self.generate_vectorization_data(
+            arg_names=("initial_point", "end_point", "point"),
+            op_name="point_to_geodesic_aligner",
+            op_evaluator=lambda op, initial_point, end_point, point: op.dist(
+                self._geodesic(initial_point, end_point), point
+            ),
+        )
 
     def dist_along_geodesic_is_zero_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(arg_names=("initial_point", "end_point"))

@@ -1,7 +1,8 @@
 import math
 
+from polpo.testing.data import CaseData
+
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 from .complex_riemannian_metric import ComplexRiemannianMetricTestData
 
@@ -9,7 +10,7 @@ LN_3 = math.log(3.0)
 EXP_4 = math.exp(4.0)
 
 
-class Siegel2TestData(TestData):
+class Siegel2TestData(CaseData):
     def belongs_test_data(self):
         data = [
             dict(point=gs.array([[0.2 + 0.2j, -0.1j], [-0.3j, -0.1]]), expected=True),
@@ -24,7 +25,7 @@ class Siegel2TestData(TestData):
                 expected=[True, False],
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def projection_test_data(self):
         data = [
@@ -49,24 +50,10 @@ class Siegel2TestData(TestData):
                 ),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class SiegelMetricTestData(ComplexRiemannianMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
-
-    def tangent_vec_from_base_point_to_zero_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def tangent_vec_from_base_point_to_zero_is_tangent_test_data(self):
-        return self.generate_random_data()
-
-    # def sectional_curvature_at_zero_vec_test_data(self):
-    #     return self.generate_vec_data()
-
-
-class Siegel2MetricTestData(TestData):
+class Siegel2MetricTestData(CaseData):
     def exp_test_data(self):
         smoke_data = [
             dict(
@@ -95,7 +82,7 @@ class Siegel2MetricTestData(TestData):
                 expected=gs.array([[0j, 0j], [0j, 0j]]),
             ),
         ]
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
     def log_test_data(self):
         smoke_data = [
@@ -115,7 +102,7 @@ class Siegel2MetricTestData(TestData):
                 expected=gs.array([[0j, 0j], [0j, 0j]]),
             ),
         ]
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
     def sectional_curvature_test_data(self):
         smoke_data = [
@@ -150,10 +137,10 @@ class Siegel2MetricTestData(TestData):
                 expected=gs.array(-1.0),
             ),
         ]
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
 
-class Siegel3MetricTestData(TestData):
+class Siegel3MetricTestData(CaseData):
     def inner_product_test_data(self):
         smoke_data = [
             dict(
@@ -175,7 +162,7 @@ class Siegel3MetricTestData(TestData):
                 expected=gs.array(6.0),
             ),
         ]
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
     def sectional_curvature_test_data(self):
         smoke_data = [
@@ -228,4 +215,25 @@ class Siegel3MetricTestData(TestData):
                 expected=gs.array(-1.0),
             ),
         ]
-        return self.generate_tests(smoke_data)
+        return smoke_data
+
+
+class SiegelMetricTestData(ComplexRiemannianMetricTestData):
+    def tangent_vec_from_base_point_to_zero_vec_test_data(self):
+        return self.generate_vectorization_data(
+            arg_names=("base_point", "tangent_vec"),
+            on_metric=True,
+        )
+
+    def sectional_curvature_at_zero_vec_test_data(self):
+        return self.generate_vectorization_data(
+            arg_names=("tangent_vec_a", "tangent_vec_b"),
+            samplers={
+                "tangent_vec_a": "random_tangent_vec_at_zero",
+                "tangent_vec_b": "random_tangent_vec_at_zero",
+            },
+            on_metric=True,
+        )
+
+    def tangent_vec_from_base_point_to_zero_is_tangent_test_data(self):
+        return self.generate_random_data(arg_names=("base_point", "tangent_vec"))

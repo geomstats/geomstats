@@ -1,41 +1,38 @@
 import math
 
+from polpo.testing.data import CaseData
+
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 from .euclidean import EuclideanMetricTestData
 
 
-class MinkowskiTestData(TestData):
-    def basis_cardinality_test_data(self):
-        return None
-
-
 class MinkowskiMetricTestData(EuclideanMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
+    def __init__(self, space=None, **kwargs):
+        super().__init__(space, **kwargs)
 
-    xfails = (
-        "dist_is_positive",
-        "dist_is_symmetric",
-        "dist_is_log_norm",
-        "dist_triangle_inequality",
-        "squared_dist_is_positive",
-        "metric_matrix_is_spd",
-        "norm_is_positive",
-        "normalize_vec",
-        "normalize_is_unitary",
-        "norm_vec",
-        "dist_vec",
-        "parallel_transport_bvp_norm",
-        "parallel_transport_ivp_norm",
-    )
+        # the Minkowski metric is not positive definite
+        xfails = set(self.method_marks.get("xfail", ())) | {
+            "dist",
+            "dist_is_log_norm",
+            "dist_is_positive",
+            "dist_is_symmetric",
+            "dist_triangle_inequality",
+            "norm",
+            "norm_is_positive",
+            "normalize",
+            "normalize_is_unitary",
+            "parallel_transport_bvp_norm",
+            "parallel_transport_ivp_norm",
+            "squared_dist_is_positive",
+        }
+        self.method_marks = {**self.method_marks, "xfail": xfails}
 
 
-class Minkowski2MetricTestData(TestData):
+class Minkowski2MetricTestData(CaseData):
     def metric_matrix_test_data(self):
         data = [dict(base_point=None, expected=gs.array([[-1.0, 0.0], [0.0, 1.0]]))]
-        return self.generate_tests(data)
+        return data
 
     def inner_product_test_data(self):
         data = [
@@ -58,7 +55,7 @@ class Minkowski2MetricTestData(TestData):
                 expected=gs.array([2.0, -4.0, 14.70820393]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def squared_norm_test_data(self):
         data = [
@@ -68,7 +65,7 @@ class Minkowski2MetricTestData(TestData):
                 expected=gs.array(12.0),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def squared_dist_test_data(self):
         data = [
@@ -78,7 +75,7 @@ class Minkowski2MetricTestData(TestData):
                 expected=gs.array(27.416407),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def exp_test_data(self):
         data = [
@@ -88,7 +85,7 @@ class Minkowski2MetricTestData(TestData):
                 expected=gs.array([3.0, math.sqrt(3)]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def log_test_data(self):
         data = [
@@ -98,4 +95,4 @@ class Minkowski2MetricTestData(TestData):
                 expected=gs.array([3.0, math.sqrt(3)]),
             )
         ]
-        return self.generate_tests(data)
+        return data

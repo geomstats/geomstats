@@ -1,24 +1,13 @@
+from polpo.testing.geometric import GeometricCaseData
+
 from .manifold import ManifoldTestData
-from .riemannian_metric import RiemannianMetricTestData
 
 
 class ProductManifoldTestData(ManifoldTestData):
-    skips = ("not_belongs",)
-
     def embed_to_product_after_project_from_product_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(arg_names="point")
 
 
-class ProductRiemannianMetricTestData(RiemannianMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-    trials = 3
-
-    skips = (
-        # TODO: remove skip
-        "metric_matrix_is_spd",
-        "inner_coproduct_vec",
-        "inner_product_derivative_matrix_vec",
-        "christoffels_vec",
-    )
+class ProductRiemannianMetricTestData(GeometricCaseData):
+    def metric_matrix_is_block_diagonal_test_data(self):
+        return self.generate_random_data(arg_names="base_point")

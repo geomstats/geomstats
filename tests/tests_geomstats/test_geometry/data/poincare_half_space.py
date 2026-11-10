@@ -1,29 +1,24 @@
+from polpo.testing.data import CaseData
+
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 from .base import VectorSpaceOpenSetTestData
-from .riemannian_metric import RiemannianMetricTestData
+
+
+class PoincareHalfSpace2TestData(CaseData):
+    def belongs_test_data(self):
+        data = [
+            dict(point=gs.array([1.5, 2.3]), expected=True),
+            dict(point=gs.array([[1.5, 2.0], [2.5, -0.3]]), expected=[True, False]),
+        ]
+        return data
 
 
 class PoincareHalfSpaceTestData(VectorSpaceOpenSetTestData):
     pass
 
 
-class PoincareHalfSpace2TestData(TestData):
-    def belongs_test_data(self):
-        data = [
-            dict(point=gs.array([1.5, 2.3]), expected=True),
-            dict(point=gs.array([[1.5, 2.0], [2.5, -0.3]]), expected=[True, False]),
-        ]
-        return self.generate_tests(data)
-
-
-class PoincareHalfSpaceMetricTestData(RiemannianMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
-
-
-class PoincareHalfSpaceMetric2TestData(TestData):
+class PoincareHalfSpaceMetric2TestData(CaseData):
     def inner_product_test_data(self):
         data = [
             dict(
@@ -33,7 +28,7 @@ class PoincareHalfSpaceMetric2TestData(TestData):
                 expected=gs.array([5.0, 1.0]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def exp_test_data(self):
         def _exp(tangent_vec, base_point):
@@ -84,7 +79,7 @@ class PoincareHalfSpaceMetric2TestData(TestData):
                     expected=_exp(tangent_vec, base_point),
                 )
             )
-        return self.generate_tests(data)
+        return data
 
     def exp_and_coordinates_tangent_test_data(self):
         data = [
@@ -93,4 +88,4 @@ class PoincareHalfSpaceMetric2TestData(TestData):
                 base_point=gs.array([1.5, 2.3]),
             )
         ]
-        return self.generate_tests(data)
+        return data

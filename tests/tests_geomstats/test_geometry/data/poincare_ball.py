@@ -1,39 +1,33 @@
+from polpo.testing.data import CaseData
+
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 from .base import VectorSpaceOpenSetTestData
 from .riemannian_metric import RiemannianMetricTestData
 
 
-class PoincareBallTestData(VectorSpaceOpenSetTestData):
-    xfails = ("projection_belongs",)
-
-
-class PoincareBallMetricTestData(RiemannianMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
-
-    def mobius_add_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def retraction_vec_test_data(self):
-        return self.generate_vec_data()
-
-
-class PoincareBall2TestData(TestData):
+class PoincareBall2TestData(CaseData):
     def belongs_test_data(self):
         data = [
             dict(point=gs.array([0.3, 0.5]), expected=True),
             dict(point=gs.array([1.2, 0.5]), expected=False),
         ]
-        return self.generate_tests(data)
+        return data
 
     def projection_norm_less_than_1_test_data(self):
         data = [dict(point=gs.array([1.2, 0.5]))]
-        return self.generate_tests(data)
+        return data
 
 
-class PoincareBall2MetricTestData(TestData):
+class PoincareBallTestData(VectorSpaceOpenSetTestData):
+    def __init__(self, space=None, **kwargs):
+        super().__init__(space, **kwargs)
+
+        xfails = set(self.method_marks.get("xfail", ())) | {"projection_belongs"}
+        self.method_marks = {**self.method_marks, "xfail": xfails}
+
+
+class PoincareBall2MetricTestData(CaseData):
     def log_test_data(self):
         data = [
             dict(
@@ -42,7 +36,7 @@ class PoincareBall2MetricTestData(TestData):
                 expected=gs.array([-0.01733576, 0.21958634]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def dist_test_data(self):
         data = [
@@ -62,4 +56,12 @@ class PoincareBall2MetricTestData(TestData):
                 expected=gs.array(0.71497076),
             ),
         ]
-        return self.generate_tests(data)
+        return data
+
+
+class PoincareBallMetricTestData(RiemannianMetricTestData):
+    def mobius_add_vec_test_data(self):
+        return self.generate_vectorization_data(
+            arg_names=("point_a", "point_b"),
+            on_metric=True,
+        )

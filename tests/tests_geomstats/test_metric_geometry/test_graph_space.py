@@ -3,6 +3,10 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 from geomstats.metric_geometry.graph_space import (
     ExhaustiveAligner,
@@ -11,102 +15,93 @@ from geomstats.metric_geometry.graph_space import (
     PointToGeodesicAligner,
     _GeodesicToPointAligner,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import RandomDataGenerator
+from geomstats.test_cases.geometry.fiber_bundle import AlignComparisonTestCase
 from geomstats.test_cases.geometry.matrices import MatricesTestCase
 from geomstats.test_cases.metric_geometry.graph_space import (
     PointToGeodesicAlignerTestCase,
 )
 from geomstats.test_cases.metric_geometry.quotient import (
-    AlignerAlgorithmCmpTestCase,
-    AlignerAlgorithmTestCase,
+    AlignerTestCase,
     QuotientMetricWithArrayTestCase,
 )
 
+from ..test_geometry.data.fiber_bundle import AlignComparisonTestData
 from ..test_geometry.data.matrices import MatricesTestData
-from .data.graph_space import GraphAlignerCmpTestData, PointToGeodesicAlignerTestData
-from .data.quotient import AlignerAlgorithmTestData, QuotientMetricWithArrayTestData
+from .data.graph_space import PointToGeodesicAlignerTestData
+from .data.quotient import AlignerTestData, QuotientMetricWithArrayTestData
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        ExhaustiveAligner,
-        FAQAligner,
-    ],
-)
-def aligner_algorithms(request):
-    Aligner = request.param
-
-    n = random.randint(2, 4)
-    request.cls.total_space = total_space = GraphSpace(n)
+def _graph_space_with_quotient():
+    total_space = GraphSpace(random.randint(2, 4))
     total_space.equip_with_group_action()
+    total_space.equip_with_quotient()
+    return total_space
 
-    request.cls.aligner = Aligner(total_space)
+
+class TestGraphSpace(MatricesTestCase, metaclass=GeometricDataBasedParametrizer):
+    space = GraphSpace(random.randint(2, 5), equip=False)
+    testing_data = MatricesTestData(space)
+
+
+@pytest.fixture(scope="class", params=["exhaustive", "FAQ"])
+def aligner_algorithms(request):
+    total_space = request.cls.total_space = _graph_space_with_quotient()
+    total_space.aligner.set_alignment_algorithm(request.param)
+
+    request.cls.testing_data.space = total_space
 
 
 @pytest.mark.usefixtures("aligner_algorithms")
-class TestGraphAlignerAlgorithm(
-    AlignerAlgorithmTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = AlignerAlgorithmTestData()
+class TestGraphSpaceAligner(AlignerTestCase, metaclass=GeometricDataBasedParametrizer):
+    testing_data = AlignerTestData()
 
 
 @pytest.mark.xfail
 class TestGraphAlignerAlgorithmCmp(
-    AlignerAlgorithmCmpTestCase, metaclass=DataBasedParametrizer
+    AlignComparisonTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    _n = random.randint(2, 4)
-    total_space = GraphSpace(_n)
-    total_space.equip_with_group_action()
+    total_space = _graph_space_with_quotient()
 
-    aligner = ExhaustiveAligner(total_space)
-    other_aligner = FAQAligner(total_space)
+    align = ExhaustiveAligner(total_space).align
+    other_align = FAQAligner(total_space).align
 
-    testing_data = GraphAlignerCmpTestData()
+    testing_data = AlignComparisonTestData(total_space, point_counts=[1, 2])
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        (PointToGeodesicAligner, dict(s_min=0.0, s_max=1.0, n_grid=100)),
-        (_GeodesicToPointAligner, dict()),
-    ],
-)
-def point_to_geodesic_aligners(request):
-    Aligner, kwargs = request.param
-
-    _n = random.randint(2, 4)
-    request.cls.total_space = total_space = GraphSpace(_n)
-    total_space.equip_with_group_action()
-    total_space.equip_with_quotient()
-
-    request.cls.aligner = Aligner(total_space, **kwargs)
-
-    request.cls.data_generator = RandomDataGenerator(total_space)
-
-
-@pytest.mark.usefixtures("point_to_geodesic_aligners")
 class TestPointToGeodesicAligner(
+    PointToGeodesicAlignerTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    total_space = _graph_space_with_quotient()
+    total_space.aligner.set_point_to_geodesic_aligner(
+        PointToGeodesicAligner(total_space, s_min=0.0, s_max=1.0, n_grid=100)
+    )
+
+    testing_data = PointToGeodesicAlignerTestData(
+        total_space,
+        method_defaults={"dist_along_geodesic_is_zero": {"atol": 1e-2}},
+    )
+
+
+# NB: `DataBasedParametrizer` skips vectorization tests, as the aligner only
+# handles one geodesic at a time
+class TestGeodesicToPointAligner(
     PointToGeodesicAlignerTestCase, metaclass=DataBasedParametrizer
 ):
-    testing_data = PointToGeodesicAlignerTestData()
+    total_space = _graph_space_with_quotient()
+    total_space.aligner.set_point_to_geodesic_aligner(
+        _GeodesicToPointAligner(total_space)
+    )
 
-
-class TestGraphSpace(MatricesTestCase, metaclass=DataBasedParametrizer):
-    _n = random.randint(2, 5)
-    space = GraphSpace(_n, equip=False)
-    testing_data = MatricesTestData()
+    testing_data = PointToGeodesicAlignerTestData(
+        total_space,
+        point_counts=[1],
+        method_defaults={"dist_along_geodesic_is_zero": {"atol": 1e-2}},
+    )
 
 
 class TestGraphSpaceQuotientMetric(
     QuotientMetricWithArrayTestCase, metaclass=DataBasedParametrizer
 ):
-    _n = random.randint(2, 4)
-    total_space = GraphSpace(_n)
-    total_space.equip_with_group_action()
-    total_space.equip_with_quotient()
-
+    total_space = _graph_space_with_quotient()
     space = total_space.quotient
-
-    testing_data = QuotientMetricWithArrayTestData()
+    testing_data = QuotientMetricWithArrayTestData(space)

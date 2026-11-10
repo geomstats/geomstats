@@ -1,16 +1,9 @@
-import pytest
-
 import geomstats.backend as gs
-from geomstats.test.random import (
-    EmbeddedSpaceRandomDataGenerator,
-    MatrixVectorSpaceRandomDataGenerator,
-    VectorSpaceRandomDataGenerator,
-)
-from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test.assertions import assert_belongs, assert_is_tangent
 from geomstats.test_cases.geometry.complex_manifold import ComplexManifoldTestCase
-from geomstats.test_cases.geometry.manifold import ManifoldTestCase
-from geomstats.test_cases.geometry.mixins import ProjectionTestCaseMixins
-from geomstats.vectorization import get_batch_shape
+
+from .manifold import ManifoldTestCase
+from .mixins import ProjectionTestCaseMixins
 
 # TODO: vec with tangent_vecs may not be being tested sufficiently well
 # i.e. tests may pass but just because it is the repetition of points
@@ -25,72 +18,63 @@ from geomstats.vectorization import get_batch_shape
 
 
 class _VectorSpaceTestCaseMixins(ProjectionTestCaseMixins):
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = VectorSpaceRandomDataGenerator(self.space)
-        super().setup_method()
+    def test_random_point_is_tangent(self, point, atol=gs.atol):
+        """Check point is tangent.
 
-    @pytest.mark.random
-    def test_random_point_is_tangent(self, n_points, atol):
-        """Check random point is tangent.
+        In a vector space, points and tangent vectors are identified.
 
         Parameters
         ----------
-        n_points : int
-            Number of random points to generate.
+        point : array-like, shape=[..., *space.shape]
+            Point on the vector space.
         atol : float
             Absolute tolerance.
         """
-        points = self.data_generator.random_point(n_points)
+        assert_is_tangent(self.space, point, None, atol=atol)
 
-        res = self.space.is_tangent(points, base_point=None, atol=atol)
-        self.assertAllEqual(res, gs.ones(n_points, dtype=bool))
-
-    @pytest.mark.random
-    def test_to_tangent_is_projection(self, n_points, atol):
-        """Check to_tangent is same as projection.
+    def test_to_tangent_is_projection(self, point, atol=gs.atol):
+        """Check to_tangent is the same as projection.
 
         Parameters
         ----------
-        n_points : int
-            Number of random points to generate.
+        point : array-like, shape=[..., *space.shape]
+            Point on the vector space.
         atol : float
             Absolute tolerance.
         """
-        vec = self.data_generator.random_point(n_points)
-        result = self.space.to_tangent(vec)
-        expected = self.space.projection(vec)
+        result = self.space.to_tangent(point)
+        expected = self.space.projection(point)
 
         self.assertAllClose(result, expected, atol=atol)
 
 
 class VectorSpaceTestCase(_VectorSpaceTestCaseMixins, ManifoldTestCase):
-    @pytest.mark.mathprop
-    def test_basis_cardinality(self):
-        """Check number of basis elements is the dimension.
+    def test_basis(self, expected, atol=gs.atol):
+        """Check basis.
 
         Parameters
         ----------
+        expected : array-like, shape=[dim, *space.shape]
+            Expected basis.
         atol : float
             Absolute tolerance.
         """
+        self.assertAllClose(self.space.basis, expected, atol=atol)
+
+    def test_basis_cardinality(self):
+        """Check number of basis elements is the dimension."""
         basis = self.space.basis
         self.assertEqual(basis.shape[0], self.space.dim)
 
-    @pytest.mark.mathprop
-    def test_basis_belongs(self, atol):
-        """Check basis elements belong to vector space.
+    def test_basis_belongs(self, atol=gs.atol):
+        """Check basis elements belong to the vector space.
 
         Parameters
         ----------
         atol : float
             Absolute tolerance.
         """
-        result = self.space.belongs(self.space.basis, atol=atol)
-        self.assertAllEqual(result, gs.ones_like(result))
-
-    def test_basis(self, expected, atol):
-        self.assertAllClose(self.space.basis, expected, atol=atol)
+        assert_belongs(self.space, self.space.basis, atol=atol)
 
 
 class ComplexVectorSpaceTestCase(_VectorSpaceTestCaseMixins, ComplexManifoldTestCase):
@@ -98,87 +82,104 @@ class ComplexVectorSpaceTestCase(_VectorSpaceTestCaseMixins, ComplexManifoldTest
 
 
 class MatrixVectorSpaceTestCase(VectorSpaceTestCase):
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = MatrixVectorSpaceRandomDataGenerator(self.space)
-        super().setup_method()
+    def test_basis_representation(
+        self, matrix_representation, expected, atol=gs.atol
+    ):
+        """Check basis representation.
 
-    def test_basis_representation(self, matrix_representation, expected, atol):
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., *space.shape]
+            Point on the vector space.
+        expected : array-like, shape=[..., dim]
+            Expected coefficients in the basis of the vector space.
+        atol : float
+            Absolute tolerance.
+        """
         vec = self.space.basis_representation(matrix_representation)
         self.assertAllClose(vec, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_basis_representation_vec(self, n_reps, atol):
-        matrix_representation = self.data_generator.random_point()
-        expected = self.space.basis_representation(matrix_representation)
+    def test_matrix_representation(self, basis_representation, expected, atol=gs.atol):
+        """Check matrix representation.
 
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    matrix_representation=matrix_representation,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["matrix_representation"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    @pytest.mark.random
-    def test_basis_representation_and_basis(self, n_points, atol):
-        mat = self.data_generator.random_point(n_points)
-        vec = self.space.basis_representation(mat)
-
-        res = gs.einsum("...i,...ijk->...jk", vec, self.space.basis)
-        self.assertAllClose(res, mat, atol=atol)
-
-    def test_matrix_representation(self, basis_representation, expected, atol):
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis of the vector space.
+        expected : array-like, shape=[..., *space.shape]
+            Expected point on the vector space.
+        atol : float
+            Absolute tolerance.
+        """
         mat = self.space.matrix_representation(basis_representation)
         self.assertAllClose(mat, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_matrix_representation_vec(self, n_reps, atol):
-        basis_representation = gs.random.rand(self.space.dim)
-        expected = self.space.matrix_representation(basis_representation)
+    def test_basis_representation_and_basis(
+        self, matrix_representation, atol=gs.atol
+    ):
+        """Check basis representation gives the coefficients in the basis.
 
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    basis_representation=basis_representation,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["basis_representation"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
+        Combining the basis elements with the coefficients recovers the matrix.
 
-    @pytest.mark.random
-    def test_matrix_representation_belongs(self, n_points, atol):
-        vec = gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., *space.shape]
+            Point on the vector space.
+        atol : float
+            Absolute tolerance.
+        """
+        vec = self.space.basis_representation(matrix_representation)
+
+        res = gs.einsum("...i,...ijk->...jk", vec, self.space.basis)
+        self.assertAllClose(res, matrix_representation, atol=atol)
+
+    def test_matrix_representation_belongs(self, basis_representation, atol=gs.atol):
+        """Check matrix representation maps to the vector space.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis of the vector space.
+        atol : float
+            Absolute tolerance.
+        """
+        point = self.space.matrix_representation(basis_representation)
+
+        assert_belongs(self.space, point, atol=atol)
+
+    def test_matrix_representation_after_basis_representation(
+        self, matrix_representation, atol=gs.atol
+    ):
+        """Check matrix representation is a left inverse of basis representation.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., *space.shape]
+            Point on the vector space.
+        atol : float
+            Absolute tolerance.
+        """
+        vec = self.space.basis_representation(matrix_representation)
         point = self.space.matrix_representation(vec)
 
-        self.test_belongs(point, gs.ones(n_points, dtype=bool), atol)
+        self.assertAllClose(point, matrix_representation, atol=atol)
 
-    @pytest.mark.random
-    def test_matrix_representation_after_basis_representation(self, n_points, atol):
-        point = self.data_generator.random_point(n_points)
+    def test_basis_representation_after_matrix_representation(
+        self, basis_representation, atol=gs.atol
+    ):
+        """Check basis representation is a left inverse of matrix representation.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis of the vector space.
+        atol : float
+            Absolute tolerance.
+        """
+        point = self.space.matrix_representation(basis_representation)
         vec = self.space.basis_representation(point)
-        point_ = self.space.matrix_representation(vec)
 
-        self.assertAllClose(point_, point, atol=atol)
-
-    @pytest.mark.random
-    def test_basis_representation_after_matrix_representation(self, n_points, atol):
-        vec = gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
-        point = self.space.matrix_representation(vec)
-        vec_ = self.space.basis_representation(point)
-
-        self.assertAllClose(vec_, vec, atol=atol)
+        self.assertAllClose(vec, basis_representation, atol=atol)
 
 
 class ComplexMatrixVectorSpaceTestCase(ComplexVectorSpaceTestCase):
@@ -186,91 +187,101 @@ class ComplexMatrixVectorSpaceTestCase(ComplexVectorSpaceTestCase):
 
 
 class LevelSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
-    # TODO: need to develop ``intrinsic_after_extrinsic``
-    # and ``extrinsic_after_intrinsic``
     # TODO: need to develop `intrinsic_after_extrinsic` and `extrinsic_after_intrinsic`
     # TODO: class to handle `extrinsinc-intrinsic` mixins?
 
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = EmbeddedSpaceRandomDataGenerator(self.space)
-        super().setup_method()
+    def test_submersion(self, point, expected, atol=gs.atol):
+        """Check submersion.
 
-    def test_submersion(self, point, expected, atol):
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the embedding space.
+        expected : array-like, shape=[..., *submersion_shape]
+            Expected submersed point.
+        atol : float
+            Absolute tolerance.
+        """
         submersed_point = self.space.submersion(point)
         self.assertAllClose(submersed_point, expected, atol=atol)
 
-    def test_submersion_is_zero(self, point, submersion_shape, atol):
-        # TODO: keep?
-        batch_shape = get_batch_shape(self.space.point_ndim, point)
-        expected = gs.zeros(batch_shape + submersion_shape)
+    def test_tangent_submersion(self, vector, point, expected, atol=gs.atol):
+        """Check tangent submersion.
 
-        self.test_submersion(point, expected, atol)
-
-    @pytest.mark.vec
-    def test_submersion_vec(self, n_reps, atol):
-        # TODO: mark as redundant? belongs suffices?
-        point = self.space.embedding_space.random_point()
-        expected = self.space.submersion(point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, expected=expected, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    def test_tangent_submersion(self, vector, point, expected, atol):
+        Parameters
+        ----------
+        vector : array-like, shape=[..., *space.shape]
+            Tangent vector to the embedding space at `point`.
+        point : array-like, shape=[..., *space.shape]
+            Point on the embedding space.
+        expected : array-like, shape=[..., *tangent_submersion_shape]
+            Expected submersed vector.
+        atol : float
+            Absolute tolerance.
+        """
         submersed_vector = self.space.tangent_submersion(vector, point)
         self.assertAllClose(submersed_vector, expected, atol=atol)
 
-    def test_tangent_submersion_is_zero(
-        self, tangent_vector, point, tangent_submersion_shape, atol
-    ):
-        # TODO: keep?
-        batch_shape = get_batch_shape(self.space.point_ndim, tangent_vector, point)
-        expected = gs.zeros(batch_shape + tangent_submersion_shape)
+    def test_submersion_is_zero(self, point, atol=gs.atol):
+        """Check submersion vanishes.
 
-        self.test_tangent_submersion(tangent_vector, point, expected, atol)
+        The submersion vanishes exactly on the level set, so `point`
+        must belong to it.
 
-    @pytest.mark.vec
-    def test_tangent_submersion_vec(self, n_reps, atol):
-        # TODO: mark as redundant? is_tangent suffices?
-        vector, point = self.data_generator.random_point(2)
-        expected = self.space.tangent_submersion(vector, point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    vector=vector,
-                    point=point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["vector", "point"],
-            n_reps=n_reps,
-            vectorization_type="sym" if self.tangent_to_multiple else "repetition-0",
-            expected_name="expected",
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        submersed_point = self.space.submersion(point)
+        self.assertAllClose(
+            submersed_point, gs.zeros_like(submersed_point), atol=atol
         )
-        self._test_vectorization(vec_data)
+
+    def test_tangent_submersion_is_zero(self, vector, point, atol=gs.atol):
+        """Check tangent submersion vanishes.
+
+        The tangent submersion vanishes exactly on tangent vectors to the
+        level set, so `vector` must be tangent to it at `point`.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., *space.shape]
+            Tangent vector to the manifold at `point`.
+        point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        submersed_vector = self.space.tangent_submersion(vector, point)
+        self.assertAllClose(
+            submersed_vector, gs.zeros_like(submersed_vector), atol=atol
+        )
 
 
 class _OpenSetTestCaseMixins(ProjectionTestCaseMixins):
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = EmbeddedSpaceRandomDataGenerator(self.space)
-        super().setup_method()
+    def test_to_tangent_is_tangent_in_embedding_space(
+        self, tangent_vec, base_point, atol=gs.atol
+    ):
+        """Check tangent vector is tangent to the embedding space.
 
-    @pytest.mark.random
-    def test_to_tangent_is_tangent_in_embedding_space(self, n_points):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-        res = self.space.embedding_space.is_tangent(tangent_vec, base_point)
+        The tangent space of an open set coincides with the one of its
+        embedding space.
 
-        expected = gs.ones(n_points, dtype=bool)
-        self.assertAllEqual(res, expected)
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        assert_is_tangent(
+            self.space.embedding_space, tangent_vec, base_point, atol=atol
+        )
 
 
 class OpenSetTestCase(_OpenSetTestCaseMixins, ManifoldTestCase):
@@ -288,50 +299,103 @@ class ComplexVectorSpaceOpenSetTestCase(
 
 
 class ImmersedSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = EmbeddedSpaceRandomDataGenerator(self.space)
-        super().setup_method()
+    def test_immersion(self, point, expected, atol=gs.atol):
+        """Check immersion.
 
-    def test_immersion(self, point, expected, atol):
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., *embedding_space.shape]
+            Expected image of `point`.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.immersion(point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.random
-    def test_immersion_belongs(self, n_points, atol):
-        point = self.data_generator.random_point(n_points)
+    def test_tangent_immersion(self, tangent_vec, base_point, expected, atol=gs.atol):
+        """Check tangent immersion.
 
-        embedded_point = self.space.immersion(point)
-
-        expected = gs.ones(n_points, dtype=bool)
-        res = self.space.embedding_space.belongs(embedded_point, atol=atol)
-        self.assertAllEqual(res, expected)
-
-    def test_tangent_immersion(self, tangent_vec, base_point, expected, atol):
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., *embedding_space.shape]
+            Expected image of `tangent_vec`.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.tangent_immersion(tangent_vec, base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.random
-    def test_tangent_immersion_is_tangent(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+    def test_jacobian_immersion(self, base_point, expected, atol=gs.atol):
+        """Check Jacobian of the immersion.
 
-        embedded_point = self.space.immersion(base_point)
-        embedded_tangent_vec = self.space.tangent_immersion(tangent_vec, base_point)
-
-        expected = gs.ones(n_points, dtype=bool)
-        res = self.space.embedding_space.is_tangent(
-            embedded_tangent_vec, embedded_point, atol=atol
-        )
-        self.assertAllEqual(res, expected)
-
-    def test_jacobian_immersion(self, base_point, expected, atol):
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., embedding_dim, dim]
+            Expected Jacobian.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.jacobian_immersion(base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    def test_hessian_immersion(self, base_point, expected, atol):
+    def test_hessian_immersion(self, base_point, expected, atol=gs.atol):
+        """Check Hessian of the immersion.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        expected : array-like, shape=[..., embedding_dim, dim, dim]
+            Expected Hessian.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.hessian_immersion(base_point)
         self.assertAllClose(res, expected, atol=atol)
+
+    def test_immersion_belongs(self, point, atol=gs.atol):
+        """Check immersion belongs to the embedding space.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        embedded_point = self.space.immersion(point)
+
+        assert_belongs(self.space.embedding_space, embedded_point, atol=atol)
+
+    def test_tangent_immersion_is_tangent(self, tangent_vec, base_point, atol=gs.atol):
+        """Check tangent immersion is tangent to the embedding space.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *space.shape]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., *space.shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
+        embedded_point = self.space.immersion(base_point)
+        embedded_tangent_vec = self.space.tangent_immersion(tangent_vec, base_point)
+
+        assert_is_tangent(
+            self.space.embedding_space,
+            embedded_tangent_vec,
+            embedded_point,
+            atol=atol,
+        )
 
 
 class DiffeomorphicManifoldTestCase(ManifoldTestCase):

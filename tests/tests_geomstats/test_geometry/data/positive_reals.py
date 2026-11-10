@@ -5,14 +5,12 @@ import pytest
 import geomstats.backend as gs
 
 from .base import VectorSpaceOpenSetTestData
+from .diffeo import DiffeoTestData
 from .riemannian_metric import RiemannianMetricTestData
-
-LN_2 = math.log(2.0)
-EXP_1 = math.exp(1.0)
-EXP_2 = math.exp(2.0)
 
 
 class PositiveRealsTestData(VectorSpaceOpenSetTestData):
+    @pytest.mark.smoke
     def belongs_test_data(self):
         data = [
             dict(point=gs.array([[10.0]]), expected=[True]),
@@ -25,8 +23,9 @@ class PositiveRealsTestData(VectorSpaceOpenSetTestData):
             ),
             dict(point=gs.array([[1.0], [-1.5]]), expected=[True, False]),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
+    @pytest.mark.smoke
     def projection_test_data(self):
         data = [
             dict(point=gs.array([[1.0]]), expected=gs.array([[1.0]])),
@@ -35,13 +34,11 @@ class PositiveRealsTestData(VectorSpaceOpenSetTestData):
                 expected=gs.array([[gs.atol]]),
             ),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
 
 class PositiveRealsMetricTestData(RiemannianMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
-
+    @pytest.mark.smoke
     def inner_product_test_data(self):
         data = [
             dict(
@@ -57,44 +54,102 @@ class PositiveRealsMetricTestData(RiemannianMetricTestData):
                 expected=gs.array(-3 / 8),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def exp_test_data(self):
         data = [
             dict(
                 tangent_vec=gs.array([[1.0]]),
                 base_point=gs.array([[1.0]]),
-                expected=gs.array([[EXP_1]]),
+                expected=gs.array([[math.exp(1.0)]]),
             ),
             dict(
                 tangent_vec=gs.array([[4.0]]),
                 base_point=gs.array([[2.0]]),
-                expected=gs.array([[2 * EXP_2]]),
+                expected=gs.array([[2 * math.exp(2.0)]]),
             ),
             dict(
                 tangent_vec=gs.array([[1.0], [2.0]]),
                 base_point=gs.array([[1.0]]),
-                expected=gs.array([[EXP_1], [EXP_2]]),
+                expected=gs.array([[math.exp(1.0)], [math.exp(2.0)]]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def log_test_data(self):
         data = [
             dict(
                 point=gs.array([[4.0]]),
                 base_point=gs.array([[2.0]]),
-                expected=gs.array([[2 * LN_2]]),
+                expected=gs.array([[2 * math.log(2.0)]]),
             ),
             dict(
                 point=gs.array([[2.0]]),
                 base_point=gs.array([[4.0]]),
-                expected=gs.array([[-4 * LN_2]]),
+                expected=gs.array([[-4 * math.log(2.0)]]),
             ),
             dict(
                 point=gs.array([[1.0], [2.0]]),
                 base_point=gs.array([[1.0]]),
-                expected=gs.array([[0], [LN_2]]),
+                expected=gs.array([[0], [math.log(2.0)]]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
+
+
+class LogDiffeoTestData(DiffeoTestData):
+    @pytest.mark.smoke
+    def diffeomorphism_test_data(self):
+        data = [
+            dict(base_point=gs.array([1.0]), expected=gs.array([0.0])),
+            dict(
+                base_point=gs.array([[2.0], [math.exp(1.0)]]),
+                expected=gs.array([[math.log(2.0)], [1.0]]),
+            ),
+        ]
+        return data
+
+    @pytest.mark.smoke
+    def inverse_test_data(self):
+        data = [
+            dict(image_point=gs.array([0.0]), expected=gs.array([1.0])),
+            dict(
+                image_point=gs.array([[math.log(2.0)], [2.0]]),
+                expected=gs.array([[2.0], [math.exp(2.0)]]),
+            ),
+        ]
+        return data
+
+    @pytest.mark.smoke
+    def tangent_test_data(self):
+        data = [
+            dict(
+                tangent_vec=gs.array([3.0]),
+                base_point=gs.array([2.0]),
+                expected=gs.array([1.5]),
+            ),
+            dict(
+                tangent_vec=gs.array([3.0]),
+                image_point=gs.array([math.log(2.0)]),
+                expected=gs.array([1.5]),
+            ),
+        ]
+        return data
+
+    @pytest.mark.smoke
+    def inverse_tangent_test_data(self):
+        data = [
+            dict(
+                image_tangent_vec=gs.array([1.5]),
+                image_point=gs.array([math.log(2.0)]),
+                expected=gs.array([3.0]),
+            ),
+            dict(
+                image_tangent_vec=gs.array([1.5]),
+                base_point=gs.array([2.0]),
+                expected=gs.array([3.0]),
+            ),
+        ]
+        return data

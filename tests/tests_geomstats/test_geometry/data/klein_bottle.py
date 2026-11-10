@@ -7,8 +7,7 @@ from .riemannian_metric import RiemannianMetricTestData
 
 
 class KleinBottleTestData(ManifoldTestData):
-    skips = ("not_belongs",)
-
+    @pytest.mark.smoke
     def equivalent_test_data(self):
         data = [
             dict(
@@ -42,11 +41,9 @@ class KleinBottleTestData(ManifoldTestData):
                 expected=gs.array([True, False]),
             ),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
-    def equivalent_vec_test_data(self):
-        return self.generate_vec_data()
-
+    @pytest.mark.smoke
     def regularize_test_data(self):
         data = [
             dict(expected=gs.array([0.3, 0.7]), point=gs.array([2.3, 0.7])),
@@ -69,11 +66,9 @@ class KleinBottleTestData(ManifoldTestData):
                 point=gs.array([[1.0, 1.0], [-1.0, -1.0]]),
             ),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
-    def regularize_correct_domain_test_data(self):
-        return self.generate_random_data()
-
+    @pytest.mark.smoke
     def to_coords_test_data(self):
         extrinsic_data = [
             dict(
@@ -150,21 +145,31 @@ class KleinBottleTestData(ManifoldTestData):
         ]
 
         data = extrinsic_data + bottle_data + bagel_data
-        return self.generate_tests(data, marks=(pytest.mark.smoke))
+        return data
+
+    def equivalent_vec_test_data(self):
+        return self.generate_vectorization_data(arg_names=("point_a", "point_b"))
 
     def to_coords_vec_test_data(self):
         data = []
-        for coords_type in ["extrinsic", "bottle", "bagel"]:
-            for n_reps in self.N_VEC_REPS:
-                data.append(dict(n_reps=n_reps, coords_type=coords_type))
+        for coords_type in ("extrinsic", "bottle", "bagel"):
+            data.extend(
+                self.generate_vectorization_data(
+                    arg_names="point",
+                    op_evaluator=lambda op, point, coords_type=coords_type: op(
+                        point, coords_type
+                    ),
+                    coords_type=coords_type,
+                )
+            )
+        return data
 
-        return self.generate_tests(data)
+    def regularize_correct_domain_test_data(self):
+        return self.generate_random_data(arg_names="point")
 
 
 class KleinBottleMetricTestData(RiemannianMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
-
+    @pytest.mark.smoke
     def dist_test_data(self):
         data = [
             dict(
@@ -183,8 +188,9 @@ class KleinBottleMetricTestData(RiemannianMetricTestData):
                 expected=gs.array((0.4**2 + 0.4**2) ** 0.5),
             ),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
+    @pytest.mark.smoke
     def exp_test_data(self):
         data = [
             dict(
@@ -202,8 +208,9 @@ class KleinBottleMetricTestData(RiemannianMetricTestData):
                 expected=gs.array([0.2, 0.6]),
             ),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
+    @pytest.mark.smoke
     def log_test_data(self):
         data = [
             dict(
@@ -222,9 +229,10 @@ class KleinBottleMetricTestData(RiemannianMetricTestData):
                 expected=gs.array([0.0, 0.1]),
             ),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
-    def parallel_transport_test_data(self):
+    @pytest.mark.smoke
+    def parallel_transport_ivp_test_data(self):
         data = [
             dict(
                 tangent_vec=gs.array([0.1, 0.2]),
@@ -238,6 +246,12 @@ class KleinBottleMetricTestData(RiemannianMetricTestData):
                 direction=gs.array([0.6, 0.0]),
                 expected=gs.array([0.1, -0.2]),
             ),
+        ]
+        return data
+
+    @pytest.mark.smoke
+    def parallel_transport_bvp_test_data(self):
+        data = [
             dict(
                 tangent_vec=gs.array([0.1, 0.2]),
                 base_point=gs.array([0.9, 0.5]),
@@ -245,4 +259,4 @@ class KleinBottleMetricTestData(RiemannianMetricTestData):
                 expected=gs.array([0.1, -0.2]),
             ),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data

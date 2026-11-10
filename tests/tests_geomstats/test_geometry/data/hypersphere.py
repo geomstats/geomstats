@@ -1,16 +1,15 @@
+import random
+
 import pytest
+from polpo.testing.data import CaseData
+from polpo.testing.geometric import GeometricCaseData
 
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
-from .base import DiffeomorphicManifoldTestData
-from .riemannian_metric import (
-    RiemannianMetricCmpWithTransformTestData,
-    RiemannianMetricTestData,
-)
+from .riemannian_metric import RiemannianMetricTestData
 
 
-class Hypersphere2MetricTestData(TestData):
+class Hypersphere2MetricTestData(CaseData):
     def hamiltonian_test_data(self):
         data = [
             dict(
@@ -18,10 +17,10 @@ class Hypersphere2MetricTestData(TestData):
                 expected=gs.array(3.0),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class Hypersphere4MetricTestData(TestData):
+class Hypersphere4MetricTestData(CaseData):
     def inner_product_test_data(self):
         data = [
             dict(
@@ -31,7 +30,7 @@ class Hypersphere4MetricTestData(TestData):
                 expected=gs.array(0.0),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def dist_test_data(self):
         point_a = gs.array([10.0, -2.0, -0.5, 0.0, 0.0])
@@ -56,7 +55,7 @@ class Hypersphere4MetricTestData(TestData):
                 expected=gs.array([1.24864502]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def exp_and_dist_and_projection_to_tangent_space_test_data(self):
         unnorm_base_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])
@@ -67,25 +66,18 @@ class Hypersphere4MetricTestData(TestData):
                 base_point=base_point,
             )
         ]
-        return self.generate_tests(data)
+        return data
 
 
 class HypersphereMetricTestData(RiemannianMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-    trials = 3
-
-    tolerances = {"dist_point_to_itself_is_zero": {"atol": 1e-6}}
-
     def sectional_curvature_is_one_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(
+            arg_names=("base_point", "tangent_vec_a", "tangent_vec_b")
+        )
 
 
 class CircleAnglesMetricTestData(RiemannianMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
-
+    @pytest.mark.smoke
     def exp_test_data(self):
         data = [
             dict(
@@ -99,8 +91,9 @@ class CircleAnglesMetricTestData(RiemannianMetricTestData):
                 expected=gs.array([-3 * gs.pi / 4]),
             ),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
+    @pytest.mark.smoke
     def log_test_data(self):
         data = [
             dict(
@@ -109,8 +102,9 @@ class CircleAnglesMetricTestData(RiemannianMetricTestData):
                 expected=gs.array([gs.pi / 2]),
             ),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
+    @pytest.mark.smoke
     def dist_test_data(self):
         data = [
             dict(
@@ -119,36 +113,11 @@ class CircleAnglesMetricTestData(RiemannianMetricTestData):
                 expected=gs.array(gs.pi / 2),
             ),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
 
-class CircleAnglesMetricCmpTestData(RiemannianMetricCmpWithTransformTestData):
-    skips = (
-        "curvature_random",
-        "sectional_curvature_random",
-        "scalar_curvature_random",
-        "inner_product_derivative_matrix_random",
-        "inner_coproduct_random",
-    )
-
-
-class SphereSphericalCoordinatesTestData(DiffeomorphicManifoldTestData):
-    skips = ("not_belongs",)
-
-
-class SphereSphericalCoordinatesMetricCmpTestData(
-    RiemannianMetricCmpWithTransformTestData
-):
-    skips = (
-        "scalar_curvature_random",
-        "inner_product_derivative_matrix_random",
-        "inner_coproduct_random",
-    )
-
-
-class SphereSphericalCoordinatesMetricTestData(TestData):
-    fail_for_autodiff_exceptions = False
-
+class SphereSphericalCoordinatesMetricTestData(GeometricCaseData):
+    @pytest.mark.smoke
     def inner_product_test_data(self):
         data = [
             dict(
@@ -158,11 +127,15 @@ class SphereSphericalCoordinatesMetricTestData(TestData):
                 expected=gs.array(-0.12),
             )
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
     def christoffels_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names="base_point",
+            on_metric=True,
+        )
 
+    @pytest.mark.smoke
     def ricci_tensor_test_data(self):
         theta = gs.pi / 3
         base_point = gs.array([theta, gs.pi / 7])
@@ -182,12 +155,14 @@ class SphereSphericalCoordinatesMetricTestData(TestData):
             dict(base_point=base_point, expected=expected),
             dict(base_point=base_points, expected=expected_),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
+    @pytest.mark.smoke
     def riemann_tensor_spherical_coords_test_data(self):
         data = [dict(base_point=gs.array([gs.pi / 2, gs.pi / 6]))]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
+    @pytest.mark.smoke
     def exp_test_data(self):
         data = [
             dict(
@@ -196,31 +171,28 @@ class SphereSphericalCoordinatesMetricTestData(TestData):
                 expected=gs.array([gs.pi / 10.0 + gs.pi / 2.0, gs.pi / 9.0]),
             )
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
 
-class DistributionTestData(TestData):
+class DistributionTestData(CaseData):
+    @pytest.mark.random
     def sample_belongs_test_data(self):
-        data = [dict(n_samples=n_samples) for n_samples in self.N_RANDOM_POINTS]
-        return self.generate_tests(data)
+        return [dict(n_samples=n_samples) for n_samples in [1, random.randint(2, 5)]]
 
 
 class VonMisesFisherTestData(DistributionTestData):
-    tolerances = {"sample_mean": {"atol": 1e-2}}
-
+    @pytest.mark.random
     def sample_mean_test_data(self):
-        return self.generate_tests([dict(n_samples=1000)])
+        return [dict(n_samples=1000, atol=1e-2)]
 
 
-class VonMisesFisherKappaTestData(TestData):
-    tolerances = {"sample_kappa": {"atol": 1e-1}}
-
+class VonMisesFisherKappaTestData(CaseData):
+    @pytest.mark.validation
     def sample_kappa_test_data(self):
-        return self.generate_tests([dict(n_samples=5000)])
+        return [dict(n_samples=5000, atol=1e-1)]
 
 
-class HypersphereRiemannianNormalFrechetMeanTestData(TestData):
-    tolerances = {"sample_frechet_mean": {"atol": 1e-1}}
-
+class HypersphereRiemannianNormalFrechetMeanTestData(CaseData):
+    @pytest.mark.random
     def sample_frechet_mean_test_data(self):
-        return self.generate_tests([dict(n_samples=5000)])
+        return [dict(n_samples=5000, atol=1e-1)]

@@ -1,15 +1,11 @@
-import geomstats.backend as gs
-from geomstats.test.data import TestData
+from polpo.testing.data import CaseData
 
-from .base import LevelSetTestData
+import geomstats.backend as gs
+
 from .riemannian_metric import RiemannianMetricTestData
 
 
-class HyperboloidTestData(LevelSetTestData):
-    tolerances = {"projection_belongs": {"atol": 1e-8}}
-
-
-class Hyperboloid2TestData(TestData):
+class Hyperboloid2TestData(CaseData):
     def belongs_test_data(self):
         data = [
             dict(
@@ -17,10 +13,10 @@ class Hyperboloid2TestData(TestData):
                 expected=False,
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class Hyperboloid3TestData(TestData):
+class Hyperboloid3TestData(CaseData):
     def belongs_test_data(self):
         data = [
             dict(
@@ -28,16 +24,11 @@ class Hyperboloid3TestData(TestData):
                 expected=True,
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
 class HyperboloidMetricTestData(RiemannianMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-    trials = 3
-
-    skips = ("metric_matrix_is_spd",)
-
     def inner_product_is_minkowski_inner_product_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(
+            arg_names=("base_point", "tangent_vec_a", "tangent_vec_b")
+        )

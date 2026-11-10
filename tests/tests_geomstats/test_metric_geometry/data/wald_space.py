@@ -1,4 +1,6 @@
-import pytest
+from polpo.testing.data import CaseData
+from polpo.testing.geometric import GeometricCaseData
+from polpo.testing.lazy import LazyValue
 
 import geomstats.backend as gs
 from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDEuclideanMetric
@@ -7,22 +9,20 @@ from geomstats.metric_geometry.wald_space import (
     _AMBIENT_METRIC_TO_SQUARED_DIST_GRAD,
     Wald,
 )
-from geomstats.test.data import TestData
-
-from .point_set import PointSetMetricTestData
+from geomstats.test.random import RandomGroveDataGenerator
 
 
-class MakePartitionsTestData(TestData):
+class MakePartitionsTestData(CaseData):
     def number_of_topologies_test_data(self):
         data = [
             dict(n_labels=2, expected=1),
             dict(n_labels=3, expected=1),
             dict(n_labels=4, expected=3),
         ]
-        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+        return data
 
 
-class SquaredDistAndGradTestData(TestData):
+class SquaredDistAndGradTestData(CaseData):
     def value_and_grad_against_autodiff_test_data(self):
         metrics = [SPDAffineMetric, SPDEuclideanMetric]
 
@@ -38,10 +38,10 @@ class SquaredDistAndGradTestData(TestData):
                 ),
             )
 
-        return self.generate_tests(data)
+        return data
 
 
-class Wald2TestData(TestData):
+class Wald2TestData(CaseData):
     def corr_test_data(self):
         tree = Wald(
             ForestTopology(partition=((0,), (1,)), split_sets=((), ())),
@@ -49,10 +49,10 @@ class Wald2TestData(TestData):
         )
 
         data = [dict(point=tree, expected=gs.eye(2))]
-        return self.generate_tests(data)
+        return data
 
 
-class Wald3TestData(TestData):
+class Wald3TestData(CaseData):
     def corr_test_data(self):
         partition = ((0, 1, 2),)
         split_sets = ((((0, 1), (2,)), ((0, 2), (1,)), ((0,), (1, 2))),)
@@ -65,22 +65,18 @@ class Wald3TestData(TestData):
             [[1.0, 0.56, 0.63], [0.56, 1.0, 0.72], [0.63, 0.72, 1.0]]
         )
         data = [dict(point=tree, expected=expected_corr)]
-        return self.generate_tests(data)
+        return data
 
 
-class WaldSpaceMetricTestData(PointSetMetricTestData):
-    tolerances = {
-        "dist_point_to_itself_is_zero": {"atol": 1e-3},
-        "geodesic_bvp_reverse": {"atol": 1e-4},
-    }
+class WaldGeodesicSolverTestData(GeometricCaseData):
+    """Data for geodesic solvers, with points sampled in a single grove."""
 
-
-class WaldGeodesicSolverTestData(TestData):
-    N_RANDOM_POINTS = [1]
-
-    tolerances = {
-        "discrete_geodesic_reverse": {"atol": 1e-4},
-    }
+    def _get_data_generator(self, data_space=None):
+        return LazyValue(
+            lambda: RandomGroveDataGenerator(
+                self.space, self.space.random_point().topology
+            )
+        )
 
     def discrete_geodesic_reverse_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(arg_names=("initial_point", "end_point"))

@@ -1,5 +1,3 @@
-import pytest
-
 import geomstats.backend as gs
 from geomstats.test_cases.geometry.base import LevelSetTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
@@ -21,22 +19,37 @@ class MultinomialDistributionsTestCase(
 
 
 class MultinomialMetricTestCase(RiemannianMetricTestCase):
-    @pytest.mark.random
-    def test_sectional_curvature_is_positive(self, n_points):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+    def test_sectional_curvature_is_positive(
+        self, base_point, tangent_vec_a, tangent_vec_b
+    ):
+        """Check sectional curvature is positive.
 
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the manifold.
+        tangent_vec_a : array-like, shape=[..., dim + 1]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., dim + 1]
+            Tangent vector at `base_point`.
+        """
         res = self.space.metric.sectional_curvature(
             tangent_vec_a, tangent_vec_b, base_point
         )
         self.assertTrue(gs.all(res > 0))
 
-    @pytest.mark.random
-    def test_dist_against_closed_form(self, n_points, atol):
-        point_a = self.data_generator.random_point(n_points)
-        point_b = self.data_generator.random_point(n_points)
+    def test_dist_against_closed_form(self, point_a, point_b, atol=gs.atol):
+        """Check distance against its closed form.
 
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim + 1]
+            Point on the manifold.
+        point_b : array-like, shape=[..., dim + 1]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.metric.dist(point_a, point_b)
         expected = fisher_rao_dist(point_a, point_b, self.space.n_draws)
         self.assertAllClose(res, expected, atol=atol)
