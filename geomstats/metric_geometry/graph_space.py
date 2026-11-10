@@ -610,11 +610,11 @@ class GraphSpaceAligner(Aligner):
                 align_algo, "align_algo", list(self.MAP_ALIGNER.keys())
             )
 
-            aligner_algorithm = self.MAP_ALIGNER.get(align_algo)(
+            align_algo = self.MAP_ALIGNER.get(align_algo)(
                 self._total_space, **kwargs
             )
 
-        self.align_algo = aligner_algorithm
+        self.align_algo = align_algo
         return self.align_algo
 
     def set_point_to_geodesic_aligner(self, aligner="default", **kwargs):
