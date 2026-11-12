@@ -345,7 +345,7 @@ class MatrixPower(Diffeo):
         ----------
         image_tangent_vec : array_like, shape=[..., n, n]
             Image tangent vector at image point.
-        image_base_point : array_like, shape=[..., n, n]
+        image_point : array_like, shape=[..., n, n]
             Image point.
         base_point : array_like, shape=[..., n, n]
             Base point.
@@ -497,7 +497,7 @@ class SPDMatrices(VectorSpaceOpenSet):
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
             Matrix to be checked.
         atol : float
             Tolerance.
@@ -506,7 +506,7 @@ class SPDMatrices(VectorSpaceOpenSet):
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Boolean denoting if mat is an SPD matrix.
+            Boolean denoting if point is an SPD matrix.
         """
         is_sym = self.embedding_space.belongs(point, atol)
         is_pd = Matrices.is_pd(point)

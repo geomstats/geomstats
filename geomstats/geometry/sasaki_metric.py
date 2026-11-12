@@ -286,10 +286,10 @@ class SasakiMetric(RiemannianMetric):
 
         Parameters
         ----------
-        end_points : array-like, shape=[..., 2, M.shape]
-            Points in the tangent bundle TM of manifold M.
-        initial_points : array-like, shape=[..., 2, M.shape]
-            Points in the tangent bundle TM of manifold M.
+        initial_point : array-like, shape=[..., 2, M.shape]
+            Point in the tangent bundle TM of manifold M.
+        end_point : array-like, shape=[..., 2, M.shape]
+            Point in the tangent bundle TM of manifold M.
 
         Returns
         -------
