@@ -199,7 +199,7 @@ class RiemannianMetric(Connection, ABC):
         ----------
         cotangent_vec_a : array-like, shape=[..., dim]
             Cotangent vector at ``base_point``.
-        cotangent_vet_b : array-like, shape=[..., dim]
+        cotangent_vec_b : array-like, shape=[..., dim]
             Cotangent vector at ``base_point``.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
