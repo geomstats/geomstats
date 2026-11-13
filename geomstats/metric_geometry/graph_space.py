@@ -528,8 +528,6 @@ class GraphSpace(Matrices):
     ----------
     n_nodes : int
         Number of graph nodes
-    total_space : space
-        Total Space before applying the permutation action. Default: Euclidean Space.
 
     References
     ----------

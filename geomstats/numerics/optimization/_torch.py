@@ -17,7 +17,7 @@ class TorchMinimizer(Minimizer, abc.ABC):
 
     Parameters
     ----------
-    Topmin : torch.optim.optimizer
+    Toptim : torch.optim.optimizer
         Class to be instantiated.
     save_result : bool
         Whether to save result.
@@ -92,7 +92,7 @@ class TorchStepwiseMinimizer(TorchMinimizer):
 
     Parameters
     ----------
-    Topmin : torch.optim.optimizer
+    Toptim : torch.optim.optimizer
         Class to be instantiated.
     max_iter : int
         Maximum number of iterations.
