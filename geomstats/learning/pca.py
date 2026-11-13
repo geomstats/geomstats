@@ -380,7 +380,7 @@ class HyperbolicPlaneExactPGA(_BasePCA):
     ----------
     space : Hyperbolic
         Two-dimensional hyperbolic space.
-    n_vec : int
+    n_grid : int
         Number of vectors used to discretize the unit ball when finding
         the direction of maximal variance.
 
