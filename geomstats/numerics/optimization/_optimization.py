@@ -75,7 +75,8 @@ class NewtonMethod(RootFinder):
     atol : float
         Tolerance to check algorithm convergence.
     max_iter : int
-        Maximum iterations.
+        Maximum number of Newton updates. The initial point and the final
+        iterate are checked for convergence, including when this is zero.
     damped : bool
         Whether to use a damped version. Check p358 of [N2018]_.
 
@@ -103,10 +104,14 @@ class NewtonMethod(RootFinder):
         """
         xk = x0
         message = "The solution converged."
-        status = 1
-        for it in range(self.max_iter):
+        status = 0
+        for it in range(self.max_iter + 1):
             fun_xk = fun(xk)
             if gs.linalg.norm(fun_xk) <= self.atol:
+                status = 1
+                break
+
+            if it == self.max_iter:
                 break
 
             y = gs.linalg.solve(fun_jac(xk), fun_xk)
@@ -115,9 +120,8 @@ class NewtonMethod(RootFinder):
             else:
                 lambda_xk = 0.0
             xk = xk - (1 / (1 + lambda_xk)) * y
-        else:
+        if status == 0:
             message = f"Maximum number of iterations {self.max_iter} reached. Results may be inaccurate"
-            status = 0
 
         result = OptimizeResult(
             x=xk,
