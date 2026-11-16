@@ -7,7 +7,7 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.test.test_case import autograd_only, autodiff_only, pytorch_backend
+from geomstats.test.test_case import autodiff_only, autograd_only, pytorch_backend
 
 pytestmark = autodiff_only
 
