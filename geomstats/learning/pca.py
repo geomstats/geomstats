@@ -116,6 +116,11 @@ class TangentPCA(_BasePCA):
     n_components : int
         Number of principal components.
         Optional, default: None.
+    whiten : bool
+        If True, scale the projected components to unit sample variance.
+        Components with zero variance remain zero. The inverse transform
+        restores the fitted component scales.
+        Optional, default: False.
 
     Notes
     -----
@@ -202,7 +207,14 @@ class TangentPCA(_BasePCA):
         U = U[:, : self.n_components_]
 
         U *= S[: self.n_components_]
+        if self.whiten:
+            U = self._whiten(U)
         return U
+
+    def _whiten(self, scores):
+        """Scale component scores without dividing by zero variance."""
+        scale = gs.sqrt(self.explained_variance_)
+        return scores / gs.where(scale == 0, 1.0, scale)
 
     def transform(self, X, y=None):
         """Project X on the principal components.
@@ -232,6 +244,8 @@ class TangentPCA(_BasePCA):
             X = tangent_vecs
         X = X - self.mean_
         X_transformed = gs.matmul(X, gs.transpose(self.components_))
+        if self.whiten:
+            X_transformed = self._whiten(X_transformed)
         return X_transformed
 
     def inverse_transform(self, X):
@@ -251,6 +265,8 @@ class TangentPCA(_BasePCA):
         X_original : array-like, shape=[..., n_features]
             Original data.
         """
+        if self.whiten:
+            X = X * gs.sqrt(self.explained_variance_)
         scores = self.mean_ + gs.matmul(X, self.components_)
 
         if self.space.point_ndim > 1:
