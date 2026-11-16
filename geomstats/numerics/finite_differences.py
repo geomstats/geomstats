@@ -12,7 +12,8 @@ def forward_difference(array, delta=None, axis=-1):
     Parameters
     ----------
     array : array-like
-        Values of a function.
+        Values of a function. Integer and boolean values are converted to the
+        default floating dtype before differences are computed.
     delta : float
         Spacing between points.
     axis : int
@@ -24,6 +25,9 @@ def forward_difference(array, delta=None, axis=-1):
     forward_diff : array-like
         Shape in the specified axis reduces by one.
     """
+    if not (gs.is_floating(array) or gs.is_complex(array)):
+        array = gs.cast(array, gs.get_default_dtype())
+
     n = array.shape[axis]
     if delta is None:
         delta = 1 / (n - 1)
@@ -47,7 +51,8 @@ def centered_difference(array, delta=None, axis=-1, endpoints=False):
     Parameters
     ----------
     array : array-like
-        Values of a function.
+        Values of a function. Integer and boolean values are converted to the
+        default floating dtype before differences are computed.
     delta : float
         Spacing between points.
     axis : int
@@ -62,6 +67,9 @@ def centered_difference(array, delta=None, axis=-1, endpoints=False):
     centered_diff : array-like
         Same shape as array.
     """
+    if not (gs.is_floating(array) or gs.is_complex(array)):
+        array = gs.cast(array, gs.get_default_dtype())
+
     n = array.shape[axis]
     if delta is None:
         delta = 1 / (n - 1)
@@ -99,7 +107,8 @@ def second_centered_difference(array, delta=None, axis=-1):
     Parameters
     ----------
     array : array-like
-        Values of a function.
+        Values of a function. Integer and boolean values are converted to the
+        default floating dtype before differences are computed.
     delta : float
         Spacing between points.
     axis : int
@@ -111,6 +120,9 @@ def second_centered_difference(array, delta=None, axis=-1):
     second_centered_diff : array-like
         Shape in the specified axis reduces by two (endpoints).
     """
+    if not (gs.is_floating(array) or gs.is_complex(array)):
+        array = gs.cast(array, gs.get_default_dtype())
+
     n = array.shape[axis]
     if delta is None:
         delta = 1 / (n - 1)
