@@ -47,14 +47,13 @@ def _get_batch_shape(*points, point_ndims=1):
         Returns the shape related with batch. () if only one point.
     """
     if isinstance(point_ndims, int):
-        point_max_ndim = _get_max_ndim_point(*points)
-        return point_max_ndim.shape[:-point_ndims]
+        point_ndims = (point_ndims,) * len(points)
 
-    for point, point_ndim in zip(points, point_ndims):
-        if point.ndim > point_ndim:
-            return point.shape[:-point_ndim]
-
-    return ()
+    batch_shapes = [
+        point.shape[: point.ndim - point_ndim]
+        for point, point_ndim in zip(points, point_ndims)
+    ]
+    return _torch.broadcast_shapes(*batch_shapes)
 
 
 def custom_gradient(*grad_funcs):
@@ -349,8 +348,9 @@ def value_and_grad(func, argnums=0, point_ndims=1):
             )
             inputs_ = []
             for point, point_ndim in zip(inputs, point_ndims_):
-                if point.shape[:-point_ndim] != batch_shape:
-                    point = _torch.broadcast_to(point, batch_shape + point.shape)
+                point_shape = point.shape[point.ndim - point_ndim :]
+                if point.shape != batch_shape + point_shape:
+                    point = _torch.broadcast_to(point, batch_shape + point_shape)
                 inputs_.append(point)
             inputs = inputs_
 
