@@ -2,13 +2,13 @@
 
 import pytest
 
-from geomstats.test.test_case import pytorch_only
+from geomstats.test.test_case import torch_only
 
 torch = pytest.importorskip("torch")
 
 from geomstats.numerics import optimization  # noqa: E402
 
-pytestmark = pytorch_only
+pytestmark = torch_only
 
 
 def make_optimizer(name):
