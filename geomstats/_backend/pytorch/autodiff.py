@@ -305,6 +305,9 @@ def value_and_grad(func, argnums=0, point_ndims=1):
 
     Suitable for use in scipy.optimize.
 
+    Gradients are returned in the order specified by ``argnums`` without
+    accumulating them in the input tensors' ``grad`` attributes.
+
     Parameters
     ----------
     func : callable
@@ -354,24 +357,26 @@ def value_and_grad(func, argnums=0, point_ndims=1):
                 inputs_.append(point)
             inputs = inputs_
 
-        inputs_ = []
-        for index, point in enumerate(inputs):
-            if index in argnums_ and not point.requires_grad:
-                point = point.detach().requires_grad_(True)
-            inputs_.append(point)
-        inputs = inputs_
+        inputs = list(inputs)
+        for index in argnums_:
+            if not inputs[index].requires_grad:
+                inputs[index] = inputs[index].detach().requires_grad_(True)
         value = func(*inputs, **kwargs).requires_grad_(True)
 
-        if value.ndim > 0:
-            sum_value = value.sum(axis=-1)
-            sum_value.backward()
-        else:
-            value.backward()
-
+        grad_inputs = tuple(inputs[index] for index in argnums_)
+        grads = (
+            _torch.autograd.grad(
+                value,
+                grad_inputs,
+                grad_outputs=_torch.ones_like(value),
+                allow_unused=True,
+            )
+            if grad_inputs
+            else ()
+        )
         grads = tuple(
-            point.grad.detach()
-            for index, point in enumerate(inputs)
-            if point.requires_grad and index in argnums_
+            _torch.zeros_like(point) if grad is None else grad.detach()
+            for point, grad in zip(grad_inputs, grads)
         )
         if isinstance(argnums, int):
             grads = grads[0]
