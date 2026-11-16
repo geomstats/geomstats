@@ -70,7 +70,9 @@ def test_normal_matrix_basis_uses_the_affine_metric(batch_shape):
         ]
     )
     basis = gs.broadcast_to(basis, batch_shape + basis.shape)
-    base_point = gs.broadcast_to(gs.diag(gs.array([1.0, 2.0])), batch_shape + (1, 2, 2))
+    base_point = gs.broadcast_to(
+        gs.array([[1.0, 0.0], [0.0, 2.0]]), batch_shape + (1, 2, 2)
+    )
 
     normalized = space.metric.normal_basis(basis, base_point)
 
