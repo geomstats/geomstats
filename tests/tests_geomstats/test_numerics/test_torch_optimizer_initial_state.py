@@ -18,7 +18,9 @@ def make_optimizer(name):
     return getattr(optimization, name)(max_iter=5, lr=0.1, tol=0.0, save_result=True)
 
 
-@pytest.mark.parametrize("name", ["TorchLBFGS", "TorchSGD", "TorchAdam", "TorchRMSprop"])
+@pytest.mark.parametrize(
+    "name", ["TorchLBFGS", "TorchSGD", "TorchAdam", "TorchRMSprop"]
+)
 @pytest.mark.parametrize("initial_kind", ["plain", "leaf", "nonleaf"])
 def test_torch_optimizer_copies_differentiable_initial_points(name, initial_kind):
     """Optimize values without modifying the caller's tensor or its graph."""
@@ -51,7 +53,9 @@ def test_torch_optimizer_copies_differentiable_initial_points(name, initial_kind
     assert optimizer.result_ is result
 
 
-@pytest.mark.parametrize("name", ["TorchLBFGS", "TorchSGD", "TorchAdam", "TorchRMSprop"])
+@pytest.mark.parametrize(
+    "name", ["TorchLBFGS", "TorchSGD", "TorchAdam", "TorchRMSprop"]
+)
 def test_torch_optimizer_can_restart_from_its_previous_result(name):
     """Reuse a returned differentiable point as the next initial guess."""
     optimizer = make_optimizer(name)
