@@ -41,7 +41,7 @@ class GeometricMedian(BaseEstimator):
 
     Notes
     -----
-    * Required metric methods: `dist`, `log`, `exp`.
+    * Required metric methods: `dist`, `log`, `norm`, `exp`.
 
     References
     ----------
@@ -95,9 +95,16 @@ class GeometricMedian(BaseEstimator):
 
         w = weights[is_non_zero] / dists[is_non_zero]
         logs = self.space.metric.log(X[is_non_zero], current_median)
-        v_k = gs.einsum("n,n...->...", w / gs.sum(w), logs)
-        updated_median = self.space.metric.exp(lr * v_k, current_median)
-        return updated_median
+        direction = gs.einsum("n,n...->...", w, logs)
+        coincident_weight = gs.sum(weights[~is_non_zero])
+        if coincident_weight > 0:
+            # At a sample the distance has a ball of subgradients in tangent space.
+            norm = self.space.metric.norm(direction, current_median)
+            if norm <= coincident_weight:
+                return current_median
+            direction = (1.0 - coincident_weight / norm) * direction
+
+        return self.space.metric.exp(lr * direction / gs.sum(w), current_median)
 
     def fit(self, X, y=None, weights=None):
         """Compute the weighted geometric median.
