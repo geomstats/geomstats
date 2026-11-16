@@ -19,9 +19,7 @@ def test_normal_basis_preserves_arbitrary_point_and_batch_axes(kind, batch_shape
     space = {
         "vector": Euclidean(3),
         "matrix": Matrices(2, 3),
-        "tensor": NFoldManifold(
-            NFoldManifold(Euclidean(2), n_copies=2), n_copies=2
-        ),
+        "tensor": NFoldManifold(NFoldManifold(Euclidean(2), n_copies=2), n_copies=2),
     }[kind]
     basis = gs.reshape(gs.eye(space.dim), (space.dim,) + space.shape)
     weights = gs.reshape(
