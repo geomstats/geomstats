@@ -20,20 +20,18 @@ def test_nfold_membership_rejects_wrong_point_shapes(shape):
 
     result = space.belongs(point)
 
-    assert result.shape == shape[:-space.point_ndim]
+    assert result.shape == shape[: -space.point_ndim]
     assert not gs.any(result)
 
 
-@pytest.mark.parametrize(
-    "shape", [(12,), (2, 6), (3, 4), (3, 1, 4), (2, 1, 3, 1, 4)]
-)
+@pytest.mark.parametrize("shape", [(12,), (2, 6), (3, 4), (3, 1, 4), (2, 1, 3, 1, 4)])
 def test_nfold_matrix_membership_rejects_reshaped_coordinates(shape):
     """Require the matrix dimensions as well as the number of copies."""
     space = NFoldManifold(Matrices(2, 2), n_copies=3)
 
     result = space.belongs(gs.ones(shape))
 
-    assert result.shape == shape[:-space.point_ndim]
+    assert result.shape == shape[: -space.point_ndim]
     assert not gs.any(result)
 
 
