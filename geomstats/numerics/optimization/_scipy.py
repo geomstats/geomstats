@@ -117,7 +117,7 @@ class ScipyMinimize(Minimizer):
         hess = self._handle_hess(fun_for_hess, fun_hess)
         hessp_ = hessp
         if callable(hessp):
-            hessp_ = lambda x, p: hessp(gs.from_numpy(x), gs.from_numpy(p))
+            hessp_ = lambda x, p: gs.to_numpy(hessp(gs.from_numpy(x), gs.from_numpy(p)))
 
         result = scipy.optimize.minimize(
             fun_,
