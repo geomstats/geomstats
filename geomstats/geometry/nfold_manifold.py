@@ -341,9 +341,9 @@ class NFoldMetric(RiemannianMetric):
             of tangent_vec at the base point.
         """
         base_manifold = self._space.base_manifold
-        batch_shape = get_batch_shape(self._space.point_ndim, tangent_vec, base_point)
 
         tangent_vec, point_ = gs.broadcast_arrays(tangent_vec, base_point)
+        batch_shape = get_batch_shape(self._space.point_ndim, tangent_vec)
         point_ = gs.reshape(point_, (-1, *base_manifold.shape))
         vector_ = gs.reshape(tangent_vec, (-1, *base_manifold.shape))
         each_exp = base_manifold.metric.exp(vector_, point_)
@@ -367,9 +367,9 @@ class NFoldMetric(RiemannianMetric):
             of point at the base point.
         """
         base_manifold = self._space.base_manifold
-        batch_shape = get_batch_shape(self._space.point_ndim, point, base_point)
 
         point_, base_point_ = gs.broadcast_arrays(point, base_point)
+        batch_shape = get_batch_shape(self._space.point_ndim, point_)
         base_point_ = gs.reshape(base_point_, (-1, *base_manifold.shape))
         point_ = gs.reshape(point_, (-1, *base_manifold.shape))
         each_log = base_manifold.metric.log(point_, base_point_)
