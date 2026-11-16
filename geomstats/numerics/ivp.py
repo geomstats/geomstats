@@ -252,6 +252,8 @@ class ScipySolveIVP(ODEIVPIntegrator):
     def integrate_t(self, force, initial_state, t_eval):
         """Integrate force at ``t_eval`` points.
 
+        Evaluating only at time zero returns the initial state once.
+
         Parameters
         ----------
         force : callable
@@ -278,15 +280,24 @@ class ScipySolveIVP(ODEIVPIntegrator):
             )
 
         raveled_initial_state = gs.reshape(initial_state, (-1,))
+        initial_time_only = (
+            end_time == 0.0
+            and t_eval is not None
+            and len(t_eval) == 1
+            and t_eval[0] == 0.0
+        )
 
         result = scipy.integrate.solve_ivp(
             force_,
             (0.0, end_time),
             raveled_initial_state,
             method=self.method,
-            t_eval=t_eval,
+            t_eval=None if initial_time_only else t_eval,
             **self.options,
         )
+        if initial_time_only:
+            result.t = result.t[:1]
+            result.y = result.y[:, :1]
         result = result_to_backend_type(result)
         result.y = gs.reshape(
             gs.moveaxis(result.y, 0, -1),
