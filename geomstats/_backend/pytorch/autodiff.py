@@ -168,6 +168,8 @@ def jacobian_vec(func, point_ndim=1):
     ----------
     func : callable
         Function whose jacobian is computed.
+    point_ndim : int
+        Number of axes in one point. All preceding axes are batch axes.
 
     Returns
     -------
@@ -179,13 +181,17 @@ def jacobian_vec(func, point_ndim=1):
     def _jacobian(point):
         if point.ndim == point_ndim:
             return _torch_jacobian(func=lambda x: func(x), inputs=point)
-        return _torch.stack(
+        batch_ndim = point.ndim - point_ndim
+        batch_shape = point.shape[:batch_ndim]
+        point = point.reshape((-1,) + point.shape[batch_ndim:])
+        result = _torch.stack(
             [
                 _torch_jacobian(func=lambda x: func(x), inputs=one_point)
                 for one_point in point
             ],
             axis=0,
         )
+        return result.reshape(batch_shape + result.shape[1:])
 
     return _jacobian
 
@@ -238,6 +244,8 @@ def hessian_vec(func, point_ndim=1, func_out_ndim=0):
     ----------
     func : callable
         Function whose Hessian is computed.
+    point_ndim : int
+        Number of axes in one point. All preceding axes are batch axes.
     func_out_ndim : dim
         func output ndim.
 
@@ -252,10 +260,14 @@ def hessian_vec(func, point_ndim=1, func_out_ndim=0):
     def _hessian(point):
         if point.ndim == point_ndim:
             return hessian_func(point)
-        return _torch.stack(
+        batch_ndim = point.ndim - point_ndim
+        batch_shape = point.shape[:batch_ndim]
+        point = point.reshape((-1,) + point.shape[batch_ndim:])
+        result = _torch.stack(
             [hessian_func(one_point) for one_point in point],
             axis=0,
         )
+        return result.reshape(batch_shape + result.shape[1:])
 
     return _hessian
 
