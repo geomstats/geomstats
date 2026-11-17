@@ -95,8 +95,7 @@ class ExpODESolver(ExpSolver):
         self._integrator = integrator
 
     def _solve(self, tangent_vec, base_point, t_eval=None):
-        if base_point.ndim != tangent_vec.ndim:
-            base_point = gs.broadcast_to(base_point, tangent_vec.shape)
+        base_point, tangent_vec = gs.broadcast_arrays(base_point, tangent_vec)
 
         state_axis = -(self._space.point_ndim + 1)
         initial_state = gs.stack([base_point, tangent_vec], axis=state_axis)
@@ -145,8 +144,6 @@ class ExpODESolver(ExpSolver):
                 "Can't solve for geodesic at different t with this integrator."
             )
 
-        base_point = gs.broadcast_to(base_point, tangent_vec.shape)
-
         def path(t):
             """Time parametrized geodesic curve.
 
@@ -160,10 +157,8 @@ class ExpODESolver(ExpSolver):
                 Geodesic points evaluated at t.
             """
             if not gs.is_array(t):
-                t = gs.array([t])
-
-            if gs.ndim(t) == 0:
-                t = gs.expand_dims(t, axis=0)
+                t = gs.array(t)
+            t = gs.to_ndarray(t, to_ndim=1)
 
             result = self._solve(tangent_vec, base_point, t_eval=t)
             return self._simplify_result_t(result)
@@ -495,6 +490,11 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         self.n_nodes = n_nodes
         self.integrator = integrator
         self.initialization = initialization
+        if use_jac and space.point_ndim != 1:
+            raise ValueError(
+                "The Jacobian of the geodesic equation is only implemented for "
+                "points represented by a vector. Use `use_jac=False`."
+            )
         self.use_jac = use_jac
 
         self.grid = self._create_grid()
@@ -568,7 +568,9 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         df_dvelocity = -2 * gs.einsum("...ijk,k...->ij...", gamma, velocity)
 
         jac_nw = gs.zeros((dim, dim, raveled_state.shape[1]))
-        jac_ne = gs.squeeze(gs.permute_dims(gs.tile(gs.eye(dim), (n_nodes, 1, 1))))
+        jac_ne = gs.broadcast_to(
+            gs.expand_dims(gs.eye(dim), axis=-1), (dim, dim, n_nodes)
+        )
 
         jac_sw = df_dposition
         jac_se = df_dvelocity
@@ -613,8 +615,7 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         path : callable
             Time parametrized geodesic curve. `f(t)`. 0 <= t <= 1.
         """
-        if point.ndim != base_point.ndim:
-            point, base_point = gs.broadcast_arrays(point, base_point)
+        point, base_point = gs.broadcast_arrays(point, base_point)
 
         is_batch = point.ndim > self._space.point_ndim
         if not is_batch:
@@ -638,10 +639,8 @@ class LogODESolver(_LogBatchMixins, LogSolver):
                 Geodesic points evaluated at t.
             """
             if not gs.is_array(t):
-                t = gs.array([t])
-
-            if gs.ndim(t) == 0:
-                t = gs.expand_dims(t, axis=0)
+                t = gs.array(t)
+            t = gs.to_ndarray(t, to_ndim=1)
 
             if not is_batch:
                 return self._simplify_result_t(result.sol(t))
@@ -1177,3 +1176,4 @@ class MultiresPathStraightening(_DiscreteGeodesicBVPBatchMixins, PathBasedLogSol
                 break
 
         return discrete_path
+
