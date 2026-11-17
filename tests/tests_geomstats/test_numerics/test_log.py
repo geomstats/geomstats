@@ -1,6 +1,7 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import GeometricDataBasedParametrizer
 
 import geomstats.backend as gs
 from geomstats.geometry.invariant_metric import (
@@ -17,61 +18,87 @@ from geomstats.numerics.geodesic import (
     PathStraightening,
     PolynomialPathLogSolver,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.test_case import autodiff_only
 from geomstats.test_cases.numerics.geodesic import (
     LogSolverAgainstMetricTestCase,
     LogSolverTestCase,
 )
 
-from .data.log import (
-    LogODESolverMatrixTestData,
-    LogSolverAgainstClosedFormTestData,
-    PathStraighteningAgainstClosedFormTestData,
-)
+from .data.geodesic import LogSolverAgainstMetricTestData, LogSolverTestData
 
 
-def _create_params():
+def _create_params_ode():
+    space = PoincareBall(random.randint(2, 3))
+    return [
+        (space, LogODESolver(space, n_nodes=10, use_jac=use_jac))
+        for use_jac in (False, True)
+    ]
+
+
+@pytest.fixture(scope="class", params=_create_params_ode())
+def spaces_with_ode_solvers(request):
+    space, request.cls.log_solver = request.param
+    request.cls.space = space
+    request.cls.testing_data.space = space
+
+
+@pytest.mark.usefixtures("spaces_with_ode_solvers")
+class TestLogODESolverAgainstClosedForm(
+    LogSolverAgainstMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    """Test LogODESolver, with and without Jacobian, against closed form."""
+
+    testing_data = LogSolverAgainstMetricTestData(
+        method_defaults={
+            "log": {"atol": 1e-3},
+            "geodesic_bvp": {"atol": 1e-4},
+        },
+    )
+
+
+def _create_params_shooting():
     params = []
 
-    spaces_1d = [PoincareBall(random.randint(2, 3))]
-
-    for space in spaces_1d:
-        for solver in (LogODESolver(space, n_nodes=10, use_jac=False),):
-            params.append((space, solver))
-
-    spaces_2d = [SPDMatrices(random.randint(2, 3))]
-
-    for space in spaces_1d + spaces_2d:
-        for solver in (
-            LogShootingSolver(space, flatten=True),
-            LogShootingSolver(space, flatten=False),
-        ):
-            params.append((space, solver))
+    for space in (
+        PoincareBall(random.randint(2, 3)),
+        SPDMatrices(random.randint(2, 3)),
+    ):
+        for flatten in (True, False):
+            params.append((space, LogShootingSolver(space, flatten=flatten)))
 
     return params
 
 
 @pytest.fixture(
     scope="class",
-    params=_create_params() if gs.has_autodiff() else (),
+    params=_create_params_shooting() if gs.has_autodiff() else (),
 )
-def spaces_with_log_solvers(request):
-    request.cls.space, request.cls.log_solver = request.param
+def spaces_with_shooting_solvers(request):
+    space, request.cls.log_solver = request.param
+    request.cls.space = space
+    request.cls.testing_data.space = space
 
 
-@pytest.mark.usefixtures("spaces_with_log_solvers")
-class TestLogSolverAgainstClosedForm(
-    LogSolverAgainstMetricTestCase, metaclass=DataBasedParametrizer
+@autodiff_only
+@pytest.mark.usefixtures("spaces_with_shooting_solvers")
+class TestLogShootingSolverAgainstClosedForm(
+    LogSolverAgainstMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = LogSolverAgainstClosedFormTestData()
+    """Test shooting solvers against closed form.
+
+    NB: `geodesic_bvp` is not implemented for shooting solvers.
+    """
+
+    testing_data = LogSolverAgainstMetricTestData(
+        excluded_methods=("geodesic_bvp",),
+        method_defaults={"log": {"atol": 1e-3}},
+    )
 
 
-def _create_params_path_straightening():
+def _create_params_path_based():
     params = []
 
-    _dim = random.randint(2, 3)
-    space = PoincareBall(_dim)
+    space = PoincareBall(random.randint(2, 3))
 
     sym_list = [False] if gs.__name__.endswith("autograd") else [True, False]
 
@@ -100,26 +127,35 @@ def _create_params_path_straightening():
 
 @pytest.fixture(
     scope="class",
-    params=_create_params_path_straightening() if gs.has_autodiff() else (),
+    params=_create_params_path_based() if gs.has_autodiff() else (),
 )
-def spaces_with_path_straightening(request):
-    request.cls.space, request.cls.log_solver = request.param
+def spaces_with_path_based_solvers(request):
+    space, request.cls.log_solver = request.param
+    request.cls.space = space
+    request.cls.testing_data.space = space
 
 
 @autodiff_only
-@pytest.mark.usefixtures("spaces_with_path_straightening")
-class TestPathStraighteningAgainstClosedForm(
-    LogSolverAgainstMetricTestCase, metaclass=DataBasedParametrizer
+@pytest.mark.usefixtures("spaces_with_path_based_solvers")
+class TestPathBasedLogSolverAgainstClosedForm(
+    LogSolverAgainstMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    """Test path-straightening against closed form.
+    """Test path-based log solvers against closed form.
 
     Not in above test for fine-grained control of tolerances.
     """
 
-    testing_data = PathStraighteningAgainstClosedFormTestData()
+    testing_data = LogSolverAgainstMetricTestData(
+        method_defaults={
+            "log": {"atol": 1e-1},
+            "geodesic_bvp": {"atol": 1e-2},
+        },
+    )
 
 
-class TestLogODESolverMatrix(LogSolverTestCase, metaclass=DataBasedParametrizer):
+class TestLogODESolverMatrix(
+    LogSolverTestCase, metaclass=GeometricDataBasedParametrizer
+):
     """Test log solvers for matrix spaces."""
 
     space = SpecialOrthogonal(random.randint(2, 3), equip=False).equip_with_metric(
@@ -132,4 +168,12 @@ class TestLogODESolverMatrix(LogSolverTestCase, metaclass=DataBasedParametrizer)
         use_jac=False,
     )
 
-    testing_data = LogODESolverMatrixTestData()
+    testing_data = LogSolverTestData(
+        space,
+        solver=log_solver,
+        excluded_methods=("geodesic_bvp",),
+        method_defaults={
+            "geodesic_bvp_known_geod": {"atol": 1e-3},
+            "log_after_exp": {"atol": 5e-4},
+        },
+    )

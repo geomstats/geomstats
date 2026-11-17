@@ -1,9 +1,12 @@
-from geomstats.test.data import TestData
+import pytest
+from polpo.testing.data import CaseData
 
 
-class InterpolatorTestData(TestData):
-    def interpolate_with_given_data_test_data(self):
-        return self.generate_tests([dict()])
+class InterpolatorTestData(CaseData):
+    @pytest.mark.random
+    def interpolate_at_nodes_test_data(self):
+        return [dict()]
 
+    @pytest.mark.random
     def interpolate_half_interval_test_data(self):
-        return self.generate_tests([dict()])
+        return [dict()]
