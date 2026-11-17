@@ -6,6 +6,7 @@ Lead author: Alice Le Brigant.
 from scipy.stats import beta
 
 import geomstats.backend as gs
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.information_geometry.base import ScipyUnivariateRandomVariable
 from geomstats.information_geometry.dirichlet import (
     DirichletDistributions,
@@ -161,6 +162,126 @@ class BetaMetric(DirichletMetric):
             1, param_a + param_b
         ) * (gs.polygamma(1, param_a) + gs.polygamma(1, param_b))
         return metric_det
+
+    def metric_matrix(self, base_point):
+        """Compute the inner-product matrix.
+
+        Compute the inner-product matrix of the Fisher information metric
+        at the tangent space at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Base point.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., 2, 2]
+            Inner-product matrix.
+        """
+        param_a = base_point[..., 0]
+        param_b = base_point[..., 1]
+        trigamma_sum = gs.polygamma(1, param_a + param_b)
+        vector = gs.stack(
+            [
+                gs.polygamma(1, param_a) - trigamma_sum,
+                -trigamma_sum,
+                gs.polygamma(1, param_b) - trigamma_sum,
+            ],
+            axis=-1,
+        )
+        return SymmetricMatrices.matrix_representation(vector)
+
+    def christoffels(self, base_point):
+        """Compute the Christoffel symbols.
+
+        Compute the Christoffel symbols of the Fisher information metric.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Base point.
+
+        Returns
+        -------
+        christoffels : array-like, shape=[..., 2, 2, 2]
+            Christoffel symbols, with the contravariant index on
+            the first dimension.
+            :math:`christoffels[..., i, j, k] = Gamma^i_{jk}`
+        """
+
+        def _coefficients(param_a, param_b):
+            trigamma_a = gs.polygamma(1, param_a)
+            tetragamma_a = gs.polygamma(2, param_a)
+            trigamma_b = gs.polygamma(1, param_b)
+            tetragamma_b = gs.polygamma(2, param_b)
+            trigamma_ab = gs.polygamma(1, param_a + param_b)
+            tetragamma_ab = gs.polygamma(2, param_a + param_b)
+            denominator = 2 * (
+                trigamma_a * trigamma_b - trigamma_ab * (trigamma_a + trigamma_b)
+            )
+
+            coef_1 = (
+                tetragamma_a * (trigamma_b - trigamma_ab) - trigamma_b * tetragamma_ab
+            ) / denominator
+            coef_2 = -trigamma_b * tetragamma_ab / denominator
+            coef_3 = (
+                tetragamma_b * trigamma_ab - trigamma_b * tetragamma_ab
+            ) / denominator
+            return coef_1, coef_2, coef_3
+
+        param_a, param_b = base_point[..., 0], base_point[..., 1]
+        coef_1, coef_2, coef_3 = _coefficients(param_a, param_b)
+        coef_4, coef_5, coef_6 = _coefficients(param_b, param_a)
+        christoffels_a = SymmetricMatrices.matrix_representation(
+            gs.stack([coef_1, coef_2, coef_3], axis=-1)
+        )
+        christoffels_b = SymmetricMatrices.matrix_representation(
+            gs.stack([coef_6, coef_5, coef_4], axis=-1)
+        )
+        return gs.stack([christoffels_a, christoffels_b], axis=-3)
+
+    def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute the sectional curvature.
+
+        The space is two-dimensional, so the sectional curvature only
+        depends on the base point.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., 2]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., 2]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., 2]
+            Base point.
+
+        Returns
+        -------
+        sectional_curvature : array-like, shape=[...,]
+            Sectional curvature at `base_point`.
+        """
+        param_a, param_b = base_point[..., 0], base_point[..., 1]
+        trigamma_a = gs.polygamma(1, param_a)
+        trigamma_b = gs.polygamma(1, param_b)
+        trigamma_ab = gs.polygamma(1, param_a + param_b)
+        tetragamma_a = gs.polygamma(2, param_a)
+        tetragamma_b = gs.polygamma(2, param_b)
+        tetragamma_ab = gs.polygamma(2, param_a + param_b)
+
+        curvature = (
+            tetragamma_a
+            * tetragamma_b
+            * tetragamma_ab
+            * (
+                trigamma_a / tetragamma_a
+                + trigamma_b / tetragamma_b
+                - trigamma_ab / tetragamma_ab
+            )
+            / (4 * self.metric_det(base_point) ** 2)
+        )
+        batch_zeros = gs.zeros_like(tangent_vec_a[..., 0] + tangent_vec_b[..., 0])
+        return curvature + batch_zeros
 
 
 class BetaDistributionsRandomVariable(ScipyUnivariateRandomVariable):

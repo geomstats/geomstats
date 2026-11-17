@@ -4,6 +4,7 @@ import math
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
+from geomstats._einsum import scalarvecmul
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -59,7 +60,7 @@ class HilbertSphere(Manifold):
             Point projected to the hypersphere.
         """
         norm = self.metric.norm(point)
-        return gs.einsum("...,...i->...i", 1.0 / norm, point)
+        return scalarvecmul(1.0 / norm, point)
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the vector space.
@@ -121,7 +122,7 @@ class HilbertSphere(Manifold):
         sq_norm = self.metric.squared_norm(base_point)
         inner_product = self.metric.inner_product(vector, base_point)
         coef = inner_product / sq_norm
-        return vector - gs.einsum("...,...j->...j", coef, base_point)
+        return vector - scalarvecmul(coef, base_point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
@@ -199,9 +200,7 @@ class HilbertSphereMetric(RiemannianMetric):
         norm = gs.clip(norm, -gs.pi, gs.pi)
         coef_1 = utils.taylor_exp_even_func(norm, utils.cos_close_0, order=4)
         coef_2 = utils.taylor_exp_even_func(norm, utils.sinc_close_0, order=4)
-        exp = gs.einsum("...,...j->...j", coef_1, base_point) + gs.einsum(
-            "...,...j->...j", coef_2, proj_tangent_vec
-        )
+        exp = scalarvecmul(coef_1, base_point) + scalarvecmul(coef_2, proj_tangent_vec)
 
         return exp
 
@@ -226,8 +225,8 @@ class HilbertSphereMetric(RiemannianMetric):
         theta = gs.arccos(cos_angle)
         coef_1_ = utils.taylor_exp_even_func(theta, utils.inv_sinc_close_0, order=5)
         coef_2_ = utils.taylor_exp_even_func(theta, utils.inv_tanc_close_0, order=5)
-        log = gs.einsum("...,...j->...j", theta * coef_1_, point) - gs.einsum(
-            "...,...j->...j", theta * coef_2_, base_point
+        log = scalarvecmul(theta * coef_1_, point) - scalarvecmul(
+            theta * coef_2_, base_point
         )
 
         return log

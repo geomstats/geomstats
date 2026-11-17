@@ -1,11 +1,6 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.fiber_bundle import FiberBundle
-from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
-from geomstats.geometry.manifold import register_quotient
-from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
@@ -392,34 +387,34 @@ class FiberBundleTestCase(TestCase):
         self.assertAllClose(tangent_vec_, tangent_vec, atol=atol)
 
     def test_integrability_tensor(
-        self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
+        self, tangent_vec_x, tangent_vec_e, base_point, expected, atol
     ):
         res = self.total_space.fiber_bundle.integrability_tensor(
-            tangent_vec_a, tangent_vec_b, base_point
+            tangent_vec_x, tangent_vec_e, base_point
         )
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
     def test_integrability_tensor_vec(self, n_reps, atol):
         base_point = self.data_generator.random_point()
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_x = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_e = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.total_space.fiber_bundle.integrability_tensor(
-            tangent_vec_a, tangent_vec_b, base_point
+            tangent_vec_x, tangent_vec_e, base_point
         )
 
         vec_data = generate_vectorization_data(
             data=[
                 dict(
-                    tangent_vec_a=tangent_vec_a,
-                    tangent_vec_b=tangent_vec_b,
+                    tangent_vec_x=tangent_vec_x,
+                    tangent_vec_e=tangent_vec_e,
                     base_point=base_point,
                     expected=expected,
                     atol=atol,
                 )
             ],
-            arg_names=["tangent_vec_a", "tangent_vec_b", "base_point"],
+            arg_names=["tangent_vec_x", "tangent_vec_e", "base_point"],
             expected_name="expected",
             vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1",
             n_reps=n_reps,
@@ -509,45 +504,3 @@ class FiberBundleTestCase(TestCase):
             vectorization_type="basic",
         )
         self._test_vectorization(vec_data)
-
-
-class GeneralLinearBuresWassersteinBundle(FiberBundle):
-    def __init__(self, total_space):
-        super().__init__(total_space=total_space, aligner=True)
-
-    @staticmethod
-    def riemannian_submersion(point):
-        return Matrices.mul(point, gs.transpose(point))
-
-    def tangent_riemannian_submersion(self, tangent_vec, base_point):
-        product = Matrices.mul(base_point, gs.transpose(tangent_vec))
-        return 2 * Matrices.to_symmetric(product)
-
-    def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
-        if base_point is None and fiber_point is None:
-            raise ValueError(
-                "Either a point (of the total space) or a "
-                "base point (of the base manifold) must be "
-                "given."
-            )
-
-        if base_point is None:
-            base_point = self.riemannian_submersion(fiber_point)
-
-        if fiber_point is None:
-            fiber_point = self.lift(base_point)
-
-        sylvester = gs.linalg.solve_sylvester(base_point, base_point, tangent_vec)
-        return Matrices.mul(sylvester, fiber_point)
-
-    @staticmethod
-    def lift(point):
-        return gs.linalg.cholesky(point)
-
-
-register_quotient(
-    Space=GeneralLinear,
-    Metric=MatricesMetric,
-    GroupAction=SpecialOrthogonalComposeAction,
-    FiberBundle=GeneralLinearBuresWassersteinBundle,
-)

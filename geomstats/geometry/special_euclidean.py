@@ -9,6 +9,7 @@ import math
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import GeneralLinear
@@ -224,7 +225,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         translation = gs.einsum("...ij,...j->...i", transposed_rot, translation)
         return homogeneous_representation(transposed_rot, -translation)
 
-    def projection(self, mat):
+    def projection(self, point):
         """Project a matrix on SE(n).
 
         The upper-left n x n block is projected to SO(n) by minimizing the
@@ -233,7 +234,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n + 1, n + 1]
+        point : array-like, shape=[..., n + 1, n + 1]
             Matrix.
 
         Returns
@@ -241,13 +242,13 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         projected : array-like, shape=[..., n + 1, n + 1]
             Rotation-translation matrix in homogeneous representation.
         """
-        if gs.any(self.belongs(mat)):
+        if gs.any(self.belongs(point)):
             # otherwise, there will be problems with autodiff
-            return gs.copy(mat)
+            return gs.copy(point)
 
         n = self.n
-        projected_rot = self.rotations.projection(mat[..., :n, :n])
-        translation = mat[..., :n, -1]
+        projected_rot = self.rotations.projection(point[..., :n, :n])
+        translation = point[..., :n, -1]
         return homogeneous_representation(projected_rot, translation)
 
 
@@ -301,13 +302,10 @@ class _SpecialEuclideanVectors(LieGroup):
         belongs : array-like, shape=[...,]
             Boolean indicating whether point belongs to SE(2) or SE(3).
         """
-        point_dim = point.shape[-1]
-        point_ndim = point.ndim
-        belongs = gs.logical_and(point_dim == self.dim, point_ndim < 3)
-        belongs = gs.logical_and(
+        belongs = point.shape[-1] == self.dim
+        return gs.logical_and(
             belongs, self.rotations.belongs(point[..., : self.rotations.dim], atol=atol)
         )
-        return belongs
 
     def projection(self, point):
         """Project a point to the group.
@@ -769,58 +767,6 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         )
         return jacobian
 
-    def _exponential_matrix(self, rot_vec):
-        """Compute exponential of rotation matrix represented by rot_vec.
-
-        Parameters
-        ----------
-        rot_vec : array-like, shape=[..., 3]
-
-        Returns
-        -------
-        exponential_mat : Matrix exponential of rot_vec
-        """
-        # TODO (nguigs): find usecase for this method
-        rot_vec = self.rotations.regularize(rot_vec)
-        n_rot_vecs = 1 if rot_vec.ndim == 1 else len(rot_vec)
-
-        angle = gs.linalg.norm(rot_vec, axis=-1)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
-
-        skew_rot_vec = self.rotations.skew.matrix_representation(rot_vec)
-
-        coef_1 = gs.empty_like(angle)
-        coef_2 = gs.empty_like(coef_1)
-
-        mask_0 = gs.equal(angle, 0)
-        mask_0 = gs.squeeze(mask_0, axis=1)
-        mask_close_to_0 = gs.isclose(angle, 0)
-        mask_close_to_0 = gs.squeeze(mask_close_to_0, axis=1)
-        mask_else = ~mask_0 & ~mask_close_to_0
-
-        coef_1[mask_close_to_0] = 1.0 / 2.0 - angle[mask_close_to_0] ** 2 / 24.0
-        coef_2[mask_close_to_0] = 1.0 / 6.0 - angle[mask_close_to_0] ** 3 / 120.0
-
-        # TODO (nina): Check if the discontinuity at 0 is expected.
-        coef_1[mask_0] = 0
-        coef_2[mask_0] = 0
-
-        coef_1[mask_else] = angle[mask_else] ** (-2) * (1.0 - gs.cos(angle[mask_else]))
-        coef_2[mask_else] = angle[mask_else] ** (-2) * (
-            1.0 - (gs.sin(angle[mask_else]) / angle[mask_else])
-        )
-
-        term_1 = gs.zeros((n_rot_vecs, self.n, self.n))
-        term_2 = gs.zeros_like(term_1)
-
-        for i in range(n_rot_vecs):
-            term_1[i] = gs.eye(self.n) + skew_rot_vec[i] * coef_1[i]
-            term_2[i] = gs.matmul(skew_rot_vec[i], skew_rot_vec[i]) * coef_2[i]
-
-        exponential_mat = term_1 + term_2
-
-        return exponential_mat
-
     def _exp_translation_transform(self, rot_vec):
         """Compute matrix associated to rot_vec for the translation part in exp.
 
@@ -840,8 +786,8 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         coef_1_ = utils.taylor_exp_even_func(sq_angle, utils.cosc_close_0, order=4)
         coef_2_ = utils.taylor_exp_even_func(sq_angle, utils.var_sinc_close_0, order=4)
 
-        term_1 = gs.einsum("...,...ij->...ij", coef_1_, skew_mat)
-        term_2 = gs.einsum("...,...ij->...ij", coef_2_, sq_skew_mat)
+        term_1 = scalarmatmul(coef_1_, skew_mat)
+        term_2 = scalarmatmul(coef_2_, sq_skew_mat)
         term_id = gs.eye(3)
         transform = term_id + term_1 + term_2
 
@@ -860,7 +806,6 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         Matrix to be applied to the translation part in log
         """
         angle = gs.linalg.norm(rot_vec, axis=-1)
-        angle = gs.to_ndarray(angle, to_ndim=gs.ndim(angle) + 1, axis=-1)
 
         skew_mat = self.rotations.skew.matrix_representation(rot_vec)
         sq_skew_mat = gs.matmul(skew_mat, skew_mat)
@@ -906,8 +851,8 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         psi = 0.5 * angle * gs.sin(angle) / (1 - gs.cos(angle))
         coef_2 += mask_else_float * (1 - psi) / (angle**2)
 
-        term_1 = gs.einsum("...,...j->...j", coef_1, skew_mat)
-        term_2 = gs.einsum("...,...j->...j", coef_2, sq_skew_mat)
+        term_1 = scalarmatmul(coef_1, skew_mat)
+        term_2 = scalarmatmul(coef_2, sq_skew_mat)
         term_id = gs.eye(3)
         transform = term_id + term_1 + term_2
 
@@ -1334,14 +1279,14 @@ class SpecialEuclideanMatricesLieAlgebra(MatrixLieAlgebra):
         point = super().random_point(n_samples, bound)
         return self.projection(point)
 
-    def projection(self, mat):
+    def projection(self, point):
         """Project a matrix to the Lie Algebra.
 
         Compute the skew-symmetric projection of the rotation part of matrix.
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n + 1, n + 1]
+        point : array-like, shape=[..., n + 1, n + 1]
             Matrix.
 
         Returns
@@ -1349,9 +1294,9 @@ class SpecialEuclideanMatricesLieAlgebra(MatrixLieAlgebra):
         projected : array-like, shape=[..., n + 1, n + 1]
             Matrix belonging to Lie Algebra.
         """
-        rotation = mat[..., : self.n, : self.n]
+        rotation = point[..., : self.n, : self.n]
         skew = SkewSymmetricMatrices.projection(rotation)
-        return homogeneous_representation(skew, mat[..., : self.n, self.n], 0.0)
+        return homogeneous_representation(skew, point[..., : self.n, self.n], 0.0)
 
     def basis_representation(self, matrix_representation):
         """Calculate the coefficients of given matrix in the basis.

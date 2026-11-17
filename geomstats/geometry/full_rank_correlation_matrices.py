@@ -12,11 +12,11 @@ References
 import logging
 
 import geomstats.backend as gs
+from geomstats._logging import warn_max_iterations
 from geomstats.algebra_utils import rowwise_scaling
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.diffeo import ComposedDiffeo, Diffeo
 from geomstats.geometry.fiber_bundle import DistanceMinimizingAligner, FiberBundle
-from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import expmh
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.lower_triangular_matrices import StrictlyLowerTriangularMatrices
@@ -52,6 +52,8 @@ from geomstats.geometry.symmetric_matrices import (
     SymmetricHollowMatrices,
 )
 from geomstats.numerics.optimization import NewtonMethod
+
+logger = logging.getLogger(__name__)
 
 
 def corr_map(point):
@@ -276,13 +278,14 @@ class CorrelationMatricesBundle(FiberBundle):
     """
 
     def __init__(self, total_space):
-        aligner = (
-            DistanceMinimizingAligner(total_space, group_elem_shape=(total_space.n,))
-            if gs.has_autodiff()
-            else None
+        super().__init__(
+            total_space=total_space,
+            aligner=DistanceMinimizingAligner(
+                total_space,
+                group_elem_shape=(total_space.n,),
+                use_log_gradient=gs.has_autodiff(),
+            ),
         )
-
-        super().__init__(total_space=total_space, aligner=aligner)
 
     @staticmethod
     def riemannian_submersion(point):
@@ -317,44 +320,77 @@ class CorrelationMatricesBundle(FiberBundle):
         return tangent_corr_map(tangent_vec, base_point)
 
     def vertical_projection(self, tangent_vec, base_point):
-        """Compute the vertical projection wrt the affine-invariant metric.
+        r"""Project a tangent vector vertically under the affine-invariant metric.
+
+        Solve
+
+        .. math::
+
+            (I_n + \Sigma \odot \Sigma^{-1})a
+            = \operatorname{diag}(\Sigma^{-1}X),
+
+        then return :math:`A\Sigma + \Sigma A`, where
+        :math:`A = \operatorname{diag}(a)`.
 
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, n]
             Tangent vector.
         base_point : array-like, shape=[..., n, n]
-            Base point.
+            SPD matrix.
 
         Returns
         -------
         ver : array-like, shape=[..., n, n]
-            Vertical projection.
+            Vertical component of the tangent vector.
         """
         n = self._total_space.n
-        inverse_base_point = GeneralLinear.inverse(base_point)
+
+        inverse_base_point = gs.linalg.inv(base_point)
         operator = gs.eye(n) + base_point * inverse_base_point
-        inverse_operator = GeneralLinear.inverse(operator)
+
         vector = gs.einsum("...ij,...ji->...i", inverse_base_point, tangent_vec)
-        diagonal = gs.einsum("...ij,...j->...i", inverse_operator, vector)
+
+        diagonal = gs.linalg.solve(operator, vector)
+
         return base_point * (diagonal[..., None, :] + diagonal[..., :, None])
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
-        """Compute the horizontal lift wrt the affine-invariant metric.
+        r"""Compute the horizontal lift under the affine-invariant metric.
+
+        If `base_point` is supplied, compute the lift at that correlation
+        matrix, even if `fiber_point` is also supplied. Otherwise, compute
+        the lift at `fiber_point`.
+
+        At a correlation matrix :math:`C`, a base tangent vector :math:`v`
+        satisfies :math:`d\operatorname{Cor}_C(v)=v`, so its horizontal
+        projection is its horizontal lift.
+
+        At a general fiber point :math:`\Sigma`, first construct
+
+        .. math::
+
+            X = \operatorname{Diag}(\Sigma)^{1/2}
+                v \operatorname{Diag}(\Sigma)^{1/2}.
+
+        This satisfies :math:`d\operatorname{Cor}_\Sigma(X)=v`.
+        Horizontal projection preserves this equality because it removes
+        a vector in the kernel of the differential.
 
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector of the manifold of full-rank correlation matrices.
-        fiber_point : array-like, shape=[..., n, n]
-            SPD matrix in the fiber above point.
-        base_point : array-like, shape=[..., n, n]
-            Full-rank correlation matrix.
+            Tangent vector to the correlation manifold.
+        base_point : array-like, shape=[..., n, n], optional
+            Correlation matrix at which to compute the lift.
+        fiber_point : array-like, shape=[..., n, n], optional
+            SPD matrix at which to compute the lift when `base_point`
+            is not supplied.
 
         Returns
         -------
         hor_lift : array-like, shape=[..., n, n]
-            Horizontal lift of tangent_vec from point to base_point.
+            Horizontal lift at the selected total-space point.
         """
         if base_point is not None:
             return self.horizontal_projection(tangent_vec, base_point)
@@ -700,10 +736,7 @@ class UniqueDiagonalMatrixAlgorithm:
 
             diag_mat = new_diag_mat
         else:
-            logging.warning(
-                "Maximum number of iterations %d reached. The mean may be inaccurate",
-                self.max_iter,
-            )
+            warn_max_iterations(logger, self.max_iter)
 
         return diag_mat
 
@@ -722,12 +755,9 @@ class UniqueDiagonalMatrixAlgorithm:
             return self._call_single(sym_mat)
 
         batch_shape = sym_mat.shape[:-2]
-        if len(batch_shape) == 1:
-            return gs.stack([self._call_single(sym_mat_) for sym_mat_ in sym_mat])
-
         mat_shape = sym_mat.shape[-2:]
         flat_sym_mat = gs.reshape(sym_mat, (-1,) + mat_shape)
-        out = gs.stack([self._call_single(sym_mat_) for sym_mat_ in flat_sym_mat])
+        out = gs.stack([self._call_single(matrix) for matrix in flat_sym_mat])
         return gs.reshape(out, batch_shape + mat_shape)
 
 
@@ -1144,13 +1174,11 @@ class SPDScalingFinder:
             return self._call_single(spd_matrix)
 
         batch_shape = spd_matrix.shape[:-2]
-        if len(batch_shape) == 1:
-            return gs.stack([self._call_single(sym_mat_) for sym_mat_ in spd_matrix])
+        n = spd_matrix.shape[-1]
+        flat_matrices = gs.reshape(spd_matrix, (-1, n, n))
+        out = gs.stack([self._call_single(matrix) for matrix in flat_matrices])
 
-        mat_shape = spd_matrix.shape[-2:]
-        flat_spd_mat = gs.reshape(spd_matrix, (-1,) + mat_shape)
-        out = gs.stack([self._call_single(sym_mat_) for sym_mat_ in flat_spd_mat])
-        return gs.reshape(out, batch_shape + (mat_shape.shape[-1],))
+        return gs.reshape(out, batch_shape + (n,))
 
 
 class LogScalingDiffeo(Diffeo):

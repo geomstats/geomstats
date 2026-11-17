@@ -4,10 +4,144 @@ Lead author: Morten Pedersen.
 """
 
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul
 from geomstats.geometry.base import VectorSpace
+from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.lie_group import LieGroup
-from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+
+
+class HeisenbergVectorsToMatrices(Diffeo):
+    r"""Diffeomorphism from the vector to the matrix representation.
+
+    The 3D Heisenberg group can also be represented as the group of 3x3 upper
+    triangular matrices with unit diagonal. In exponential coordinates, the
+    diffeomorphism is the group exponential (composed with the hat map)
+
+    .. math::
+
+        (x, y, z) \mapsto \begin{pmatrix}
+        1 & x & z + \frac{1}{2} x y \\
+        0 & 1 & y \\
+        0 & 0 & 1
+        \end{pmatrix}
+
+    It is also a group isomorphism.
+    """
+
+    @staticmethod
+    def _matrix_from_entries(entry_01, entry_12, entry_02, diag):
+        """Build a 3x3 upper triangular matrix from its entries.
+
+        Parameters
+        ----------
+        entry_01 : array-like, shape=[...]
+        entry_12 : array-like, shape=[...]
+        entry_02 : array-like, shape=[...]
+        diag : float
+            Value of the diagonal entries.
+
+        Returns
+        -------
+        matrix : array-like, shape=[..., 3, 3]
+        """
+        zeros = gs.zeros_like(entry_02)
+        diag = zeros + diag
+        entry_01 = gs.broadcast_to(entry_01, entry_02.shape)
+        entry_12 = gs.broadcast_to(entry_12, entry_02.shape)
+        entries = gs.stack(
+            [diag, entry_01, entry_02, zeros, diag, entry_12, zeros, zeros, diag],
+            axis=-1,
+        )
+        return gs.reshape(entries, entry_02.shape + (3, 3))
+
+    def __call__(self, base_point):
+        """Compute the upper triangular matrix representation of a point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 3]
+            Point in the vector representation.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., 3, 3]
+            Upper triangular matrix with unit diagonal.
+        """
+        x, y, z = base_point[..., 0], base_point[..., 1], base_point[..., 2]
+        return self._matrix_from_entries(x, y, z + x * y / 2, 1.0)
+
+    def inverse(self, image_point):
+        """Compute the vector representation of an upper triangular matrix.
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., 3, 3]
+            Upper triangular matrix with unit diagonal.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., 3]
+            Point in the vector representation.
+        """
+        a, b, c = image_point[..., 0, 1], image_point[..., 1, 2], image_point[..., 0, 2]
+        return gs.stack([a, b, c - a * b / 2], axis=-1)
+
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
+        """Tangent diffeomorphism at base point.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 3]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., 3]
+            Base point.
+        image_point : array-like, shape=[..., 3, 3]
+            Image point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., 3, 3]
+            Image tangent vector at image of the base point.
+        """
+        if base_point is None:
+            base_point = self.inverse(image_point)
+
+        x, y = base_point[..., 0], base_point[..., 1]
+        dx, dy, dz = tangent_vec[..., 0], tangent_vec[..., 1], tangent_vec[..., 2]
+        return self._matrix_from_entries(dx, dy, dz + (x * dy + y * dx) / 2, 0.0)
+
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
+        """Inverse tangent diffeomorphism at image point.
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., 3, 3]
+            Image tangent vector at image point.
+        image_point : array-like, shape=[..., 3, 3]
+            Image point.
+        base_point : array-like, shape=[..., 3]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., 3]
+            Tangent vector at base point.
+        """
+        if image_point is None:
+            image_point = self(base_point)
+
+        a, b = image_point[..., 0, 1], image_point[..., 1, 2]
+        da, db, dc = (
+            image_tangent_vec[..., 0, 1],
+            image_tangent_vec[..., 1, 2],
+            image_tangent_vec[..., 0, 2],
+        )
+        dz = dc - (a * db + b * da) / 2
+        return gs.stack(
+            [gs.broadcast_to(da, dz.shape), gs.broadcast_to(db, dz.shape), dz],
+            axis=-1,
+        )
 
 
 class HeisenbergVectors(LieGroup, VectorSpace):
@@ -115,14 +249,14 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         if left:
             return (
                 gs.eye(3)
-                + gs.einsum("...,ij->...ij", -point[..., 1] / 2, e31)
-                + gs.einsum("...,ij->...ij", point[..., 0] / 2, e32)
+                + scalarmatmul(-point[..., 1] / 2, e31)
+                + scalarmatmul(point[..., 0] / 2, e32)
             )
 
         return (
             gs.eye(3)
-            + gs.einsum("...,ij->...ij", point[..., 1] / 2, e31)
-            + gs.einsum("...,ij->...ij", -point[..., 0] / 2, e32)
+            + scalarmatmul(point[..., 1] / 2, e31)
+            + scalarmatmul(-point[..., 0] / 2, e32)
         )
 
     def exp_from_identity(self, tangent_vec):
@@ -154,66 +288,6 @@ class HeisenbergVectors(LieGroup, VectorSpace):
             Group logarithm.
         """
         return gs.copy(point)
-
-    @staticmethod
-    def upper_triangular_matrix_from_vector(point):
-        """Compute the upper triangular matrix representation of the vector.
-
-        The 3D Heisenberg group can also be represented as 3x3 upper triangular
-        matrices. This function computes this representation of the vector
-        `point`.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., 3]
-            Point in the vector-represention.
-
-        Returns
-        -------
-        upper_triangular_mat : array-like, shape=[..., 3, 3]
-            Upper triangular matrix.
-        """
-        element_02 = point[..., 2] + 1 / 2 * point[..., 0] * point[..., 1]
-
-        if gs.ndim(point) == 1:
-            modified_point = gs.array([1, point[0], element_02, 1, point[1], 1])
-        else:
-            n_points = gs.shape(point)[0]
-            modified_point = gs.stack(
-                (
-                    gs.ones(n_points),
-                    point[..., 0],
-                    element_02,
-                    gs.ones(n_points),
-                    point[..., 1],
-                    gs.ones(n_points),
-                ),
-                axis=-1,
-            )
-
-        return gs.triu(SymmetricMatrices.matrix_representation(modified_point))
-
-    @staticmethod
-    def vector_from_upper_triangular_matrix(matrix):
-        """Compute the vector representation of the upper triangular matrix.
-
-        Parameters
-        ----------
-        matrix : array-like, shape=[..., 3, 3]
-            Upper triangular matrix.
-
-        Returns
-        -------
-        vector : array-like, shape=[..., 3]
-        """
-        modified_point = gs.triu_to_vec(matrix, k=1)
-        corrected_elem = (
-            modified_point[..., 1]
-            - 1 / 2 * modified_point[..., 0] * modified_point[..., 2]
-        )
-        return gs.stack(
-            [modified_point[..., 0], modified_point[..., 2], corrected_elem], axis=-1
-        )
 
     def lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the lie bracket of two tangent vectors."""

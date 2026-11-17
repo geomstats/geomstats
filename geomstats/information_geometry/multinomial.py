@@ -6,6 +6,7 @@ Lead author: Alice Le Brigant.
 from scipy.stats import dirichlet, multinomial
 
 import geomstats.backend as gs
+from geomstats._einsum import scalarvecmul
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.euclidean import Euclidean
@@ -23,14 +24,14 @@ class SimplexToPositiveHypersphere(Diffeo):
     """Diffeomorphism between simplex and its image under componentwise square root."""
 
     @staticmethod
-    def __call__(point):
+    def __call__(base_point):
         """Send point of the simplex to the sphere.
 
         The map takes the square root of each component.
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim]
             Point on the simplex.
 
         Returns
@@ -38,7 +39,7 @@ class SimplexToPositiveHypersphere(Diffeo):
         image_point : array-like, shape=[..., dim]
             Point on the sphere.
         """
-        return point ** (1 / 2)
+        return base_point ** (1 / 2)
 
     @staticmethod
     def inverse(image_point):
@@ -81,13 +82,13 @@ class SimplexToPositiveHypersphere(Diffeo):
 
         return gs.einsum("...i,...i->...i", tangent_vec, 1 / (2 * image_point))
 
-    def inverse_tangent(self, tangent_vec, image_point=None, base_point=None):
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         """Send tangent vector of the sphere to tangent space of simplex.
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., dim]
-            Tangent vec to the sphere at base point.
+        image_tangent_vec : array-like, shape=[..., dim]
+            Tangent vec to the sphere at image point.
         image_point : array-like, shape=[..., dim]
             Point of the sphere.
         base_point : array-like, shape=[..., dim]
@@ -102,7 +103,7 @@ class SimplexToPositiveHypersphere(Diffeo):
         if image_point is None:
             image_point = self(base_point)
 
-        return gs.einsum("...i,...i->...i", tangent_vec, 2 * image_point)
+        return gs.einsum("...i,...i->...i", image_tangent_vec, 2 * image_point)
 
 
 class MultinomialDistributions(InformationManifoldMixin, LevelSet):
@@ -207,7 +208,7 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         """
         point_quadrant = gs.where(point < atol, atol, point)
         norm = gs.sum(point_quadrant, axis=-1)
-        projected_point = gs.einsum("...,...i->...i", 1.0 / norm, point_quadrant)
+        projected_point = scalarvecmul(1.0 / norm, point_quadrant)
         return projected_point
 
     def to_tangent(self, vector, base_point=None):

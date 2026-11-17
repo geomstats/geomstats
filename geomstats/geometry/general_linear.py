@@ -2,6 +2,7 @@
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import MatrixLieGroup
@@ -60,9 +61,7 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
             Projected point.
         """
         belongs = self.belongs(point)
-        regularization = gs.einsum(
-            "...,ij->...ij", gs.where(~belongs, gs.atol, 0.0), self.identity
-        )
+        regularization = scalarmatmul(gs.where(~belongs, gs.atol, 0.0), self.identity)
         projected = point + regularization
         if self.positive_det:
             det = gs.linalg.det(point)
@@ -170,6 +169,7 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
         is_vec = gs.ndim(tangent_vec) > 2
 
         def path(time):
+            time = gs.to_ndarray(time, to_ndim=1, dtype=tangent_vec.dtype)
             vecs = gs.einsum("t,...ij->...tij", time, tangent_vec)
             if is_vec and base_point is None:
                 return gs.stack([cls.exp(vecs_) for vecs_ in vecs])
@@ -185,6 +185,22 @@ class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
             return cls.exp(vecs, base_point)
 
         return path
+
+
+class PositiveGeneralLinear(GeneralLinear):
+    """Class for the positive general linear group GL+(n).
+
+    The connected component of the identity of the general linear group,
+    i.e. the space of matrices with positive determinant.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shape of the matrices: n x n.
+    """
+
+    def __init__(self, n, equip=True):
+        super().__init__(n, positive_det=True, equip=equip)
 
 
 class SquareMatrices(MatrixLieAlgebra):

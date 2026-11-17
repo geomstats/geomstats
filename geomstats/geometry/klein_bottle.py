@@ -420,6 +420,8 @@ class KleinBottleMetric(RiemannianMetric):
 
         Computed by adding tangent_vec to base_point and finding canonical
         representation in the unit square.
+        The tangent vector is understood at the given representative of
+        base_point.
 
         Parameters
         ----------
@@ -433,18 +435,15 @@ class KleinBottleMetric(RiemannianMetric):
         exp : array-like, shape=[..., dim]
             Point on the manifold.
         """
-        if base_point.ndim == 1 and tangent_vec.ndim > 1:
-            while base_point.ndim < tangent_vec.ndim:
-                base_point = gs.expand_dims(base_point, 0)
-        base_point_canonical = self._space.regularize(base_point)
-        point = base_point_canonical + tangent_vec
-        return self._space.regularize(point)
+        return self._space.regularize(base_point + tangent_vec)
 
     def log(self, point, base_point):
         """Logarithm map.
 
         Computed by finding the representative of point closest to base_point and
         returning their difference.
+        The tangent vector is returned at the given representative of
+        base_point.
 
         Parameters
         ----------
@@ -464,7 +463,43 @@ class KleinBottleMetric(RiemannianMetric):
         base_point_canonical, point_minimal = self._closest_representative(
             base_point, point
         )
-        return point_minimal - base_point_canonical
+        return _glide_sign(base_point) * (point_minimal - base_point_canonical)
+
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
+
+        The metric is flat, so the transport is the identity in the covering
+        :math:`\mathbb R^2`. Regularizing the end point
+        :math:`p = base\_point + direction` uses
+        :math:`k = \lfloor p_1 \rfloor` glide reflections, each flipping the
+        second component of the vector:
+
+        .. math::
+            P(v) = (v_1, (-1)^k v_2)
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 2]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., 2]
+            Point on the manifold. Point to transport from.
+        direction : array-like, shape=[..., 2]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        end_point : array-like, shape=[..., 2]
+            Point on the manifold. Point to transport to.
+
+        Returns
+        -------
+        transported_tangent_vec : array-like, shape=[..., 2]
+            Transported tangent vector at ``exp_(base_point)(direction)``.
+        """
+        if direction is None:
+            direction = self.log(end_point, base_point)
+
+        return _glide_sign(base_point + direction) * tangent_vec
 
     def _closest_representative(self, point1, point2):
         """Find the representative of point2 which is closest to point1.
@@ -536,3 +571,23 @@ def _is_close_mod(array, divisor, atol):
     return gs.logical_or(
         gs.isclose(gs.abs(array), 0.0, atol), gs.isclose(gs.abs(array), divisor, atol)
     )
+
+
+def _glide_sign(point):
+    r"""Compute the tangent sign change induced by regularizing a point.
+
+    Regularizing uses :math:`k = \lfloor x \rfloor` glide reflections,
+    each flipping the second component of tangent vectors.
+
+    Parameters
+    ----------
+    point : array-like, shape=[..., 2]
+        Point.
+
+    Returns
+    -------
+    sign : array-like, shape=[..., 2]
+        Componentwise sign, :math:`(1, (-1)^k)`.
+    """
+    sign = 1.0 - 2.0 * gs.mod(gs.floor(point[..., 0]), 2.0)
+    return gs.stack([gs.ones_like(sign), sign], axis=-1)

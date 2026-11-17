@@ -2,7 +2,6 @@ import geomstats.backend as gs
 from geomstats.geometry.base import ComplexMatrixVectorSpace
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import SquareMatrices
-from geomstats.vectorization import get_n_points
 
 
 def get_random_quaternion(n_points=1):
@@ -98,13 +97,6 @@ class NFoldManifoldRandomDataGenerator(RandomDataGenerator):
         return gs.reshape(point, shape + base.shape)
 
 
-class HypersphereIntrinsicRandomDataGenerator(RandomDataGenerator):
-    def random_tangent_vec(self, base_point):
-        n_points = get_n_points(self.space.point_ndim, base_point)
-        batch_shape = (n_points,) if n_points > 1 else ()
-        return gs.random.uniform(size=batch_shape + (self.space.dim,)) / self.amplitude
-
-
 class RankKPSDMatricesRandomDataGenerator(RandomDataGenerator):
     def __init__(self, space, amplitude=1.0):
         super().__init__(space, amplitude=amplitude)
@@ -145,23 +137,6 @@ class GammaRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
             )
             / self.amplitude
         )
-
-
-class HeisenbergVectorsRandomDataGenerator(VectorSpaceRandomDataGenerator):
-    def random_upper_triangular_matrix(self, n_points=1):
-        if n_points == 1:
-            size = 3
-            expected_shape = (3, 3)
-            indices = [(0, 1), (0, 2), (1, 2)]
-        else:
-            size = n_points * 3
-            expected_shape = (n_points, 3, 3)
-            indices = []
-            for k in range(n_points):
-                indices.extend([(k, 0, 1), (k, 0, 2), (k, 1, 2)])
-
-        vec = gs.random.uniform(size=size)
-        return gs.array_from_sparse(indices, vec, expected_shape) + gs.eye(3)
 
 
 class ShapeBundleRandomDataGenerator(RandomDataGenerator):

@@ -518,3 +518,23 @@ class PullbackDiffeoMetric(RiemannianMetric):
         return self.diffeo.inverse_tangent(
             image_parallel_transport, image_point=image_end_point, base_point=end_point
         )
+
+    def injectivity_radius(self, base_point=None):
+        """Compute the radius of the injectivity domain.
+
+        The diffeomorphism is an isometry between the space and the image
+        space, so the injectivity radius is the one of the image metric at
+        the image of the base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        image_base_point = None if base_point is None else self.diffeo(base_point)
+        return self.image_space.metric.injectivity_radius(image_base_point)

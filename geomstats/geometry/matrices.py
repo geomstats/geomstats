@@ -12,6 +12,8 @@ from geomstats.geometry.diffeo import VectorSpaceDiffeo
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.vectorization import repeat_out
 
+logger = logging.getLogger(__name__)
+
 
 def matrix_matrix_transpose(point):
     r"""Matrix multiplication with transpose.
@@ -798,13 +800,12 @@ class Matrices(MatrixVectorSpace):
             singular_values[..., -2] + gs.sign(det) * singular_values[..., -1]
         ) / singular_values[..., 0]
         if gs.any(conditioning < gs.atol):
-            logging.warning(
-                f"Singularity close, ill-conditioned matrix "
-                f"encountered: "
-                f"{conditioning[conditioning < 1e-10]}"
+            logger.warning(
+                "Singularity close, ill-conditioned matrix encountered: %s",
+                conditioning[conditioning < 1e-10],
             )
         if gs.any(gs.isclose(conditioning, 0.0)):
-            logging.warning("Alignment matrix is not unique.")
+            logger.warning("Alignment matrix is not unique.")
 
         if flip:
             flipped = flip_determinant(gs.transpose(right), det)
@@ -883,6 +884,60 @@ class MatricesMetric(EuclideanMetric):
         """
         norm = gs.linalg.norm(vector, axis=(-2, -1))
         return repeat_out(self._space.point_ndim, norm, vector, base_point)
+
+    def flat(self, tangent_vec, base_point=None):
+        """Map a tangent vector to a covector under the Frobenius pairing.
+
+        The Frobenius metric is the Frobenius pairing itself, so this is the
+        identity.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *shape]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        cotangent_vec : array-like, shape=[..., *shape]
+            Matrix representing the covector.
+        """
+        return repeat_out(
+            self._space.point_ndim,
+            gs.copy(tangent_vec),
+            tangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )
+
+    def sharp(self, cotangent_vec, base_point=None):
+        """Map a covector to a tangent vector under the Frobenius pairing.
+
+        The Frobenius metric is the Frobenius pairing itself, so this is the
+        identity.
+
+        Parameters
+        ----------
+        cotangent_vec : array-like, shape=[..., *shape]
+            Matrix representing the covector.
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *shape]
+            Tangent vector at base point.
+        """
+        return repeat_out(
+            self._space.point_ndim,
+            gs.copy(cotangent_vec),
+            cotangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )
 
 
 class MatricesDiagMetric(EuclideanMetric):

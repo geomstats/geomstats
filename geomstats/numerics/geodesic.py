@@ -200,7 +200,7 @@ class LogSolver(ABC):
 
         Parameters
         ----------
-        end_point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., dim]
             Point on the manifold.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
@@ -216,7 +216,7 @@ class LogSolver(ABC):
 
         Parameters
         ----------
-        end_point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., dim]
             Point on the manifold.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
@@ -238,7 +238,7 @@ class _LogBatchMixins:
 
         Parameters
         ----------
-        end_point : array-like, shape=[dim]
+        point : array-like, shape=[dim]
             Point on the manifold.
         base_point : array-like, shape=[dim]
             Point on the manifold.
@@ -254,9 +254,7 @@ class _LogBatchMixins:
 
         Parameters
         ----------
-        space : Manifold
-            Equipped manifold.
-        end_point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., dim]
             Point on the manifold.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
@@ -346,7 +344,7 @@ class _LogShootingSolver(LogSolver, ABC):
 
         Parameters
         ----------
-        end_point : array-like, shape=[..., *space.shape]
+        point : array-like, shape=[..., *space.shape]
             Point on the manifold.
         base_point : array-like, shape=[..., *space.shape]
             Point on the manifold.
@@ -362,7 +360,7 @@ class _LogShootingSolver(LogSolver, ABC):
         ----------
         flat_tangent_vec : array-like, shape=[prod(batch_shape)*prod(space.shape)]
             Flattened tangent vector.
-        end_point : array-like, shape=[..., *space.shape]
+        point : array-like, shape=[..., *space.shape]
             Point on the manifold.
         base_point : array-like, shape=[..., *space.shape]
             Point on the manifold.
@@ -398,7 +396,7 @@ class _LogShootingSolverFlatten(_LogShootingSolver):
 
         Parameters
         ----------
-        end_point : array-like, shape=[..., *space.shape]
+        point : array-like, shape=[..., *space.shape]
             Point on the manifold.
         base_point : array-like, shape=[..., *space.shape]
             Point on the manifold.
@@ -444,7 +442,7 @@ class _LogShootingSolverUnflatten(_LogBatchMixins, _LogShootingSolver):
 
         Parameters
         ----------
-        end_point : array-like, shape=[*space.shape]
+        point : array-like, shape=[*space.shape]
             Point on the manifold.
         base_point : array-like, shape=[*space.shape]
             Point on the manifold.
@@ -605,7 +603,7 @@ class LogODESolver(_LogBatchMixins, LogSolver):
 
         Parameters
         ----------
-        end_point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., dim]
             Point on the manifold.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
@@ -737,7 +735,7 @@ class PathBasedLogSolver(LogSolver, ABC):
 
         Parameters
         ----------
-        discr_path : array-like, shape=[..., n_nodes, *point_shape]
+        path : array-like, shape=[..., n_nodes, *point_shape]
             Discrete path.
 
         Returns
@@ -772,7 +770,7 @@ class PathBasedLogSolver(LogSolver, ABC):
 
         Parameters
         ----------
-        end_point : array-like, shape=[..., *point_shape]
+        point : array-like, shape=[..., *point_shape]
             Point on the manifold.
         base_point : array-like, shape=[..., *point_shape]
             Point on the manifold.
@@ -794,7 +792,7 @@ class PathBasedLogSolver(LogSolver, ABC):
 
         Parameters
         ----------
-        end_point : array-like, shape=[..., *point_shape]
+        point : array-like, shape=[..., *point_shape]
             Point on the manifold.
         base_point : array-like, shape=[..., *point_shape]
             Point on the manifold.
@@ -904,7 +902,7 @@ class PathStraightening(_DiscreteGeodesicBVPBatchMixins, PathBasedLogSolver):
 
             Parameters
             ----------
-            midpoint : array-like, shape=[(self.n_nodes-2) * math.prod(*point_shape)]
+            midpoints : array-like, shape=[(self.n_nodes-2) * math.prod(*point_shape)]
                 Midpoints of the path.
 
             Returns
@@ -1099,7 +1097,7 @@ class MultiresPathStraightening(_DiscreteGeodesicBVPBatchMixins, PathBasedLogSol
 
             Parameters
             ----------
-            midpoint : array-like, shape=[(n_nodes-2) * math.prod(*point_shape)]
+            midpoints : array-like, shape=[(n_nodes-2) * math.prod(*point_shape)]
                 Midpoints of the path.
 
             Returns

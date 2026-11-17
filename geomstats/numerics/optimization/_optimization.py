@@ -7,6 +7,8 @@ from scipy.optimize import OptimizeResult
 
 import geomstats.backend as gs
 
+logger = logging.getLogger("geomstats.numerics.optimization")
+
 
 class Minimizer(ABC):
     """Minimizer.
@@ -128,6 +130,6 @@ class NewtonMethod(RootFinder):
         )
 
         if not result.success:
-            logging.warning(result.message)
+            logger.warning(result.message)
 
         return result

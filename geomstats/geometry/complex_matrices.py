@@ -126,10 +126,6 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
         is_skew_herm : array-like, shape=[...,]
             Boolean evaluating if the matrix is skew-Hermitian.
         """
-        is_square = Matrices.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
         return Matrices.equal(mat, -cls.transconjugate(mat), atol)
 
     @classmethod
