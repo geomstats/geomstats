@@ -1,6 +1,6 @@
 import random
 
-import pytest
+from polpo.testing.parametrizers import GeometricDataBasedParametrizer
 
 from geomstats.geometry.invariant_metric import (
     InvariantMetric,
@@ -10,7 +10,6 @@ from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.numerics.geodesic import ExpODESolver
 from geomstats.numerics.ivp import GSIVPIntegrator, ScipySolveIVP
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.numerics.geodesic import (
     ExpSolverAgainstMetricTestCase,
     ExpSolverComparisonTestCase,
@@ -24,43 +23,41 @@ from .data.geodesic import (
 )
 
 
-def _create_params():
-    params = []
-
-    for space in (PoincareBall(random.randint(2, 3)),):
-        for integrator in (
-            GSIVPIntegrator(n_steps=20, step_type="rk4"),
-            ScipySolveIVP(rtol=1e-8),
-        ):
-            solver = ExpODESolver(space, integrator=integrator)
-            params.append((space, solver))
-
-    return params
-
-
-@pytest.fixture(
-    scope="class",
-    params=_create_params(),
-)
-def spaces(request):
-    request.cls.space, request.cls.exp_solver = request.param
-
-
-@pytest.mark.usefixtures("spaces")
-class TestExpODESolverAgainstMetric(
-    ExpSolverAgainstMetricTestCase, metaclass=DataBasedParametrizer
+class TestExpODESolverGSIVPAgainstMetric(
+    ExpSolverAgainstMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    """Test ExpODESolver with different integrators against closed-form implementations.
+    """Test ExpODESolver with GSIVPIntegrator against closed-form implementations.
+
+    NB: `geodesic_ivp` is not implemented with `GSIVPIntegrator`.
+    """
+
+    space = PoincareBall(random.randint(2, 3))
+    exp_solver = ExpODESolver(
+        space, integrator=GSIVPIntegrator(n_steps=20, step_type="rk4")
+    )
+
+    testing_data = ExpSolverAgainstMetricTestData(
+        space, excluded_methods=("geodesic_ivp",)
+    )
+
+
+class TestExpODESolverScipyAgainstMetric(
+    ExpSolverAgainstMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    """Test ExpODESolver with ScipySolveIVP against closed-form implementations.
 
     NB: we lack closed-form solutions for matrix spaces. This justifies the creation
     of e.g. `TestExpODESolverMatrixComparison`.
     """
 
-    testing_data = ExpSolverAgainstMetricTestData()
+    space = PoincareBall(random.randint(2, 3))
+    exp_solver = ExpODESolver(space, integrator=ScipySolveIVP(rtol=1e-8))
+
+    testing_data = ExpSolverAgainstMetricTestData(space)
 
 
 class TestExpODESolverMatrixComparison(
-    ExpSolverComparisonTestCase, metaclass=DataBasedParametrizer
+    ExpSolverComparisonTestCase, metaclass=GeometricDataBasedParametrizer
 ):
     """Test ExpODESolver solver for matrix spaces with different integrators.
 
@@ -81,10 +78,14 @@ class TestExpODESolverMatrixComparison(
         space, integrator=ScipySolveIVP(rtol=1e-8, point_ndim=2)
     )
 
-    testing_data = ExpSolverComparisonTestData()
+    testing_data = ExpSolverComparisonTestData(
+        space, excluded_methods=("geodesic_ivp",)
+    )
 
 
-class TestExpODESolverMatrix(ExpSolverTestCase, metaclass=DataBasedParametrizer):
+class TestExpODESolverMatrix(
+    ExpSolverTestCase, metaclass=GeometricDataBasedParametrizer
+):
     """Test ExpODESolver with ScipySolveIVP for matrix points.
 
     Main goal is to test if `geodesic_ivp` runs, since it is not covered
@@ -105,4 +106,4 @@ class TestExpODESolverMatrix(ExpSolverTestCase, metaclass=DataBasedParametrizer)
         ),
     )
 
-    testing_data = ExpSolverTestData()
+    testing_data = ExpSolverTestData(space, solver=exp_solver)

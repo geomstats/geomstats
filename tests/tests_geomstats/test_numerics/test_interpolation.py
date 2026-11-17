@@ -1,13 +1,13 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import DataBasedParametrizer
 
 import geomstats.backend as gs
 from geomstats.numerics.interpolation import (
     LinearInterpolator1D,
     UniformUnitIntervalLinearInterpolator,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.numerics.interpolation import InterpolatorTestCase
 
 from .data.interpolation import InterpolatorTestData
