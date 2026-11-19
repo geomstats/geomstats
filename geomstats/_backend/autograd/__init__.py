@@ -18,7 +18,6 @@ from autograd.numpy import (
     argmax,
     argmin,
     asarray,
-    broadcast_arrays,
     broadcast_to,
     ceil,
     clip,
@@ -146,6 +145,15 @@ def has_autodiff():
     has_autodiff : bool
     """
     return True
+
+
+def broadcast_arrays(*arrays):
+    """Broadcast arrays against each other.
+
+    Built on ``broadcast_to``, which autograd can differentiate.
+    """
+    target_shape = _np.broadcast_shapes(*[shape(array) for array in arrays])
+    return tuple(broadcast_to(array, target_shape) for array in arrays)
 
 
 def outer(a, b):
