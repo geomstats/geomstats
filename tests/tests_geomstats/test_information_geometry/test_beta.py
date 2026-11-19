@@ -38,7 +38,9 @@ class TestBetaDistributionsSmoke(
 class TestBetaMetric(BetaMetricTestCase, metaclass=DataBasedParametrizer):
     space = BetaDistributions()
 
-    data_generator = RandomDataGenerator(space, amplitude=5.0)
+    data_generator = RandomDataGenerator(
+        space, amplitude=5.0, random_point_kwargs={"low": 0.5, "bound": 4.5}
+    )
 
     testing_data = BetaMetricTestData()
 

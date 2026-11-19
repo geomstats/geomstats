@@ -49,7 +49,6 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
             of a multivariate normal distribution with zero mean.
         n_samples : int
             Number of points to sample with each covariance matrix in point.
-            Optional, default: 1.
 
         Returns
         -------

@@ -23,7 +23,7 @@ from geomstats.vectorization import repeat_out
 class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace):
     """Class for the manifold of univariate normal distributions.
 
-    This is upper half-plane.
+    This is the upper half-plane.
     """
 
     def __init__(self, equip=True):
@@ -34,32 +34,6 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return UnivariateNormalMetric
-
-    @staticmethod
-    def random_point(n_samples=1, bound=1.0):
-        """Sample parameters of normal distributions.
-
-        The uniform distribution on [-bound/2, bound/2]x[0, bound] is used.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Side of the square where the normal parameters are sampled.
-            Optional, default: 5.
-
-        Returns
-        -------
-        samples : array-like, shape=[..., 2]
-            Sample of points representing normal distributions.
-        """
-        means = -bound + 2 * bound * gs.random.rand(n_samples)
-        stds = bound * gs.random.rand(n_samples)
-        if n_samples == 1:
-            return gs.array((means[0], stds[0]))
-        return gs.transpose(gs.stack((means, stds)))
 
     def sample(self, point, n_samples=1):
         """Sample from the normal distribution.
@@ -73,7 +47,6 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
             Point representing a normal distribution (mean and scale).
         n_samples : int
             Number of points to sample with each pair of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -158,6 +131,93 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         mat = gs.array([[1.0, 0], [0, 2]])
         return scalarmatmul(const, mat)
 
+    @staticmethod
+    def inner_product_derivative_matrix(base_point):
+        r"""Compute derivative of the inner prod matrix at base point.
+
+        The only nonzero entries are :math:`\partial_{\sigma} g_{\mu\mu}
+        = -2 / \sigma^3` and :math:`\partial_{\sigma} g_{\sigma\sigma}
+        = -4 / \sigma^3`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point representing a normal distribution (mean and scale).
+
+        Returns
+        -------
+        metric_derivative : array-like, shape=[..., 2, 2, 2]
+            Derivative of the inner-product matrix, where the index
+            k of the derivation is last: :math:`mat_{ijk} = \partial_k g_{ij}`.
+        """
+        mat = gs.array([[1.0, 0.0], [0.0, 2.0]])
+        return gs.einsum(
+            "...,ij,k->...ijk",
+            -2 / base_point[..., 1] ** 3,
+            mat,
+            gs.array([0.0, 1.0]),
+        )
+
+    @staticmethod
+    def _christoffels_pattern():
+        r"""Compute the Christoffel symbols at :math:`\sigma = 1`.
+
+        They are :math:`\Gamma^{\mu}_{\mu\sigma} = -1`,
+        :math:`\Gamma^{\sigma}_{\mu\mu} = 1 / 2` and
+        :math:`\Gamma^{\sigma}_{\sigma\sigma} = -1`.
+
+        Returns
+        -------
+        pattern : array-like, shape=[2, 2, 2]
+            Pattern, with the contravariant index on the first dimension.
+        """
+        return gs.array([[[0.0, -1.0], [-1.0, 0.0]], [[0.5, 0.0], [0.0, -1.0]]])
+
+    def christoffels(self, base_point):
+        r"""Compute the Christoffel symbols.
+
+        The nonzero symbols are :math:`\Gamma^{\mu}_{\mu\sigma} = -1 / \sigma`,
+        :math:`\Gamma^{\sigma}_{\mu\mu} = 1 / (2 \sigma)` and
+        :math:`\Gamma^{\sigma}_{\sigma\sigma} = -1 / \sigma`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point representing a normal distribution (mean and scale).
+
+        Returns
+        -------
+        christoffels : array-like, shape=[..., 2, 2, 2]
+            Christoffel symbols, with the contravariant index on
+            the first dimension.
+        """
+        return gs.einsum(
+            "...,kij->...kij", 1 / base_point[..., 1], self._christoffels_pattern()
+        )
+
+    def jacobian_christoffels(self, base_point):
+        r"""Compute the Jacobian of the Christoffel symbols.
+
+        The symbols only depend on :math:`\sigma`, as :math:`1 / \sigma`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point representing a normal distribution (mean and scale).
+
+        Returns
+        -------
+        jac : array-like, shape=[..., 2, 2, 2, 2]
+            Jacobian of the Christoffel symbols.
+            :math:`jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l`
+        """
+        return gs.einsum(
+            "...,kij,l->...kijl",
+            -1 / base_point[..., 1] ** 2,
+            self._christoffels_pattern(),
+            gs.array([0.0, 1.0]),
+        )
+
     def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the sectional curvature.
 
@@ -197,6 +257,23 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
             tangent_vec_b,
             base_point,
         )
+
+    def scalar_curvature(self, base_point=None):
+        """Compute the scalar curvature.
+
+        It is twice the constant sectional curvature, i.e. :math:`-1`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point representing a normal distribution (mean and scale).
+
+        Returns
+        -------
+        scalar_curvature : array-like, shape=[...,]
+            Scalar curvature at `base_point`.
+        """
+        return repeat_out(self._space.point_ndim, gs.array(-1.0), base_point)
 
 
 class UnivariateNormalDistributionsRandomVariable(ScipyUnivariateRandomVariable):

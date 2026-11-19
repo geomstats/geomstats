@@ -12,6 +12,7 @@ from geomstats.information_geometry.dirichlet import (
     DirichletDistributions,
     DirichletMetric,
 )
+from geomstats.vectorization import repeat_out
 
 
 class BetaDistributions(DirichletDistributions):
@@ -20,12 +21,10 @@ class BetaDistributions(DirichletDistributions):
     This is Beta = :math:`R_+^* \times R_+^*`, the upper-right
     quadrant of the Euclidean plane.
 
-    Attributes
+    Parameters
     ----------
-    dim : int
-        Dimension of the manifold of beta distributions, equal to 2.
-    embedding_space : Manifold
-        Embedding manifold.
+    equip : bool
+        If True, equip space with default metric.
     """
 
     def __init__(self, equip=True):
@@ -50,7 +49,6 @@ class BetaDistributions(DirichletDistributions):
             Point representing a beta distribution.
         n_samples : int
             Number of points to sample with each pair of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -117,11 +115,9 @@ class BetaDistributions(DirichletDistributions):
         loc : float
             Location parameter of the distribution to estimate parameters
             from. It is kept fixed during optimization.
-            Optional, default: 0.
         scale : float
             Scale parameter of the distribution to estimate parameters
             from. It is kept fixed during optimization.
-            Optional, default: 1.
 
         Returns
         -------
@@ -241,11 +237,43 @@ class BetaMetric(DirichletMetric):
         )
         return gs.stack([christoffels_a, christoffels_b], axis=-3)
 
-    def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
+    def riemann_tensor(self, base_point):
+        r"""Compute Riemannian tensor at base_point.
+
+        In dimension two, the curvature is determined by the Gaussian
+        curvature :math:`K`:
+        :math:`R(X, Y)Z = K (\langle Y, Z \rangle X - \langle X, Z \rangle Y)`,
+        i.e. :math:`R_{ijk}^l = K (g_{ki} \delta_j^l - g_{ji} \delta_k^l)`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Base point.
+
+        Returns
+        -------
+        riemann_curvature : array-like, shape=[..., 2, 2, 2, 2]
+            riemann_tensor[...,i,j,k,l] = R_{ijk}^l
+            Riemannian tensor curvature,
+            with the contravariant index on the last dimension.
+        """
+        metric_mat = self.metric_matrix(base_point)
+        eye = gs.eye(2, dtype=metric_mat.dtype)
+        constant_curvature_tensor = gs.einsum(
+            "...ki,jl->...ijkl", metric_mat, eye
+        ) - gs.einsum("...ji,kl->...ijkl", metric_mat, eye)
+        return gs.einsum(
+            "...,...ijkl->...ijkl",
+            self.gaussian_curvature(base_point),
+            constant_curvature_tensor,
+        )
+
+    def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the sectional curvature.
 
-        The space is two-dimensional, so the sectional curvature only
-        depends on the base point.
+        The space is two-dimensional, so the sectional curvature is the
+        Gaussian curvature, whatever the tangent vectors (including
+        collinear ones, for which the general definition is degenerate).
 
         Parameters
         ----------
@@ -261,6 +289,62 @@ class BetaMetric(DirichletMetric):
         sectional_curvature : array-like, shape=[...,]
             Sectional curvature at `base_point`.
         """
+        return repeat_out(
+            self._space.point_ndim,
+            self.gaussian_curvature(base_point),
+            tangent_vec_a,
+            tangent_vec_b,
+            base_point,
+        )
+
+    def scalar_curvature(self, base_point):
+        """Compute scalar curvature at base_point.
+
+        The space is two-dimensional, so the scalar curvature is twice the
+        Gaussian curvature.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Base point.
+
+        Returns
+        -------
+        curvature : array-like, shape=[...,]
+            Scalar curvature.
+        """
+        return 2 * self.gaussian_curvature(base_point)
+
+    def gaussian_curvature(self, base_point):
+        r"""Compute the Gaussian curvature.
+
+        The Gaussian curvature of the Fisher information metric is [LP2019]_:
+
+        .. math::
+
+            K = \frac{\psi''(a) \psi''(b) \psi''(a + b)}{4 \det(g)^2}
+            \left( \frac{\psi'(a)}{\psi''(a)} + \frac{\psi'(b)}{\psi''(b)}
+            - \frac{\psi'(a + b)}{\psi''(a + b)} \right)
+
+        where :math:`\psi` is the digamma function and :math:`g` the
+        metric matrix.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Base point.
+
+        Returns
+        -------
+        curvature : array-like, shape=[...,]
+            Gaussian curvature at `base_point`.
+
+        References
+        ----------
+        .. [LP2019] A. Le Brigant, S. Puechmorel. The Fisher-Rao geometry of
+            beta distributions applied to the study of canonical moments.
+            arXiv:1904.08247, 2019.
+        """
         param_a, param_b = base_point[..., 0], base_point[..., 1]
         trigamma_a = gs.polygamma(1, param_a)
         trigamma_b = gs.polygamma(1, param_b)
@@ -269,7 +353,7 @@ class BetaMetric(DirichletMetric):
         tetragamma_b = gs.polygamma(2, param_b)
         tetragamma_ab = gs.polygamma(2, param_a + param_b)
 
-        curvature = (
+        return (
             tetragamma_a
             * tetragamma_b
             * tetragamma_ab
@@ -280,8 +364,6 @@ class BetaMetric(DirichletMetric):
             )
             / (4 * self.metric_det(base_point) ** 2)
         )
-        batch_zeros = gs.zeros_like(tangent_vec_a[..., 0] + tangent_vec_b[..., 0])
-        return curvature + batch_zeros
 
 
 class BetaDistributionsRandomVariable(ScipyUnivariateRandomVariable):

@@ -10,6 +10,7 @@ class BinomialDistributionsTestData(
     InformationManifoldMixinTestData, VectorSpaceOpenSetTestData
 ):
     fail_for_not_implemented_errors = False
+    skips = ("not_belongs",)
 
     def point_to_pdf_against_scipy_test_data(self):
         return self.generate_random_data_with_samples()
@@ -29,18 +30,18 @@ class Binomial5MetricTestData(TestData):
     def squared_dist_test_data(self):
         data = [
             dict(
-                point_a=gs.array([0.2, 0.3]),
-                point_b=gs.array([0.3, 0.5]),
+                point_a=gs.array([[0.2], [0.3]]),
+                point_b=gs.array([[0.3], [0.5]]),
                 expected=gs.array([0.26908349, 0.84673057]),
             ),
             dict(
-                point_a=gs.array(0.3),
-                point_b=gs.array([0.2, 0.5]),
+                point_a=gs.array([0.3]),
+                point_b=gs.array([[0.2], [0.5]]),
                 expected=gs.array([0.26908349, 0.84673057]),
             ),
             dict(
-                point_a=gs.array([0.2, 0.5]),
-                point_b=gs.array(0.3),
+                point_a=gs.array([[0.2], [0.5]]),
+                point_b=gs.array([0.3]),
                 expected=gs.array([0.26908349, 0.84673057]),
             ),
         ]

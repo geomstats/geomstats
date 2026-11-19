@@ -1,28 +1,29 @@
 """Statistical Manifold of Gamma distributions with the Fisher metric.
 
-The natural coordinate system for a Gamma Distribution is:
+A Gamma distribution is commonly parametrized by its shape and rate:
 point = [kappa, nu], where kappa is the shape parameter, and nu the rate, or 1/scale.
 
-However, information geometry most often works with standard coordinates, given by:
+However, information geometry most often works with its shape and mean:
 point = [kappa, gamma] = [kappa, kappa/nu].
 
-The standard coordinate system is the convention we use in this script.
-All points and all vectors input are assumed to be given in the standard coordinate
-system unless stated otherwise.
+The shape-mean parametrization is the convention we use in this script.
+All points and all vectors input are assumed to be given in the shape-mean
+parametrization unless stated otherwise.
 
-Some of the methods in GammaDistributions allow to easily make the associated
-change of variable, either for a point or a vector.
+``ScaledReciprocalDiffeo`` makes the associated change of variable, either
+for a point or a vector.
 
 Lead author: Jules Deschamps.
 """
+
+import math
 
 from scipy.stats import gamma
 
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.base import VectorSpaceOpenSet
-from geomstats.geometry.diffeo import InvolutionDiffeomorphism
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.positive_orthant import PositiveOrthant, ScaledReciprocalDiffeo
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.information_geometry.base import (
     InformationManifoldMixin,
@@ -31,68 +32,10 @@ from geomstats.information_geometry.base import (
 from geomstats.numerics.bvp import ScipySolveBVP
 from geomstats.numerics.geodesic import ExpODESolver, LogODESolver
 from geomstats.numerics.ivp import ScipySolveIVP
-from geomstats.vectorization import get_batch_shape
+from geomstats.vectorization import repeat_out
 
 
-class NaturalToStandardDiffeo(InvolutionDiffeomorphism):
-    """Diffeomorphism between natural and standard coordinates."""
-
-    def __call__(self, base_point):
-        """Convert point from natural coordinates to standard coordinates.
-
-        The change of variable is symmetric.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., 2]
-            Point of the Gamma manifold, given in natural coordinates.
-
-        Returns
-        -------
-        image_point : array-like, shape=[..., 2]
-            Point of the Gamma manifold, given in standard coordinates.
-        """
-        return gs.stack(
-            [base_point[..., 0], base_point[..., 0] / base_point[..., 1]], axis=-1
-        )
-
-    def tangent(self, tangent_vec, base_point=None, image_point=None):
-        """Convert tangent vector from natural coordinates to standard coordinates.
-
-        The change of variable is symmetric.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., 2]
-            Tangent vector at base_point, given in natural coordinates.
-        base_point : array-like, shape=[..., 2]
-            Point of the Gamma manifold, given in natural coordinates.
-        image_point : array-like, shape=[..., 2]
-            Point of the Gamma manifold, given in standard coordinates.
-
-        Returns
-        -------
-        image_tangent_vec : array-like, shape=[..., 2]
-            Tangent vector at base_point, given in standard coordinates.
-        """
-        if base_point is None:
-            base_point = self(image_point)
-
-        kappa, scale = base_point[..., 0], base_point[..., 1]
-
-        jac_row_1 = gs.array([1.0, 0.0])
-        jac_row_2 = gs.stack([1 / scale, -kappa / scale**2], axis=-1)
-
-        point_batch_shape = get_batch_shape(1, base_point)
-        if point_batch_shape:
-            jac_row_1 = gs.broadcast_to(jac_row_1, point_batch_shape + (2,))
-
-        jac = gs.stack([jac_row_1, jac_row_2], axis=-2)
-
-        return gs.einsum("...jk,...k->...j", jac, tangent_vec)
-
-
-class GammaDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
+class GammaDistributions(InformationManifoldMixin, PositiveOrthant):
     r"""Class for the manifold of Gamma distributions.
 
     This is :math:`Gamma = (R_+^*)^2`, the positive quadrant of the
@@ -100,90 +43,13 @@ class GammaDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
     """
 
     def __init__(self, equip=True):
-        super().__init__(
-            dim=2,
-            embedding_space=Euclidean(2, equip=False),
-            support_shape=(),
-            equip=equip,
-        )
-
+        super().__init__(dim=2, support_shape=(), equip=equip)
         self._scp_rv = GammaDistributionsRandomVariable(self)
 
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return GammaMetric
-
-    def belongs(self, point, atol=gs.atol):
-        """Evaluate if a point belongs to the manifold of Gamma distributions.
-
-        Check that point defines parameters for a Gamma distribution,
-        i.e. belongs to the positive quadrant of the Euclidean space.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., 2]
-            Point to be checked.
-        atol : float
-            Tolerance to evaluate positivity.
-            Optional, default: gs.atol
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean indicating whether point represents a Gamma
-            distribution.
-        """
-        point_dim = point.shape[-1]
-        belongs = point_dim == 2
-        return gs.logical_and(belongs, gs.all(point >= -atol, axis=-1))
-
-    def random_point(self, n_samples=1, upper_bound=5.0, lower_bound=0.0):
-        """Sample parameters of Gamma distributions.
-
-        The uniform distribution on [0, bound]^2 is used.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Side of the square where the Gamma parameters are sampled.
-            Optional, default: 5.
-
-        Returns
-        -------
-        samples : array-like, shape=[..., 2]
-            Sample of points representing Gamma distributions.
-        """
-        upper_bound = upper_bound * gs.ones(2)
-        lower_bound = lower_bound * gs.ones(2)
-
-        if gs.any((upper_bound - lower_bound) < 0):
-            raise ValueError("upper_bound cannot be greater than lower_bound.")
-
-        size = (2,) if n_samples == 1 else (n_samples, 2)
-        return lower_bound + (upper_bound - lower_bound) * gs.random.rand(*size)
-
-    def projection(self, point, atol=gs.atol):
-        """Project a point in ambient space to the open set.
-
-        The last coordinate is floored to `gs.atol` if it is negative.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., 2]
-            Point in ambient space.
-        atol : float
-            Tolerance to evaluate positivity.
-
-        Returns
-        -------
-        projected : array-like, shape=[..., 2]
-            Projected point.
-        """
-        return gs.where(point < atol, atol, point)
 
     def sample(self, point, n_samples=1):
         """Sample from the Gamma distribution.
@@ -197,7 +63,6 @@ class GammaDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point representing a Gamma distribution.
         n_samples : int
             Number of points to sample for each set of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -289,6 +154,29 @@ class GammaDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         return parameters[0] if len(data) == 1 else gs.stack(parameters)
 
 
+class ShapeRateGammaDistributions(PositiveOrthant):
+    r"""Manifold of Gamma distributions in the shape-rate parametrization.
+
+    Points are given by :math:`[\kappa, \nu]`, where :math:`\kappa` is the
+    shape parameter and :math:`\nu` the rate, or 1/scale. They are mapped to
+    the shape-mean parametrization of :class:`GammaDistributions` by
+    :class:`ScaledReciprocalDiffeo`.
+
+    Parameters
+    ----------
+    equip : bool
+        If True, equip space with default metric.
+    """
+
+    def __init__(self, equip=True):
+        super().__init__(dim=2, equip=equip)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return ShapeRateGammaMetric
+
+
 class GammaMetric(RiemannianMetric):
     """Class for the Fisher information metric on Gamma distributions.
 
@@ -302,7 +190,9 @@ class GammaMetric(RiemannianMetric):
         super().__init__(space=space)
 
         self.log_solver = LogODESolver(
-            space, n_nodes=1000, integrator=ScipySolveBVP(max_nodes=1000)
+            space,
+            n_nodes=10,
+            integrator=ScipySolveBVP(max_nodes=1000),
         )
         self.exp_solver = ExpODESolver(space, integrator=ScipySolveIVP(method="LSODA"))
 
@@ -327,6 +217,35 @@ class GammaMetric(RiemannianMetric):
             [gs.polygamma(1, kappa) - 1 / kappa, kappa / gamma**2], axis=-1
         )
         return from_vector_to_diagonal_matrix(mat_diag)
+
+    def inner_product_derivative_matrix(self, base_point):
+        r"""Compute derivative of the inner prod matrix at base point.
+
+        The non-zero entries are
+        :math:`\partial_\kappa g_{\kappa\kappa} = \psi''(\kappa) + 1 / \kappa^2`,
+        :math:`\partial_\kappa g_{\gamma\gamma} = 1 / \gamma^2` and
+        :math:`\partial_\gamma g_{\gamma\gamma} = -2 \kappa / \gamma^3`,
+        where :math:`\psi` is the digamma function.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Base point.
+
+        Returns
+        -------
+        metric_derivative : array-like, shape=[..., 2, 2, 2]
+            Derivative of the inner-product matrix, where the index
+            k of the derivation is last: :math:`mat_{ijk} = \partial_k g_{ij}`.
+        """
+        kappa, gamma = base_point[..., 0], base_point[..., 1]
+        derivative_kappa = from_vector_to_diagonal_matrix(
+            gs.stack([gs.polygamma(2, kappa) + 1 / kappa**2, 1 / gamma**2], axis=-1)
+        )
+        derivative_gamma = from_vector_to_diagonal_matrix(
+            gs.stack([gs.zeros_like(kappa), -2 * kappa / gamma**3], axis=-1)
+        )
+        return gs.stack([derivative_kappa, derivative_gamma], axis=-1)
 
     def christoffels(self, base_point):
         r"""Compute the Christoffel symbols.
@@ -474,10 +393,153 @@ class GammaMetric(RiemannianMetric):
             ]
         )
 
-        if batch_shape:
-            jac = gs.moveaxis(jac, -1, 0)
+        n_batch_axes = len(batch_shape)
+        if n_batch_axes:
+            jac = gs.moveaxis(
+                jac, tuple(range(-n_batch_axes, 0)), tuple(range(n_batch_axes))
+            )
 
         return jac
+
+    def riemann_tensor(self, base_point):
+        r"""Compute Riemannian tensor at base_point.
+
+        In dimension two, the curvature is determined by the Gaussian
+        curvature :math:`K`:
+        :math:`R(X, Y)Z = K (\langle Y, Z \rangle X - \langle X, Z \rangle Y)`,
+        i.e. :math:`R_{ijk}^l = K (g_{ki} \delta_j^l - g_{ji} \delta_k^l)`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Base point.
+
+        Returns
+        -------
+        riemann_curvature : array-like, shape=[..., 2, 2, 2, 2]
+            riemann_tensor[...,i,j,k,l] = R_{ijk}^l
+            Riemannian tensor curvature,
+            with the contravariant index on the last dimension.
+        """
+        metric_mat = self.metric_matrix(base_point)
+        eye = gs.eye(2, dtype=metric_mat.dtype)
+        constant_curvature_tensor = gs.einsum(
+            "...ki,jl->...ijkl", metric_mat, eye
+        ) - gs.einsum("...ji,kl->...ijkl", metric_mat, eye)
+        return gs.einsum(
+            "...,...ijkl->...ijkl",
+            self.gaussian_curvature(base_point),
+            constant_curvature_tensor,
+        )
+
+    def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point):
+        """Compute the sectional curvature.
+
+        In dimension two, the sectional curvature is the Gaussian curvature,
+        whatever the tangent vectors (including collinear ones, for which
+        the general definition is degenerate).
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., 2]
+            Tangent vector at ``base_point``.
+        tangent_vec_b : array-like, shape=[..., 2]
+            Tangent vector at ``base_point``.
+        base_point : array-like, shape=[..., 2]
+            Point in the manifold.
+
+        Returns
+        -------
+        sectional_curvature : array-like, shape=[...,]
+            Sectional curvature at ``base_point``.
+        """
+        return repeat_out(
+            self._space.point_ndim,
+            self.gaussian_curvature(base_point),
+            tangent_vec_a,
+            tangent_vec_b,
+            base_point,
+        )
+
+    def scalar_curvature(self, base_point):
+        """Compute scalar curvature at base_point.
+
+        The space is two-dimensional, so the scalar curvature is twice the
+        Gaussian curvature.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Base point.
+
+        Returns
+        -------
+        curvature : array-like, shape=[...,]
+            Scalar curvature.
+        """
+        return 2 * self.gaussian_curvature(base_point)
+
+    def gaussian_curvature(self, base_point):
+        r"""Compute the Gaussian curvature.
+
+        The Gaussian curvature of the Fisher information metric only depends
+        on :math:`\kappa`:
+
+        .. math::
+
+            K = \frac{\psi'(\kappa) + \kappa \psi''(\kappa)}
+            {4 (\kappa \psi'(\kappa) - 1)^2}
+
+        where :math:`\psi` is the digamma function.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Base point.
+
+        Returns
+        -------
+        curvature : array-like, shape=[...,]
+            Gaussian curvature at `base_point`.
+        """
+        kappa = base_point[..., 0]
+        return (gs.polygamma(1, kappa) + kappa * gs.polygamma(2, kappa)) / (
+            4 * (-1 + kappa * gs.polygamma(1, kappa)) ** 2
+        )
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        The space is simply connected, complete and has negative curvature,
+        so it is infinite.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        radius = gs.array(math.inf)
+        return repeat_out(self._space.point_ndim, radius, base_point)
+
+
+class ShapeRateGammaMetric(PullbackDiffeoMetric):
+    """Fisher information metric on Gamma distributions in shape-rate form.
+
+    It is the pullback of :class:`GammaMetric` through
+    :class:`ScaledReciprocalDiffeo`.
+    """
+
+    def __init__(self, space):
+        super().__init__(
+            space=space,
+            diffeo=ScaledReciprocalDiffeo(),
+            image_space=GammaDistributions(),
+        )
 
 
 class GammaDistributionsRandomVariable(ScipyUnivariateRandomVariable):

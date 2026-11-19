@@ -4,7 +4,64 @@ import math
 
 import geomstats.backend as gs
 from geomstats.geometry.base import VectorSpaceOpenSet
+from geomstats.geometry.diffeo import InvolutionDiffeomorphism
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
+
+
+class ScaledReciprocalDiffeo(InvolutionDiffeomorphism):
+    r"""Scaled reciprocal of the second coordinate.
+
+    .. math::
+
+        F(x, y) = (x, x / y)
+
+    It is an involution of the two-dimensional positive orthant.
+    """
+
+    def __call__(self, base_point):
+        """Compute the scaled reciprocal of the second coordinate.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., 2]
+            Image point.
+        """
+        return gs.stack(
+            [base_point[..., 0], base_point[..., 0] / base_point[..., 1]], axis=-1
+        )
+
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
+        r"""Compute the differential of the scaled reciprocal.
+
+        .. math::
+
+            dF_{(x, y)}(u, v) = (u, u / y - x v / y^2)
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 2]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., 2]
+            Base point.
+        image_point : array-like, shape=[..., 2]
+            Image point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., 2]
+            Image tangent vector.
+        """
+        if base_point is None:
+            base_point = self(image_point)
+
+        x, y = base_point[..., 0], base_point[..., 1]
+        u, v = tangent_vec[..., 0], tangent_vec[..., 1]
+        return gs.stack([u, u / y - x * v / y**2], axis=-1)
 
 
 class PositiveOrthant(VectorSpaceOpenSet):
