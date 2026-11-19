@@ -218,7 +218,7 @@ class OpenInterval(VectorSpaceOpenSet):
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
-        return OpenIntervalMetric
+        return OpenIntervalEuclideanMetric
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the open interval.
@@ -293,7 +293,7 @@ class OpenInterval(VectorSpaceOpenSet):
         return gs.random.uniform(low=low, high=high, size=size)
 
 
-class OpenIntervalMetric(EuclideanMetric):
+class OpenIntervalEuclideanMetric(EuclideanMetric):
     """Class for the Euclidean metric on an open interval."""
 
     def injectivity_radius(self, base_point):
