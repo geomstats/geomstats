@@ -201,10 +201,15 @@ def _value_and_jacobian_op(fun, x):
 
 
 def value_and_jacobian(fun, point_ndim=1):
+    """Compute pointwise values and Jacobians, preserving all batch axes."""
+
     def _value_and_jacobian_vec(x):
         if x.ndim == point_ndim:
             return _value_and_jacobian_op(fun)(x)
 
+        batch_ndim = x.ndim - point_ndim
+        batch_shape = x.shape[:batch_ndim]
+        x = _np.reshape(x, (-1,) + x.shape[batch_ndim:])
         ans = []
         jac = []
         for one_x in x:
@@ -212,7 +217,11 @@ def value_and_jacobian(fun, point_ndim=1):
             ans.append(ans_)
             jac.append(jac_)
 
-        return _np.stack(ans), _np.stack(jac)
+        ans, jac = _np.stack(ans), _np.stack(jac)
+        return (
+            _np.reshape(ans, batch_shape + ans.shape[1:]),
+            _np.reshape(jac, batch_shape + jac.shape[1:]),
+        )
 
     return _value_and_jacobian_vec
 
@@ -242,6 +251,8 @@ def jacobian_vec(fun, point_ndim=1):
     fun : callable
         Function whose jacobian values
         will be computed.
+    point_ndim : int
+        Number of axes in one point. All preceding axes are batch axes.
 
     Returns
     -------
@@ -253,7 +264,11 @@ def jacobian_vec(fun, point_ndim=1):
     def _jac(x):
         if x.ndim == point_ndim:
             return jacobian(fun)(x)
-        return _np.stack([jacobian(fun)(one_x) for one_x in x])
+        batch_ndim = x.ndim - point_ndim
+        batch_shape = x.shape[:batch_ndim]
+        x = _np.reshape(x, (-1,) + x.shape[batch_ndim:])
+        result = _np.stack([jacobian(fun)(one_x) for one_x in x])
+        return _np.reshape(result, batch_shape + result.shape[1:])
 
     return _jac
 
@@ -299,6 +314,8 @@ def hessian_vec(func, point_ndim=1, func_out_ndim=None):
     func : callable
         Function whose hessian values
         will be computed.
+    point_ndim : int
+        Number of axes in one point. All preceding axes are batch axes.
     func_out_ndim : int
         Unused. Here for API consistency.
 
@@ -313,7 +330,11 @@ def hessian_vec(func, point_ndim=1, func_out_ndim=None):
     def _hess(x):
         if x.ndim == point_ndim:
             return hessian_func(x)
-        return _np.stack([hessian_func(one_x) for one_x in x])
+        batch_ndim = x.ndim - point_ndim
+        batch_shape = x.shape[:batch_ndim]
+        x = _np.reshape(x, (-1,) + x.shape[batch_ndim:])
+        result = _np.stack([hessian_func(one_x) for one_x in x])
+        return _np.reshape(result, batch_shape + result.shape[1:])
 
     return _hess
 
