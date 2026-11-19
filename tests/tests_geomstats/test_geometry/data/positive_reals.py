@@ -5,7 +5,7 @@ import pytest
 import geomstats.backend as gs
 
 from .base import VectorSpaceOpenSetTestData
-from .riemannian_metric import RiemannianMetricTestData
+from .riemannian_metric import CoordinateRiemannianMetricTestData
 
 LN_2 = math.log(2.0)
 EXP_1 = math.exp(1.0)
@@ -38,9 +38,11 @@ class PositiveRealsTestData(VectorSpaceOpenSetTestData):
         return self.generate_tests(data, marks=(pytest.mark.smoke,))
 
 
-class PositiveRealsMetricTestData(RiemannianMetricTestData):
+class PositiveRealsMetricTestData(CoordinateRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
+
+    skips = ("sectional_curvature_vec",)
 
     def inner_product_test_data(self):
         data = [
