@@ -8,7 +8,7 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import flip_determinant, from_vector_to_diagonal_matrix
 from geomstats.geometry.base import MatrixVectorSpace
-from geomstats.geometry.diffeo import VectorSpaceDiffeo
+from geomstats.geometry.diffeo import LinearIsomorphism
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.vectorization import repeat_out
 
@@ -60,7 +60,7 @@ def tangent_matrix_matrix_transpose(tangent_vec, base_point):
     )
 
 
-class FlattenDiffeo(VectorSpaceDiffeo):
+class FlattenDiffeo(LinearIsomorphism):
     """A diffeo from matrices to Euclidean by flattening.
 
     Parameters
@@ -110,7 +110,7 @@ class FlattenDiffeo(VectorSpaceDiffeo):
         return gs.reshape(image_point, image_point.shape[:-1] + (self.m, self.n))
 
 
-class BasisRepresentationDiffeo(VectorSpaceDiffeo):
+class BasisRepresentationDiffeo(LinearIsomorphism):
     """A diffeo from matrices to Euclidean through basis representation.
 
     Parameters
