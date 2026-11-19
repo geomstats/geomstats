@@ -126,6 +126,13 @@ def custom_gradient(*grad_funcs):
 def jacobian(func):
     """Return a function that returns the jacobian of func.
 
+    The graph of the jacobian is built only when point requires grad.
+    This is the case when the jacobian is itself being differentiated,
+    since torch sets `requires_grad` on the inputs it differentiates.
+    Nested derivatives, e.g. `jacobian(jacobian(func))`, are therefore
+    correct, while calls on a point that does not require grad return
+    detached tensors.
+
     Parameters
     ----------
     func : callable
@@ -139,7 +146,9 @@ def jacobian(func):
     """
 
     def _jacobian(point):
-        return _torch_jacobian(func=lambda x: func(x), inputs=point)
+        return _torch_jacobian(
+            func=lambda x: func(x), inputs=point, create_graph=point.requires_grad
+        )
 
     return _jacobian
 
@@ -168,6 +177,8 @@ def jacobian_vec(func, point_ndim=1):
     ----------
     func : callable
         Function whose jacobian is computed.
+    point_ndim : int
+        Number of axes in one point. All preceding axes are batch axes.
 
     Returns
     -------
@@ -177,21 +188,38 @@ def jacobian_vec(func, point_ndim=1):
     """
 
     def _jacobian(point):
+        create_graph = point.requires_grad
         if point.ndim == point_ndim:
-            return _torch_jacobian(func=lambda x: func(x), inputs=point)
-        return _torch.stack(
+            return _torch_jacobian(
+                func=lambda x: func(x), inputs=point, create_graph=create_graph
+            )
+        batch_ndim = point.ndim - point_ndim
+        batch_shape = point.shape[:batch_ndim]
+        point = point.reshape((-1,) + point.shape[batch_ndim:])
+        result = _torch.stack(
             [
-                _torch_jacobian(func=lambda x: func(x), inputs=one_point)
+                _torch_jacobian(
+                    func=lambda x: func(x),
+                    inputs=one_point,
+                    create_graph=create_graph,
+                )
                 for one_point in point
             ],
             axis=0,
         )
+        return result.reshape(batch_shape + result.shape[1:])
 
     return _jacobian
 
 
 def hessian(func, func_out_ndim=0):
     """Return a function that returns the hessian of func.
+
+    As for `jacobian`, the graph of the hessian is built only when point
+    requires grad, which makes nested derivatives correct while calls on
+    a point that does not require grad return detached tensors. Strict
+    mode is disabled when the graph is built, as torch would otherwise
+    raise for functions with a constant hessian.
 
     Parameters
     ----------
@@ -208,7 +236,13 @@ def hessian(func, func_out_ndim=0):
     """
 
     def _hessian(point):
-        return _torch_hessian(func=lambda x: func(x), inputs=point, strict=True)
+        create_graph = point.requires_grad
+        return _torch_hessian(
+            func=lambda x: func(x),
+            inputs=point,
+            create_graph=create_graph,
+            strict=not create_graph,
+        )
 
     def _hessian_vector_valued(point):
         def scalar_func(point, a):
@@ -238,6 +272,8 @@ def hessian_vec(func, point_ndim=1, func_out_ndim=0):
     ----------
     func : callable
         Function whose Hessian is computed.
+    point_ndim : int
+        Number of axes in one point. All preceding axes are batch axes.
     func_out_ndim : dim
         func output ndim.
 
@@ -252,10 +288,14 @@ def hessian_vec(func, point_ndim=1, func_out_ndim=0):
     def _hessian(point):
         if point.ndim == point_ndim:
             return hessian_func(point)
-        return _torch.stack(
+        batch_ndim = point.ndim - point_ndim
+        batch_shape = point.shape[:batch_ndim]
+        point = point.reshape((-1,) + point.shape[batch_ndim:])
+        result = _torch.stack(
             [hessian_func(one_point) for one_point in point],
             axis=0,
         )
+        return result.reshape(batch_shape + result.shape[1:])
 
     return _hessian
 

@@ -28,6 +28,11 @@ from .data.invariant_metric import (
 )
 
 
+class _NearbyRandomDataGenerator(RandomDataGenerator):
+    def random_point(self, n_points=1):
+        return self.space.exp(self.space.lie_algebra.random_point(n_points) / 2.0)
+
+
 @pytest.fixture(
     scope="class",
     params=[
@@ -40,7 +45,7 @@ def equipped_SO_matrix_groups_left_right(request):
     request.cls.space = space
     space.equip_with_metric(_InvariantMetricMatrix, left=left)
 
-    request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
+    request.cls.data_generator = _NearbyRandomDataGenerator(space, amplitude=10.0)
 
 
 @pytest.mark.slow
@@ -204,7 +209,7 @@ def equipped_SE_matrix_groups(request):
     space = request.cls.space = request.param
     space.equip_with_metric(_InvariantMetricMatrix, left=False)
 
-    request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
+    request.cls.data_generator = _NearbyRandomDataGenerator(space, amplitude=10.0)
 
 
 @pytest.mark.slow
