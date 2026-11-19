@@ -60,7 +60,14 @@ np_autograd_and_torch_only = pytest.mark.skipif(
     reason="Test for numpy, autograd and pytorch backends only.",
 )
 
-autodiff_only = autograd_and_torch_only
+
+def _identity(obj):
+    return obj
+
+
+autodiff_only = (
+    _identity if (autograd_backend() or pytorch_backend()) else pytest.mark.ignore
+)
 
 
 def pytorch_error_msg(a, b, rtol, atol):
