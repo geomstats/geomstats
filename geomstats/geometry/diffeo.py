@@ -329,8 +329,11 @@ class ComposedDiffeo(Diffeo):
         return tangent_vec
 
 
-class VectorSpaceDiffeo(Diffeo):
-    """A diffeo between vector spaces."""
+class LinearIsomorphism(Diffeo):
+    """A linear isomorphism between vector spaces.
+
+    Its differential at any point is the map itself.
+    """
 
     def __init__(self, space_ndim, image_space_ndim=None):
         super().__init__()
