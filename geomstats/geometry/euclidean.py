@@ -4,8 +4,57 @@ import math
 
 import geomstats.backend as gs
 from geomstats.geometry.base import VectorSpace
+from geomstats.geometry.diffeo import LinearIsomorphism
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import check_is_batch, repeat_out
+
+
+class CoordinateScalingDiffeo(LinearIsomorphism):
+    r"""Scaling of each coordinate by a nonzero factor.
+
+    .. math::
+
+        F(x) = (s_1 x_1, \dots, s_n x_n)
+
+    Parameters
+    ----------
+    scales : array-like, shape=[dim]
+        Nonzero scaling factors.
+    """
+
+    def __init__(self, scales):
+        super().__init__(space_ndim=1)
+        self.scales = scales
+
+    def __call__(self, base_point):
+        """Scale the coordinates of a point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., dim]
+            Image point.
+        """
+        return self.scales * base_point
+
+    def inverse(self, image_point):
+        """Unscale the coordinates of a point.
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., dim]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+        """
+        return image_point / self.scales
 
 
 class Euclidean(VectorSpace):
