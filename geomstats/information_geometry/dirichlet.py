@@ -11,7 +11,7 @@ import geomstats.backend as gs
 from geomstats._einsum import scalarmatmul
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.positive_orthant import PositiveOrthant
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.riemannian_metric import CoordinateRiemannianMetric
 from geomstats.information_geometry.base import (
     InformationManifoldMixin,
     ScipyMultivariateRandomVariable,
@@ -85,7 +85,7 @@ class DirichletDistributions(InformationManifoldMixin, PositiveOrthant):
         return lambda x: self._scp_rv.pdf(x, point=point)
 
 
-class DirichletMetric(RiemannianMetric):
+class DirichletMetric(CoordinateRiemannianMetric):
     """Class for the Fisher information metric on Dirichlet distributions."""
 
     def __init__(self, space):

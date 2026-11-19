@@ -8,9 +8,10 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import flip_determinant, from_vector_to_diagonal_matrix
 from geomstats.geometry.base import MatrixVectorSpace
+from geomstats.geometry.connection import FlatMixin
 from geomstats.geometry.diffeo import LinearIsomorphism
-from geomstats.geometry.euclidean import EuclideanMetric
-from geomstats.vectorization import repeat_out
+from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import check_is_batch, repeat_out
 
 logger = logging.getLogger(__name__)
 
@@ -814,7 +815,179 @@ class Matrices(MatrixVectorSpace):
         return Matrices.mul(point, left, gs.transpose(flipped))
 
 
-class MatricesMetric(EuclideanMetric):
+class MatricesEuclideanMetric(FlatMixin, RiemannianMetric):
+    """Class for flat metrics on matrix vector spaces.
+
+    The inner product is independent of the base point, so the exponential
+    and logarithm are the addition and the subtraction, geodesics are
+    straight lines and the parallel transport is the identity. The inner
+    product itself is defined by the subclasses.
+    """
+
+    def exp(self, tangent_vec, base_point):
+        """Compute exp map of a base point in tangent vector direction.
+
+        The Riemannian exponential is vector addition in the vector space.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *shape]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., *shape]
+            Riemannian exponential.
+        """
+        return base_point + tangent_vec
+
+    def log(self, point, base_point):
+        """Compute log map using a base point and other point.
+
+        The Riemannian logarithm is the subtraction in the vector space.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *shape]
+            Point.
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+
+        Returns
+        -------
+        log : array-like, shape=[..., *shape]
+            Riemannian logarithm.
+        """
+        return point - base_point
+
+    def parallel_transport(
+        self, tangent_vec, base_point=None, direction=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
+
+        On a vector space, the parallel transport of a (tangent) vector
+        returns the vector itself.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *shape]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., *shape]
+            Point on the manifold. Point to transport from.
+            Optional, default: None
+        direction : array-like, shape=[..., *shape]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+            Optional, default: None.
+        end_point : array-like, shape=[..., *shape]
+            Point on the manifold. Point to transport to.
+            Optional, default: None.
+
+        Returns
+        -------
+        transported_tangent_vec : array-like, shape=[..., *shape]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+        """
+        transported_tangent_vec = gs.copy(tangent_vec)
+        return repeat_out(
+            self._space.point_ndim,
+            transported_tangent_vec,
+            tangent_vec,
+            base_point,
+            direction,
+            end_point,
+            out_shape=self._space.shape,
+        )
+
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
+        """Generate parameterized function for the geodesic curve.
+
+        Geodesic curve defined by either:
+
+        - an initial point and an initial tangent vector,
+        - an initial point and an end point.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., *shape]
+            Point on the manifold, initial point of the geodesic.
+        end_point : array-like, shape=[..., *shape], optional
+            Point on the manifold, end point of the geodesic. If None,
+            an initial tangent vector must be given.
+        initial_tangent_vec : array-like, shape=[..., *shape], optional
+            Tangent vector at base point, the initial speed of the geodesics.
+            Optional, default: None.
+            If None, an end point must be given and a logarithm is computed.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve. If a batch of initial
+            conditions is passed, the output array's first dimension
+            represents the different initial conditions, and the second
+            corresponds to time.
+        """
+        if end_point is None and initial_tangent_vec is None:
+            raise ValueError(
+                "Specify an end point or an initial tangent "
+                "vector to define the geodesic."
+            )
+        if end_point is not None:
+            if initial_tangent_vec is not None:
+                raise ValueError(
+                    "Cannot specify both an end point and an initial tangent vector."
+                )
+
+            initial_tangent_vec = self.log(end_point, initial_point)
+
+        is_batch = check_is_batch(
+            self._space.point_ndim, initial_point, initial_tangent_vec
+        )
+        if is_batch:
+            initial_point = gs.expand_dims(
+                initial_point, axis=-(self._space.point_ndim + 1)
+            )
+
+        ijk = "ijk"[: self._space.point_ndim]
+
+        def path(t):
+            """Generate parameterized function for geodesic curve.
+
+            Parameters
+            ----------
+            t : array-like, shape=[n_points,]
+                Times at which to compute points of the geodesics.
+            """
+            t = gs.to_ndarray(t, to_ndim=1, dtype=initial_tangent_vec.dtype)
+            tangent_vecs = gs.einsum(f"n,...{ijk}->...n{ijk}", t, initial_tangent_vec)
+            return initial_point + tangent_vecs
+
+        return path
+
+    def injectivity_radius(self, base_point=None):
+        """Compute the radius of the injectivity domain.
+
+        This is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        radius = gs.array(math.inf)
+        return repeat_out(self._space.point_ndim, radius, base_point)
+
+
+class MatricesMetric(MatricesEuclideanMetric):
     """Euclidean metric on matrices given by Frobenius inner-product."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -940,7 +1113,7 @@ class MatricesMetric(EuclideanMetric):
         )
 
 
-class MatricesDiagMetric(EuclideanMetric):
+class MatricesDiagMetric(MatricesEuclideanMetric):
     """Flat metric on matrices given by a diagonal metric matrix.
 
     Parameters

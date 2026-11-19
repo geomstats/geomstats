@@ -10,8 +10,11 @@ from geomstats.geometry.base import (
     MatrixVectorSpace,
 )
 from geomstats.geometry.diffeo import Diffeo
-from geomstats.geometry.euclidean import EuclideanMetric
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import (
+    Matrices,
+    MatricesEuclideanMetric,
+    MatricesMetric,
+)
 from geomstats.vectorization import repeat_out, repeat_out_multiple_ndim
 
 
@@ -236,7 +239,7 @@ class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
         return point - Matrices.to_diagonal(point)
 
 
-class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
+class HollowMatricesPermutationInvariantMetric(MatricesEuclideanMetric):
     r"""A permutation-invariant metric on the space of hollow matrices.
 
     It is flat Riemannian metric invariant by the congruence action
@@ -612,7 +615,7 @@ class NullRowSumsSymmetricMatrices(LevelSet, DiffeomorphicMatrixVectorSpace):
         )
 
 
-class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
+class NullRowSumsPermutationInvariantMetric(MatricesEuclideanMetric):
     r"""A permutation-invariant metric on the space of null-row-sums symmetric matrices.
 
     It is flat Riemannian metric invariant by the congruence action

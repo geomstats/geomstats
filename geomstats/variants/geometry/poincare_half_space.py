@@ -2,10 +2,10 @@
 
 from geomstats.geometry._hyperbolic import HyperbolicDiffeo
 from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
+from geomstats.geometry.pullback_metric import CoordinatePullbackDiffeoMetric
 
 
-class PullbackPoincareHalfSpaceMetric(PullbackDiffeoMetric):
+class PullbackPoincareHalfSpaceMetric(CoordinatePullbackDiffeoMetric):
     """Hyperbolic metric on the Poincare half-space as a pullback metric.
 
     Variant of
