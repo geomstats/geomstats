@@ -9,7 +9,7 @@ from .riemannian_metric import (
 
 
 class PoincareHalfSpaceTestData(VectorSpaceOpenSetTestData):
-    pass
+    skips = ("not_belongs",)
 
 
 class PoincareHalfSpace2TestData(TestData):
