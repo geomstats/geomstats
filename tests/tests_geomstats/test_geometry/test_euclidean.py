@@ -2,21 +2,36 @@ import random
 
 import pytest
 
-from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
+import geomstats.backend as gs
+from geomstats.geometry.euclidean import (
+    CoordinateScalingDiffeo,
+    Euclidean,
+    EuclideanMetric,
+)
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.euclidean import (
     CanonicalEuclideanMetricTestCase,
     EuclideanMetricTestCase,
     EuclideanTestCase,
 )
 
+from .data.diffeo import DiffeoTestData
 from .data.euclidean import (
     CanonicalEuclideanMetric2TestData,
     CanonicalEuclideanMetricTestData,
     EuclideanMetricTestData,
     EuclideanTestData,
 )
+
+
+class TestCoordinateScalingDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    _dim = random.randint(2, 5)
+    space = Euclidean(dim=_dim, equip=False)
+    image_space = Euclidean(dim=_dim, equip=False)
+    diffeo = CoordinateScalingDiffeo(gs.random.uniform(0.5, 2.0, size=(_dim,)))
+    testing_data = DiffeoTestData()
 
 
 class TestEuclidean(EuclideanTestCase, metaclass=DataBasedParametrizer):
