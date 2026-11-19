@@ -1,5 +1,7 @@
 import geomstats.backend as gs
-from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
+from geomstats.test_cases.geometry.riemannian_metric import (
+    CoordinateRiemannianMetricTestCase,
+)
 
 
 def univariate_fisher_rao_dist(point_a, point_b):
@@ -21,7 +23,7 @@ def univariate_fisher_rao_dist(point_a, point_b):
     )
 
 
-class UnivariateNormalMetricTestCase(PullbackDiffeoMetricTestCase):
+class UnivariateNormalMetricTestCase(CoordinateRiemannianMetricTestCase):
     def test_dist_against_closed_form(self, point_a, point_b, atol=gs.atol):
         """Check distance against its closed form.
 
