@@ -4,7 +4,187 @@ import math
 
 import geomstats.backend as gs
 from geomstats.geometry.base import VectorSpaceOpenSet
+from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
+
+
+class ArcsinSqrtDiffeo(Diffeo):
+    r"""Scaled arcsine of the square root.
+
+    .. math::
+
+        F(p) = 2 \sqrt{n} \arcsin(\sqrt{p})
+
+    It maps the interval :math:`(0, 1)` onto the interval
+    :math:`(0, \pi \sqrt{n})`.
+
+    Parameters
+    ----------
+    scale : float
+        Scale :math:`n`.
+    """
+
+    def __init__(self, scale):
+        super().__init__()
+        self.scale = scale
+
+    def __call__(self, base_point):
+        """Diffeomorphism at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., 1]
+            Image point.
+        """
+        return 2 * math.sqrt(self.scale) * gs.arcsin(gs.sqrt(base_point))
+
+    def inverse(self, image_point):
+        """Inverse diffeomorphism at image point.
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., 1]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+        """
+        return gs.sin(image_point / (2 * math.sqrt(self.scale))) ** 2
+
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
+        """Tangent diffeomorphism at base point.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., 1]
+            Base point.
+        image_point : array-like, shape=[..., 1]
+            Image point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., 1]
+            Image tangent vector at image of the base point.
+        """
+        if base_point is None:
+            base_point = self.inverse(image_point)
+        return tangent_vec * gs.sqrt(self.scale / (base_point * (1 - base_point)))
+
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
+        """Inverse tangent diffeomorphism at image point.
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., 1]
+            Image tangent vector at image point.
+        image_point : array-like, shape=[..., 1]
+            Image point.
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at base point.
+        """
+        if base_point is None:
+            base_point = self.inverse(image_point)
+        return image_tangent_vec * gs.sqrt(
+            base_point * (1 - base_point) / self.scale
+        )
+
+
+class ArtanhSqrtDiffeo(Diffeo):
+    r"""Scaled hyperbolic arctangent of the square root of the complement.
+
+    .. math::
+
+        F(p) = 2 \operatorname{artanh}(\sqrt{1 - p})
+
+    It maps the interval :math:`(0, 1)` onto the half-line
+    :math:`(0, \infty)`.
+    """
+
+    def __call__(self, base_point):
+        """Diffeomorphism at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., 1]
+            Image point.
+        """
+        return 2 * gs.arctanh(gs.sqrt(1 - base_point))
+
+    def inverse(self, image_point):
+        """Inverse diffeomorphism at image point.
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., 1]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+        """
+        return 1 - gs.tanh(image_point / 2) ** 2
+
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
+        """Tangent diffeomorphism at base point.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., 1]
+            Base point.
+        image_point : array-like, shape=[..., 1]
+            Image point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., 1]
+            Image tangent vector at image of the base point.
+        """
+        if base_point is None:
+            base_point = self.inverse(image_point)
+        return -tangent_vec / (base_point * gs.sqrt(1 - base_point))
+
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
+        """Inverse tangent diffeomorphism at image point.
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., 1]
+            Image tangent vector at image point.
+        image_point : array-like, shape=[..., 1]
+            Image point.
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at base point.
+        """
+        if base_point is None:
+            base_point = self.inverse(image_point)
+        return -image_tangent_vec * base_point * gs.sqrt(1 - base_point)
 
 
 class OpenInterval(VectorSpaceOpenSet):
