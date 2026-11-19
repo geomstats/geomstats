@@ -11,8 +11,7 @@ import geomstats.backend as gs
 import geomstats.errors as errors
 from geomstats._einsum import scalarmatmul, scalarvecmul
 from geomstats.geometry.base import VectorSpaceOpenSet
-from geomstats.geometry.diffeo import Diffeo
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.euclidean import CoordinateScalingDiffeo, Euclidean
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
@@ -556,108 +555,21 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         return pdf
 
 
-class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
-    """Diffeomorphism from univariate normal to Poincare half space."""
-
-    def __call__(self, base_point):
-        r"""Image of base point in the Poincare upper half-plane.
-
-        This is the image by the diffeomorphism
-        :math:`(mean, std) -> (mean, \sqrt{2} std)`.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., 2]
-            Point representing a normal distribution. Coordinates
-            are mean and standard deviation.
-
-        Returns
-        -------
-        image_point : array-like, shape=[..., 2]
-            Image of base_point in the Poincare upper half-plane.
-        """
-        return gs.stack(
-            [base_point[..., 0] / gs.sqrt(2.0), base_point[..., 1]], axis=-1
-        )
-
-    def inverse(self, image_point):
-        r"""Inverse image of a point in the Poincare upper half-plane.
-
-        This is the inverse image by the diffeomorphism
-        :math:`(mean, std) -> (mean, \sqrt{2} std)`.
-
-        Parameters
-        ----------
-        image_point : array-like, shape=[..., 2]
-            Point in the upper half-plane.
-
-        Returns
-        -------
-        base_point : array-like, shape=[..., 2]
-            Inverse image of the image point, representing a normal
-            distribution. Coordinates are mean and standard deviation.
-        """
-        return gs.stack(
-            [image_point[..., 0] * gs.sqrt(2.0), image_point[..., 1]], axis=-1
-        )
-
-    def tangent(self, tangent_vec, base_point=None, image_point=None):
-        r"""Image of tangent vector.
-
-        This is the image by the tangent map of the diffeomorphism
-        :math:`(mean, std) -> (mean, \sqrt{2} std)`.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., 2]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., 2]
-            Base point representing a normal distribution.
-        image_point : array-like, shape=[..., *shape]
-            Image point.
-
-        Returns
-        -------
-        image_tangent_vec : array-like, shape=[..., 2]
-            Image tangent vector at image of the base point.
-        """
-        return self(tangent_vec)
-
-    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
-        r"""Inverse image of tangent vector.
-
-        This is the inverse image by the tangent map of the diffeomorphism
-        :math:`(mean, std) -> (mean, \sqrt{2} std)`.
-
-        Parameters
-        ----------
-        image_tangent_vec : array-like, shape=[..., 2]
-            Image of a tangent vector at image_point.
-        image_point : array-like, shape=[..., 2]
-            Image of a point representing a normal distribution.
-        base_point : array-like, shape=[..., *shape]
-            Base point.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., 2]
-            Inverse image of image_tangent_vec.
-        """
-        return self.inverse(image_tangent_vec)
-
-
 class UnivariateNormalMetric(PullbackDiffeoMetric):
     r"""Class for the Fisher information metric on univariate normal distributions.
 
-    This is the pullback of the metric of the Poincare upper half-plane
-    by the diffeomorphism :math:`(mean, std) -> (mean, \sqrt{2} std)`.
+    This is the pullback of twice the metric of the Poincare upper half-plane
+    by the diffeomorphism :math:`(mean, std) -> (mean / \sqrt{2}, std)`.
     """
 
     def __init__(self, space):
-        diffeo = UnivariateNormalToPoincareHalfSpaceDiffeo()
-        image_space = PoincareHalfSpace(dim=2)
-        image_space.equip_with_metric(ScalarProductMetric(image_space, 2.0))
-        super().__init__(space, diffeo, image_space)
+        super().__init__(
+            space,
+            diffeo=CoordinateScalingDiffeo(gs.array([1 / math.sqrt(2.0), 1.0])),
+            image_space=PoincareHalfSpace(dim=2).equip_with_metric(
+                ScalarProductMetric, scale=2.0
+            ),
+        )
 
     @staticmethod
     def metric_matrix(base_point):
