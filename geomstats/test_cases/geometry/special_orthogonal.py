@@ -119,6 +119,12 @@ class SpecialOrthogonalMatricesTestCase(
         )
         self._test_vectorization(vec_data)
 
+    @pytest.mark.random
+    def test_random_uniform_sample_mean(self, n_samples, atol):
+        sample = self.space.random_uniform(n_samples)
+        expected = gs.zeros((self.space.n, self.space.n))
+        self.assertAllClose(gs.mean(sample, axis=0), expected, atol=atol)
+
 
 class SpecialOrthogonalVectorsTestCase(
     ProjectionTestCaseMixins, _SpecialOrthogonalTestCaseMixins, LieGroupTestCase

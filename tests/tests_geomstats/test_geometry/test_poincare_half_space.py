@@ -8,13 +8,20 @@ from geomstats.geometry.poincare_half_space import (
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.poincare_half_space import PoincareHalfSpaceTestCase
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+from geomstats.test_cases.geometry.riemannian_metric import (
+    RiemannianMetricComparisonTestCase,
+    RiemannianMetricTestCase,
+)
+from geomstats.variants.geometry.poincare_half_space import (
+    PullbackPoincareHalfSpaceMetric,
+)
 
 from .data.poincare_half_space import (
     PoincareHalfSpace2TestData,
     PoincareHalfSpaceMetric2TestData,
     PoincareHalfSpaceMetricTestData,
     PoincareHalfSpaceTestData,
+    PullbackPoincareHalfSpaceMetricCmpTestData,
 )
 
 
@@ -71,3 +78,15 @@ class TestPoincareHalfSpaceMetric2(
     def test_exp_and_coordinates_tangent(self, tangent_vec, base_point):
         end_point = self.space.metric.exp(tangent_vec, base_point)
         self.assertAllClose(base_point[0], end_point[0])
+
+
+@pytest.mark.redundant
+class TestPullbackPoincareHalfSpaceMetricCmp(
+    RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
+):
+    _dim = random.randint(2, 4)
+    space = PoincareHalfSpace(dim=_dim)
+    other_space = PoincareHalfSpace(dim=_dim, equip=False)
+    other_space.equip_with_metric(PullbackPoincareHalfSpaceMetric)
+
+    testing_data = PullbackPoincareHalfSpaceMetricCmpTestData()

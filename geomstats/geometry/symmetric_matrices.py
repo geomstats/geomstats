@@ -123,23 +123,11 @@ class SymmetricMatrices(MatrixVectorSpace):
                 "(n_samples, n * (n + 1) / 2)"
             )
         mat_dim = int(mat_dim)
-        shape = (mat_dim, mat_dim)
-        mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
-        indices = list(zip(*gs.triu_indices(mat_dim)))
-        if gs.ndim(basis_representation) == 1:
-            upper_triangular = gs.array_from_sparse(
-                indices, basis_representation, shape
-            )
-        else:
-            upper_triangular = gs.stack(
-                [
-                    gs.array_from_sparse(indices, data, shape)
-                    for data in basis_representation
-                ]
-            )
-
-        mat = Matrices.to_symmetric(upper_triangular) * mask
-        return mat
+        indices = gs.arange(mat_dim)
+        row = gs.minimum(indices[:, None], indices[None, :])
+        column = gs.maximum(indices[:, None], indices[None, :])
+        vector_indices = column + row * (2 * mat_dim - row - 1) // 2
+        return basis_representation[..., vector_indices]
 
 
 class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
