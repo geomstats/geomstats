@@ -5,6 +5,8 @@ Note: deeply inspired by sklearn.
 
 import logging
 import os
+import tempfile
+import zipfile
 from collections import namedtuple
 
 import requests
@@ -35,18 +37,23 @@ def download_figshare_zip(article_id, filename, dirname=None):
     dirname = _get_data_home(data_home=dirname)
     file_path = os.path.join(dirname, filename)
 
-    if os.path.exists(file_path):
+    if os.path.isfile(file_path) and zipfile.is_zipfile(file_path):
         logger.info(
             "Data has already been downloaded... using cached file ('%s').", file_path
         )
     else:
         logger.info("Downloading '%s' from %s to '%s'.", file_path, url, dirname)
 
-        with requests.get(url, stream=True) as r:
-            r.raise_for_status()
+        with tempfile.TemporaryDirectory(dir=dirname) as staging_dir:
+            staged_path = os.path.join(staging_dir, "archive.zip")
+            with requests.get(url, stream=True, timeout=(10, 60)) as response:
+                response.raise_for_status()
+                with open(staged_path, "wb") as archive:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        archive.write(chunk)
 
-            with open(file_path, "wb") as f:
-                for chunk in r.iter_content(chunk_size=8192):
-                    f.write(chunk)
+            if not zipfile.is_zipfile(staged_path):
+                raise zipfile.BadZipFile("Figshare response is not a ZIP archive")
+            os.replace(staged_path, file_path)
 
     return file_path
