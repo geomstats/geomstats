@@ -25,7 +25,6 @@ class InformationManifoldMixin:
             Point representing a probability distribution.
         n_samples : int
             Number of points to sample for each set of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -98,7 +97,6 @@ class ScipyUnivariateRandomVariable(ScipyRandomVariable):
             Point representing a univariate distribution.
         n_samples : int
             Number of points to sample with each pair of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -166,7 +164,6 @@ class ScipyMultivariateRandomVariable(ScipyRandomVariable):
             Point representing a distribution.
         n_samples : int
             Number of points to sample with each pair of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------

@@ -3,107 +3,45 @@
 Lead authors: Jules Deschamps, Tra My Nguyen.
 """
 
+import math
+
 from scipy.special import factorial
 from scipy.stats import binom
 
 import geomstats.backend as gs
-from geomstats.geometry.base import VectorSpaceOpenSet
-from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.open_interval import ArcsinSqrtDiffeo, OpenInterval
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.information_geometry.base import (
     InformationManifoldMixin,
     ScipyUnivariateRandomVariable,
 )
 
 
-class BinomialDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
+class BinomialDistributions(InformationManifoldMixin, OpenInterval):
     """Class for the manifold of binomial distributions.
 
     This is the parameter space of binomial distributions
-    i.e. the half-line of positive reals.
+    i.e. the interval (0, 1).
+
+    Parameters
+    ----------
+    n_draws : int
+        Number of draws.
+    equip : bool
+        If True, equip space with default metric.
     """
 
     def __init__(self, n_draws, equip=True):
-        super().__init__(
-            dim=1,
-            support_shape=(),
-            embedding_space=Euclidean(dim=1, equip=False),
-            equip=equip,
-        )
         self.n_draws = n_draws
+        super().__init__(
+            lower_bound=0.0, upper_bound=1.0, support_shape=(), equip=equip
+        )
         self._scp_rv = BinomialDistributionsRandomVariable(self)
 
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return BinomialMetric
-
-    def belongs(self, point, atol=gs.atol):
-        """Evaluate if a point belongs to the manifold of binomial distributions.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., 1]
-            Point to be checked.
-        atol : float
-            Tolerance to evaluate if point belongs to (0,1).
-            Optional, default: gs.atol
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean indicating whether point represents a binomial
-            distribution.
-        """
-        belongs_shape = self.shape == point.shape[-self.point_ndim :]
-        if not belongs_shape:
-            shape = point.shape[: -self.point_ndim]
-            return gs.zeros(shape, dtype=bool)
-        return gs.squeeze(gs.logical_and(-atol <= point, point <= 1 + atol), axis=-1)
-
-    def random_point(self, n_samples=1):
-        """Sample parameters of binomial distributions.
-
-        The uniform distribution on [0, 1] is used.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-
-        Returns
-        -------
-        samples : array-like, shape=[..., dim]
-            Sample of points representing binomial distributions.
-        """
-        size = (n_samples, self.dim) if n_samples != 1 else (self.dim,)
-        return gs.random.rand(*size)
-
-    def projection(self, point, atol=gs.atol):
-        """Project a point in ambient space to the parameter set.
-
-        The parameter is floored to `gs.atol` if it is negative
-        and to '1-gs.atol' if it is greater than 1.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., 1]
-            Point in ambient space.
-        atol : float
-            Tolerance to evaluate positivity.
-
-        Returns
-        -------
-        projected : array-like, shape=[..., 1]
-            Projected point.
-        """
-        return gs.where(
-            gs.logical_or(point < atol, point > 1 - atol),
-            (1 - atol) * gs.cast(point > 1 - atol, point.dtype)
-            + atol * gs.cast(point < atol, point.dtype),
-            point,
-        )
 
     def sample(self, point, n_samples=1):
         """Sample from the binomial distribution.
@@ -116,7 +54,6 @@ class BinomialDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point representing a binomial distribution.
         n_samples : int
             Number of points to sample with for each parameter in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -169,8 +106,12 @@ class BinomialDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         return pmf
 
 
-class BinomialMetric(RiemannianMetric):
-    """Class for the Fisher information metric on binomial distributions.
+class BinomialMetric(PullbackDiffeoMetric):
+    r"""Class for the Fisher information metric on binomial distributions.
+
+    It is the pullback of the Euclidean metric on the interval
+    :math:`(0, \pi \sqrt{n})` through :class:`ArcsinSqrtDiffeo`.
+    The space is one-dimensional, so the metric is flat.
 
     References
     ----------
@@ -178,26 +119,12 @@ class BinomialMetric(RiemannianMetric):
         Sankhyā: The Indian Journal of Statistics, Series A, 345-365.
     """
 
-    def squared_dist(self, point_a, point_b):
-        """Compute squared distance associated with the binomial Fisher Rao metric.
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[..., 1]
-            Point representing a binomial distribution (probability of success).
-        point_b : array-like, shape=[..., 1]
-            Point representing a binomial distribution (probability of success).
-
-        Returns
-        -------
-        squared_dist : array-like, shape=[...,]
-            Squared distance between points point_a and point_b.
-        """
-        return gs.squeeze(
-            4
-            * self._space.n_draws
-            * (gs.arcsin(gs.sqrt(point_a)) - gs.arcsin(gs.sqrt(point_b))) ** 2,
-            axis=-1,
+    def __init__(self, space):
+        n_draws = space.n_draws
+        super().__init__(
+            space=space,
+            diffeo=ArcsinSqrtDiffeo(n_draws),
+            image_space=OpenInterval(0.0, math.pi * math.sqrt(n_draws)),
         )
 
     def metric_matrix(self, base_point):
@@ -217,117 +144,69 @@ class BinomialMetric(RiemannianMetric):
             self._space.n_draws / (base_point * (1 - base_point)), axis=-1
         )
 
-    @staticmethod
-    def _geodesic_path(t, initial_phase, frequency):
-        """Generate parameterized function for geodesic curve.
+    def inner_product_derivative_matrix(self, base_point):
+        r"""Compute derivative of the inner prod matrix at base point.
+
+        The only entry is
+        :math:`\partial_p g_{pp} = n (2p - 1) / (p^2 (1 - p)^2)`.
 
         Parameters
         ----------
-        t : array-like, shape=[n_times,]
-            Times at which to compute points of the geodesics.
-
-        Returns
-        -------
-        geodesic : array-like, shape=[..., n_times, 1]
-            Values of the geodesic at times t.
-        """
-        return gs.expand_dims(gs.sin(frequency * t + initial_phase) ** 2, axis=-1)
-
-    def _geodesic_ivp(self, initial_point, initial_tangent_vec):
-        """Solve geodesic initial value problem.
-
-        Compute the parameterized function for the geodesic starting at
-        initial_point with initial velocity given by initial_tangent_vec.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[..., 1]
-            Initial point.
-
-        initial_tangent_vec : array-like, shape=[..., 1]
-            Tangent vector at initial point.
-
-        Returns
-        -------
-        path : function
-            Parameterized function for the geodesic curve starting at
-            initial_point with velocity initial_tangent_vec.
-        """
-        initial_phase = gs.arcsin(gs.sqrt(initial_point))
-        frequency = initial_tangent_vec / (
-            2.0 * gs.sqrt(initial_point) * gs.sqrt(1 - initial_point)
-        )
-        return lambda t: self._geodesic_path(t, initial_phase, frequency)
-
-    def _geodesic_bvp(self, initial_point, end_point):
-        """Solve geodesic boundary problem.
-
-        Compute the parameterized function for the geodesic starting at
-        initial_point and ending at end_point.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[..., 1]
-            Initial point.
-        end_point : array-like, shape=[..., 1]
-            End point.
-
-        Returns
-        -------
-        path : function
-            Parameterized function for the geodesic curve starting at
-            initial_point and ending at end_point.
-        """
-        initial_phase = gs.arcsin(gs.sqrt(initial_point))
-        frequency = gs.arcsin(gs.sqrt(end_point)) - initial_phase
-        return lambda t: self._geodesic_path(t, initial_phase, frequency)
-
-    def exp(self, tangent_vec, base_point):
-        """Compute exp map of a base point in tangent vector direction.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., 1]
-            Tangent vector at base point.
         base_point : array-like, shape=[..., 1]
             Base point.
 
         Returns
         -------
-        exp : array-like, shape=[..., 1]
-            End point of the geodesic starting at base_point with
-            initial velocity tangent_vec.
+        metric_derivative : array-like, shape=[..., 1, 1, 1]
+            Derivative of the inner-product matrix, where the index
+            k of the derivation is last: :math:`mat_{ijk} = \partial_k g_{ij}`.
         """
-        return (
-            gs.sin(
-                tangent_vec / (2.0 * gs.sqrt(base_point) * gs.sqrt(1 - base_point))
-                + gs.arcsin(gs.sqrt(base_point))
-            )
-            ** 2
+        derivative = (
+            self._space.n_draws
+            * (2 * base_point - 1)
+            / (base_point**2 * (1 - base_point) ** 2)
         )
+        return gs.reshape(derivative, base_point.shape + (1, 1))
 
-    def log(self, point, base_point):
-        """Compute log map using a base point and an end point.
+    def christoffels(self, base_point):
+        r"""Compute the Christoffel symbols.
+
+        The only symbol is
+        :math:`\Gamma^p_{pp} = -1 / (2 p) + 1 / (2 (1 - p))`.
 
         Parameters
         ----------
-        point : array-like, shape=[..., 1]
-            End point.
         base_point : array-like, shape=[..., 1]
             Base point.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., 1]
-            Initial velocity of the geodesic starting at base_point and
-            reaching point at time 1.
+        christoffels : array-like, shape=[..., 1, 1, 1]
+            Christoffel symbols, with the contravariant index on
+            the first dimension.
         """
-        return (
-            2
-            * gs.sqrt(base_point)
-            * gs.sqrt(1 - base_point)
-            * (gs.arcsin(gs.sqrt(point)) - gs.arcsin(gs.sqrt(base_point)))
-        )
+        christoffel = -1 / (2 * base_point) + 1 / (2 * (1 - base_point))
+        return gs.reshape(christoffel, base_point.shape + (1, 1))
+
+    def jacobian_christoffels(self, base_point):
+        r"""Compute the Jacobian of the Christoffel symbols.
+
+        The only entry is
+        :math:`\partial_p \Gamma^p_{pp} = 1 / (2 p^2) + 1 / (2 (1 - p)^2)`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        jac : array-like, shape=[..., 1, 1, 1, 1]
+            Jacobian of the Christoffel symbols.
+            :math:`jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l`
+        """
+        jac = 1 / (2 * base_point**2) + 1 / (2 * (1 - base_point) ** 2)
+        return gs.reshape(jac, base_point.shape + (1, 1, 1))
 
 
 class BinomialDistributionsRandomVariable(ScipyUnivariateRandomVariable):
