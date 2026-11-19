@@ -45,7 +45,7 @@ import math
 
 import geomstats.backend as gs
 from geomstats.geometry.diffeo import Diffeo
-from geomstats.geometry.open_interval import OpenInterval, OpenIntervalMetric
+from geomstats.geometry.open_interval import OpenInterval, OpenIntervalEuclideanMetric
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import repeat_out
@@ -519,7 +519,7 @@ class PowerMetric(PullbackDiffeoMetric):
             image_space = PositiveReals(equip=False)
         else:
             image_space = OpenInterval(-math.inf, 0.0, equip=False)
-        image_space.equip_with_metric(OpenIntervalMetric)
+        image_space.equip_with_metric(OpenIntervalEuclideanMetric)
 
         super().__init__(
             space=space, diffeo=PowerDiffeo(power), image_space=image_space
