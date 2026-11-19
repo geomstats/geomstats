@@ -416,15 +416,12 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         squared_dist : array-like, shape=[...]
             Riemannian squared distance.
         """
-        product = gs.matmul(point_a, point_b)
-        sqrt_product = gs.linalg.sqrtm(product)
-        trace_a = gs.trace(point_a)
-        trace_b = gs.trace(point_b)
-        trace_prod = gs.trace(sqrt_product)
-
-        squared_dist = gs.real(trace_a + trace_b - 2.0 * trace_prod)
-
-        return gs.where(squared_dist < 0.0, 0.0, squared_dist)
+        trace_a = gs.real(gs.trace(point_a))
+        trace_b = gs.real(gs.trace(point_b))
+        sqrt_a = powermh(point_a, 0.5)
+        cross_eigvals = gs.linalg.eigvalsh(Matrices.mul(sqrt_a, point_b, sqrt_a))
+        cross_term = gs.sum(gs.sqrt(cross_eigvals), axis=-1)
+        return gs.abs(trace_a + trace_b - 2 * cross_term)
 
     def parallel_transport(
         self,
