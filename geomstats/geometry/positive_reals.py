@@ -44,29 +44,205 @@ References
 import math
 
 import geomstats.backend as gs
-from geomstats.geometry.base import VectorSpaceOpenSet
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.diffeo import Diffeo
+from geomstats.geometry.open_interval import OpenInterval, OpenIntervalEuclideanMetric
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import repeat_out
 
 
-class PositiveReals(VectorSpaceOpenSet):
+class LogDiffeo(Diffeo):
+    r"""Logarithm diffeomorphism from the positive reals to the reals.
+
+    .. math::
+
+        \log: \mathbb{R}_{>0} \rightarrow \mathbb{R}, \quad x \mapsto \log x
+
+    with inverse the exponential function and differentials
+
+    .. math::
+
+        d\log_x(u) = \frac{u}{x}, \quad d\exp_z(w) = e^z w
+    """
+
+    def __call__(self, base_point):
+        """Diffeomorphism at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., 1]
+            Image point.
+        """
+        return gs.log(base_point)
+
+    def inverse(self, image_point):
+        """Inverse diffeomorphism at image point.
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., 1]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+        """
+        return gs.exp(image_point)
+
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
+        """Tangent diffeomorphism at base point.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., 1]
+            Base point.
+        image_point : array-like, shape=[..., 1]
+            Image point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., 1]
+            Image tangent vector at image of the base point.
+        """
+        if base_point is None:
+            base_point = self.inverse(image_point)
+
+        return tangent_vec / base_point
+
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
+        """Inverse tangent diffeomorphism at image point.
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., 1]
+            Image tangent vector at image point.
+        image_point : array-like, shape=[..., 1]
+            Image point.
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at base point.
+        """
+        if base_point is None:
+            base_point = self.inverse(image_point)
+
+        return base_point * image_tangent_vec
+
+
+class PowerDiffeo(Diffeo):
+    r"""Power diffeomorphism from the positive reals to a half-line.
+
+    .. math::
+
+        x \mapsto x^p / p
+
+    Parameters
+    ----------
+    power : float
+        Non-zero power.
+    """
+
+    def __init__(self, power):
+        super().__init__()
+        self.power = power
+
+    def __call__(self, base_point):
+        """Diffeomorphism at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., 1]
+            Image point.
+        """
+        return base_point**self.power / self.power
+
+    def inverse(self, image_point):
+        """Inverse diffeomorphism at image point.
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., 1]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+        """
+        return (self.power * image_point) ** (1 / self.power)
+
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
+        """Tangent diffeomorphism at base point.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., 1]
+            Base point.
+        image_point : array-like, shape=[..., 1]
+            Image point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., 1]
+            Image tangent vector at image of the base point.
+        """
+        if base_point is None:
+            base_point = self.inverse(image_point)
+        return base_point ** (self.power - 1) * tangent_vec
+
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
+        """Inverse tangent diffeomorphism at image point.
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., 1]
+            Image tangent vector at image point.
+        image_point : array-like, shape=[..., 1]
+            Image point.
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at base point.
+        """
+        if base_point is None:
+            base_point = self.inverse(image_point)
+        return image_tangent_vec / base_point ** (self.power - 1)
+
+
+class PositiveReals(OpenInterval):
     """Class for the manifold of positive reals.
 
     The real positive axis endowed with the Information geometry metric.
     """
 
     def __init__(self, equip=True):
-        super().__init__(
-            dim=1,
-            embedding_space=Euclidean(1),
-            equip=equip,
-        )
+        super().__init__(lower_bound=0.0, upper_bound=math.inf, equip=equip)
 
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
-        return PositiveRealsMetric
+        return LogMetric
 
     @staticmethod
     def belongs(point, atol=gs.atol):
@@ -100,56 +276,14 @@ class PositiveReals(VectorSpaceOpenSet):
 
         return res
 
-    @staticmethod
-    def projection(point, atol=gs.atol):
-        """Project a point on the positive reals.
 
-        Parameters
-        ----------
-        point : array-like, shape=[..., 1]
-            Point in ambient manifold.
-        atol : float
-            Tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        projected : array-like, shape=[..., 1]
-            Projected point.
-        """
-        return gs.where(point <= 0, atol, point)
-
-    @staticmethod
-    def random_point(n_samples=1, bound=1.0, atol=gs.atol):
-        """Sample in the positive reals.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Bound of the interval in which to sample in the tangent space.
-            Optional, default: 1.
-        atol : float
-            Tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        samples : array-like, shape=[..., 1]
-            Points sampled in the positive reals.
-        """
-        size = (n_samples, 1) if n_samples != 1 else (1,)
-        return (bound - atol) * gs.random.rand(*size) + atol
-
-
-class PositiveRealsMetric(RiemannianMetric):
-    """Class for the positive reals metric.
+class LogMetric(RiemannianMetric):
+    """Class for the logarithmic metric on the positive reals.
 
     It is a particular case in dimension 1
     of the SPD affine-invariant metric
     with a power affine coefficient equal to one.
+    The space is one-dimensional, so the metric is flat.
     """
 
     def metric_matrix(self, base_point):
@@ -167,6 +301,60 @@ class PositiveRealsMetric(RiemannianMetric):
         """
         inner_prod_mat = 1 / base_point**2
         return gs.expand_dims(inner_prod_mat, axis=-1)
+
+    def inner_product_derivative_matrix(self, base_point):
+        r"""Compute derivative of the inner prod matrix at base point.
+
+        The only entry is :math:`\partial_x g_{xx} = -2 / x^3`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        metric_derivative : array-like, shape=[..., 1, 1, 1]
+            Derivative of the inner-product matrix, where the index
+            k of the derivation is last: :math:`mat_{ijk} = \partial_k g_{ij}`.
+        """
+        return gs.reshape(-2 / base_point**3, base_point.shape + (1, 1))
+
+    def christoffels(self, base_point):
+        r"""Compute the Christoffel symbols.
+
+        The only symbol is :math:`\Gamma^x_{xx} = -1 / x`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        christoffels : array-like, shape=[..., 1, 1, 1]
+            Christoffel symbols, with the contravariant index on
+            the first dimension.
+        """
+        return gs.reshape(-1 / base_point, base_point.shape + (1, 1))
+
+    def jacobian_christoffels(self, base_point):
+        r"""Compute the Jacobian of the Christoffel symbols.
+
+        The only entry is :math:`\partial_x \Gamma^x_{xx} = 1 / x^2`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        jac : array-like, shape=[..., 1, 1, 1, 1]
+            Jacobian of the Christoffel symbols.
+            :math:`jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l`
+        """
+        return gs.reshape(1 / base_point**2, base_point.shape + (1, 1, 1))
 
     @staticmethod
     def exp(tangent_vec, base_point):
@@ -305,3 +493,109 @@ class PositiveRealsMetric(RiemannianMetric):
         """
         radius = gs.array(math.inf)
         return repeat_out(self._space.point_ndim, radius, base_point)
+
+
+class PowerMetric(PullbackDiffeoMetric):
+    r"""Class for the power-Euclidean metric on the positive reals.
+
+    It is the pullback of the Euclidean metric on a half-line through
+    :class:`PowerDiffeo`, i.e. :math:`g_x = x^{2p - 2}`, and a particular
+    case in dimension 1 of the SPD power-Euclidean metric.
+    The limit :math:`p \to 0` is the logarithmic metric.
+    The space is one-dimensional, so the metric is flat.
+
+    Parameters
+    ----------
+    space : PositiveReals
+        Manifold.
+    power : float
+        Non-zero power.
+    """
+
+    def __init__(self, space, power):
+        if power == 0:
+            raise ValueError("The power must be non-zero. Use `LogMetric` instead.")
+        if power > 0:
+            image_space = PositiveReals(equip=False)
+        else:
+            image_space = OpenInterval(-math.inf, 0.0, equip=False)
+        image_space.equip_with_metric(OpenIntervalEuclideanMetric)
+
+        super().__init__(
+            space=space, diffeo=PowerDiffeo(power), image_space=image_space
+        )
+        self.power = power
+
+    def metric_matrix(self, base_point):
+        r"""Compute the inner product matrix at base point.
+
+        The only entry is :math:`g_{xx} = x^{2p - 2}`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        inner_prod_mat : array-like, shape=[..., 1, 1]
+            Inner product matrix.
+        """
+        return gs.expand_dims(base_point ** (2 * self.power - 2), axis=-1)
+
+    def inner_product_derivative_matrix(self, base_point):
+        r"""Compute derivative of the inner prod matrix at base point.
+
+        The only entry is :math:`\partial_x g_{xx} = (2p - 2) x^{2p - 3}`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        metric_derivative : array-like, shape=[..., 1, 1, 1]
+            Derivative of the inner-product matrix, where the index
+            k of the derivation is last: :math:`mat_{ijk} = \partial_k g_{ij}`.
+        """
+        derivative = (2 * self.power - 2) * base_point ** (2 * self.power - 3)
+        return gs.reshape(derivative, base_point.shape + (1, 1))
+
+    def christoffels(self, base_point):
+        r"""Compute the Christoffel symbols.
+
+        The only symbol is :math:`\Gamma^x_{xx} = (p - 1) / x`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        christoffels : array-like, shape=[..., 1, 1, 1]
+            Christoffel symbols, with the contravariant index on
+            the first dimension.
+        """
+        return gs.reshape((self.power - 1) / base_point, base_point.shape + (1, 1))
+
+    def jacobian_christoffels(self, base_point):
+        r"""Compute the Jacobian of the Christoffel symbols.
+
+        The only entry is :math:`\partial_x \Gamma^x_{xx} = (1 - p) / x^2`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        jac : array-like, shape=[..., 1, 1, 1, 1]
+            Jacobian of the Christoffel symbols.
+            :math:`jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l`
+        """
+        return gs.reshape(
+            (1 - self.power) / base_point**2, base_point.shape + (1, 1, 1)
+        )
