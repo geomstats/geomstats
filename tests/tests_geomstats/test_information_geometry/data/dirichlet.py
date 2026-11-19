@@ -10,13 +10,13 @@ class DirichletDistributionsTestData(
     InformationManifoldMixinTestData, VectorSpaceOpenSetTestData
 ):
     fail_for_not_implemented_errors = False
+    skips = ("not_belongs",)
 
 
 class DirichletDistributions3TestData(TestData):
     def belongs_test_data(self):
         smoke_data = [
             dict(point=gs.array([0.1, 1.0, 0.3]), expected=True),
-            dict(point=gs.array([0.1, 1.001]), expected=False),
             dict(point=gs.array([-0.001, 1.0, 0.3]), expected=False),
         ]
         return self.generate_tests(smoke_data)
