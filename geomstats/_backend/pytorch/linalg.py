@@ -15,8 +15,8 @@ from torch.linalg import (
 )
 from torch.linalg import matrix_exp as expm
 
-from ..numpy import atol
 from ..numpy import linalg as _gsnplinalg
+from ._common import atol
 from ._dtype import _cast_out_to_input_dtype
 
 
@@ -58,7 +58,7 @@ logm = _cast_out_to_input_dtype(_Logm.apply)
 
 
 def sqrtm(x):
-    np_sqrtm = _np.vectorize(_scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
+    np_sqrtm = _scipy.linalg.sqrtm(x)
     if np_sqrtm.dtype.kind == "c":
         np_sqrtm = np_sqrtm.astype(f"complex{int(np_sqrtm.dtype.name[7:]) // 2}")
 
@@ -80,79 +80,82 @@ def matrix_rank(a, hermitian=False, **_unused_kwargs):
     return _torch.linalg.matrix_rank(a, hermitian=hermitian)
 
 
-def quadratic_assignment(a, b, options):
-    return list(_scipy.optimize.quadratic_assignment(a, b, options=options).col_ind)
+def quadratic_assignment(a, b, options=None):
+    """Solve the quadratic assignment problem.
+
+    Parameters
+    ----------
+    a : array-like, shape=[..., n, n]
+        First matrix.
+    b : array-like, shape=[..., n, n]
+        Second matrix.
+    options : dict
+        Options of ``scipy.optimize.quadratic_assignment``.
+
+    Returns
+    -------
+    perm : array-like, shape=[..., n]
+        Permutation of the nodes of ``b`` that is optimal for ``a``.
+    """
+    perm = _gsnplinalg.quadratic_assignment(
+        _np.asarray(a), _np.asarray(b), options=options
+    )
+    return _torch.from_numpy(perm)
 
 
-def solve_sylvester(a, b, q):
+def solve_sylvester(a, b, q, tol=atol):
+    """Solve the Sylvester equation ``A X + X B = Q``.
+
+    If ``A`` and ``B`` are the same symmetric positive semidefinite matrix,
+    the equation is solved in the eigenbasis of ``A``. The entries whose
+    eigenvalue sum vanishes are set to zero, which gives the minimum-norm
+    solution. Otherwise, scipy is used, matrix by matrix.
+
+    Parameters
+    ----------
+    a : array-like, shape=[..., m, m]
+        First coefficient matrix, ``A``.
+    b : array-like, shape=[..., n, n]
+        Second coefficient matrix, ``B``.
+    q : array-like, shape=[..., m, n]
+        Right-hand side, ``Q``.
+    tol : float
+        Tolerance on equality, symmetry and eigenvalues.
+
+    Returns
+    -------
+    x : array-like, shape=[..., m, n]
+        Solution, ``X``.
+    """
     if (
         a.shape == b.shape
-        and _torch.all(a == b)
-        and _torch.all(_torch.abs(a - a.transpose(-2, -1)) < 1e-6)
+        and _torch.all(_torch.abs(a - b) < tol)
+        and _torch.all(_torch.abs(a - a.transpose(-2, -1)) < tol)
     ):
         eigvals, eigvecs = eigh(a)
-        if _torch.all(eigvals >= 1e-6):
+        if _torch.all(eigvals > -tol):
             tilde_q = eigvecs.transpose(-2, -1) @ q @ eigvecs
-            tilde_x = tilde_q / (eigvals[..., :, None] + eigvals[..., None, :])
-            return eigvecs @ tilde_x @ eigvecs.transpose(-2, -1)
-
-        conditions = _torch.all(eigvals >= 1e-6) or (
-            a.shape[-1] >= 2.0
-            and _torch.all(eigvals[..., 0] > -1e-6)
-            and _torch.all(eigvals[..., 1] >= 1e-6)
-            and _torch.all(_torch.abs(q + q.transpose(-2, -1)) < 1e-6)
-        )
-        if conditions:
-            tilde_q = eigvecs.transpose(-2, -1) @ q @ eigvecs
-            tilde_x = tilde_q / (
-                eigvals[..., :, None] + eigvals[..., None, :] + _torch.eye(a.shape[-1])
+            denom = eigvals[..., :, None] + eigvals[..., None, :]
+            is_zero = _torch.abs(denom) <= tol
+            tilde_x = _torch.where(
+                is_zero,
+                _torch.zeros_like(tilde_q),
+                tilde_q / _torch.where(is_zero, _torch.ones_like(denom), denom),
             )
             return eigvecs @ tilde_x @ eigvecs.transpose(-2, -1)
 
-    solution = _np.vectorize(
-        _scipy.linalg.solve_sylvester, signature="(m,m),(n,n),(m,n)->(m,n)"
-    )(a, b, q)
-    return _torch.from_numpy(solution)
-
-
-# (TODO) (sait) _torch.linalg.cholesky_ex for even faster way
-def is_single_matrix_pd(mat):
-    """Check if 2D square matrix is positive definite."""
-    if mat.shape[0] != mat.shape[1]:
-        return False
-    if mat.dtype in [_torch.complex64, _torch.complex128]:
-        is_hermitian = _torch.all(
-            _torch.abs(mat - _torch.conj(_torch.transpose(mat, 0, 1))) < atol
-        )
-        if not is_hermitian:
-            return False
-        eigvals = _torch.linalg.eigvalsh(mat)
-        return _torch.min(_torch.real(eigvals)) > 0
-    try:
-        _torch.linalg.cholesky(mat)
-        return True
-    except RuntimeError:
-        return False
+    return _torch.from_numpy(_scipy.linalg.solve_sylvester(a, b, q))
 
 
 @_cast_out_to_input_dtype
 def fractional_matrix_power(A, t):
     """Compute the fractional power of a matrix."""
-    if A.ndim == 2:
-        out = _scipy.linalg.fractional_matrix_power(A, t)
-    else:
-        out = _np.stack([_scipy.linalg.fractional_matrix_power(A_, t) for A_ in A])
-
-    return _torch.tensor(out)
+    return _torch.from_numpy(_scipy.linalg.fractional_matrix_power(A, t))
 
 
 def polar(*args, **kwargs):
     """Polar decomposition of a matrix."""
-    func = _np.vectorize(
-        _scipy.linalg.polar, signature="(n,n)->(n,n),(n,n)", excluded=["side"]
-    )
-    unitary, hermitian = func = func(*args, **kwargs)
-
+    unitary, hermitian = _scipy.linalg.polar(*args, **kwargs)
     return _torch.from_numpy(unitary), _torch.from_numpy(hermitian)
 
 

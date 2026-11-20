@@ -474,7 +474,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             "...ij,...jk,...kl,...lm->...im", factor_1, factor_2, factor_3, factor_4
         )
 
-        prod_power_one_half = gs.linalg.fractional_matrix_power(prod, 0.5)
+        prod_power_one_half = gs.linalg.sqrtm(prod)
 
         num = identity + prod_power_one_half
         den = identity - prod_power_one_half

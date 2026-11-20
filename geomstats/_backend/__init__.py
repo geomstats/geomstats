@@ -187,7 +187,6 @@ BACKEND_ATTRIBUTES = {
         "expm",
         "fractional_matrix_power",
         "inv",
-        "is_single_matrix_pd",
         "logm",
         "matrix_power",
         "norm",

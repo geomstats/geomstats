@@ -429,16 +429,21 @@ class Matrices(MatrixVectorSpace):
         -------
         is_pd : array-like, shape=[...,]
             Boolean evaluating if the matrix is positive definite.
+
+        Notes
+        -----
+        A real matrix is checked through the eigenvalues of its lower
+        triangle, as a Cholesky decomposition would. A complex matrix must
+        also be hermitian.
         """
-        if mat.ndim == 2:
-            return gs.array(gs.linalg.is_single_matrix_pd(mat))
+        if mat.shape[-1] != mat.shape[-2]:
+            return gs.zeros(mat.shape[:-2]) > 0
 
-        shape = mat.shape
-        if mat.ndim > 3:
-            mat = gs.reshape(mat, (-1,) + shape[-2:])
+        is_pd = gs.all(gs.linalg.eigvalsh(mat) > 0, axis=-1)
+        if gs.is_complex(mat):
+            is_pd = gs.logical_and(cls.equal(mat, gs.conj(gs.transpose(mat))), is_pd)
 
-        is_pd = gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
-        return gs.reshape(is_pd, shape[:-2])
+        return is_pd
 
     @classmethod
     def is_spd(cls, mat, atol=gs.atol):

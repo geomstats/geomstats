@@ -57,6 +57,7 @@ from autograd.numpy import (
     log,
     logical_and,
     logical_or,
+    matvec,
     maximum,
     mean,
     median,
@@ -120,11 +121,8 @@ from ._common import (
     rtol,
     to_ndarray,
     zeros,
-    _is_boolean,
-    _is_iterable,
 )
 from ._dtype import (
-    _get_wider_dtype,
     as_dtype,
     cast,
     convert_to_wider_dtype,
@@ -157,14 +155,21 @@ def broadcast_arrays(*arrays):
 
 
 def outer(a, b):
-    if a.ndim > 1 and b.ndim > 1:
-        return _np.einsum("...i,...j->...ij", a, b)
+    """Compute the outer product of vectors.
 
-    out = _np.outer(a, b).reshape(a.shape + b.shape)
-    if b.ndim > 1:
-        out = out.swapaxes(0, -2)
+    Parameters
+    ----------
+    a : array-like, shape=[..., n]
+        Vector.
+    b : array-like, shape=[..., m]
+        Vector.
 
-    return out
+    Returns
+    -------
+    outer_ab : array-like, shape=[..., n, m]
+        Outer product.
+    """
+    return a[..., :, None] * b[..., None, :]
 
 
 def to_numpy(x):
@@ -355,8 +360,9 @@ def divide(a, b, ignore_div_zero=False):
     if ignore_div_zero is False:
         return _np.divide(a, b)
 
-    wider_dtype, _ = _get_wider_dtype([a, b])
-    return _np.divide(a, b, out=zeros(a.shape, dtype=wider_dtype), where=b != 0)
+    return _np.divide(
+        a, b, out=zeros(a.shape, dtype=_np.result_type(a, b)), where=b != 0
+    )
 
 
 def matmul(*args, **kwargs):
@@ -366,22 +372,27 @@ def matmul(*args, **kwargs):
     return _np.matmul(*args, **kwargs)
 
 
-def matvec(A, b):
-    if b.ndim == 1:
-        return _np.matmul(A, b)
-    if A.ndim == 2:
-        return _np.matmul(A, b.T).T
-    return _np.einsum("...ij,...j->...i", A, b)
-
-
 def dot(a, b):
-    if b.ndim == 1:
-        return _np.dot(a, b)
+    """Compute the dot product of vectors.
 
-    if a.ndim == 1:
-        return _np.dot(a, b.T)
+    The product is bilinear: no argument is conjugated.
 
-    return _np.einsum("...i,...i->...", a, b)
+    Parameters
+    ----------
+    a : array-like, shape=[..., n]
+        Vector.
+    b : array-like, shape=[..., n]
+        Vector.
+
+    Returns
+    -------
+    dot_ab : array-like, shape=[...,]
+        Dot product.
+    """
+    # vecdot conjugates its first argument
+    if _np.iscomplexobj(a):
+        a = _np.conj(a)
+    return _np.vecdot(a, b)
 
 
 def trace(a):

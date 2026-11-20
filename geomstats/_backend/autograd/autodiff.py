@@ -5,7 +5,33 @@ import functools as _functools
 import autograd as _autograd
 import autograd.numpy as _np
 from autograd import jacobian as _autograd_jacobian
+from autograd.numpy.numpy_vjps import unbroadcast_f as _unbroadcast_f
 from autograd.tracer import getval as _getval
+
+
+def _matvec_vjp_mat(ans, mat, vec):
+    """Get the VJP of the matrix-vector product with respect to the matrix."""
+    return _unbroadcast_f(mat, lambda g: g[..., :, None] * vec[..., None, :])
+
+
+def _matvec_vjp_vec(ans, mat, vec):
+    """Get the VJP of the matrix-vector product with respect to the vector."""
+    return _unbroadcast_f(vec, lambda g: _np.matvec(_np.swapaxes(mat, -1, -2), g))
+
+
+def _vecdot_vjp_a(ans, a, b):
+    """Get the VJP of the vector dot product with respect to the first vector."""
+    return _unbroadcast_f(a, lambda g: _np.conj(g[..., None] * b))
+
+
+def _vecdot_vjp_b(ans, a, b):
+    """Get the VJP of the vector dot product with respect to the second vector."""
+    return _unbroadcast_f(b, lambda g: g[..., None] * _np.conj(a))
+
+
+# autograd does not define the VJPs of these NumPy functions
+_autograd.extend.defvjp(_np.matvec, _matvec_vjp_mat, _matvec_vjp_vec)
+_autograd.extend.defvjp(_np.vecdot, _vecdot_vjp_a, _vecdot_vjp_b)
 
 
 def _broadcast_to_batch(inputs, point_ndims):
