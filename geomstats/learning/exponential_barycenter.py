@@ -112,7 +112,7 @@ class ConnectionGradientDescent(BaseGradientDescent):
     """Gradient descent for exponential barycenter."""
 
     def minimize(self, space, points, weights=None):
-        """Perform default gradient descent."""
+        """Backtrack until a proposed mean reduces the mean logarithm's norm."""
         n_points = gs.shape(points)[0]
         if weights is None:
             weights = gs.ones((n_points,))
@@ -124,25 +124,26 @@ class ConnectionGradientDescent(BaseGradientDescent):
 
         sum_weights = gs.sum(weights)
 
-        norm_old = gs.inf
         step_size = self.init_step_size
 
+        logs = space.connection.log(point=points, base_point=mean)
+        tangent_mean = _scalarmulsum(weights, logs) / sum_weights
+        norm = gs.linalg.norm(tangent_mean)
+
         for _ in range(self.max_iter):
-            logs = space.connection.log(point=points, base_point=mean)
-
-            tangent_mean = _scalarmulsum(weights, logs)
-            tangent_mean /= sum_weights
-
             if gs.amax(gs.abs(tangent_mean)) < self.epsilon:
                 break
 
             new_mean = space.connection.exp(step_size * tangent_mean, mean)
+            new_logs = space.connection.log(point=points, base_point=new_mean)
+            new_tangent_mean = _scalarmulsum(weights, new_logs) / sum_weights
+            new_norm = gs.linalg.norm(new_tangent_mean)
 
-            norm = gs.linalg.norm(tangent_mean)
-            if norm < norm_old:
+            if new_norm < norm:
                 mean = new_mean
-                norm_old = norm
-            elif norm > norm_old:
+                tangent_mean = new_tangent_mean
+                norm = new_norm
+            else:
                 step_size = step_size / 2.0
 
         else:
