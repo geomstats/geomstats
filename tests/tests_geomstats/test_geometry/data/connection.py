@@ -4,12 +4,6 @@ from .mixins import GeodesicBVPMixinsTestData
 
 
 class ConnectionTestData(GeodesicBVPMixinsTestData, TestData):
-    def christoffels_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def geodesic_equation_vec_test_data(self):
-        return self.generate_vec_data()
-
     def exp_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -27,24 +21,6 @@ class ConnectionTestData(GeodesicBVPMixinsTestData, TestData):
 
     def log_after_exp_test_data(self):
         return self.generate_random_data()
-
-    def riemann_tensor_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def curvature_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def ricci_tensor_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def directional_curvature_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def curvature_derivative_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def directional_curvature_derivative_vec_test_data(self):
-        return self.generate_vec_data()
 
     def geodesic_ivp_vec_test_data(self):
         return self.generate_vec_data_with_time()
@@ -68,14 +44,54 @@ class ConnectionTestData(GeodesicBVPMixinsTestData, TestData):
         return self.generate_random_data()
 
 
-class ConnectionComparisonTestData(TestData):
-    def christoffels_random_test_data(self):
-        return self.generate_random_data()
+class CoordinateConnectionTestData(ConnectionTestData):
+    def christoffels_vec_test_data(self):
+        return self.generate_vec_data()
 
+    def geodesic_equation_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def riemann_tensor_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def curvature_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def ricci_tensor_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def directional_curvature_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def curvature_derivative_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def directional_curvature_derivative_vec_test_data(self):
+        return self.generate_vec_data()
+
+
+class ConnectionComparisonTestData(TestData):
     def exp_random_test_data(self):
         return self.generate_random_data()
 
     def log_random_test_data(self):
+        return self.generate_random_data()
+
+    def geodesic_bvp_random_test_data(self):
+        return self.generate_random_data_with_time()
+
+    def geodesic_ivp_random_test_data(self):
+        return self.generate_random_data_with_time()
+
+    def parallel_transport_ivp_random_test_data(self):
+        return self.generate_random_data()
+
+    def parallel_transport_bvp_random_test_data(self):
+        return self.generate_random_data()
+
+
+class CoordinateConnectionComparisonTestData(ConnectionComparisonTestData):
+    def christoffels_random_test_data(self):
         return self.generate_random_data()
 
     def riemann_tensor_random_test_data(self):
@@ -94,18 +110,6 @@ class ConnectionComparisonTestData(TestData):
         return self.generate_random_data()
 
     def directional_curvature_derivative_random_test_data(self):
-        return self.generate_random_data()
-
-    def geodesic_bvp_random_test_data(self):
-        return self.generate_random_data_with_time()
-
-    def geodesic_ivp_random_test_data(self):
-        return self.generate_random_data_with_time()
-
-    def parallel_transport_ivp_random_test_data(self):
-        return self.generate_random_data()
-
-    def parallel_transport_bvp_random_test_data(self):
         return self.generate_random_data()
 
 

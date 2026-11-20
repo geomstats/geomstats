@@ -144,11 +144,6 @@ class ElasticMetricTestData(TestData):
 
 class L2SurfacesMetricTestData(RiemannianMetricTestData):
     trials = 1
-    skips = (
-        "inner_product_derivative_matrix_vec",
-        "metric_matrix_is_spd",
-        "christoffels_vec",
-    )
     N_RANDOM_POINTS = [1]
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False

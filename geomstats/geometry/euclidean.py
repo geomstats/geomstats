@@ -5,8 +5,8 @@ import math
 import geomstats.backend as gs
 from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.diffeo import LinearIsomorphism
-from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.vectorization import check_is_batch, repeat_out
+from geomstats.geometry.riemannian_metric import ConstantMetricMatrixRiemannianMetric
+from geomstats.vectorization import repeat_out
 
 
 class CoordinateScalingDiffeo(LinearIsomorphism):
@@ -113,132 +113,23 @@ class Euclidean(VectorSpace):
         return tangent_vec + base_point
 
 
-class EuclideanMetric(RiemannianMetric):
+class EuclideanMetric(ConstantMetricMatrixRiemannianMetric):
     """Class for a Euclidean metric.
 
-    This metric is:
+    Points are vectors, and the metric matrix is independent of the base
+    point. The metric is flat, and geodesics are straight lines.
 
-    - flat: the inner-product is independent of the base point;
-    - positive definite
+    Parameters
+    ----------
+    space : Manifold object
+        M in the tuple (M, g).
+    metric_matrix : array-like, shape=[dim, dim]
+        Metric matrix.
+        Optional, default: identity.
+    signature : tuple
+        Signature of the metric.
+        Optional, default: (dim, 0).
     """
-
-    def __init__(self, space, metric_matrix=None, signature=None):
-        super().__init__(space, signature=signature)
-        self._check_metric_matrix_dim(space, metric_matrix)
-        if metric_matrix is None and space.point_ndim == 1:
-            metric_matrix = gs.eye(space.dim)
-
-        self.metric_matrix_ = metric_matrix
-
-    @staticmethod
-    def _check_metric_matrix_dim(space, metric_matrix):
-        """Check metric matrix dimension."""
-        if metric_matrix is None:
-            return
-
-        expected_shape = (space.dim, space.dim)
-        if metric_matrix.shape != expected_shape:
-            raise ValueError(
-                f"metric_matrix shape is {metric_matrix.shape};"
-                f"expected: {expected_shape}"
-            )
-
-    def metric_matrix(self, base_point=None):
-        """Compute the inner-product matrix, independent of the base point.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., dim]
-            Base point.
-            Optional, default: None.
-
-        Returns
-        -------
-        inner_prod_mat : array-like, shape=[..., dim, dim]
-            Inner-product matrix.
-        """
-        if self._space.point_ndim > 1:
-            raise NotImplementedError("`metric_matrix` is not implemented.")
-
-        dim = self._space.dim
-        return repeat_out(
-            self._space.point_ndim,
-            gs.copy(self.metric_matrix_),
-            base_point,
-            out_shape=(dim, dim),
-        )
-
-    def inner_product_derivative_matrix(self, base_point=None):
-        r"""Compute derivative of the inner prod matrix at base point.
-
-        Writing :math:`g_{ij}` the inner-product matrix at base point,
-        this computes :math:`mat_{ijk} = \partial_k g_{ij}`, where the
-        index k of the derivation is put last.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., dim]
-            Base point.
-
-        Returns
-        -------
-        metric_derivative : array-like, shape=[..., dim, dim, dim]
-            Derivative of the inner-product matrix, where the index
-            k of the derivation is last: :math:`mat_{ijk} = \partial_k g_{ij}`.
-        """
-        if self._space.point_ndim > 1:
-            raise NotImplementedError(
-                "`inner_product_derivative_matrix` is not implemented."
-            )
-
-        dim = self._space.dim
-        shape = (dim, dim, dim)
-        return repeat_out(
-            self._space.point_ndim, gs.zeros(shape), base_point, out_shape=shape
-        )
-
-    def christoffels(self, base_point=None):
-        """Christoffel symbols associated with the connection.
-
-        The contravariant index is on the first dimension.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-
-        Returns
-        -------
-        gamma : array-like, shape=[..., dim, dim, dim]
-            Christoffel symbols, with the contravariant index on
-            the first dimension.
-        """
-        if self._space.point_ndim > 1:
-            raise NotImplementedError("The Christoffel symbols are not implemented.")
-
-        dim = self._space.dim
-        shape = (dim, dim, dim)
-        gamma = gs.zeros(shape)
-        return repeat_out(self._space.point_ndim, gamma, base_point, out_shape=shape)
-
-    def exp(self, tangent_vec, base_point):
-        """Compute exp map of a base point in tangent vector direction.
-
-        The Riemannian exponential is vector addition in the Euclidean space.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., dim]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., dim]
-            Base point.
-
-        Returns
-        -------
-        exp : array-like, shape=[..., dim]
-            Riemannian exponential.
-        """
-        return base_point + tangent_vec
 
     def log(self, point, base_point):
         """Compute log map using a base point and other point.
@@ -298,71 +189,6 @@ class EuclideanMetric(RiemannianMetric):
             out_shape=self._space.shape,
         )
 
-    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
-        """Generate parameterized function for the geodesic curve.
-
-        Geodesic curve defined by either:
-
-        - an initial point and an initial tangent vector,
-        - an initial point and an end point.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[..., dim]
-            Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., dim], optional
-            Point on the manifold, end point of the geodesic. If None,
-            an initial tangent vector must be given.
-        initial_tangent_vec : array-like, shape=[..., dim], optional
-            Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
-            If None, an end point must be given and a logarithm is computed.
-
-        Returns
-        -------
-        path : callable
-            Time parameterized geodesic curve. If a batch of initial
-            conditions is passed, the output array's first dimension
-            represents the different initial conditions, and the second
-            corresponds to time.
-        """
-        if end_point is None and initial_tangent_vec is None:
-            raise ValueError(
-                "Specify an end point or an initial tangent "
-                "vector to define the geodesic."
-            )
-        if end_point is not None:
-            if initial_tangent_vec is not None:
-                raise ValueError(
-                    "Cannot specify both an end point and an initial tangent vector."
-                )
-
-            initial_tangent_vec = self.log(end_point, initial_point)
-
-        is_batch = check_is_batch(
-            self._space.point_ndim, initial_point, initial_tangent_vec
-        )
-        if is_batch:
-            initial_point = gs.expand_dims(
-                initial_point, axis=-(self._space.point_ndim + 1)
-            )
-
-        ijk = "ijk"[: self._space.point_ndim]
-
-        def path(t):
-            """Generate parameterized function for geodesic curve.
-
-            Parameters
-            ----------
-            t : array-like, shape=[n_points,]
-                Times at which to compute points of the geodesics.
-            """
-            t = gs.to_ndarray(t, to_ndim=1, dtype=initial_tangent_vec.dtype)
-            tangent_vecs = gs.einsum(f"n,...{ijk}->...n{ijk}", t, initial_tangent_vec)
-            return initial_point + tangent_vecs
-
-        return path
-
     def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
@@ -382,63 +208,6 @@ class EuclideanMetric(RiemannianMetric):
         """
         radius = gs.array(math.inf)
         return repeat_out(self._space.point_ndim, radius, base_point)
-
-    def flat(self, tangent_vec, base_point=None):
-        """Map a tangent vector to a covector.
-
-        The metric is independent of the base point, so this is the
-        multiplication by the metric matrix.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., dim]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., dim]
-            Base point.
-            Optional, default: None.
-
-        Returns
-        -------
-        cotangent_vec : array-like, shape=[..., dim]
-            Covector at base point.
-        """
-        cotangent_vec = gs.matvec(self.metric_matrix_, tangent_vec)
-
-        return repeat_out(
-            self._space.point_ndim,
-            cotangent_vec,
-            tangent_vec,
-            base_point,
-            out_shape=self._space.shape,
-        )
-
-    def sharp(self, cotangent_vec, base_point=None):
-        """Map a covector to a tangent vector.
-
-        Inverse of :meth:`flat`.
-
-        Parameters
-        ----------
-        cotangent_vec : array-like, shape=[..., dim]
-            Covector at base point.
-        base_point : array-like, shape=[..., dim]
-            Base point.
-            Optional, default: None.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., dim]
-            Tangent vector at base point.
-        """
-        tangent_vec = gs.matvec(gs.linalg.inv(self.metric_matrix_), cotangent_vec)
-
-        return repeat_out(
-            self._space.point_ndim,
-            tangent_vec,
-            cotangent_vec,
-            base_point,
-            out_shape=self._space.shape,
-        )
 
 
 class CanonicalEuclideanMetric(EuclideanMetric):

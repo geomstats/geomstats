@@ -18,8 +18,6 @@ class HermitianMetricTestData(ComplexRiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
-    skips = ("sectional_curvature_vec",)
-
 
 class Hermitian2MetricTestData(TestData):
     def exp_test_data(self):

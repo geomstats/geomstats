@@ -5,7 +5,10 @@ Lead authors: Nicolas Guigui and Nina Miolane.
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.riemannian_metric import (
+    CoordinateRiemannianMetric,
+    RiemannianMetric,
+)
 from geomstats.integrator import integrate
 from geomstats.numerics.bvp import ScipySolveBVP
 from geomstats.numerics.geodesic import ExpODESolver, LogODESolver
@@ -818,7 +821,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         return gs.stack([velocity, sign * acceleration], axis=-3)
 
 
-class _InvariantMetricVector(RiemannianMetric):
+class _InvariantMetricVector(CoordinateRiemannianMetric):
     """Class for invariant metrics on Lie groups represented by vectors.
 
     Parameters

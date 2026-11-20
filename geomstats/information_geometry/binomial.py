@@ -9,8 +9,9 @@ from scipy.special import factorial
 from scipy.stats import binom
 
 import geomstats.backend as gs
+from geomstats.geometry.connection import FlatCoordinateMixin
 from geomstats.geometry.open_interval import ArcsinSqrtDiffeo, OpenInterval
-from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
+from geomstats.geometry.pullback_metric import CoordinatePullbackDiffeoMetric
 from geomstats.information_geometry.base import (
     InformationManifoldMixin,
     ScipyUnivariateRandomVariable,
@@ -106,7 +107,7 @@ class BinomialDistributions(InformationManifoldMixin, OpenInterval):
         return pmf
 
 
-class BinomialMetric(PullbackDiffeoMetric):
+class BinomialMetric(FlatCoordinateMixin, CoordinatePullbackDiffeoMetric):
     r"""Class for the Fisher information metric on binomial distributions.
 
     It is the pullback of the Euclidean metric on the interval

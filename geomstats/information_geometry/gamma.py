@@ -23,8 +23,8 @@ from scipy.stats import gamma
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.positive_orthant import PositiveOrthant, ScaledReciprocalDiffeo
-from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.pullback_metric import CoordinatePullbackDiffeoMetric
+from geomstats.geometry.riemannian_metric import CoordinateRiemannianMetric
 from geomstats.information_geometry.base import (
     InformationManifoldMixin,
     ScipyUnivariateRandomVariable,
@@ -177,7 +177,7 @@ class ShapeRateGammaDistributions(PositiveOrthant):
         return ShapeRateGammaMetric
 
 
-class GammaMetric(RiemannianMetric):
+class GammaMetric(CoordinateRiemannianMetric):
     """Class for the Fisher information metric on Gamma distributions.
 
     References
@@ -527,7 +527,7 @@ class GammaMetric(RiemannianMetric):
         return repeat_out(self._space.point_ndim, radius, base_point)
 
 
-class ShapeRateGammaMetric(PullbackDiffeoMetric):
+class ShapeRateGammaMetric(CoordinatePullbackDiffeoMetric):
     """Fisher information metric on Gamma distributions in shape-rate form.
 
     It is the pullback of :class:`GammaMetric` through

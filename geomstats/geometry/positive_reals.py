@@ -44,10 +44,11 @@ References
 import math
 
 import geomstats.backend as gs
+from geomstats.geometry.connection import FlatCoordinateMixin
 from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.open_interval import OpenInterval, OpenIntervalEuclideanMetric
-from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.pullback_metric import CoordinatePullbackDiffeoMetric
+from geomstats.geometry.riemannian_metric import CoordinateRiemannianMetric
 from geomstats.vectorization import repeat_out
 
 
@@ -277,7 +278,7 @@ class PositiveReals(OpenInterval):
         return res
 
 
-class LogMetric(RiemannianMetric):
+class LogMetric(FlatCoordinateMixin, CoordinateRiemannianMetric):
     """Class for the logarithmic metric on the positive reals.
 
     It is a particular case in dimension 1
@@ -495,7 +496,7 @@ class LogMetric(RiemannianMetric):
         return repeat_out(self._space.point_ndim, radius, base_point)
 
 
-class PowerMetric(PullbackDiffeoMetric):
+class PowerMetric(FlatCoordinateMixin, CoordinatePullbackDiffeoMetric):
     r"""Class for the power-Euclidean metric on the positive reals.
 
     It is the pullback of the Euclidean metric on a half-line through

@@ -19,8 +19,11 @@ from geomstats.geometry.base import DiffeomorphicManifold, LevelSet
 from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.manifold import Manifold
-from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.pullback_metric import CoordinatePullbackDiffeoMetric
+from geomstats.geometry.riemannian_metric import (
+    ConstantMetricMatrixRiemannianMetric,
+    RiemannianMetric,
+)
 from geomstats.vectorization import get_batch_shape, repeat_out
 
 logger = logging.getLogger(__name__)
@@ -531,9 +534,7 @@ class HypersphereMetric(RiemannianMetric):
 
         coef_1 = utils.taylor_exp_even_func(norm2, utils.cos_close_0, order=4)
         coef_2 = utils.taylor_exp_even_func(norm2, utils.sinc_close_0, order=4)
-        return scalarvecmul(coef_1, base_point) + scalarvecmul(
-            coef_2, proj_tangent_vec
-        )
+        return scalarvecmul(coef_1, base_point) + scalarvecmul(coef_2, proj_tangent_vec)
 
     def log(self, point, base_point):
         """Compute the Riemannian logarithm of a point.
@@ -685,9 +686,6 @@ class HypersphereMetric(RiemannianMetric):
         curvature : array-like, shape=[..., dim + 1]
             Tangent vector at ``base_point``.
         """
-        if self._space.dim == 1:
-            raise NotImplementedError("Curvature is not implemented for the circle.")
-
         inner_ac = self.inner_product(tangent_vec_a, tangent_vec_c)
         inner_bc = self.inner_product(tangent_vec_b, tangent_vec_c)
         first_term = scalarvecmul(inner_bc, tangent_vec_a)
@@ -986,29 +984,12 @@ class CircleAngles(Manifold):
         return gs.random.uniform(low=-gs.pi, high=gs.pi, size=size)
 
 
-class CircleAnglesMetric(RiemannianMetric):
+class CircleAnglesMetric(ConstantMetricMatrixRiemannianMetric):
     r"""Flat metric on the circle parametrized by angles.
 
     Exponential and logarithm are computed in closed form, modulo
     :math:`2\pi`.
     """
-
-    def metric_matrix(self, base_point=None):
-        """Metric matrix at the tangent space at a base point.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., 1]
-            Base point.
-
-        Returns
-        -------
-        mat : array-like, shape=[..., 1, 1]
-            Inner-product matrix.
-        """
-        return repeat_out(
-            self._space.point_ndim, gs.ones((1, 1)), base_point, out_shape=(1, 1)
-        )
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
@@ -1035,27 +1016,6 @@ class CircleAnglesMetric(RiemannianMetric):
             tangent_vec_b,
             base_point,
         )
-
-    def exp(self, tangent_vec, base_point):
-        r"""Compute the exponential map.
-
-        .. math::
-
-            \exp_\theta(v) = \theta + v \mod 2\pi
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., 1]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., 1]
-            Point on the circle.
-
-        Returns
-        -------
-        exp : array-like, shape=[..., 1]
-            Point on the circle, in :math:`(-\pi, \pi]`.
-        """
-        return self._space.regularize(base_point + tangent_vec)
 
     def log(self, point, base_point):
         r"""Compute the logarithm map.
@@ -1192,7 +1152,7 @@ class SphereSphericalCoordinates(DiffeomorphicManifold):
         return self.diffeo.inverse(self.image_space.random_point(n_samples))
 
 
-class SphereSphericalCoordinatesMetric(PullbackDiffeoMetric):
+class SphereSphericalCoordinatesMetric(CoordinatePullbackDiffeoMetric):
     """Metric on the sphere in spherical coordinates.
 
     Pulled back from the sphere in extrinsic coordinates.
@@ -1224,6 +1184,28 @@ class SphereSphericalCoordinatesMetric(PullbackDiffeoMetric):
         theta = base_point[..., 0]
         diagonal = gs.stack([gs.ones_like(theta), gs.sin(theta) ** 2], axis=-1)
         return gs.vec_to_diag(diagonal)
+
+    def inner_product_derivative_matrix(self, base_point=None):
+        r"""Compute derivative of the inner prod matrix at base point.
+
+        The only non-zero entry is
+        :math:`\partial_\theta g_{\phi\phi} = 2 \sin \theta \cos \theta`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Base point.
+
+        Returns
+        -------
+        metric_derivative : array-like, shape=[..., 2, 2, 2]
+            Derivative of the inner-product matrix, where the index
+            k of the derivation is last: :math:`mat_{ijk} = \partial_k g_{ij}`.
+        """
+        theta = base_point[..., 0]
+        derivative = 2 * gs.sin(theta) * gs.cos(theta)
+        support = gs.array([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [1.0, 0.0]]])
+        return gs.einsum("...,ijk->...ijk", derivative, support)
 
     def christoffels(self, base_point):
         """Compute the Christoffel symbols at a point.
@@ -1264,6 +1246,72 @@ class SphereSphericalCoordinatesMetric(PullbackDiffeoMetric):
         )
 
         return gs.stack([gamma_0, gamma_1], axis=-3)
+
+    def riemann_tensor(self, base_point=None):
+        r"""Compute Riemannian tensor at base_point.
+
+        The sphere has constant curvature one, so
+        :math:`R(X, Y)Z = \langle Y, Z \rangle X - \langle X, Z \rangle Y`, i.e.
+        :math:`R_{ijk}^l = g_{ki} \delta_j^l - g_{ji} \delta_k^l`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point in spherical coordinates.
+
+        Returns
+        -------
+        riemann_curvature : array-like, shape=[..., 2, 2, 2, 2]
+            riemann_tensor[...,i,j,k,l] = R_{ijk}^l
+            Riemannian tensor curvature,
+            with the contravariant index on the last dimension.
+        """
+        metric_mat = self.metric_matrix(base_point)
+        eye = gs.eye(2, dtype=metric_mat.dtype)
+        return gs.einsum("...ki,jl->...ijkl", metric_mat, eye) - gs.einsum(
+            "...ji,kl->...ijkl", metric_mat, eye
+        )
+
+    def curvature_derivative(
+        self,
+        tangent_vec_a,
+        tangent_vec_b,
+        tangent_vec_c,
+        tangent_vec_d,
+        base_point=None,
+    ):
+        r"""Compute the covariant derivative of the curvature.
+
+        The sphere has constant curvature, so the covariant derivative of
+        the curvature vanishes.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., 2]
+            Tangent vector at ``base_point``.
+        tangent_vec_b : array-like, shape=[..., 2]
+            Tangent vector at ``base_point``.
+        tangent_vec_c : array-like, shape=[..., 2]
+            Tangent vector at ``base_point``.
+        tangent_vec_d : array-like, shape=[..., 2]
+            Tangent vector at ``base_point``.
+        base_point : array-like, shape=[..., 2]
+            Point in spherical coordinates.
+
+        Returns
+        -------
+        curvature_derivative : array-like, shape=[..., 2]
+            Tangent vector at ``base_point``.
+        """
+        batch_shape = get_batch_shape(
+            self._space.point_ndim,
+            tangent_vec_a,
+            tangent_vec_b,
+            tangent_vec_c,
+            tangent_vec_d,
+            base_point,
+        )
+        return gs.zeros(batch_shape + self._space.shape)
 
 
 class Distribution(abc.ABC):

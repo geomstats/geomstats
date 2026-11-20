@@ -11,7 +11,7 @@ import geomstats.backend as gs
 from geomstats._einsum import scalarmatmul
 from geomstats.geometry.euclidean import CoordinateScalingDiffeo
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
-from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
+from geomstats.geometry.pullback_metric import CoordinatePullbackDiffeoMetric
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.information_geometry.base import (
     InformationManifoldMixin,
@@ -96,7 +96,7 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
         return pdf
 
 
-class UnivariateNormalMetric(PullbackDiffeoMetric):
+class UnivariateNormalMetric(CoordinatePullbackDiffeoMetric):
     r"""Class for the Fisher information metric on univariate normal distributions.
 
     This is the pullback of twice the metric of the Poincare upper half-plane

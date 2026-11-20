@@ -2,7 +2,7 @@ import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from ...test_geometry.data.base import VectorSpaceOpenSetTestData
-from ...test_geometry.data.riemannian_metric import RiemannianMetricTestData
+from ...test_geometry.data.riemannian_metric import CoordinateRiemannianMetricTestData
 from .base import InformationManifoldMixinTestData
 
 
@@ -31,9 +31,11 @@ class ExponentialDistributionsSmokeTestData(TestData):
         return self.generate_tests(data)
 
 
-class ExponentialMetricTestData(RiemannianMetricTestData):
+class ExponentialMetricTestData(CoordinateRiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
+
+    skips = ("sectional_curvature_vec",)
 
 
 class ExponentialMetricSmokeTestData(TestData):

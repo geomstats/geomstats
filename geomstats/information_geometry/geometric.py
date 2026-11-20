@@ -6,13 +6,14 @@ Lead author: Tra My Nguyen.
 from scipy.stats import geom
 
 import geomstats.backend as gs
+from geomstats.geometry.connection import FlatCoordinateMixin
 from geomstats.geometry.open_interval import (
     ArtanhSqrtDiffeo,
     OpenInterval,
     OpenIntervalEuclideanMetric,
 )
 from geomstats.geometry.positive_reals import PositiveReals
-from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
+from geomstats.geometry.pullback_metric import CoordinatePullbackDiffeoMetric
 from geomstats.information_geometry.base import (
     InformationManifoldMixin,
     ScipyUnivariateRandomVariable,
@@ -103,7 +104,7 @@ class GeometricDistributions(InformationManifoldMixin, OpenInterval):
         return pmf
 
 
-class GeometricMetric(PullbackDiffeoMetric):
+class GeometricMetric(FlatCoordinateMixin, CoordinatePullbackDiffeoMetric):
     r"""Class for the Fisher information metric on geometric distributions.
 
     It is the pullback of the Euclidean metric on the half-line

@@ -2,7 +2,7 @@ import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from ...test_geometry.data.base import VectorSpaceOpenSetTestData
-from ...test_geometry.data.riemannian_metric import RiemannianMetricTestData
+from ...test_geometry.data.riemannian_metric import CoordinateRiemannianMetricTestData
 from .base import InformationManifoldMixinTestData
 
 
@@ -22,7 +22,7 @@ class DirichletDistributions3TestData(TestData):
         return self.generate_tests(smoke_data)
 
 
-class DirichletMetricTestData(RiemannianMetricTestData):
+class DirichletMetricTestData(CoordinateRiemannianMetricTestData):
     trials = 3
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False

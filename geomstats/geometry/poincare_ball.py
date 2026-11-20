@@ -13,8 +13,8 @@ from geomstats._einsum import scalarmatmul, scalarvecmul
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.vectorization import repeat_out
+from geomstats.geometry.riemannian_metric import CoordinateRiemannianMetric
+from geomstats.vectorization import get_batch_shape, repeat_out
 
 EPSILON = 1e-6
 NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
@@ -132,7 +132,7 @@ class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
         return gs.copy(point)
 
 
-class PoincareBallMetric(RiemannianMetric):
+class PoincareBallMetric(CoordinateRiemannianMetric):
     """Class that defines operations using a Poincare ball."""
 
     def exp(self, tangent_vec, base_point):
@@ -476,6 +476,209 @@ class PoincareBallMetric(RiemannianMetric):
         identity = gs.eye(self._space.dim, self._space.dim)
 
         return scalarmatmul(lambda_base, identity)
+
+    def inner_product_derivative_matrix(self, base_point=None):
+        r"""Compute derivative of the inner prod matrix at base point.
+
+        .. math::
+
+            \partial_k g_{ij} = \delta_{ij} \frac{16 x_k}{(1 - ||x||^2)^3}
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        metric_derivative : array-like, shape=[..., dim, dim, dim]
+            Derivative of the inner-product matrix, where the index
+            k of the derivation is last: :math:`mat_{ijk} = \partial_k g_{ij}`.
+        """
+        eye = gs.eye(self._space.dim, dtype=base_point.dtype)
+        factor = 16 / (1 - _squared_norm(base_point)) ** 3
+        return gs.einsum("ij,...k->...ijk", eye, scalarvecmul(factor, base_point))
+
+    def christoffels(self, base_point=None):
+        r"""Compute the Christoffel symbols.
+
+        The metric is conformal, :math:`g = \lambda_x^2 I`, hence
+
+        .. math::
+
+            \Gamma^k_{ij} = \delta_{ik} a_j + \delta_{jk} a_i - \delta_{ij} a_k,
+            \quad a = \nabla \log \lambda_x = \frac{2 x}{1 - ||x||^2}
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        christoffels : array-like, shape=[..., dim, dim, dim]
+            Christoffel symbols, where the contravariant index is first.
+        """
+        eye = gs.eye(self._space.dim, dtype=base_point.dtype)
+        log_conformal_gradient = scalarvecmul(
+            2 / (1 - _squared_norm(base_point)), base_point
+        )
+        return (
+            gs.einsum("ki,...j->...kij", eye, log_conformal_gradient)
+            + gs.einsum("kj,...i->...kij", eye, log_conformal_gradient)
+            - gs.einsum("ij,...k->...kij", eye, log_conformal_gradient)
+        )
+
+    def jacobian_christoffels(self, base_point):
+        r"""Compute the Jacobian of the Christoffel symbols.
+
+        With :math:`a = \nabla \log \lambda_x` as in :meth:`christoffels`,
+
+        .. math::
+
+            \partial_l a_m = \frac{2 \delta_{ml}}{1 - ||x||^2}
+            + \frac{4 x_m x_l}{(1 - ||x||^2)^2}
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        jac : array-like, shape=[..., dim, dim, dim, dim]
+            Jacobian of the Christoffel symbols.
+            :math:`jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l`
+        """
+        eye = gs.eye(self._space.dim, dtype=base_point.dtype)
+        complement = 1 - _squared_norm(base_point)
+        log_conformal_hessian = scalarmatmul(2 / complement, eye) + scalarmatmul(
+            4 / complement**2, gs.einsum("...m,...l->...ml", base_point, base_point)
+        )
+        return (
+            gs.einsum("ki,...jl->...kijl", eye, log_conformal_hessian)
+            + gs.einsum("kj,...il->...kijl", eye, log_conformal_hessian)
+            - gs.einsum("ij,...kl->...kijl", eye, log_conformal_hessian)
+        )
+
+    def riemann_tensor(self, base_point=None):
+        r"""Compute Riemannian tensor at base_point.
+
+        The Poincare ball has constant curvature minus one, so
+        :math:`R(X, Y)Z = - (\langle Y, Z \rangle X - \langle X, Z \rangle Y)`,
+        i.e. :math:`R_{ijk}^l = - (g_{ki} \delta_j^l - g_{ji} \delta_k^l)`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        riemann_curvature : array-like, shape=[..., dim, dim, dim, dim]
+            riemann_tensor[...,i,j,k,l] = R_{ijk}^l
+            Riemannian tensor curvature,
+            with the contravariant index on the last dimension.
+        """
+        metric_mat = self.metric_matrix(base_point)
+        eye = gs.eye(self._space.dim, dtype=metric_mat.dtype)
+        return gs.einsum("...ji,kl->...ijkl", metric_mat, eye) - gs.einsum(
+            "...ki,jl->...ijkl", metric_mat, eye
+        )
+
+    def curvature_derivative(
+        self,
+        tangent_vec_a,
+        tangent_vec_b,
+        tangent_vec_c,
+        tangent_vec_d,
+        base_point=None,
+    ):
+        r"""Compute the covariant derivative of the curvature.
+
+        The Poincare ball has constant curvature, so the covariant derivative
+        of the curvature vanishes.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at ``base_point``.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at ``base_point``.
+        tangent_vec_c : array-like, shape=[..., dim]
+            Tangent vector at ``base_point``.
+        tangent_vec_d : array-like, shape=[..., dim]
+            Tangent vector at ``base_point``.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        curvature_derivative : array-like, shape=[..., dim]
+            Tangent vector at ``base_point``.
+        """
+        batch_shape = get_batch_shape(
+            self._space.point_ndim,
+            tangent_vec_a,
+            tangent_vec_b,
+            tangent_vec_c,
+            tangent_vec_d,
+            base_point,
+        )
+        return gs.zeros(batch_shape + self._space.shape)
+
+    def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute the sectional curvature.
+
+        The Poincare ball has constant sectional curvature minus one.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at ``base_point``.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at ``base_point``.
+        base_point : array-like, shape=[..., dim]
+            Point in the manifold.
+
+        Returns
+        -------
+        sectional_curvature : array-like, shape=[...,]
+            Sectional curvature at ``base_point``.
+        """
+        if self._space.dim == 1:
+            raise ValueError(
+                "Sectional curvature is not defined for 1-dimensional manifolds."
+            )
+
+        return repeat_out(
+            self._space.point_ndim,
+            -gs.ones(()),
+            tangent_vec_a,
+            tangent_vec_b,
+            base_point,
+        )
+
+    def scalar_curvature(self, base_point=None):
+        """Compute scalar curvature at base_point.
+
+        The Poincare ball has constant curvature minus one, so its scalar
+        curvature is :math:`- n (n - 1)`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        curvature : array-like, shape=[...,]
+            Scalar curvature.
+        """
+        dim = self._space.dim
+        return repeat_out(
+            self._space.point_ndim, -gs.array(float(dim * (dim - 1))), base_point
+        )
 
     def normalization_factor(self, variances):
         """Return normalization factor of the Gaussian distribution.

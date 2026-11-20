@@ -12,7 +12,7 @@ from geomstats.geometry._hyperbolic import HyperbolicDiffeo, _Hyperbolic
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
+from geomstats.geometry.pullback_metric import CoordinatePullbackDiffeoMetric
 from geomstats.vectorization import get_batch_shape, repeat_out
 
 
@@ -81,7 +81,7 @@ class PoincareHalfSpace(_Hyperbolic, VectorSpaceOpenSet):
         return gs.concatenate([point[..., :-1], last[..., None]], axis=-1)
 
 
-class PoincareHalfSpaceMetric(PullbackDiffeoMetric):
+class PoincareHalfSpaceMetric(CoordinatePullbackDiffeoMetric):
     r"""Class for the metric of the n-dimensional hyperbolic space.
 
     Class for the metric of the n-dimensional hyperbolic space
