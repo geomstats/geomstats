@@ -1,6 +1,5 @@
 """Pytorch based linear algebra backend."""
 
-import numpy as _np
 import scipy as _scipy
 import torch as _torch
 from torch.linalg import (
@@ -18,6 +17,15 @@ from torch.linalg import matrix_exp as expm
 from ..numpy import linalg as _gsnplinalg
 from ._common import atol
 from ._dtype import _cast_out_to_input_dtype
+
+
+def _to_numpy(x):
+    """Convert a tensor to a numpy array, for scipy.
+
+    Scipy is not given tensors: with ``SCIPY_ARRAY_API=1``, it would run its
+    numpy-based code on them.
+    """
+    return x.detach().cpu().numpy() if _torch.is_tensor(x) else x
 
 
 class _Logm(_torch.autograd.Function):
@@ -58,7 +66,7 @@ logm = _cast_out_to_input_dtype(_Logm.apply)
 
 
 def sqrtm(x):
-    np_sqrtm = _scipy.linalg.sqrtm(x)
+    np_sqrtm = _scipy.linalg.sqrtm(_to_numpy(x))
     if np_sqrtm.dtype.kind == "c":
         np_sqrtm = np_sqrtm.astype(f"complex{int(np_sqrtm.dtype.name[7:]) // 2}")
 
@@ -98,7 +106,7 @@ def quadratic_assignment(a, b, options=None):
         Permutation of the nodes of ``b`` that is optimal for ``a``.
     """
     perm = _gsnplinalg.quadratic_assignment(
-        _np.asarray(a), _np.asarray(b), options=options
+        _to_numpy(a), _to_numpy(b), options=options
     )
     return _torch.from_numpy(perm)
 
@@ -144,17 +152,20 @@ def solve_sylvester(a, b, q, tol=atol):
             )
             return eigvecs @ tilde_x @ eigvecs.transpose(-2, -1)
 
-    return _torch.from_numpy(_scipy.linalg.solve_sylvester(a, b, q))
+    solution = _scipy.linalg.solve_sylvester(_to_numpy(a), _to_numpy(b), _to_numpy(q))
+    return _torch.from_numpy(solution)
 
 
 @_cast_out_to_input_dtype
 def fractional_matrix_power(A, t):
     """Compute the fractional power of a matrix."""
-    return _torch.from_numpy(_scipy.linalg.fractional_matrix_power(A, t))
+    out = _scipy.linalg.fractional_matrix_power(_to_numpy(A), t)
+    return _torch.from_numpy(out)
 
 
 def polar(*args, **kwargs):
     """Polar decomposition of a matrix."""
+    args = [_to_numpy(arg) for arg in args]
     unitary, hermitian = _scipy.linalg.polar(*args, **kwargs)
     return _torch.from_numpy(unitary), _torch.from_numpy(hermitian)
 
