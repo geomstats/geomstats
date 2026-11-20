@@ -635,7 +635,7 @@ class CoordinateRiemannianMetric(RiemannianMetric, CoordinateConnection, ABC):
             Derivative of the inner-product matrix, where the index
             k of the derivation is last: :math:`mat_{ijk} = \partial_k g_{ij}`.
         """
-        return gs.autodiff.jacobian_vec(self.metric_matrix)(base_point)
+        return gs.autodiff.jacobian(self.metric_matrix)(base_point)
 
     def christoffels(self, base_point=None):
         r"""Compute Christoffel symbols of the Levi-Civita connection.

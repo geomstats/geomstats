@@ -172,9 +172,7 @@ BACKEND_ATTRIBUTES = {
     "autodiff": [
         "custom_gradient",
         "hessian",
-        "hessian_vec",
         "jacobian",
-        "jacobian_vec",
         "jacobian_and_hessian",
         "value_and_grad",
         "value_and_jacobian",
