@@ -261,19 +261,21 @@ class _LogBatchMixins:
             Tangent vector at the base point.
         """
         # assumes inability to properly vectorize
-        if point.ndim != base_point.ndim:
-            point, base_point = gs.broadcast_arrays(point, base_point)
+        point, base_point = gs.broadcast_arrays(point, base_point)
 
-        is_batch = point.ndim > self._space.point_ndim
-        if not is_batch:
+        batch_shape = point.shape[: -self._space.point_ndim]
+        if not batch_shape:
             return self._log_single(point, base_point)
 
-        return gs.stack(
+        point = gs.reshape(point, (-1,) + self._space.shape)
+        base_point = gs.reshape(base_point, (-1,) + self._space.shape)
+        tangent_vec = gs.stack(
             [
                 self._log_single(point_, base_point_)
                 for point_, base_point_ in zip(point, base_point)
             ]
         )
+        return gs.reshape(tangent_vec, batch_shape + self._space.shape)
 
 
 class LogShootingSolver:
@@ -402,6 +404,7 @@ class _LogShootingSolverFlatten(_LogShootingSolver):
         tangent_vec : array-like, shape=[..., *space.shape]
             Tangent vector at the base point.
         """
+        point, base_point = gs.broadcast_arrays(point, base_point)
         batch_shape = get_batch_shape(self._space.point_ndim, point, base_point)
 
         objective = lambda velocity: self._objective(
@@ -618,10 +621,12 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         """
         point, base_point = gs.broadcast_arrays(point, base_point)
 
-        is_batch = point.ndim > self._space.point_ndim
-        if not is_batch:
+        batch_shape = point.shape[: -self._space.point_ndim]
+        if not batch_shape:
             result = self._solve(point, base_point)
         else:
+            point = gs.reshape(point, (-1,) + self._space.shape)
+            base_point = gs.reshape(base_point, (-1,) + self._space.shape)
             results = [
                 self._solve(point_, base_point_)
                 for point_, base_point_ in zip(point, base_point)
@@ -643,12 +648,13 @@ class LogODESolver(_LogBatchMixins, LogSolver):
                 t = gs.array(t)
             t = gs.to_ndarray(t, to_ndim=1)
 
-            if not is_batch:
+            if not batch_shape:
                 return self._simplify_result_t(result.sol(t))
 
-            return gs.stack(
+            paths = gs.stack(
                 [self._simplify_result_t(result.sol(t)) for result in results]
             )
+            return gs.reshape(paths, batch_shape + paths.shape[1:])
 
         return path
 
@@ -702,19 +708,21 @@ class _DiscreteGeodesicBVPBatchMixins:
         discr_geod_path : array-like, shape=[..., n_nodes, *point_shape]
             Discrete geodesic.
         """
-        if point.ndim != base_point.ndim:
-            point, base_point = gs.broadcast_arrays(point, base_point)
+        point, base_point = gs.broadcast_arrays(point, base_point)
 
-        is_batch = point.ndim > self._space.point_ndim
-        if not is_batch:
+        batch_shape = point.shape[: -self._space.point_ndim]
+        if not batch_shape:
             return self._discrete_geodesic_bvp_single(point, base_point)
 
-        return gs.stack(
+        point = gs.reshape(point, (-1,) + self._space.shape)
+        base_point = gs.reshape(base_point, (-1,) + self._space.shape)
+        paths = gs.stack(
             [
                 self._discrete_geodesic_bvp_single(point_, base_point_)
                 for point_, base_point_ in zip(point, base_point)
             ]
         )
+        return gs.reshape(paths, batch_shape + paths.shape[1:])
 
 
 class PathBasedLogSolver(LogSolver, ABC):
