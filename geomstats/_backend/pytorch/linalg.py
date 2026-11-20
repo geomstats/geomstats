@@ -43,9 +43,7 @@ class _Logm(_torch.autograd.Function):
         """Run gradients backward."""
         (tensor,) = ctx.saved_tensors
 
-        vectorized = tensor.ndim == 3
-        axes = (0, 2, 1) if vectorized else (1, 0)
-        tensor_H = tensor.permute(axes).conj().to(grad.dtype)
+        tensor_H = tensor.transpose(-2, -1).conj().to(grad.dtype)
         n = tensor.size(-1)
         bshape = tensor.shape[:-2] + (2 * n, 2 * n)
         backward_tensor = _torch.zeros(*bshape, dtype=grad.dtype, device=grad.device)
