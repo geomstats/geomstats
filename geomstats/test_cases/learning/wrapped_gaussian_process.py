@@ -6,8 +6,8 @@ from geomstats.test_cases.learning._base import BaseEstimatorTestCase
 
 
 class WrappedGaussianProcessRandomDataGenerator(RandomDataGenerator):
-    def __init__(self, space, prior):
-        super().__init__(space)
+    def __init__(self, space, prior, near_scale=0.1):
+        super().__init__(space, near_scale=near_scale)
         self.prior = prior
 
         self._oscillation = (1.0 / 20.0) * gs.array([-0.5, 0.0, 1.0])
