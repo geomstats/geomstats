@@ -68,6 +68,8 @@ def _identity(obj):
 autodiff_only = (
     _identity if (autograd_backend() or pytorch_backend()) else pytest.mark.ignore
 )
+deselect_unless_np = _identity if np_backend() else pytest.mark.ignore
+deselect_if_np = pytest.mark.ignore if np_backend() else _identity
 
 
 def pytorch_error_msg(a, b, rtol, atol):
