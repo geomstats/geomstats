@@ -1601,24 +1601,34 @@ class _HypersphereVonMisesFisher(_VonMisesFisherBase):
         kappa = self.kappa
         max_iter = self.max_iter
 
-        sqrt = gs.sqrt(4 * kappa**2.0 + dim**2)
-        envelop_param = (-2 * kappa + sqrt) / dim
-        node = (1.0 - envelop_param) / (1.0 + envelop_param)
-        correction = kappa * node + dim * gs.log(1.0 - node**2)
+        # Rationalize the envelope and scale by the larger parameter.
+        if kappa > dim:
+            ratio = dim / kappa
+            envelop_param = ratio / (2.0 + gs.sqrt(4.0 + ratio**2))
+        else:
+            ratio = kappa / dim
+            envelop_param = 1.0 / (2.0 * ratio + gs.sqrt(4.0 * ratio**2 + 1.0))
 
         n_accepted, n_iter = 0, 0
         result = []
         while (n_accepted < n_samples) and (n_iter < max_iter):
             sym_beta = beta.rvs(dim / 2, dim / 2, size=n_samples - n_accepted)
-            sym_beta = gs.cast(sym_beta, node.dtype)
-            coord_x = (1 - (1 + envelop_param) * sym_beta) / (
-                1 - (1 - envelop_param) * sym_beta
+            sym_beta = gs.cast(sym_beta, envelop_param.dtype)
+            denominator = 1.0 - sym_beta + envelop_param * sym_beta
+            coord_x_complement = 2.0 * envelop_param * sym_beta / denominator
+            coord_x_minus_node = (
+                2.0
+                * envelop_param
+                * (1.0 - 2.0 * sym_beta)
+                / ((1.0 + envelop_param) * denominator)
             )
             accept_tol = gs.random.rand(n_samples - n_accepted)
+            # Subtract the reference node before multiplying by kappa.
             criterion = (
-                kappa * coord_x + dim * gs.log(1 - node * coord_x) - correction
+                kappa * coord_x_minus_node
+                + dim * gs.log((1.0 + envelop_param) / (2.0 * denominator))
             ) > gs.log(accept_tol)
-            result.append(coord_x[criterion])
+            result.append(coord_x_complement[criterion])
             n_accepted += gs.sum(criterion)
             n_iter += 1
 
@@ -1628,11 +1638,14 @@ class _HypersphereVonMisesFisher(_VonMisesFisherBase):
                 "sampling before n_samples were accepted."
             )
 
-        coord_x = gs.concatenate(result)
+        coord_x_complement = gs.concatenate(result)
+        coord_x = 1.0 - coord_x_complement
         coord_rest = HypersphereUniform(Hypersphere(dim - 1, equip=False)).sample(
             n_accepted
         )
-        coord_rest = scalarvecmul(gs.sqrt(1 - coord_x**2), coord_rest)
+        coord_rest = scalarvecmul(
+            gs.sqrt(coord_x_complement * (2.0 - coord_x_complement)), coord_rest
+        )
         sample = gs.concatenate([coord_x[..., None], coord_rest], axis=1)
         return sample
 
