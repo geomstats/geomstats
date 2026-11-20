@@ -18,7 +18,11 @@ class ScipySolveBVP:
         self.result_ = None
 
     def integrate(self, fun, bc, x, y, fun_jac=None, bc_jac=None):
-        """Solve a boundary value problem for a system of ODEs."""
+        """Solve a boundary value problem for a system of ODEs.
+
+        State arrays passed to the equation, boundary-condition, and Jacobian
+        callbacks use the selected backend.
+        """
 
         def fun_(t, state):
             return fun(t, gs.from_numpy(state))
@@ -34,6 +38,14 @@ class ScipySolveBVP:
         else:
             fun_jac_ = None
 
+        if bc_jac is not None:
+
+            def bc_jac_(state_0, state_1):
+                return bc_jac(gs.from_numpy(state_0), gs.from_numpy(state_1))
+
+        else:
+            bc_jac_ = None
+
         result = scipy.integrate.solve_bvp(
             fun_,
             bc_,
@@ -42,7 +54,7 @@ class ScipySolveBVP:
             tol=self.tol,
             max_nodes=self.max_nodes,
             fun_jac=fun_jac_,
-            bc_jac=bc_jac,
+            bc_jac=bc_jac_,
             bc_tol=self.bc_tol,
         )
 
