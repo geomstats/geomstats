@@ -107,9 +107,10 @@ class GSIVPIntegrator(ODEIVPIntegrator):
     ----------
     n_steps : int
         Number of steps to perform.
-    step_type : str
+    step_type : str or callable
         Type of integration step.
-        Possible values are ``euler``, ``rk2``, ``rk4``.
+        Possible values are ``euler``, ``rk2``, ``rk4``, ``leapfrog``, or a
+        callable with signature ``step(force, state, time, dt)``.
     save_result : bool
         If True, result is stored after calling ``integrate`` or ``integrate_t``.
     """
@@ -174,12 +175,23 @@ class GSIVPIntegrator(ODEIVPIntegrator):
         -------
         result : OdeResult
         """
-        states = self._integrate(force, initial_state, end_time=end_time)
+        if self.step_type is None:
+            nfev = 0
+
+            def counted_force(*args, **kwargs):
+                """Count force evaluations performed by a custom step."""
+                nonlocal nfev
+                nfev += 1
+                return force(*args, **kwargs)
+
+            states = self._integrate(counted_force, initial_state, end_time=end_time)
+        else:
+            states = self._integrate(force, initial_state, end_time=end_time)
+            nfev = self._get_n_fevals(self.n_steps)
 
         ts = gs.linspace(0.0, end_time, self.n_steps + 1)
-        nfev = self._get_n_fevals(self.n_steps)
 
-        result = OdeResult(t=ts, y=gs.stack(states), nfev=nfev, njev=0, sucess=True)
+        result = OdeResult(t=ts, y=gs.stack(states), nfev=nfev, njev=0, success=True)
 
         if self.save_result:
             self.result_ = result
