@@ -40,7 +40,10 @@ class BackendTestData(TestData):
             dict(func_name="trace", a=rand(3, 3)),
             dict(func_name="linalg.cholesky", a=SPDMatrices(3).random_point()),
             dict(func_name="linalg.eigvalsh", a=SymmetricMatrices(3).random_point()),
+            dict(func_name="linalg.det", a=gs.eye(3)),
+            dict(func_name="linalg.det", a=gs.array([[1.0, 2.0], [2.0, 4.0]])),
         ]
+
         smoke_data += self._logm_expm_data()
         smoke_data += self._logm_expm_data("linalg.expm")
 
