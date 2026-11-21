@@ -487,27 +487,15 @@ class DiscreteSurfaces(Manifold):
                 tangent_vec_diff,
             )
 
-            laplacian_at_tangent_vec = gs.zeros(
-                batch_shape + (n_vertices, 3), dtype=values.dtype
+            index = gs.broadcast_to(
+                gs.expand_dims(id_vertices[1], axis=-1), batch_shape + (n_faces * 3, 3)
             )
-
-            id_vertices_201 = id_vertices[1, :]
-            id_vertices_201 = gs.broadcast_to(
-                id_vertices_201, batch_shape + id_vertices_201.shape
+            return gs.scatter_add(
+                gs.zeros(batch_shape + (n_vertices, 3), dtype=values.dtype),
+                dim=-2,
+                index=index,
+                src=values,
             )
-
-            for i_dim in range(3):
-                laplacian_at_tangent_vec[batch_slc + (slice(None), i_dim)] = (
-                    gs.scatter_add(
-                        input=laplacian_at_tangent_vec[
-                            batch_slc + (slice(None), i_dim)
-                        ],
-                        dim=-1,
-                        index=id_vertices_201,
-                        src=values[batch_slc + (slice(None), i_dim)],
-                    )
-                )
-            return laplacian_at_tangent_vec
 
         return _laplacian
 

@@ -164,6 +164,27 @@ class BackendTestData(TestData):
 
     def func_out_allclose_test_data(self):
         smoke_data = [
+            # repeated indices are summed
+            dict(
+                func_name="scatter_add",
+                args=(gs.zeros(3),),
+                kwargs={
+                    "dim": 0,
+                    "index": gs.array([0, 2, 0]),
+                    "src": gs.array([1.0, 2.0, 3.0]),
+                },
+                expected=gs.array([4.0, 0.0, 2.0]),
+            ),
+            dict(
+                func_name="scatter_add",
+                args=(gs.ones((2, 3)),),
+                kwargs={
+                    "dim": -1,
+                    "index": gs.array([[0, 0, 1], [2, 2, 2]]),
+                    "src": gs.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]),
+                },
+                expected=gs.array([[4.0, 4.0, 1.0], [1.0, 1.0, 16.0]]),
+            ),
             dict(
                 func_name="expand_dims_to",
                 args=(gs.array([1.0, 2.0]), 2),

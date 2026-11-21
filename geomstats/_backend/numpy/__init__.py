@@ -401,31 +401,31 @@ def trace(x):
 
 
 def scatter_add(input, dim, index, src):
-    """Add values from src into input at the indices specified in index.
+    """Add values of src into input, at the indices of index along an axis.
+
+    For each position of ``index`` and ``src``, the value of ``src`` is added
+    to ``input`` at the same position, except along ``dim``, where the
+    position is given by ``index``. Repeated indices are summed. The input is
+    not modified.
 
     Parameters
     ----------
     input : array-like
-        Tensor to scatter values into.
+        Array to add values into.
     dim : int
-        The axis along which to index.
-    index : array-like
-        The indices of elements to scatter.
+        Axis along which to index.
+    index : array-like, shape=src.shape
+        Indices along ``dim`` at which to add the values of ``src``.
     src : array-like
-        The source element(s) to scatter.
+        Values to add.
 
     Returns
     -------
-    input : array-like
-        Modified input array.
+    out : array-like, shape=input.shape
+        Array with the values of ``src`` added.
     """
-    if dim == 0:
-        for i, val in zip(index, src):
-            input[i] += val
-        return input
-    if dim == 1:
-        for j in range(len(input)):
-            for i, val in zip(index[j], src[j]):
-                input[j, i] += float(val)
-        return input
-    raise NotImplementedError
+    out = _np.array(input, copy=True)
+    indices = list(_np.indices(index.shape, sparse=True))
+    indices[dim] = index
+    _np.add.at(out, tuple(indices), src)
+    return out

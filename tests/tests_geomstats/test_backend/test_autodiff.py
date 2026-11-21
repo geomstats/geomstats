@@ -392,6 +392,22 @@ class TestAutodiffOld(TestCase):
         self.assertAllClose(grad, gs.stack([expected_grad, expected_grad]))
 
     @autograd_and_torch_only
+    def test_grad_of_scatter_add(self):
+        """The gradient of a weighted sum of scattered values gathers the weights."""
+        weights = gs.array([1.0, 2.0, 3.0])
+
+        def weighted_scatter_add_sum(src):
+            index = gs.broadcast_to(gs.array([0, 2, 0]), src.shape)
+            out = gs.scatter_add(gs.zeros(src.shape), dim=-1, index=index, src=src)
+            return gs.sum(weights * out, axis=-1)
+
+        src = gs.array([[1.0, 2.0, 3.0], [0.0, 1.0, 0.0]])
+        value, grad = gs.autodiff.value_and_grad(weighted_scatter_add_sum)(src)
+
+        self.assertAllClose(value, gs.array([10.0, 3.0]))
+        self.assertAllClose(grad, gs.array([[1.0, 3.0, 1.0], [1.0, 3.0, 1.0]]))
+
+    @autograd_and_torch_only
     def test_grad_of_trace(self):
         """The gradient of the trace is the identity, at each point of a batch."""
         points = gs.reshape(gs.arange(8.0), (2, 2, 2))
