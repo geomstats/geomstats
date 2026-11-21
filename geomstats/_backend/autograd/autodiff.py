@@ -5,65 +5,7 @@ import functools as _functools
 import autograd as _autograd
 import autograd.numpy as _np
 from autograd import jacobian as _autograd_jacobian
-from autograd.numpy.numpy_vjps import unbroadcast_f as _unbroadcast_f
 from autograd.tracer import getval as _getval
-
-
-def _matvec_vjp_mat(ans, mat, vec):
-    """Get the VJP of the matrix-vector product with respect to the matrix."""
-    return _unbroadcast_f(mat, lambda g: g[..., :, None] * vec[..., None, :])
-
-
-def _matvec_vjp_vec(ans, mat, vec):
-    """Get the VJP of the matrix-vector product with respect to the vector."""
-    return _unbroadcast_f(vec, lambda g: _np.matvec(_np.swapaxes(mat, -1, -2), g))
-
-
-def _vecdot_vjp_a(ans, a, b):
-    """Get the VJP of the vector dot product with respect to the first vector."""
-    return _unbroadcast_f(a, lambda g: _np.conj(g[..., None] * b))
-
-
-def _vecdot_vjp_b(ans, a, b):
-    """Get the VJP of the vector dot product with respect to the second vector."""
-    return _unbroadcast_f(b, lambda g: g[..., None] * _np.conj(a))
-
-
-def _matrix_transpose_vjp(ans, x):
-    """Get the VJP of the matrix transpose."""
-    return lambda g: _np.matrix_transpose(g)
-
-
-def _vector_norm_vjp(ans, x, axis=None, keepdims=False, ord=2):
-    """Get the VJP of the vector norm, for a finite order greater than one."""
-    if not 1 < ord < float("inf"):
-        raise NotImplementedError(f"VJP of vector_norm not implemented for ord={ord}")
-
-    def expand(a):
-        return a if keepdims or axis is None else _np.expand_dims(a, axis)
-
-    return lambda g: (
-        expand(g) * _np.conj(x) * _np.abs(x) ** (ord - 2) / expand(ans) ** (ord - 1)
-    )
-
-
-def _matrix_norm_vjp(ans, x, keepdims=False, ord="fro"):
-    """Get the VJP of the Frobenius matrix norm."""
-    if ord != "fro":
-        raise NotImplementedError(f"VJP of matrix_norm not implemented for ord={ord}")
-
-    def expand(a):
-        return a if keepdims else a[..., None, None]
-
-    return lambda g: expand(g) * _np.conj(x) / expand(ans)
-
-
-# autograd does not define the VJPs of these NumPy functions
-_autograd.extend.defvjp(_np.matrix_transpose, _matrix_transpose_vjp)
-_autograd.extend.defvjp(_np.matvec, _matvec_vjp_mat, _matvec_vjp_vec)
-_autograd.extend.defvjp(_np.linalg.vecdot, _vecdot_vjp_a, _vecdot_vjp_b)
-_autograd.extend.defvjp(_np.linalg.vector_norm, _vector_norm_vjp)
-_autograd.extend.defvjp(_np.linalg.matrix_norm, _matrix_norm_vjp)
 
 
 def _broadcast_to_batch(inputs, point_ndims):
