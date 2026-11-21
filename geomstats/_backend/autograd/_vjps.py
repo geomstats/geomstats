@@ -61,6 +61,11 @@ def _matrix_norm_vjp(ans, x, keepdims=False, ord="fro"):
     return lambda g: expand(g) * _np.conj(x) / expand(ans)
 
 
+def _trace_vjp(ans, x):
+    """Get the VJP of the trace of square matrices."""
+    return lambda g: g[..., None, None] * _np.eye(x.shape[-1])
+
+
 def _solve_sylvester_vjp(argnums, ans, args, kwargs):
     """Get the VJPs of the solution of the Sylvester equation.
 
@@ -115,6 +120,7 @@ _defvjp(_np.matvec, _matvec_vjp_mat, _matvec_vjp_vec)
 _defvjp(_np.linalg.vecdot, _vecdot_vjp_a, _vecdot_vjp_b)
 _defvjp(_np.linalg.vector_norm, _vector_norm_vjp)
 _defvjp(_np.linalg.matrix_norm, _matrix_norm_vjp)
+_defvjp(_np.linalg.trace, _trace_vjp)
 _defvjp(_expm, _functools.partial(_matrix_function_vjp, fn=_expm))
 _defvjp(_logm, _functools.partial(_matrix_function_vjp, fn=_logm))
 _defvjp_argnums(_solve_sylvester, _solve_sylvester_vjp)

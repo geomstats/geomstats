@@ -147,6 +147,11 @@ class BackendTestData(TestData):
         # TODO: verify dtype
         smoke_data = [
             dict(
+                func_name="trace",
+                args=(gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]),),
+                expected=gs.array([5.0, 13.0]),
+            ),
+            dict(
                 func_name="linalg.vector_norm",
                 args=(gs.array([[3.0, 4.0], [6.0, 8.0]]),),
                 kwargs={"axis": -1},
