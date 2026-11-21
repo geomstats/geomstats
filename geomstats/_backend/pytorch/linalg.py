@@ -28,6 +28,19 @@ def _to_numpy(x):
     return x.detach().cpu().numpy() if _torch.is_tensor(x) else x
 
 
+def _check_no_grad(name, *args):
+    """Raise if gradients are needed through a function computed by scipy.
+
+    Scipy is given detached arrays, so that the gradients would be lost.
+    """
+    if _torch.is_grad_enabled() and any(
+        _torch.is_tensor(arg) and arg.requires_grad for arg in args
+    ):
+        raise NotImplementedError(
+            f"{name} cannot be differentiated with PyTorch: scipy computes it."
+        )
+
+
 class _Logm(_torch.autograd.Function):
     """Torch autograd function for matrix logarithm.
 
@@ -74,6 +87,7 @@ logm = _cast_out_to_input_dtype(_Logm.apply)
 
 
 def sqrtm(x):
+    _check_no_grad("sqrtm", x)
     np_sqrtm = _scipy.linalg.sqrtm(_to_numpy(x))
     if np_sqrtm.dtype.kind == "c":
         np_sqrtm = np_sqrtm.astype(f"complex{int(np_sqrtm.dtype.name[7:]) // 2}")
@@ -267,12 +281,14 @@ def solve_sylvester(a, b, q, tol=atol):
 @_cast_out_to_input_dtype
 def fractional_matrix_power(A, t):
     """Compute the fractional power of a matrix."""
+    _check_no_grad("fractional_matrix_power", A, t)
     out = _scipy.linalg.fractional_matrix_power(_to_numpy(A), t)
     return _torch.from_numpy(out)
 
 
 def polar(*args, **kwargs):
     """Polar decomposition of a matrix."""
+    _check_no_grad("polar", *args)
     args = [_to_numpy(arg) for arg in args]
     unitary, hermitian = _scipy.linalg.polar(*args, **kwargs)
     return _torch.from_numpy(unitary), _torch.from_numpy(hermitian)
