@@ -328,48 +328,35 @@ class SubRiemannianMetric:
             Point on the manifold, initial point of the geodesic.
         initial_cotangent_vec : array-like, shape=[..., dim]
             Cotangent vector at base point, the initial speed of the geodesics.
+        n_steps : int
+            Number of discrete time steps to take in the integration.
 
         Returns
         -------
         path : callable
-            Time parameterized normal geodesic curve. If a batch of initial
-            conditions is passed, the output array's first dimension
-            represents the different initial conditions, and the second
-            corresponds to time.
+            Time parameterized normal geodesic curve, returning points of
+            shape [..., n_times, dim].
         """
-        if initial_cotangent_vec is None:
-            raise ValueError(
-                "Specify an initial cotangent vector to define the geodesic."
-            )
-
-        initial_point = gs.expand_dims_to(initial_point, ndim=2)
-        initial_cotangent_vec = gs.expand_dims_to(initial_cotangent_vec, ndim=2)
-
-        n_initial_conditions = initial_cotangent_vec.shape[0]
-
-        if n_initial_conditions > 1 and len(initial_point) == 1:
-            initial_point = gs.stack([initial_point[0]] * n_initial_conditions)
+        initial_point, initial_cotangent_vec = gs.broadcast_arrays(
+            initial_point, initial_cotangent_vec
+        )
 
         def path(t):
             """Generate parameterized function for geodesic curve.
 
             Parameters
             ----------
-            t : array-like, shape=[n_points,]
+            t : array-like, shape=[n_times,]
                 Times at which to compute points of the geodesics.
+
+            Returns
+            -------
+            geodesic_points : array-like, shape=[..., n_times, dim]
+                Points of the geodesics at times t.
             """
             t = gs.expand_dims_to(gs.array(t, dtype=initial_cotangent_vec.dtype), ndim=1)
-
-            cotangent_vecs = gs.einsum("i,...k->...ik", t, initial_cotangent_vec)
-
-            points_at_time_t = [
-                self.exp(tv, pt, n_steps=n_steps)
-                for tv, pt in zip(cotangent_vecs, initial_point)
-            ]
-            points_at_time_t = gs.stack(points_at_time_t, axis=0)
-
-            return (
-                points_at_time_t[0] if n_initial_conditions == 1 else points_at_time_t
-            )
+            cotangent_vecs = gs.einsum("t,...k->...tk", t, initial_cotangent_vec)
+            base_points = gs.expand_dims(initial_point, axis=-2)
+            return self.exp(cotangent_vecs, base_points, n_steps=n_steps)
 
         return path
