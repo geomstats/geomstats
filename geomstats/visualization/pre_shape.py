@@ -259,7 +259,7 @@ class KendallSphere:
         exp = S32.quotient.metric.exp(tangent_vec, base_point)
         bp = self.convert_to_spherical_coordinates(base_point)
         exp = self.convert_to_spherical_coordinates(exp)
-        tv = exp - gs.dot(exp, 2.0 * bp) * 2.0 * bp
+        tv = exp - gs.vecdot(exp, 2.0 * bp) * 2.0 * bp
         tv = tv / gs.linalg.norm(tv) * norm
         self.ax.quiver(bp[0], bp[1], bp[2], tv[0], tv[1], tv[2], **kwargs)
 
@@ -484,13 +484,13 @@ class KendallDisk:
         )
         pole = gs.array([0.0, 0.0, 1.0])
 
-        tv = exp - gs.dot(exp, bp) * bp
+        tv = exp - gs.vecdot(exp, bp) * bp
         u_tv = tv / gs.linalg.norm(tv)
-        u_r = (gs.dot(pole, bp) * bp - pole) / gs.linalg.norm(
-            gs.dot(pole, bp) * bp - pole
+        u_r = (gs.vecdot(pole, bp) * bp - pole) / gs.linalg.norm(
+            gs.vecdot(pole, bp) * bp - pole
         )
         u_th = gs.cross(bp, u_r)
-        x_r, x_th = gs.dot(u_tv, u_r), gs.dot(u_tv, u_th)
+        x_r, x_th = gs.vecdot(u_tv, u_r), gs.vecdot(u_tv, u_th)
 
         bp = self.convert_to_planar_coordinates(base_point)
         u_r = bp / gs.linalg.norm(bp)

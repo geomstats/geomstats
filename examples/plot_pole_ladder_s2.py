@@ -29,7 +29,7 @@ def main():
 
     rotation_vector = gs.pi / 2 * base_point
     rotation_matrix = rotation.matrix_from_rotation_vector(rotation_vector)
-    tangent_vec_a = gs.dot(rotation_matrix, tangent_vec_b)
+    tangent_vec_a = gs.matvec(rotation_matrix, tangent_vec_b)
     tangent_vec_b *= 3.0 / 2.0
 
     ladder = space.metric.ladder_parallel_transport(

@@ -413,7 +413,7 @@ class KleinBottleMetric(RiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        return gs.dot(tangent_vec_a, tangent_vec_b)
+        return gs.vecdot(tangent_vec_a, tangent_vec_b)
 
     def exp(self, tangent_vec, base_point):
         """Exponential map.

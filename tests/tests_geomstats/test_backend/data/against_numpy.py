@@ -102,7 +102,7 @@ class AgainstNumpyTestData(TestData):
             dict(func_name="matmul", a=rand(2, 3), b=rand(3, 2)),
             dict(func_name="outer", a=rand(3), b=rand(3)),
             dict(func_name="outer", a=rand(3), b=rand(4)),
-            dict(func_name="dot", a=rand(3), b=rand(3)),
+            dict(func_name="vecdot", a=rand(3), b=rand(3)),
             dict(func_name="cross", a=rand(3), b=rand(3)),
         ]
 

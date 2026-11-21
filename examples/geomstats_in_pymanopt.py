@@ -80,11 +80,11 @@ def estimate_dominant_eigenvector(matrix):
 
     @pymanopt.function.Callable
     def cost(vector):
-        return -gs.dot(vector, gs.dot(matrix, vector))
+        return -gs.vecdot(vector, gs.matvec(matrix, vector))
 
     @pymanopt.function.Callable
     def egrad(vector):
-        return -2 * gs.dot(matrix, vector)
+        return -2 * gs.matvec(matrix, vector)
 
     sphere = GeomstatsSphere(num_columns)
     problem = pymanopt.Problem(manifold=sphere, cost=cost, egrad=egrad)

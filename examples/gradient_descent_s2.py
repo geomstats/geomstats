@@ -88,7 +88,7 @@ def main(output_file="out.mp4", max_iter=128):
         return 2 * gs.matvec(A, x)
 
     def loss(x):
-        return gs.dot(x, gs.matvec(A, x))
+        return gs.vecdot(x, gs.matvec(A, x))
 
     initial_point = gs.array([0.0, 1.0, 0.0])
     previous_x = initial_point

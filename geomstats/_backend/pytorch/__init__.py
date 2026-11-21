@@ -687,10 +687,8 @@ def matvec(A, b):
     return _torch.matmul(A, b[..., None])[..., 0]
 
 
-def dot(a, b):
-    """Compute the dot product of vectors.
-
-    The product is bilinear: no argument is conjugated.
+def vecdot(a, b):
+    """Compute the dot product of vectors, conjugating the first one.
 
     Parameters
     ----------
@@ -701,14 +699,10 @@ def dot(a, b):
 
     Returns
     -------
-    dot_ab : array-like, shape=[...,]
+    vecdot_ab : array-like, shape=[...,]
         Dot product.
     """
     a, b = convert_to_wider_dtype([a, b])
-
-    # vecdot conjugates its first argument
-    if a.is_complex():
-        a = a.conj()
     return _torch.linalg.vecdot(a, b)
 
 

@@ -58,7 +58,7 @@ class BackendTestData(TestData):
             dict(func_name="outer", a=rand(3), b=rand(4)),
             dict(func_name="matvec", a=rand(3, 3), b=rand(3)),
             dict(func_name="matvec", a=rand(4, 3), b=rand(3)),
-            dict(func_name="dot", a=rand(3), b=rand(3)),
+            dict(func_name="vecdot", a=rand(3), b=rand(3)),
             dict(func_name="cross", a=rand(3), b=rand(3)),
         ]
 
@@ -70,8 +70,8 @@ class BackendTestData(TestData):
             dict(func_name="matmul", a=rand(2, 3, 3), b=rand(2, 3)),
             dict(func_name="matmul", a=rand(2, 3, 3), b=rand(3, 3, 3)),
             dict(func_name="matvec", a=rand(3, 2), b=rand(3)),
-            dict(func_name="dot", a=rand(4), b=rand(3)),
-            dict(func_name="dot", a=rand(3, 4), b=rand(3)),
+            dict(func_name="vecdot", a=rand(4), b=rand(3)),
+            dict(func_name="vecdot", a=rand(3, 4), b=rand(3)),
             dict(func_name="cross", a=rand(4), b=rand(4)),
         ]
 
@@ -145,6 +145,12 @@ class BackendTestData(TestData):
     def func_out_allclose_test_data(self):
         # TODO: verify dtype
         smoke_data = [
+            # vecdot conjugates its first argument
+            dict(
+                func_name="vecdot",
+                args=(gs.array([1j, 1.0]), gs.array([1j, 1.0])),
+                expected=gs.array(2.0 + 0j),
+            ),
             dict(
                 func_name="matrix_transpose",
                 args=(gs.array([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]]),),

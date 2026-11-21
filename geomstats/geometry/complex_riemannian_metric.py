@@ -33,8 +33,7 @@ class ComplexRiemannianMetric(RiemannianMetric):
             Inner-product.
         """
         inner_prod_mat = self.metric_matrix(base_point)
-        aux = gs.einsum("...j,...jk->...k", gs.conj(tangent_vec_a), inner_prod_mat)
-        return gs.dot(aux, tangent_vec_b)
+        return gs.vecdot(tangent_vec_a, gs.matvec(inner_prod_mat, tangent_vec_b))
 
     def squared_norm(self, vector, base_point=None):
         """Compute the square of the norm of a vector.

@@ -198,7 +198,7 @@ class CholeskyMetric(RiemannianMetric):
         """
         sl_tangent_vec_a = gs.tril_to_vec(tangent_vec_a, k=-1)
         sl_tangent_vec_b = gs.tril_to_vec(tangent_vec_b, k=-1)
-        ip_sl = gs.dot(sl_tangent_vec_a, sl_tangent_vec_b)
+        ip_sl = gs.vecdot(sl_tangent_vec_a, sl_tangent_vec_b)
         return ip_sl
 
     @classmethod
@@ -400,7 +400,7 @@ class InvariantPositiveLowerTriangularMatricesMetric(_InvariantMetricMatrix):
         if Matrices.is_diagonal(self.metric_mat_at_identity):
             return super().inner_product_at_identity(tangent_vec_a, tangent_vec_b)
 
-        return gs.dot(
+        return gs.vecdot(
             gs.tril_to_vec(tangent_vec_a),
             gs.matvec(self.metric_mat_at_identity, gs.tril_to_vec(tangent_vec_b)),
         )

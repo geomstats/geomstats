@@ -115,7 +115,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
                 (x.shape[0],), batch_shape, x, mean, inv_cov
             )
             aux_0 = x_ - mean_
-            aux_1 = gs.exp(-0.5 * gs.dot(aux_0, gs.matvec(inv_cov_, aux_0)))
+            aux_1 = gs.exp(-0.5 * gs.vecdot(aux_0, gs.matvec(inv_cov_, aux_0)))
             return scalarvecmul(pdf_normalization, aux_1)
 
         return pdf

@@ -107,7 +107,7 @@ class HermitianMetric(ComplexRiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        return gs.dot(gs.conj(tangent_vec_a), tangent_vec_b)
+        return gs.vecdot(tangent_vec_a, tangent_vec_b)
 
     @staticmethod
     def norm(vector, base_point=None):

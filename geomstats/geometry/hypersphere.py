@@ -651,7 +651,7 @@ class HypersphereMetric(RiemannianMetric):
         theta = gs.linalg.norm(direction, axis=-1)
         eps = gs.where(theta == 0.0, 1.0, theta)
         normalized_b = scalarvecmul(1 / eps, direction)
-        pb = gs.dot(tangent_vec, normalized_b)
+        pb = gs.vecdot(tangent_vec, normalized_b)
         p_orth = tangent_vec - scalarvecmul(pb, normalized_b)
         return (
             -scalarvecmul(gs.sin(theta) * pb, base_point)
