@@ -53,7 +53,7 @@ class PositiveGeneralLinearGramBundle(FiberBundle):
         projection : array-like, shape=[..., n, n]
             SPD matrix.
         """
-        return Matrices.mul(point, gs.transpose(point))
+        return Matrices.mul(point, gs.matrix_transpose(point))
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
         r"""Project a tangent vector to SPD matrices.
@@ -77,7 +77,7 @@ class PositiveGeneralLinearGramBundle(FiberBundle):
             Symmetric matrix, tangent to SPD matrices at the projection
             of `base_point`.
         """
-        product = Matrices.mul(base_point, gs.transpose(tangent_vec))
+        product = Matrices.mul(base_point, gs.matrix_transpose(tangent_vec))
         return 2 * Matrices.to_symmetric(product)
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):

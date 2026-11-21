@@ -26,7 +26,7 @@ from ._common import atol
 
 
 def _adjoint(_ans, x, fn):
-    transposed_x = _transpose(x)
+    transposed_x = _np.matrix_transpose(x)
 
     def vjp(g):
         n = x.shape[-1]
@@ -42,12 +42,6 @@ def _adjoint(_ans, x, fn):
 
 _expm_vjp = _functools.partial(_adjoint, fn=expm)
 _defvjp(expm, _expm_vjp)
-
-
-def _transpose(array):
-    axes = list(range(0, array.ndim))
-    axes[-2], axes[-1] = axes[-1], axes[-2]
-    return _np.transpose(array, axes=axes)
 
 
 def _logm(x):
@@ -73,7 +67,7 @@ def _logm(x):
     n = x.shape[-1]
     mats = _np.reshape(x, (-1, n, n))
 
-    is_sym = _np.all(_np.abs(mats - _transpose(mats)) < atol, axis=(-2, -1))
+    is_sym = _np.all(_np.abs(mats - _np.matrix_transpose(mats)) < atol, axis=(-2, -1))
     is_spd = _np.zeros_like(is_sym)
     if _np.any(is_sym):
         eigvals, eigvecs = _np.linalg.eigh(mats[is_sym])
@@ -82,7 +76,7 @@ def _logm(x):
 
         eigvals, eigvecs = eigvals[is_pos], eigvecs[is_pos]
         spd_logm = _np.matmul(
-            eigvecs * _np.log(eigvals)[..., None, :], _transpose(eigvecs)
+            eigvecs * _np.log(eigvals)[..., None, :], _np.matrix_transpose(eigvecs)
         )
 
     if _np.all(is_spd):
@@ -129,17 +123,17 @@ def solve_sylvester(a, b, q, tol=atol):
     if (
         a.shape == b.shape
         and _np.allclose(a, b, atol=tol)
-        and _np.all(_np.abs(a - _transpose(a)) < tol)
+        and _np.all(_np.abs(a - _np.matrix_transpose(a)) < tol)
     ):
         eigvals, eigvecs = _np.linalg.eigh(a)
         if _np.all(eigvals > -tol):
-            tilde_q = _transpose(eigvecs) @ q @ eigvecs
+            tilde_q = _np.matrix_transpose(eigvecs) @ q @ eigvecs
             denom = eigvals[..., :, None] + eigvals[..., None, :]
             is_zero = _np.abs(denom) <= tol
             tilde_x = _np.where(
                 is_zero, 0.0, tilde_q / _np.where(is_zero, 1.0, denom)
             )
-            return eigvecs @ tilde_x @ _transpose(eigvecs)
+            return eigvecs @ tilde_x @ _np.matrix_transpose(eigvecs)
 
     return _scipy.linalg.solve_sylvester(a, b, q)
 

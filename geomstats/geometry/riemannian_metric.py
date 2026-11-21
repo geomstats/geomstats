@@ -455,7 +455,7 @@ class RiemannianMetric(Connection, ABC):
             point = gs.concatenate([point for _ in range(n_neighbors)])
 
         closest_neighbor_index = gs.argmin(
-            gs.transpose(
+            gs.matrix_transpose(
                 gs.reshape(self.dist(point, neighbors), (n_neighbors, n_points)),
             ),
             axis=1,

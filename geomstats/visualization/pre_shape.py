@@ -202,10 +202,10 @@ class KendallSphere:
         u_theta = gs.cos(theta) * self.ua + gs.sin(theta) * self.na
         triangle = gs.cos(phi / 2.0) * self.pole + gs.sin(phi / 2.0) * u_theta
         triangle = scale * triangle
-        triangle3d = gs.transpose(
+        triangle3d = gs.matrix_transpose(
             gs.stack((triangle[:, 0], triangle[:, 1], 0.5 * gs.ones(3)))
         )
-        triangle3d = self.rotation(theta, phi) @ gs.transpose(triangle3d)
+        triangle3d = self.rotation(theta, phi) @ gs.matrix_transpose(triangle3d)
 
         x = list(triangle3d[0]) + [triangle3d[0, 0]]
         y = list(triangle3d[1]) + [triangle3d[1, 0]]
@@ -233,7 +233,7 @@ class KendallSphere:
                 [-gs.sin(phi), 0, gs.cos(phi)],
             ]
         )
-        return rot_th @ rot_phi @ gs.transpose(rot_th)
+        return rot_th @ rot_phi @ gs.matrix_transpose(rot_th)
 
     def draw_points(self, alpha=1, zorder=0, **kwargs):
         """Draw points on the Kendall sphere."""

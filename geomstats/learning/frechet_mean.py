@@ -568,7 +568,7 @@ class CircleMean(BaseEstimator):
             gs.pi - parts + mean
         ) - (2 * gs.pi * (n_samples - i) / n_samples) ** 2
         minus_vec = gs.where(m_plus, plus_vec, minus_vec)
-        means = gs.transpose(gs.vstack([means, var + minus_vec]))
+        means = gs.matrix_transpose(gs.vstack([means, var + minus_vec]))
         return means
 
     def fit(self, X, y=None):

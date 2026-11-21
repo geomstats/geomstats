@@ -510,7 +510,7 @@ class LogODESolver(_LogBatchMixins, LogSolver):
             point_0 = gs.flatten(base_point)
             point_1 = gs.flatten(point)
 
-        pos_init = gs.transpose(gs.linspace(point_0, point_1, self.n_nodes))
+        pos_init = gs.matrix_transpose(gs.linspace(point_0, point_1, self.n_nodes))
 
         vel_init = self.n_nodes * (pos_init[:, 1:] - pos_init[:, :-1])
         vel_init = gs.hstack([vel_init, vel_init[:, [-2]]])

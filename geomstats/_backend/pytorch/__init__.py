@@ -300,8 +300,20 @@ def einsum(equation, *inputs):
     return _torch.einsum(equation, *input_tensors_list)
 
 
-def transpose(x):
-    return _torch.transpose(x, -1, -2)
+def matrix_transpose(x):
+    """Transpose the last two axes of an array.
+
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, m]
+        Matrix.
+
+    Returns
+    -------
+    x_t : array-like, shape=[..., m, n]
+        Transposed matrix.
+    """
+    return x.mT
 
 
 def permute_dims(x, axes=None):

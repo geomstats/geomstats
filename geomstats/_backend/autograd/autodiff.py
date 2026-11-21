@@ -29,7 +29,13 @@ def _vecdot_vjp_b(ans, a, b):
     return _unbroadcast_f(b, lambda g: g[..., None] * _np.conj(a))
 
 
+def _matrix_transpose_vjp(ans, x):
+    """Get the VJP of the matrix transpose."""
+    return lambda g: _np.matrix_transpose(g)
+
+
 # autograd does not define the VJPs of these NumPy functions
+_autograd.extend.defvjp(_np.matrix_transpose, _matrix_transpose_vjp)
 _autograd.extend.defvjp(_np.matvec, _matvec_vjp_mat, _matvec_vjp_vec)
 _autograd.extend.defvjp(_np.vecdot, _vecdot_vjp_a, _vecdot_vjp_b)
 

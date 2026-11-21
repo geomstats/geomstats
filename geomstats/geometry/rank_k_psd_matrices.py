@@ -113,7 +113,7 @@ class RankKPSDMatrices(Manifold):
         """
         sym = Matrices.to_symmetric(point)
         _, s, v = gs.linalg.svd(sym)
-        h = gs.matmul(gs.transpose(v), s[..., None] * v)
+        h = gs.matmul(gs.matrix_transpose(v), s[..., None] * v)
         sym_proj = (sym + h) / 2
         eigvals, eigvecs = gs.linalg.eigh(sym_proj)
         k = self.n - self.rank
@@ -123,7 +123,7 @@ class RankKPSDMatrices(Manifold):
         )
         reconstruction = gs.einsum("...ij,...j->...ij", eigvecs, regularized)
 
-        return Matrices.mul(reconstruction, gs.transpose(eigvecs))
+        return Matrices.mul(reconstruction, gs.matrix_transpose(eigvecs))
 
     def random_point(self, n_samples=1, bound=1.0):
         r"""Sample random points in PSD(n,k).
@@ -176,7 +176,7 @@ class RankKPSDMatrices(Manifold):
 
         r, _, _ = gs.linalg.svd(base_point)
         r_ort = r[..., :, -(self.n - self.rank) :]
-        r_ort_t = gs.transpose(r_ort)
+        r_ort_t = gs.matrix_transpose(r_ort)
         rr = gs.matmul(r_ort, r_ort_t)
         candidates = Matrices.mul(rr, vector_sym, rr)
         return gs.all(gs.isclose(candidates, 0.0, atol=atol), axis=(-2, -1))
@@ -203,7 +203,7 @@ class RankKPSDMatrices(Manifold):
         vector_sym = Matrices.to_symmetric(vector)
         r, _, _ = gs.linalg.svd(base_point)
         r_ort = r[..., :, self.rank :]
-        r_ort_t = gs.transpose(r_ort)
+        r_ort_t = gs.matrix_transpose(r_ort)
         rr = gs.matmul(r_ort, r_ort_t)
         return vector_sym - Matrices.mul(rr, vector_sym, rr)
 
@@ -272,7 +272,7 @@ class BuresWassersteinBundle(FiberBundle):
         projected_point : array-like, shape=[..., n, n]
             PSD matrix :math:`X X^T`.
         """
-        return Matrices.mul(point, gs.transpose(point))
+        return Matrices.mul(point, gs.matrix_transpose(point))
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
         r"""Compute the differential of the submersion.
@@ -289,8 +289,8 @@ class BuresWassersteinBundle(FiberBundle):
         projected_tangent_vec : array-like, shape=[..., n, n]
             Tangent vector :math:`X W^T + W X^T` to the base space.
         """
-        product = Matrices.mul(base_point, gs.transpose(tangent_vec))
-        return product + gs.transpose(product)
+        product = Matrices.mul(base_point, gs.matrix_transpose(tangent_vec))
+        return product + gs.matrix_transpose(product)
 
     def lift(self, point):
         r"""Find a point of the total space in the fiber of a point.
@@ -336,7 +336,7 @@ class BuresWassersteinBundle(FiberBundle):
         n = self._total_space.n
         if fiber_point is None:
             fiber_point = self.lift(base_point)
-        transposed_point = gs.transpose(fiber_point)
+        transposed_point = gs.matrix_transpose(fiber_point)
         alignment = Matrices.mul(transposed_point, fiber_point)
         projector = Matrices.mul(fiber_point, GeneralLinear.inverse(alignment))
         right_term = Matrices.mul(transposed_point, tangent_vec, fiber_point)
@@ -375,10 +375,10 @@ class BuresWassersteinBundle(FiberBundle):
             Skew-symmetric matrix :math:`A`. Only returned if `return_skew`
             is True.
         """
-        transposed_point = gs.transpose(base_point)
+        transposed_point = gs.matrix_transpose(base_point)
         left_term = gs.matmul(transposed_point, base_point)
-        alignment = gs.matmul(gs.transpose(tangent_vec), base_point)
-        right_term = alignment - gs.transpose(alignment)
+        alignment = gs.matmul(gs.matrix_transpose(tangent_vec), base_point)
+        right_term = alignment - gs.matrix_transpose(alignment)
         skew = gs.linalg.solve_sylvester(left_term, left_term, right_term)
 
         vertical = -gs.matmul(base_point, skew)
