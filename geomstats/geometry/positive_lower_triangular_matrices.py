@@ -695,7 +695,7 @@ class PLTUnitDiagMatrices(LevelSet):
         """
         proj_point = self.embedding_space.projection(point)
         return proj_point + gs.diag_embed(
-            1 - gs.diagonal(proj_point, axis1=-2, axis2=-1)
+            1 - gs.diagonal(proj_point)
         )
 
     def to_tangent(self, vector, base_point):
@@ -718,7 +718,7 @@ class PLTUnitDiagMatrices(LevelSet):
         """
         tangent_vec = self.embedding_space.to_tangent(vector, base_point)
         return tangent_vec - gs.diag_embed(
-            gs.diagonal(tangent_vec, axis1=-2, axis2=-1)
+            gs.diagonal(tangent_vec)
         )
 
     def random_point(self, n_samples=1, bound=1.0):

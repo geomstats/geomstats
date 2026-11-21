@@ -431,7 +431,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         """
         matrix_q, matrix_r = gs.linalg.qr(base_point + tangent_vec)
 
-        diagonal = gs.diagonal(matrix_r, axis1=-2, axis2=-1)
+        diagonal = gs.diagonal(matrix_r)
         sign = gs.sign(gs.sign(diagonal) + 0.5)
         diag = algebra_utils.from_vector_to_diagonal_matrix(sign)
         result = gs.matmul(matrix_q, diag)

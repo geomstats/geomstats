@@ -449,8 +449,22 @@ def hsplit(x, indices_or_section):
     return _torch.split(x, indices_or_section, dim=-1)
 
 
-def diagonal(x, offset=0, axis1=0, axis2=1):
-    return _torch.diagonal(x, offset=offset, dim1=axis1, dim2=axis2)
+def diagonal(x, offset=0):
+    """Get the diagonal of matrices, over the last two axes.
+
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, m]
+        Matrix.
+    offset : int
+        Offset of the diagonal from the main diagonal.
+
+    Returns
+    -------
+    diag : array-like, shape=[..., k]
+        Diagonal.
+    """
+    return _torch.diagonal(x, offset=offset, dim1=-2, dim2=-1)
 
 
 def prod(x, axis=None):

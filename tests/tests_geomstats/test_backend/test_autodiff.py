@@ -375,6 +375,23 @@ class TestAutodiffOld(TestCase):
         self.assertAllClose(hessian, expected)
 
     @autograd_and_torch_only
+    def test_grad_of_diagonal(self):
+        """The gradient of a weighted sum of the diagonal has the weights on it."""
+        weights = gs.array([1.0, 2.0])
+
+        def weighted_diagonal_sum(x):
+            return gs.sum(weights * gs.diagonal(x), axis=-1)
+
+        points = gs.reshape(gs.arange(12.0), (2, 2, 3))
+        value, grad = gs.autodiff.value_and_grad(weighted_diagonal_sum, point_ndims=2)(
+            points
+        )
+
+        expected_grad = gs.array([[1.0, 0.0, 0.0], [0.0, 2.0, 0.0]])
+        self.assertAllClose(value, gs.array([8.0, 26.0]))
+        self.assertAllClose(grad, gs.stack([expected_grad, expected_grad]))
+
+    @autograd_and_torch_only
     def test_grad_of_trace(self):
         """The gradient of the trace is the identity, at each point of a batch."""
         points = gs.reshape(gs.arange(8.0), (2, 2, 2))
