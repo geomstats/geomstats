@@ -111,6 +111,7 @@ from autograd.scipy.special import erf, gamma, polygamma  # NOQA
 
 
 from . import (
+    _vjps,  # NOQA
     autodiff,  # NOQA
     linalg,  # NOQA
     random,  # NOQA

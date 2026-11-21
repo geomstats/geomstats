@@ -8,7 +8,12 @@ import geomstats.backend as gs
 from geomstats.geometry.grassmannian import Grassmannian
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.test_case import TestCase, autograd_and_torch_only, np_only
+from geomstats.test.test_case import (
+    TestCase,
+    autograd_and_torch_only,
+    autograd_only,
+    np_only,
+)
 from geomstats.test_cases.backend.autodiff import (
     AutodiffTestCase,
     MetricDistGradTestCase,
@@ -369,3 +374,25 @@ class TestAutodiffOld(TestCase):
         eye = gs.eye(2)
         expected = -(eye[None, :, :, None] + eye[:, None, None, :]) / 2
         self.assertAllClose(hessian, expected)
+
+    @autograd_only
+    def test_grad_of_solve_sylvester(self):
+        """Gradients go through the solution of the Sylvester equation.
+
+        With x X + X x = 1 and x^T Y + Y x^T = 1, the gradient of sum(X) is
+        -(Y X^T + X^T Y), and Y = X for a symmetric x. At the identity, the
+        eigenvalues are repeated.
+        """
+
+        def sylvester_sum(x):
+            ones = gs.ones(x.shape[-2:])
+            return gs.sum(gs.linalg.solve_sylvester(x, x, ones), axis=(-2, -1))
+
+        points = [gs.eye(2), gs.array([[1.0, 0.0], [0.0, 3.0]])]
+        expected_grads = [
+            -gs.ones((2, 2)),
+            -gs.array([[5.0 / 8.0, 1.0 / 3.0], [1.0 / 3.0, 13.0 / 72.0]]),
+        ]
+        for point, expected_grad in zip(points, expected_grads):
+            _, grad = gs.autodiff.value_and_grad(sylvester_sum, point_ndims=2)(point)
+            self.assertAllClose(grad, expected_grad)
