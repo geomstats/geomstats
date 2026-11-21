@@ -278,7 +278,7 @@ class Matrices(MatrixVectorSpace):
         diagonal : array-like, shape=[..., min(m, n)]
             Vector of diagonal coefficients.
         """
-        return gs.diagonal(mat, axis1=-2, axis2=-1)
+        return gs.diagonal(mat)
 
     @staticmethod
     def is_square(mat):

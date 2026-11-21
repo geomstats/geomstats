@@ -197,4 +197,4 @@ class StrictlyLowerTriangularMatrices(LevelSet, MatrixVectorSpace):
             Projected point.
         """
         proj_point = self.embedding_space.projection(point)
-        return proj_point - gs.diag_embed(gs.diagonal(proj_point, axis1=-2, axis2=-1))
+        return proj_point - gs.diag_embed(gs.diagonal(proj_point))

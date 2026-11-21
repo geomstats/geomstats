@@ -971,7 +971,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         vector_outer = scalarmatmul(
             1.0 / safe_denominator, sym_part - scalarmatmul(cos_angle, gs.eye(3))
         )
-        diag = gs.diagonal(vector_outer, axis1=-2, axis2=-1)
+        diag = gs.diagonal(vector_outer)
         squared_diag_comp = gs.maximum(0.0, diag)
         vector_outer = vector_outer + gs.diag_embed(squared_diag_comp - diag)
         diag_comp = gs.sqrt(squared_diag_comp)

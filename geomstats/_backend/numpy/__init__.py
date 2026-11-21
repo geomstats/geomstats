@@ -32,7 +32,6 @@ from numpy import (
     cross,
     cumprod,
     cumsum,
-    diagonal,
     einsum,
     empty,
     empty_like,
@@ -102,7 +101,7 @@ from numpy import (
     where,
     zeros_like,
 )
-from numpy.linalg import vecdot
+from numpy.linalg import diagonal, vecdot
 from scipy.special import erf, gamma, polygamma  # NOQA
 
 from . import (

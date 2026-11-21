@@ -56,6 +56,7 @@ class BackendTestData(TestData):
     def unary_op_vec_test_data(self):
         smoke_data = [
             dict(func_name="trace", a=rand(3, 3)),
+            dict(func_name="diagonal", a=rand(3, 4)),
             dict(func_name="matrix_transpose", a=rand(3, 4)),
             dict(func_name="linalg.matrix_norm", a=rand(3, 4)),
             dict(func_name="linalg.cholesky", a=SPDMatrices(3).random_point()),
@@ -173,6 +174,17 @@ class BackendTestData(TestData):
                 args=(gs.array([1.0, 2.0]), 2),
                 kwargs={"axis": -1},
                 expected=gs.array([[1.0], [2.0]]),
+            ),
+            dict(
+                func_name="diagonal",
+                args=(gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]),),
+                expected=gs.array([[1.0, 4.0], [5.0, 8.0]]),
+            ),
+            dict(
+                func_name="diagonal",
+                args=(gs.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]),),
+                kwargs={"offset": -1},
+                expected=gs.array([4.0]),
             ),
             dict(
                 func_name="trace",

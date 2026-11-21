@@ -66,6 +66,19 @@ def _trace_vjp(ans, x):
     return lambda g: g[..., None, None] * _np.eye(x.shape[-1])
 
 
+def _diagonal_vjp(ans, x, offset=0):
+    """Get the VJP of the diagonal of matrices.
+
+    The i-th diagonal entry is placed at row ``i + max(-offset, 0)`` and
+    column ``i + max(offset, 0)``.
+    """
+    n_rows, n_cols = x.shape[-2:]
+    size = ans.shape[-1]
+    rows = _np.eye(size, n_rows, k=max(-offset, 0))
+    cols = _np.eye(size, n_cols, k=max(offset, 0))
+    return lambda g: _np.matmul(_np.matrix_transpose(rows) * g[..., None, :], cols)
+
+
 def _solve_sylvester_vjp(argnums, ans, args, kwargs):
     """Get the VJPs of the solution of the Sylvester equation.
 
@@ -121,6 +134,7 @@ _defvjp(_np.linalg.vecdot, _vecdot_vjp_a, _vecdot_vjp_b)
 _defvjp(_np.linalg.vector_norm, _vector_norm_vjp)
 _defvjp(_np.linalg.matrix_norm, _matrix_norm_vjp)
 _defvjp(_np.linalg.trace, _trace_vjp)
+_defvjp(_np.linalg.diagonal, _diagonal_vjp)
 _defvjp(_expm, _functools.partial(_matrix_function_vjp, fn=_expm))
 _defvjp(_logm, _functools.partial(_matrix_function_vjp, fn=_logm))
 _defvjp_argnums(_solve_sylvester, _solve_sylvester_vjp)

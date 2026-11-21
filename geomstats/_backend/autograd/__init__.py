@@ -30,7 +30,6 @@ from autograd.numpy import (
     cross,
     cumprod,
     cumsum,
-    diagonal,
     einsum,
     empty,
     empty_like,
@@ -99,7 +98,7 @@ from autograd.numpy import (
     vstack,
     zeros_like,
 )
-from autograd.numpy.linalg import vecdot
+from autograd.numpy.linalg import diagonal, vecdot
 
 try:
     from autograd.numpy import trapezoid
