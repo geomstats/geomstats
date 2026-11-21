@@ -9,11 +9,12 @@ from numpy.linalg import (
     eigh,
     eigvalsh,
     inv,
+    matrix_norm,
     matrix_power,
     matrix_rank,
-    norm,
     qr,
     svd,
+    vector_norm,
 )
 from scipy.linalg import expm, fractional_matrix_power, polar, sqrtm
 

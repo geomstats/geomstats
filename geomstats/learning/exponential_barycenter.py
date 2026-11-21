@@ -67,7 +67,7 @@ class GroupGradientDescent(BaseGradientDescent):
             )
             mean_next = space.compose(mean, space.exp(tangent_vec=tangent_mean))
 
-            grad_norm = gs.linalg.norm(tangent_mean)
+            grad_norm = gs.linalg.vector_norm(tangent_mean)
 
             mean = mean_next
 
@@ -138,7 +138,7 @@ class ConnectionGradientDescent(BaseGradientDescent):
 
             new_mean = space.connection.exp(step_size * tangent_mean, mean)
 
-            norm = gs.linalg.norm(tangent_mean)
+            norm = gs.linalg.vector_norm(tangent_mean)
             if norm < norm_old:
                 mean = new_mean
                 norm_old = norm

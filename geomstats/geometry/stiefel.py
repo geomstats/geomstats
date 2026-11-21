@@ -743,7 +743,7 @@ class _ZimmermannLogSolver(LogSolver):
             matrix_lv = gs.linalg.logm(matrix_v)
 
             matrix_c = _lower_right_block(matrix_lv, p)
-            norm_matrix_c = gs.linalg.norm(matrix_c)
+            norm_matrix_c = gs.linalg.vector_norm(matrix_c)
             if norm_matrix_c <= self.tol:
                 break
 

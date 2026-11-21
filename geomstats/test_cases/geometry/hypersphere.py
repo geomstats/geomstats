@@ -11,7 +11,7 @@ def _estimate_von_mises_kappa(X, n_steps=100):
     dim = X.shape[1] - 1
 
     sum_points = gs.sum(X, axis=0)
-    mean_norm = gs.linalg.norm(sum_points) / n_points
+    mean_norm = gs.linalg.vector_norm(sum_points) / n_points
 
     kappa_estimate = mean_norm * (dim + 1.0 - mean_norm**2) / (1.0 - mean_norm**2)
     p = dim + 1
@@ -67,7 +67,7 @@ class VonMisesFisherTestCase(DistributionTestCase):
         sample = self.distribution.sample(n_samples)
 
         sum_point = gs.sum(sample, axis=0)
-        res = sum_point / gs.linalg.norm(sum_point)
+        res = sum_point / gs.linalg.vector_norm(sum_point)
         self.assertAllClose(res, self._get_mean_direction(), atol=atol)
 
     @pytest.mark.validation

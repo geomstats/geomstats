@@ -100,7 +100,7 @@ class TestHypersphere4Metric(
         tangent_vec = self.space.to_tangent(vector=vector, base_point=base_point)
         exp = self.space.metric.exp(tangent_vec=tangent_vec, base_point=base_point)
         result = self.space.metric.dist(base_point, exp)
-        expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
+        expected = gs.linalg.vector_norm(tangent_vec) % (2 * gs.pi)
         self.assertAllClose(result, expected)
 
 

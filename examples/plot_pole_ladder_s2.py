@@ -25,7 +25,7 @@ def main():
     base_point = space.random_uniform(1)
     tangent_vec_b = space.random_uniform(1)
     tangent_vec_b = space.to_tangent(tangent_vec_b, base_point)
-    tangent_vec_b = tangent_vec_b / gs.linalg.norm(tangent_vec_b)
+    tangent_vec_b = tangent_vec_b / gs.linalg.vector_norm(tangent_vec_b)
 
     rotation_vector = gs.pi / 2 * base_point
     rotation_matrix = rotation.matrix_from_rotation_vector(rotation_vector)

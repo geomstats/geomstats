@@ -159,7 +159,7 @@ class GradientDescent(BaseGradientDescent):
         sq_dist = 0.0
         var = 0.0
 
-        norm_old = gs.linalg.norm(points)
+        norm_old = gs.linalg.vector_norm(points)
         step_size = self.init_step_size
 
         while iteration < self.max_iter:
@@ -169,7 +169,7 @@ class GradientDescent(BaseGradientDescent):
 
             tangent_mean = _scalarmulsum(weights, logs)
             tangent_mean /= sum_weights
-            norm = gs.linalg.norm(tangent_mean)
+            norm = gs.linalg.vector_norm(tangent_mean)
 
             sq_dist = space.metric.squared_norm(tangent_mean, mean)
 

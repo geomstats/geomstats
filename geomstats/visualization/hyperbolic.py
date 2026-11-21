@@ -41,7 +41,7 @@ class KleinDisk:
     @staticmethod
     def convert_to_klein_coordinates(points):
         poincare_coords = points[:, 1:] / (1 + points[:, :1])
-        poincare_radius = gs.linalg.norm(poincare_coords, axis=1)
+        poincare_radius = gs.linalg.vector_norm(poincare_coords, axis=1)
         poincare_angle = gs.arctan2(poincare_coords[:, 1], poincare_coords[:, 0])
 
         klein_radius = 2 * poincare_radius / (1 + poincare_radius**2)

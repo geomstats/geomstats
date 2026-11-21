@@ -1038,9 +1038,7 @@ class MatricesMetric(MatricesEuclideanMetric):
         sq_norm : array-like, shape=[...,]
             Squared norm.
         """
-        init_axis = len(vector.shape[:-2])
-        axis = (init_axis, init_axis + 1)
-        sq_norm = gs.linalg.norm(vector, axis=axis) ** 2
+        sq_norm = gs.linalg.matrix_norm(vector) ** 2
         return repeat_out(self._space.point_ndim, sq_norm, vector, base_point)
 
     def norm(self, vector, base_point=None):
@@ -1061,7 +1059,7 @@ class MatricesMetric(MatricesEuclideanMetric):
         norm : array-like, shape=[...,]
             Norm.
         """
-        norm = gs.linalg.norm(vector, axis=(-2, -1))
+        norm = gs.linalg.matrix_norm(vector)
         return repeat_out(self._space.point_ndim, norm, vector, base_point)
 
     def flat(self, tangent_vec, base_point=None):

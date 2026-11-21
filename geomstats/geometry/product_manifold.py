@@ -686,8 +686,8 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             Distance.
         """
         args = {"point_a": point_a, "point_b": point_b}
-        dists = gs.array(self._iterate_over_factors("dist", args))
-        return gs.linalg.norm(dists, ord=2, axis=0)
+        dists = gs.stack(self._iterate_over_factors("dist", args), axis=-1)
+        return gs.linalg.vector_norm(dists, axis=-1)
 
     def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.

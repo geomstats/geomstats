@@ -47,7 +47,7 @@ def _norm(vec):
     -------
     norm : array-like, shape=[...,]
     """
-    return gs.linalg.norm(vec, axis=-1)
+    return gs.linalg.vector_norm(vec, axis=-1)
 
 
 class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):

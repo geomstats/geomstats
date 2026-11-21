@@ -834,7 +834,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         regularized_point : array-like, shape=[..., 3]
             Regularized point.
         """
-        theta = gs.linalg.norm(point, axis=-1)
+        theta = gs.linalg.vector_norm(point, axis=-1)
         k = gs.floor(theta / 2.0 / gs.pi)
 
         # angle in [0;2pi)
@@ -871,7 +871,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             return self.regularize(tangent_vec)
 
         tangent_vec_metric_norm = self.metric.norm(tangent_vec)
-        tangent_vec_canonical_norm = gs.linalg.norm(tangent_vec, axis=-1)
+        tangent_vec_canonical_norm = gs.linalg.vector_norm(tangent_vec, axis=-1)
 
         # This avoids dividing by 0
         norm_eps = gs.where(
@@ -976,7 +976,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         )
         squared_diag_comp = gs.diagonal(vector_outer, axis1=-2, axis2=-1)
         diag_comp = gs.sqrt(squared_diag_comp)
-        norm_line = gs.linalg.norm(vector_outer, axis=-1)
+        norm_line = gs.linalg.vector_norm(vector_outer, axis=-1)
         max_line_index = gs.argmax(norm_line, axis=-1)
 
         if is_vec:

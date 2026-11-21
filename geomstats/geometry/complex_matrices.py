@@ -297,5 +297,5 @@ class ComplexMatricesMetric(HermitianMetric):
         norm : array-like, shape=[...,]
             Norm.
         """
-        norm = gs.linalg.norm(vector, axis=(-2, -1))
+        norm = gs.linalg.matrix_norm(vector)
         return repeat_out(self._space.point_ndim, norm, vector, base_point)

@@ -39,6 +39,7 @@ class BackendTestData(TestData):
         smoke_data = [
             dict(func_name="trace", a=rand(3, 3)),
             dict(func_name="matrix_transpose", a=rand(3, 4)),
+            dict(func_name="linalg.matrix_norm", a=rand(3, 4)),
             dict(func_name="linalg.cholesky", a=SPDMatrices(3).random_point()),
             dict(func_name="linalg.eigvalsh", a=SymmetricMatrices(3).random_point()),
             dict(func_name="linalg.det", a=gs.eye(3)),
@@ -145,6 +146,23 @@ class BackendTestData(TestData):
     def func_out_allclose_test_data(self):
         # TODO: verify dtype
         smoke_data = [
+            dict(
+                func_name="linalg.vector_norm",
+                args=(gs.array([[3.0, 4.0], [6.0, 8.0]]),),
+                kwargs={"axis": -1},
+                expected=gs.array([5.0, 10.0]),
+            ),
+            # by default, the vector norm is taken over all axes
+            dict(
+                func_name="linalg.vector_norm",
+                args=(gs.array([[3.0, 0.0], [0.0, 4.0]]),),
+                expected=gs.array(5.0),
+            ),
+            dict(
+                func_name="linalg.matrix_norm",
+                args=(gs.array([[[3.0, 0.0], [0.0, 4.0]]]),),
+                expected=gs.array([5.0]),
+            ),
             # vecdot conjugates its first argument
             dict(
                 func_name="vecdot",
