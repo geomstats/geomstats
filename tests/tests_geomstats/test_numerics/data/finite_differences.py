@@ -1,35 +1,33 @@
 import random
 
-from geomstats.test.data import TestData
+from polpo.testing.geometric import GeometricCaseData
 
 
-class ForwardDifferenceTestData(TestData):
-    N_TIME_POINTS = random.sample(range(5, 10), 1)
-    trials = 1
-
+class ForwardDifferenceTestData(GeometricCaseData):
     def forward_difference_last_test_data(self):
-        return self.generate_random_data_with_time()
+        return self.generate_random_data(
+            arg_names=("base_point", "tangent_vec"),
+            n_times=random.randint(5, 9),
+        )
 
 
-class CenteredDifferenceTestData(TestData):
-    N_TIME_POINTS = random.sample(range(5, 10), 1)
-    trials = 1
-
-    def centered_difference_random_index_test_data(self, marks=()):
-        data = []
-        for n_points in self.N_RANDOM_POINTS:
-            for n_times in self.N_TIME_POINTS:
-                for endpoints in [True, False]:
-                    data.append(
-                        dict(n_points=n_points, n_times=n_times, endpoints=endpoints)
-                    )
-
-        return self.generate_tests(data, marks=marks)
+class CenteredDifferenceTestData(GeometricCaseData):
+    def centered_difference_random_index_test_data(self):
+        n_times = random.randint(5, 9)
+        return [
+            datum
+            for endpoints in (True, False)
+            for datum in self.generate_random_data(
+                arg_names=("base_point", "tangent_vec"),
+                n_times=n_times,
+                endpoints=endpoints,
+            )
+        ]
 
 
-class SecondCenteredDifferenceTestData(TestData):
-    N_TIME_POINTS = random.sample(range(5, 10), 1)
-    trials = 1
-
+class SecondCenteredDifferenceTestData(GeometricCaseData):
     def second_centered_difference_random_index_test_data(self):
-        return self.generate_random_data_with_time()
+        return self.generate_random_data(
+            arg_names=("base_point", "tangent_vec"),
+            n_times=random.randint(5, 9),
+        )

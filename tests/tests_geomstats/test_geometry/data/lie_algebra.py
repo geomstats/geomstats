@@ -5,11 +5,16 @@ from .base import MatrixVectorSpaceTestData
 
 class MatrixLieAlgebraTestData(MatrixVectorSpaceTestData):
     def baker_campbell_hausdorff_vec_test_data(self):
-        order = [2] + random.sample(range(3, 10), 1)
         data = []
-        for order_ in order:
+        for order in [2] + random.sample(range(3, 10), 1):
             data.extend(
-                [dict(n_reps=n_reps, order=order_) for n_reps in self.N_VEC_REPS]
+                self.generate_vectorization_data(
+                    arg_names=("matrix_a", "matrix_b"),
+                    samplers={"matrix_a": "random_point", "matrix_b": "random_point"},
+                    op_evaluator=lambda op, order=order, **kwargs: op(
+                        **kwargs, order=order
+                    ),
+                    order=order,
+                )
             )
-
-        return self.generate_tests(data)
+        return data

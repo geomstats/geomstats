@@ -1,22 +1,21 @@
+import pytest
+
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 from ...test_geometry.data.base import VectorSpaceOpenSetTestData
-from ...test_geometry.data.riemannian_metric import CoordinateRiemannianMetricTestData
+from ...test_geometry.data.riemannian_metric import (
+    CoordinateRiemannianMetricTestData,
+)
 from .base import InformationManifoldMixinTestData
 
 
 class GeometricDistributionsTestData(
     InformationManifoldMixinTestData, VectorSpaceOpenSetTestData
 ):
-    fail_for_not_implemented_errors = False
-    skips = ("not_belongs",)
-
     def point_to_pdf_against_scipy_test_data(self):
-        return self.generate_random_data_with_samples()
+        return self._generate_random_data_with_samples()
 
-
-class GeometricDistributionsSmokeTestData(TestData):
+    @pytest.mark.smoke
     def belongs_test_data(self):
         data = [
             dict(point=gs.array([0.1]), expected=True),
@@ -30,17 +29,11 @@ class GeometricDistributionsSmokeTestData(TestData):
                 expected=gs.ones((2, 1), dtype=bool),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
 class GeometricMetricTestData(CoordinateRiemannianMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-    skips = ("sectional_curvature_vec",)
-
-
-class GeometricMetricSmokeTestData(TestData):
+    @pytest.mark.smoke
     def squared_dist_test_data(self):
         data = [
             dict(
@@ -59,8 +52,9 @@ class GeometricMetricSmokeTestData(TestData):
                 expected=gs.array([0.21846342154512002, 0.4318107273293949]),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def metric_matrix_test_data(self):
         data = [
             dict(
@@ -72,4 +66,4 @@ class GeometricMetricSmokeTestData(TestData):
                 expected=gs.array([[[31.249999999999993]], [[10.416666666666664]]]),
             ),
         ]
-        return self.generate_tests(data)
+        return data

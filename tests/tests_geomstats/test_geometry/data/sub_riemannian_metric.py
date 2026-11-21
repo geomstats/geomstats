@@ -1,12 +1,11 @@
+from polpo.testing.data import CaseData
+
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 
-class SubRiemannianMetricCometricTestData(TestData):
-    fail_for_autodiff_exceptions = False
-
+class SubRiemannianMetricCometricTestData(CaseData):
     def inner_coproduct_test_data(self):
-        smoke_data = [
+        data = [
             dict(
                 cotangent_vec_a=gs.array([1.0, 1.0, 1.0]),
                 cotangent_vec_b=gs.array([1.0, 10.0, 1.0]),
@@ -14,89 +13,88 @@ class SubRiemannianMetricCometricTestData(TestData):
                 expected=gs.array(12.0),
             )
         ]
-        return self.generate_tests(smoke_data)
+        return data
 
     def hamiltonian_test_data(self):
-        smoke_data = [
+        data = [
             dict(
                 cotangent_vec=gs.array([1.0, 1.0, 1.0]),
                 base_point=gs.array([2.0, 1.0, 10.0]),
                 expected=1.5,
             )
         ]
-        return self.generate_tests(smoke_data)
+        return data
 
     def symp_grad_test_data(self):
-        smoke_data = [
+        data = [
             dict(
-                test_state=gs.array([[1.0, 1.0, 1.0], [2.0, 3.0, 4.0]]),
+                state=gs.array([[1.0, 1.0, 1.0], [2.0, 3.0, 4.0]]),
                 expected=gs.array([[2.0, 3.0, 4.0], [-0.0, -0.0, -0.0]]),
             )
         ]
-        return self.generate_tests(smoke_data)
+        return data
 
     def symp_euler_test_data(self):
-        smoke_data = [
+        data = [
             dict(
-                test_state=gs.array([[1.0, 1.0, 1.0], [2.0, 3.0, 4.0]]),
+                state=gs.array([[1.0, 1.0, 1.0], [2.0, 3.0, 4.0]]),
                 step_size=0.01,
                 expected=gs.array([[1.02, 1.03, 1.04], [2.0, 3.0, 4.0]]),
             )
         ]
-        return self.generate_tests(smoke_data)
+        return data
 
     def iterate_test_data(self):
-        smoke_data = [
+        data = [
             dict(
-                test_state=gs.array([[1.0, 1.0, 1.0], [2.0, 3.0, 4.0]]),
+                state=gs.array([[1.0, 1.0, 1.0], [2.0, 3.0, 4.0]]),
                 n_steps=20,
                 step_size=0.01,
-                expected=gs.array([[1.22, 1.33, 1.44], [2.0, 3.0, 4.0]]),
+                expected=gs.array([[1.4, 1.6, 1.8], [2.0, 3.0, 4.0]]),
             )
         ]
-        return self.generate_tests(smoke_data)
+        return data
+
+    def symp_flow_test_data(self):
+        data = [
+            dict(
+                state=gs.array([[1.0, 1.0, 1.0], [2.0, 3.0, 4.0]]),
+                end_time=1.0,
+                n_steps=20,
+                expected=gs.array([[3.0, 4.0, 5.0], [2.0, 3.0, 4.0]]),
+            )
+        ]
+        return data
 
     def exp_test_data(self):
-        smoke_data = [
+        data = [
             dict(
                 cotangent_vec=gs.array([1.0, 1.0, 1.0]),
                 base_point=gs.array([2.0, 1.0, 10.0]),
                 n_steps=20,
+                expected=gs.array([3.0, 2.0, 11.0]),
             )
         ]
-        return self.generate_tests(smoke_data)
-
-    def symp_flow_test_data(self):
-        smoke_data = [
-            dict(
-                test_state=gs.array([[1.0, 1.0, 1.0], [2.0, 3.0, 4.0]]),
-                n_steps=20,
-                end_time=1.0,
-                expected=gs.array([[2.1, 2.65, 3.2], [2.0, 3.0, 4.0]]),
-            )
-        ]
-        return self.generate_tests(smoke_data)
+        return data
 
 
-class SubRiemannianMetricFrameTestData(TestData):
-    fail_for_autodiff_exceptions = False
-
+class SubRiemannianMetricFrameTestData(CaseData):
     def sr_sharp_test_data(self):
-        smoke_data = [
+        data = [
             dict(
-                base_point=gs.array([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]]),
                 cotangent_vec=gs.array([[0.5, 0.5, 0.5], [2.5, 2.5, 2.5]]),
+                base_point=gs.array([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]]),
                 expected=gs.array([[0.5, 0.5, 0.0], [1.25, 3.75, 1.25]]),
             )
         ]
-        return self.generate_tests(smoke_data)
+        return data
 
     def geodesic_test_data(self):
-        smoke_data = [
+        data = [
             dict(
-                test_initial_point=gs.array([0.0, 0.0, 0.0]),
-                test_initial_cotangent_vec=gs.array([2.5, 2.5, 2.5]),
-                test_times=gs.linspace(0.0, 20, 3),
+                initial_point=gs.array([0.0, 0.0, 0.0]),
+                initial_cotangent_vec=gs.array([2.5, 2.5, 2.5]),
+                times=gs.linspace(0.0, 20, 3),
                 n_steps=1000,
                 expected=gs.array(
                     [
@@ -107,4 +105,4 @@ class SubRiemannianMetricFrameTestData(TestData):
                 ),
             )
         ]
-        return self.generate_tests(smoke_data)
+        return data

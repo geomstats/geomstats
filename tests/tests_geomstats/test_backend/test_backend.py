@@ -1,6 +1,11 @@
+import numpy as np
+
 import geomstats.backend as gs
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.backend import BackendTestCase
+from geomstats.test.test_case import torch_only
+from geomstats.test_cases.backend.backend import (
+    BackendDataBasedParametrizer,
+    BackendTestCase,
+)
 
 from .data.backend import BackendTestData
 
@@ -25,5 +30,13 @@ def test_solve_sylvester_complex():
         assert gs.allclose(gs.matmul(a, x) + gs.matmul(x, a), q)
 
 
-class TestBackend(BackendTestCase, metaclass=DataBasedParametrizer):
+@torch_only
+def test_to_numpy_with_grad():
+    """Check that to_numpy converts a tensor that requires gradients."""
+    x = gs.ones(3).requires_grad_()
+
+    assert isinstance(gs.to_numpy(2 * x), np.ndarray)
+
+
+class TestBackend(BackendTestCase, metaclass=BackendDataBasedParametrizer):
     testing_data = BackendTestData()

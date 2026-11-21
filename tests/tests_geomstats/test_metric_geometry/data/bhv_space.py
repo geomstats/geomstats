@@ -1,18 +1,19 @@
+from polpo.testing.data import CaseData
+
 import geomstats.backend as gs
 from geomstats.metric_geometry.bhv_space import Split, Tree
-from geomstats.test.data import TestData
 
 from .point_set import PointSetMetricTestData
 
 
-class TreeTopologyTestData(TestData):
+class TreeTopologyTestData(CaseData):
     def raises_empty_splits_test_data(self):
         data = [
             dict(
                 invalid_splits=(Split({}, {0, 1, 2, 3, 4}), Split({0, 1}, {2, 3, 4})),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def raises_singleton_test_data(self):
         data = [
@@ -20,7 +21,7 @@ class TreeTopologyTestData(TestData):
                 invalid_splits=(Split({3}, {0, 4, 1, 2}), Split({0, 1}, {2, 3, 4})),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def valid_topology_attributes_test_data(self):
         data = [
@@ -34,17 +35,17 @@ class TreeTopologyTestData(TestData):
                 n_expected_labels=5,
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class TreeTestData(TestData):
+class TreeTestData(CaseData):
     def raise_nonpositive_length_test_data(self):
         valid_splits = (Split({3, 4}, {0, 1, 2}), Split({0, 1}, {2, 3, 4}))
         data = [
             dict(splits=valid_splits, invalid_lengths=[0, 3]),
             dict(splits=valid_splits, invalid_lengths=[-2, 3]),
         ]
-        return self.generate_tests(data)
+        return data
 
     def raise_incompatible_size_test_data(self):
         data = [
@@ -53,7 +54,7 @@ class TreeTestData(TestData):
                 lengths=[1, 2, 3],
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def valid_tree_attributes_test_data(self):
         data = [
@@ -64,15 +65,15 @@ class TreeTestData(TestData):
             dict(splits=(), lengths=(), n_labels=5),
         ]
 
-        return self.generate_tests(data)
+        return data
 
 
 class BHVMetricTestData(PointSetMetricTestData):
     def raise_geodesic_out_bound_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(arg_names=("initial_point", "end_point"))
 
 
-class BHVMetric5TestData(TestData):
+class BHVMetric5TestData(CaseData):
     def _get_owen_trees(self):
         # see Owen, 2011, fig2
 
@@ -117,7 +118,7 @@ class BHVMetric5TestData(TestData):
         )
 
         data = [
-            dict(point_a=tree_1, point_b=tree_1_prime, t=0.5, expected=0.5),
+            dict(point_a=tree_1, point_b=tree_1_prime, expected=0.5),
             dict(point_a=tree_1, point_b=tree_2, expected=2.5),
             dict(point_a=tree_1, point_b=tree_3, expected=1.0),
             dict(point_a=tree_2, point_b=tree_3, expected=1.5),
@@ -137,7 +138,7 @@ class BHVMetric5TestData(TestData):
             ),
         ]
 
-        return self.generate_tests(data)
+        return data
 
     def geodesic_test_data(self):
         tree_1, tree_1_prime, tree_2, tree_3 = self._get_owen_trees()
@@ -200,4 +201,4 @@ class BHVMetric5TestData(TestData):
             ),
         ]
 
-        return self.generate_tests(data)
+        return data

@@ -1,8 +1,9 @@
+import pytest
+from polpo.testing.data import CaseData
+
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 from .base import LevelSetTestData
-from .invariant_metric import InvariantMetricMatrixTestData
 from .lie_group import LieGroupTestData, MatrixLieGroupTestData
 from .mixins import ProjectionMixinsTestData
 
@@ -47,12 +48,10 @@ def homogeneous_representation_test_data():
 
 
 class SpecialEuclideanMatricesTestData(MatrixLieGroupTestData, LevelSetTestData):
-    tolerances = {
-        "projection_belongs": {"atol": 1e-4},
-    }
+    pass
 
 
-class SpecialEuclideanMatrices2TestData(TestData):
+class SpecialEuclideanMatrices2TestData(CaseData):
     def belongs_test_data(self):
         data = [
             dict(point=group_useful_matrix(gs.pi / 3, elem_33=1.0), expected=True),
@@ -67,14 +66,14 @@ class SpecialEuclideanMatrices2TestData(TestData):
                 expected=[True, False],
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
     def identity_test_data(self):
         data = [
             dict(expected=gs.eye(3)),
         ]
 
-        return self.generate_tests(data)
+        return data
 
     def is_tangent_test_data(self):
         theta = gs.pi / 3
@@ -90,26 +89,36 @@ class SpecialEuclideanMatrices2TestData(TestData):
                 expected=[True, False],
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
 class SpecialEuclideanVectorsTestData(ProjectionMixinsTestData, LieGroupTestData):
-    fail_for_not_implemented_errors = False
-
     def matrix_from_vector_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def matrix_from_vector_belongs_to_matrices_test_data(self):
-        return self.generate_random_data()
+        return self.generate_vectorization_data(
+            arg_names="vec",
+            samplers={"vec": "random_point"},
+        )
 
     def regularize_tangent_vec_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names=("base_point", "tangent_vec"),
+        )
 
     def regularize_tangent_vec_at_identity_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names="tangent_vec",
+            samplers={"tangent_vec": "random_tangent_vec_at_identity"},
+        )
+
+    def matrix_from_vector_belongs_to_matrices_test_data(self):
+        return self.generate_random_data(
+            arg_names="vec",
+            samplers={"vec": "random_point"},
+        )
 
 
-class SpecialEuclidean2VectorsTestData(TestData):
+class SpecialEuclidean2VectorsTestData(SpecialEuclideanVectorsTestData):
+    @pytest.mark.smoke
     def belongs_test_data(self):
         data = [
             dict(point=elements_all["point_1"], expected=True),
@@ -119,8 +128,9 @@ class SpecialEuclidean2VectorsTestData(TestData):
             ),
             dict(point=gs.zeros(4), expected=False),
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def regularize_test_data(self):
         data = [
             dict(
@@ -128,8 +138,9 @@ class SpecialEuclidean2VectorsTestData(TestData):
                 expected=elements_all["point_1"],
             )
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def compose_test_data(self):
         data = [
             dict(
@@ -139,8 +150,9 @@ class SpecialEuclidean2VectorsTestData(TestData):
                 + elements_all["translation_large"],
             )
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def exp_from_identity_test_data(self):
         data = [
             dict(
@@ -152,8 +164,9 @@ class SpecialEuclidean2VectorsTestData(TestData):
                 expected=gs.stack([elements_all["translation_small"]] * 2),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def log_from_identity_test_data(self):
         data = [
             dict(
@@ -165,10 +178,16 @@ class SpecialEuclidean2VectorsTestData(TestData):
                 expected=gs.stack([elements_all["translation_small"]] * 2),
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
 
-class SpecialEuclideanMatricesLieAlgebra2TestData(TestData):
+class SpecialEuclideanMatricesLieAlgebra2TestData(CaseData):
+    def dim_test_data(self):
+        data = [
+            dict(expected=3),
+        ]
+        return data
+
     def belongs_test_data(self):
         theta = gs.pi / 3
         data = [
@@ -189,13 +208,4 @@ class SpecialEuclideanMatricesLieAlgebra2TestData(TestData):
                 expected=gs.array([True, False]),
             ),
         ]
-        return self.generate_tests(data)
-
-
-class SpecialEuclideanMatricesCanonicalLeftMetricTestData(
-    InvariantMetricMatrixTestData
-):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-    skips = ("exp_at_identity_vec",)
+        return data

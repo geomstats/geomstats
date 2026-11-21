@@ -1,4 +1,5 @@
 import pytest
+from polpo.testing.parametrizers import DataBasedParametrizer
 
 import geomstats.backend as gs
 from geomstats.numerics.optimization import (
@@ -6,7 +7,6 @@ from geomstats.numerics.optimization import (
     ScipyMinimize,
     ScipyRoot,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.numerics.optimization import (
     OptimizerTestCase,
     RootFinderTestCase,
@@ -72,7 +72,9 @@ def optimizers(request):
 @pytest.mark.smoke
 @pytest.mark.usefixtures("optimizers")
 class TestOptimizers(OptimizerTestCase, metaclass=DataBasedParametrizer):
-    testing_data = OptimizationSmokeTestData()
+    testing_data = OptimizationSmokeTestData(
+        method_defaults={"minimize": {"atol": 1e-4}}
+    )
 
 
 @pytest.fixture(

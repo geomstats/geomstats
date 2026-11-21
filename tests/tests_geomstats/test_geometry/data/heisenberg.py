@@ -1,27 +1,13 @@
+import pytest
+from polpo.testing.data import CaseData
+
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 from .base import VectorSpaceTestData
-from .diffeo import DiffeoTestData
 from .lie_group import LieGroupTestData
 
 
-class HeisenbergVectorsToMatricesTestData(DiffeoTestData):
-    # TODO: unskip once the image space is implemented
-    skips = (
-        "diffeomorphism_belongs",
-        "inverse_vec",
-        "inverse_belongs",
-        "diffeomorphism_after_inverse",
-        "tangent_is_tangent",
-        "inverse_tangent_vec",
-        "inverse_tangent_is_tangent",
-        "inverse_tangent_with_base_point",
-        "tangent_after_inverse_tangent",
-    )
-
-
-class HeisenbergVectorsToMatricesSmokeTestData(TestData):
+class HeisenbergVectorsToMatricesSmokeTestData(CaseData):
     def diffeomorphism_test_data(self):
         data = [
             dict(
@@ -29,7 +15,7 @@ class HeisenbergVectorsToMatricesSmokeTestData(TestData):
                 expected=gs.array([[1.0, 1.0, 4.0], [0.0, 1.0, 2.0], [0.0, 0.0, 1.0]]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def inverse_test_data(self):
         data = [
@@ -40,7 +26,7 @@ class HeisenbergVectorsToMatricesSmokeTestData(TestData):
                 expected=gs.array([1.0, 2.0, 3.0]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def tangent_test_data(self):
         data = [
@@ -50,7 +36,7 @@ class HeisenbergVectorsToMatricesSmokeTestData(TestData):
                 expected=gs.array([[0.0, 1.0, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
     def inverse_tangent_test_data(self):
         data = [
@@ -64,18 +50,16 @@ class HeisenbergVectorsToMatricesSmokeTestData(TestData):
                 expected=gs.array([1.0, 0.0, 0.0]),
             )
         ]
-        return self.generate_tests(data)
+        return data
 
 
 class HeisenbergVectorsTestData(LieGroupTestData, VectorSpaceTestData):
-    fail_for_not_implemented_errors = False
-
-
-class HeisenbergVectors3TestData(TestData):
+    @pytest.mark.smoke
     def dim_test_data(self):
-        smoke_data = [dict(expected=3)]
-        return self.generate_tests(smoke_data)
+        data = [dict(expected=3)]
+        return data
 
+    @pytest.mark.smoke
     def belongs_test_data(self):
         data = [
             dict(point=gs.array([1.0, 2.0, 3.0, 4]), expected=False),
@@ -84,8 +68,9 @@ class HeisenbergVectors3TestData(TestData):
                 expected=[False, False],
             ),
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def is_tangent_test_data(self):
         data = [
             dict(
@@ -94,8 +79,9 @@ class HeisenbergVectors3TestData(TestData):
                 expected=[False, False],
             )
         ]
-        return self.generate_tests(data)
+        return data
 
+    @pytest.mark.smoke
     def jacobian_translation_test_data(self):
         data = [
             dict(
@@ -109,4 +95,4 @@ class HeisenbergVectors3TestData(TestData):
                 ),
             )
         ]
-        return self.generate_tests(data)
+        return data

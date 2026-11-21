@@ -1,20 +1,13 @@
-from .riemannian_metric import (
-    RiemannianMetricComparisonTestData,
-    RiemannianMetricTestData,
-)
+from polpo.testing.geometric import GeometricCaseData
+
+from .mixins import DistMixinsTestData, GeodesicBVPMixinsTestData
 
 
-class SPDBuresWassersteinQuotientMetricCmpTestData(RiemannianMetricComparisonTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
+class AlignQuotientMetricTestData(
+    DistMixinsTestData, GeodesicBVPMixinsTestData, GeometricCaseData
+):
+    """Quotient metric data for bundles only implementing `align`.
 
-    tolerances = {"geodesic_bvp_random": {"atol": 1e-3}, "log_random": {"atol": 1e-3}}
-
-    skips = (
-        "parallel_transport_ivp_random",
-        "parallel_transport_bvp_random",
-    )
-
-
-class QuotientMetricTestData(RiemannianMetricTestData):
-    pass
+    Distances and boundary value geodesics only need alignment, while the
+    other operations need horizontal lifts or projections.
+    """

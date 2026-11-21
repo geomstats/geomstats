@@ -1,6 +1,10 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 import geomstats.backend as gs
 from geomstats.geometry.hypersphere import (
@@ -14,7 +18,8 @@ from geomstats.geometry.hypersphere import (
     SphericalToExtrinsicDiffeo,
     VonMisesFisher,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.geometry.pullback_metric import CoordinatePullbackDiffeoMetric
+from geomstats.test.test_case import autodiff_backend
 from geomstats.test_cases.geometry.base import (
     DiffeomorphicManifoldTestCase,
     LevelSetTestCase,
@@ -27,55 +32,66 @@ from geomstats.test_cases.geometry.hypersphere import (
 )
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
 from geomstats.test_cases.geometry.riemannian_metric import (
-    RiemannianMetricComparisonTestCase,
+    CoordinateRiemannianMetricComparisonTestCase,
+    CoordinateRiemannianMetricTestCase,
     RiemannianMetricTestCase,
 )
+from geomstats.vectorization import get_batch_shape
 
-from .data.base import LevelSetTestData
+from .data.base import DiffeomorphicManifoldTestData, LevelSetTestData
 from .data.diffeo import DiffeoTestData
 from .data.hypersphere import (
-    CircleAnglesMetricCmpTestData,
     CircleAnglesMetricTestData,
     DistributionTestData,
     Hypersphere2MetricTestData,
     Hypersphere4MetricTestData,
     HypersphereMetricTestData,
     HypersphereRiemannianNormalFrechetMeanTestData,
-    SphereSphericalCoordinatesMetricCmpTestData,
     SphereSphericalCoordinatesMetricTestData,
-    SphereSphericalCoordinatesTestData,
     VonMisesFisherKappaTestData,
     VonMisesFisherTestData,
 )
 from .data.manifold import ManifoldTestData
+from .data.pullback_metric import get_coordinate_pullback_excluded_methods
+from .data.riemannian_metric import CoordinateRiemannianMetricComparisonTestData
 
 
-class TestAngleToExtrinsicDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
-    space = CircleAngles(equip=False)
+class TestAngleToExtrinsicDiffeo(
+    DiffeoTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    domain_space = CircleAngles(equip=False)
     image_space = Hypersphere(1, equip=False)
     diffeo = AngleToExtrinsicDiffeo()
-    testing_data = DiffeoTestData()
+
+    testing_data = DiffeoTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+        map_=diffeo,
+    )
 
 
 class TestSphericalToExtrinsicDiffeo(
-    DiffeoTestCase, metaclass=DataBasedParametrizer
+    DiffeoTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    space = SphereSphericalCoordinates(equip=False)
+    domain_space = SphereSphericalCoordinates(equip=False)
     image_space = Hypersphere(2, equip=False)
     diffeo = SphericalToExtrinsicDiffeo()
-    testing_data = DiffeoTestData()
+
+    testing_data = DiffeoTestData(
+        domain_space=domain_space,
+        image_space=image_space,
+        map_=diffeo,
+    )
 
 
-class TestHypersphere(LevelSetTestCase, metaclass=DataBasedParametrizer):
+class TestHypersphere(LevelSetTestCase, metaclass=GeometricDataBasedParametrizer):
     space = Hypersphere(random.randint(1, 5), equip=False)
-    testing_data = LevelSetTestData()
+    testing_data = LevelSetTestData(space)
 
 
 @pytest.mark.smoke
-class TestHypersphere2Metric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
-):
-    space = space = Hypersphere(2, equip=False)
+class TestHypersphere2Metric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+    space = Hypersphere(2, equip=False)
     space.equip_with_metric(HypersphereMetric)
 
     testing_data = Hypersphere2MetricTestData()
@@ -88,10 +104,8 @@ class TestHypersphere2Metric(
 
 
 @pytest.mark.smoke
-class TestHypersphere4Metric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
-):
-    space = space = Hypersphere(4, equip=False)
+class TestHypersphere4Metric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+    space = Hypersphere(4, equip=False)
     space.equip_with_metric(HypersphereMetric)
 
     testing_data = Hypersphere4MetricTestData()
@@ -105,97 +119,102 @@ class TestHypersphere4Metric(
 
 
 class TestHypersphereMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
     space = Hypersphere(random.randint(2, 5))
-    testing_data = HypersphereMetricTestData()
+    testing_data = HypersphereMetricTestData(space)
 
-    @pytest.mark.random
-    def test_sectional_curvature_is_one(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+    def test_sectional_curvature_is_one(
+        self, base_point, tangent_vec_a, tangent_vec_b, atol=gs.atol
+    ):
+        """Check sectional curvature is one.
 
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim + 1]
+            Point on the hypersphere.
+        tangent_vec_a : array-like, shape=[..., dim + 1]
+            Tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., dim + 1]
+            Tangent vector at base point.
+        atol : float
+            Absolute tolerance.
+        """
         res = self.space.metric.sectional_curvature(
             tangent_vec_a, tangent_vec_b, base_point
         )
-        batch_shape = (n_points,) if n_points > 1 else ()
-        expected = gs.ones(batch_shape)
+        expected = gs.ones(get_batch_shape(self.space.point_ndim, base_point))
 
         self.assertAllClose(res, expected, atol=atol)
 
 
-class TestCircleAngles(ManifoldTestCase, metaclass=DataBasedParametrizer):
+class TestCircleAngles(ManifoldTestCase, metaclass=GeometricDataBasedParametrizer):
     space = CircleAngles(equip=False)
-    testing_data = ManifoldTestData()
+    testing_data = ManifoldTestData(space)
 
 
-class TestCircleAnglesMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+class TestCircleAnglesMetric(
+    CoordinateRiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
     space = CircleAngles()
-    testing_data = CircleAnglesMetricTestData()
+    testing_data = CircleAnglesMetricTestData(
+        space,
+        excluded_methods=("sectional_curvature",),
+    )
 
 
 @pytest.mark.redundant
 class TestCircleAnglesMetricCmp(
-    RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
+    CoordinateRiemannianMetricComparisonTestCase,
+    metaclass=GeometricDataBasedParametrizer,
 ):
     space = CircleAngles()
-    other_space = Hypersphere(1)
-    diffeo = AngleToExtrinsicDiffeo()
-    testing_data = CircleAnglesMetricCmpTestData()
+    other_space = CircleAngles(equip=False).equip_with_metric(
+        CoordinatePullbackDiffeoMetric,
+        diffeo=AngleToExtrinsicDiffeo(),
+        image_space=Hypersphere(1),
+    )
+
+    testing_data = CoordinateRiemannianMetricComparisonTestData(
+        space,
+        excluded_methods=get_coordinate_pullback_excluded_methods()
+        + ("sectional_curvature",),
+    )
 
 
 class TestSphereSphericalCoordinates(
-    DiffeomorphicManifoldTestCase, metaclass=DataBasedParametrizer
+    DiffeomorphicManifoldTestCase, metaclass=GeometricDataBasedParametrizer
 ):
     space = SphereSphericalCoordinates(equip=False)
-    testing_data = SphereSphericalCoordinatesTestData()
+    testing_data = DiffeomorphicManifoldTestData(space)
 
 
 class TestSphereSphericalCoordinatesMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    CoordinateRiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
     space = SphereSphericalCoordinates()
-    testing_data = SphereSphericalCoordinatesMetricTestData()
-
-    def test_riemann_tensor_spherical_coords(self, base_point):
-        """Test the Riemann tensor on the sphere.
-
-        riemann_tensor[...,i,j,k,l] = R_{ijk}^l
-            Riemannian tensor curvature,
-            with the contravariant index on the last dimension.
-
-        Note that the base_point is input in spherical coordinates.
-
-        Expected formulas taken from:
-        https://digitalcommons.latech.edu/cgi/viewcontent.cgi?
-        article=1008&context=mathematics-senior-capstone-papers
-        """
-        riemann_tensor_ijk_l = self.space.metric.riemann_tensor(base_point)
-
-        theta, _ = base_point[0], base_point[1]
-        expected_212_1 = gs.array(gs.sin(theta) ** 2)
-        expected_221_1 = gs.array(-(gs.sin(theta) ** 2))
-        expected_121_2 = gs.array(1.0)
-        expected_112_2 = gs.array(-1.0)
-        result_212_1 = riemann_tensor_ijk_l[1, 0, 1, 0]
-        result_221_1 = riemann_tensor_ijk_l[1, 1, 0, 0]
-        result_121_2 = riemann_tensor_ijk_l[0, 1, 0, 1]
-        result_112_2 = riemann_tensor_ijk_l[0, 0, 1, 1]
-        self.assertAllClose(expected_212_1, result_212_1)
-        self.assertAllClose(expected_221_1, result_221_1)
-        self.assertAllClose(expected_121_2, result_121_2)
-        self.assertAllClose(expected_112_2, result_112_2)
+    testing_data = SphereSphericalCoordinatesMetricTestData(
+        space,
+        excluded_methods=() if autodiff_backend() else ("jacobian_christoffels",),
+    )
 
 
 @pytest.mark.redundant
 class TestSphereSphericalCoordinatesMetricCmp(
-    RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
+    CoordinateRiemannianMetricComparisonTestCase,
+    metaclass=GeometricDataBasedParametrizer,
 ):
     space = SphereSphericalCoordinates()
-    other_space = Hypersphere(2)
-    diffeo = SphericalToExtrinsicDiffeo()
-    testing_data = SphereSphericalCoordinatesMetricCmpTestData()
+    other_space = SphereSphericalCoordinates(equip=False).equip_with_metric(
+        CoordinatePullbackDiffeoMetric,
+        diffeo=SphericalToExtrinsicDiffeo(),
+        image_space=Hypersphere(2),
+    )
+
+    testing_data = CoordinateRiemannianMetricComparisonTestData(
+        space,
+        excluded_methods=get_coordinate_pullback_excluded_methods(),
+    )
 
 
 class TestHypersphereUniform(DistributionTestCase, metaclass=DataBasedParametrizer):
@@ -241,9 +260,7 @@ def von_mises_fisher_kappa_distributions(request):
 
 
 @pytest.mark.usefixtures("von_mises_fisher_kappa_distributions")
-class TestVonMisesFisherKappa(
-    VonMisesFisherTestCase, metaclass=DataBasedParametrizer
-):
+class TestVonMisesFisherKappa(VonMisesFisherTestCase, metaclass=DataBasedParametrizer):
     testing_data = VonMisesFisherKappaTestData()
 
 

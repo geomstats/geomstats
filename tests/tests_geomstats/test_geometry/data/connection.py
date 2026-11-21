@@ -1,138 +1,281 @@
-from geomstats.test.data import TestData
+import pytest
+from polpo.testing.geometric import GeometricCaseData
+
+import geomstats.backend as gs
 
 from .mixins import GeodesicBVPMixinsTestData
 
 
-class ConnectionTestData(GeodesicBVPMixinsTestData, TestData):
+class ConnectionTestData(GeodesicBVPMixinsTestData, GeometricCaseData):
     def exp_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def exp_belongs_test_data(self):
-        return self.generate_random_data()
+        return self.generate_vectorization_data(
+            arg_names=("base_point", "tangent_vec"),
+            on_metric=True,
+        )
 
     def log_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def log_is_tangent_test_data(self):
-        return self.generate_random_data()
-
-    def exp_after_log_test_data(self):
-        return self.generate_random_data()
-
-    def log_after_exp_test_data(self):
-        return self.generate_random_data()
+        return self.generate_vectorization_data(
+            arg_names=("base_point", "point"),
+            near={"point": "base_point"},
+            on_metric=True,
+        )
 
     def geodesic_ivp_vec_test_data(self):
-        return self.generate_vec_data_with_time()
-
-    def geodesic_ivp_belongs_test_data(self):
-        return self.generate_random_data_with_time()
-
-    def exp_geodesic_ivp_test_data(self):
-        return self.generate_random_data()
+        return self.generate_timed_vectorization_data(
+            arg_names=("initial_point", "initial_tangent_vec"),
+            op_name="geodesic",
+            on_metric=True,
+        )
 
     def parallel_transport_ivp_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names=(
+                "base_point",
+                "tangent_vec",
+                "direction",
+            ),
+            op_name="parallel_transport",
+            on_metric=True,
+        )
 
+    @pytest.mark.redundant
     def parallel_transport_bvp_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names=(
+                "base_point",
+                "tangent_vec",
+                "end_point",
+            ),
+            dependencies={"tangent_vec": "base_point"},
+            near={"end_point": "base_point"},
+            op_name="parallel_transport",
+            on_metric=True,
+        )
 
-    def parallel_transport_bvp_transported_is_tangent_test_data(self):
-        return self.generate_random_data()
+    def exp_belongs_test_data(self):
+        return self.generate_random_data(
+            arg_names=("base_point", "tangent_vec"),
+        )
+
+    def log_is_tangent_test_data(self):
+        return self.generate_random_data(
+            arg_names=("base_point", "point"),
+            near={"point": "base_point"},
+        )
+
+    def exp_after_log_test_data(self):
+        return self.generate_random_data(
+            arg_names=("base_point", "point"),
+            near={"point": "base_point"},
+        )
+
+    def log_after_exp_test_data(self):
+        return self.generate_random_data(
+            arg_names=("base_point", "tangent_vec"),
+        )
+
+    def geodesic_ivp_belongs_test_data(self):
+        return self.generate_timed_random_data(
+            arg_names=("initial_point", "initial_tangent_vec")
+        )
+
+    def exp_geodesic_ivp_test_data(self):
+        return self.generate_random_data(
+            arg_names=("base_point", "tangent_vec"),
+        )
 
     def parallel_transport_ivp_transported_is_tangent_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(
+            arg_names=(
+                "base_point",
+                "tangent_vec",
+                "direction",
+            ),
+        )
+
+    def parallel_transport_bvp_transported_is_tangent_test_data(self):
+        return self.generate_random_data(
+            arg_names=(
+                "base_point",
+                "tangent_vec",
+                "end_point",
+            ),
+            dependencies={"tangent_vec": "base_point"},
+            near={"end_point": "base_point"},
+        )
 
 
 class CoordinateConnectionTestData(ConnectionTestData):
     def christoffels_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names="base_point",
+            on_metric=True,
+        )
+
+    def jacobian_christoffels_vec_test_data(self):
+        return self.generate_vectorization_data(
+            arg_names="base_point",
+            on_metric=True,
+        )
 
     def geodesic_equation_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names=("base_point", "tangent_vec"),
+            on_metric=True,
+            vectorization_type="basic",
+            op_evaluator=lambda op, base_point, tangent_vec: op(
+                gs.stack([base_point, tangent_vec], axis=-(self.space.point_ndim + 1))
+            ),
+        )
 
     def riemann_tensor_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names="base_point",
+            on_metric=True,
+        )
 
     def curvature_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names=(
+                "base_point",
+                "tangent_vec_a",
+                "tangent_vec_b",
+                "tangent_vec_c",
+            ),
+            on_metric=True,
+        )
 
     def ricci_tensor_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names="base_point",
+            on_metric=True,
+        )
 
     def directional_curvature_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names=(
+                "base_point",
+                "tangent_vec_a",
+                "tangent_vec_b",
+            ),
+            on_metric=True,
+        )
 
     def curvature_derivative_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names=(
+                "base_point",
+                "tangent_vec_a",
+                "tangent_vec_b",
+                "tangent_vec_c",
+                "tangent_vec_d",
+            ),
+            on_metric=True,
+        )
 
     def directional_curvature_derivative_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names=(
+                "base_point",
+                "tangent_vec_a",
+                "tangent_vec_b",
+            ),
+            on_metric=True,
+        )
 
 
-class ConnectionComparisonTestData(TestData):
-    def exp_random_test_data(self):
-        return self.generate_random_data()
+class ConnectionComparisonTestData(GeometricCaseData):
+    def exp_test_data(self):
+        return self.generate_random_data(
+            arg_names=("base_point", "tangent_vec"),
+        )
 
-    def log_random_test_data(self):
-        return self.generate_random_data()
+    def log_test_data(self):
+        return self.generate_random_data(
+            arg_names=("base_point", "point"),
+            near={"point": "base_point"},
+        )
 
-    def geodesic_bvp_random_test_data(self):
-        return self.generate_random_data_with_time()
+    def geodesic_bvp_test_data(self):
+        return self.generate_timed_random_data(
+            arg_names=("initial_point", "end_point"),
+            near={"end_point": "initial_point"},
+        )
 
-    def geodesic_ivp_random_test_data(self):
-        return self.generate_random_data_with_time()
+    def geodesic_ivp_test_data(self):
+        return self.generate_timed_random_data(
+            arg_names=("initial_point", "initial_tangent_vec")
+        )
 
-    def parallel_transport_ivp_random_test_data(self):
-        return self.generate_random_data()
+    def parallel_transport_ivp_test_data(self):
+        return self.generate_random_data(
+            arg_names=(
+                "base_point",
+                "tangent_vec",
+                "direction",
+            ),
+        )
 
-    def parallel_transport_bvp_random_test_data(self):
-        return self.generate_random_data()
+    def parallel_transport_bvp_test_data(self):
+        return self.generate_random_data(
+            arg_names=(
+                "base_point",
+                "tangent_vec",
+                "end_point",
+            ),
+            dependencies={"tangent_vec": "base_point"},
+            near={"end_point": "base_point"},
+        )
 
 
 class CoordinateConnectionComparisonTestData(ConnectionComparisonTestData):
-    def christoffels_random_test_data(self):
-        return self.generate_random_data()
+    def christoffels_test_data(self):
+        return self.generate_random_data(arg_names="base_point")
 
-    def riemann_tensor_random_test_data(self):
-        return self.generate_random_data()
+    def jacobian_christoffels_test_data(self):
+        return self.generate_random_data(arg_names="base_point")
 
-    def curvature_random_test_data(self):
-        return self.generate_random_data()
+    def riemann_tensor_test_data(self):
+        return self.generate_random_data(arg_names="base_point")
 
-    def ricci_tensor_random_test_data(self):
-        return self.generate_random_data()
+    def curvature_test_data(self):
+        return self.generate_random_data(
+            arg_names=(
+                "base_point",
+                "tangent_vec_a",
+                "tangent_vec_b",
+                "tangent_vec_c",
+            ),
+        )
 
-    def directional_curvature_random_test_data(self):
-        return self.generate_random_data()
+    def ricci_tensor_test_data(self):
+        return self.generate_random_data(arg_names="base_point")
 
-    def curvature_derivative_random_test_data(self):
-        return self.generate_random_data()
+    def directional_curvature_test_data(self):
+        return self.generate_random_data(
+            arg_names=(
+                "base_point",
+                "tangent_vec_a",
+                "tangent_vec_b",
+            ),
+        )
 
-    def directional_curvature_derivative_random_test_data(self):
-        return self.generate_random_data()
+    def curvature_derivative_test_data(self):
+        return self.generate_random_data(
+            arg_names=(
+                "base_point",
+                "tangent_vec_a",
+                "tangent_vec_b",
+                "tangent_vec_c",
+                "tangent_vec_d",
+            ),
+        )
 
-
-class ConnectionCmpWithPointTransformTestData(TestData):
-    def geodesic_bvp_random_test_data(self):
-        return self.generate_random_data_with_time()
-
-
-class ConnectionCmpWithTransformTestData(ConnectionCmpWithPointTransformTestData):
-    def exp_random_test_data(self):
-        return self.generate_random_data()
-
-    def log_random_test_data(self):
-        return self.generate_random_data()
-
-    def curvature_random_test_data(self):
-        return self.generate_random_data()
-
-    def geodesic_ivp_random_test_data(self):
-        return self.generate_random_data_with_time()
-
-    def parallel_transport_ivp_random_test_data(self):
-        return self.generate_random_data()
-
-    def parallel_transport_bvp_random_test_data(self):
-        return self.generate_random_data()
+    def directional_curvature_derivative_test_data(self):
+        return self.generate_random_data(
+            arg_names=(
+                "base_point",
+                "tangent_vec_a",
+                "tangent_vec_b",
+            ),
+        )
