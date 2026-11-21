@@ -12,6 +12,7 @@ from geomstats.test.test_case import (
     TestCase,
     autograd_and_torch_only,
     np_only,
+    torch_only,
 )
 from geomstats.test_cases.backend.autodiff import (
     AutodiffTestCase,
@@ -390,6 +391,19 @@ class TestAutodiffOld(TestCase):
         expected_grad = gs.array([[1.0, 0.0, 0.0], [0.0, 2.0, 0.0]])
         self.assertAllClose(value, gs.array([8.0, 26.0]))
         self.assertAllClose(grad, gs.stack([expected_grad, expected_grad]))
+
+    @torch_only
+    def test_grad_through_scipy_raises(self):
+        """Differentiating a function scipy computes raises, as with PyTorch."""
+        point = gs.array([[2.0, 1.0], [1.0, 2.0]])
+        for func in (
+            lambda x: gs.sum(gs.linalg.sqrtm(x), axis=(-2, -1)),
+            lambda x: gs.sum(
+                gs.linalg.fractional_matrix_power(x, 0.5), axis=(-2, -1)
+            ),
+        ):
+            with pytest.raises(NotImplementedError):
+                gs.autodiff.value_and_grad(func, point_ndims=2)(point)
 
     @autograd_and_torch_only
     def test_grad_of_clip(self):

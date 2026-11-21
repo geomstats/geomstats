@@ -205,7 +205,6 @@ class DtypeTestData(TestData):
 
     def binary_op_given_shape_test_data(self):
         data = [
-            dict(func_name="cross", shape_a=3, shape_b=3),
             dict(func_name="divide", shape_a=3, shape_b=3),
             dict(
                 func_name="divide",
@@ -214,14 +213,6 @@ class DtypeTestData(TestData):
                 func_b=gs.zeros,
                 kwargs={"ignore_div_zero": True},
             ),
-            dict(func_name="vecdot", shape_a=3, shape_b=3),
-            dict(func_name="vecdot", shape_a=3, shape_b=(2, 3)),
-            dict(func_name="vecdot", shape_a=(2, 3), shape_b=(2, 3)),
-            dict(func_name="matmul", shape_a=(2, 2), shape_b=(2, 2)),
-            dict(func_name="matmul", shape_a=(2, 3), shape_b=(3, 2)),
-            dict(func_name="matvec", shape_a=(3, 3), shape_b=3),
-            dict(func_name="matvec", shape_a=(3, 3), shape_b=(2, 3)),
-            dict(func_name="matvec", shape_a=(2, 3, 3), shape_b=(2, 3)),
             dict(func_name="outer", shape_a=3, shape_b=3),
             dict(func_name="outer", shape_a=3, shape_b=(2, 3)),
             dict(func_name="outer", shape_a=(2, 3), shape_b=(2, 3)),

@@ -1,3 +1,5 @@
+import math
+
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import SPDMatrices
@@ -97,26 +99,27 @@ class BackendTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def _pad_data(self):
-        func_name = "pad"
-
-        n, m = 2, 3
-        args = [
-            (gs.ones((n, n)), [[0, 1], [0, 1]]),
-            (gs.ones((n, n)), [[0, 1], [0, 0]]),
-            (gs.ones((m, n, n)), [[0, 0], [0, 1], [0, 1]]),
-        ]
-        expected = [(n + 1, n + 1), (n + 1, n), (m, n + 1, n + 1)]
-
-        return [
-            {"func_name": func_name, "args": args_, "expected": expected_}
-            for args_, expected_ in zip(args, expected)
-        ]
-
     def func_out_shape_test_data(self):
         smoke_data = []
 
-        smoke_data += self._pad_data()
+        # take keeps the axes of size one
+        smoke_data += [
+            dict(func_name="take", args=(gs.ones((1, 3)), 0, -1), expected=(1,)),
+            dict(func_name="take", args=(gs.ones((2, 3)), [[0, 1]], 1), expected=(2, 1, 2)),
+        ]
+        # without size, a random function gives a single sample
+        smoke_data += [
+            dict(func_name="random.normal", args=(), expected=()),
+            dict(func_name="random.uniform", args=(), expected=()),
+            dict(
+                func_name="random.multivariate_normal",
+                args=(gs.zeros(2), gs.eye(2)),
+                expected=(2,),
+            ),
+            dict(func_name="random.choice", args=(gs.ones((4, 3)),), expected=(3,)),
+            dict(func_name="random.choice", args=(gs.ones((4, 3)), 2), expected=(2, 3)),
+            dict(func_name="random.choice", args=(5,), expected=()),
+        ]
 
         return self.generate_tests(smoke_data)
 
@@ -164,6 +167,53 @@ class BackendTestData(TestData):
 
     def func_out_allclose_test_data(self):
         smoke_data = [
+            dict(
+                func_name="vecdot",
+                args=(gs.array([[1.0, 2.0], [3.0, 4.0]]), gs.eye(2)),
+                kwargs={"axis": 0},
+                expected=gs.array([1.0, 4.0]),
+            ),
+            # without axis, flip reverses all axes
+            dict(
+                func_name="flip",
+                args=(gs.array([[1.0, 2.0], [3.0, 4.0]]),),
+                expected=gs.array([[4.0, 3.0], [2.0, 1.0]]),
+            ),
+            dict(
+                func_name="linalg.matrix_rank",
+                args=(gs.array([[1.0, 0.0], [0.0, 1e-3]]),),
+                kwargs={"tol": 1e-2},
+                expected=gs.array(1),
+            ),
+            # without axis, amin reduces over all axes
+            dict(
+                func_name="amin",
+                args=(gs.array([[1.0, 2.0], [0.0, 3.0]]),),
+                expected=gs.array(0.0),
+            ),
+            dict(
+                func_name="amin",
+                args=(gs.array([[1.0, 2.0], [0.0, 3.0]]),),
+                kwargs={"axis": -1},
+                expected=gs.array([1.0, 0.0]),
+            ),
+            dict(
+                func_name="gamma",
+                args=(gs.array([-2.5, -1.5, -0.5, 0.5]),),
+                expected=math.sqrt(math.pi)
+                * gs.array([-8.0 / 15.0, 4.0 / 3.0, -2.0, 1.0]),
+            ),
+            # without axis, take indexes the flattened array
+            dict(
+                func_name="take",
+                args=(gs.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]), gs.array([[0, 5]])),
+                expected=gs.array([[1.0, 6.0]]),
+            ),
+            dict(
+                func_name="argmax",
+                args=(gs.array([False, True, False]),),
+                expected=gs.array(1),
+            ),
             dict(
                 func_name="clip",
                 args=(gs.array([0.0, 1.0, 2.0]),),

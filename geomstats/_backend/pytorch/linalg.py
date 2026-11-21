@@ -16,16 +16,21 @@ from torch.linalg import matrix_exp as expm
 
 from ..numpy import linalg as _gsnplinalg
 from ._common import atol
+from ._common import to_numpy as _to_numpy
 from ._dtype import _cast_out_to_input_dtype
 
 
-def _to_numpy(x):
-    """Convert a tensor to a numpy array, for scipy.
+def _check_no_grad(name, *args):
+    """Raise if gradients are needed through a function computed by scipy.
 
-    Scipy is not given tensors: with ``SCIPY_ARRAY_API=1``, it would run its
-    numpy-based code on them.
+    Scipy is given detached arrays, so that the gradients would be lost.
     """
-    return x.detach().cpu().numpy() if _torch.is_tensor(x) else x
+    if _torch.is_grad_enabled() and any(
+        _torch.is_tensor(arg) and arg.requires_grad for arg in args
+    ):
+        raise NotImplementedError(
+            f"{name} cannot be differentiated with PyTorch: scipy computes it."
+        )
 
 
 class _Logm(_torch.autograd.Function):
@@ -74,6 +79,7 @@ logm = _cast_out_to_input_dtype(_Logm.apply)
 
 
 def sqrtm(x):
+    _check_no_grad("sqrtm", x)
     np_sqrtm = _scipy.linalg.sqrtm(_to_numpy(x))
     if np_sqrtm.dtype.kind == "c":
         np_sqrtm = np_sqrtm.astype(f"complex{int(np_sqrtm.dtype.name[7:]) // 2}")
@@ -130,8 +136,26 @@ def matrix_norm(x, keepdims=False, ord="fro"):
     return _torch.linalg.matrix_norm(x, ord=ord, keepdim=keepdims)
 
 
-def matrix_rank(a, hermitian=False, **_unused_kwargs):
-    return _torch.linalg.matrix_rank(a, hermitian=hermitian)
+def matrix_rank(a, tol=None, hermitian=False):
+    """Compute the rank of matrices.
+
+    Parameters
+    ----------
+    a : array-like, shape=[..., m, n]
+        Matrix.
+    tol : float
+        Threshold below which singular values are considered zero. By
+        default, the largest singular value times the largest dimension
+        times the machine precision.
+    hermitian : bool
+        Whether the matrices are hermitian.
+
+    Returns
+    -------
+    rank : array-like, shape=[...]
+        Rank.
+    """
+    return _torch.linalg.matrix_rank(a, atol=tol, hermitian=hermitian)
 
 
 def quadratic_assignment(a, b, options=None):
@@ -249,15 +273,9 @@ def solve_sylvester(a, b, q, tol=atol):
 @_cast_out_to_input_dtype
 def fractional_matrix_power(A, t):
     """Compute the fractional power of a matrix."""
+    _check_no_grad("fractional_matrix_power", A, t)
     out = _scipy.linalg.fractional_matrix_power(_to_numpy(A), t)
     return _torch.from_numpy(out)
-
-
-def polar(*args, **kwargs):
-    """Polar decomposition of a matrix."""
-    args = [_to_numpy(arg) for arg in args]
-    unitary, hermitian = _scipy.linalg.polar(*args, **kwargs)
-    return _torch.from_numpy(unitary), _torch.from_numpy(hermitian)
 
 
 def solve(a, b):

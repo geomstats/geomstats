@@ -728,8 +728,8 @@ class _ZimmermannLogSolver(LogSolver):
         Raises
         ------
         ValueError
-            If the maximum absolute imaginary component of the returned
-            matrix logarithm is at least self.imag_tol.
+            If the maximum absolute imaginary component of the matrix
+            logarithm of an iterate is at least self.imag_tol.
 
         Warns
         -----
@@ -741,6 +741,13 @@ class _ZimmermannLogSolver(LogSolver):
 
         for _ in range(self.max_iter):
             matrix_lv = gs.linalg.logm(matrix_v)
+            if gs.is_complex(matrix_lv):
+                max_imag = gs.amax(gs.abs(gs.imag(matrix_lv)))
+                if max_imag >= self.imag_tol:
+                    raise ValueError(
+                        f"Non-negligible imaginary part. max is {max_imag}"
+                    )
+                matrix_lv = gs.real(matrix_lv)
 
             matrix_c = _lower_right_block(matrix_lv, p)
             norm_matrix_c = gs.linalg.vector_norm(matrix_c)
@@ -753,13 +760,6 @@ class _ZimmermannLogSolver(LogSolver):
 
         else:
             warnings.warn("`log` hasn't converged.")
-
-        if gs.is_complex(matrix_lv):
-            max_imag = gs.amax(gs.abs(gs.imag(matrix_lv)))
-            if max_imag < self.imag_tol:
-                matrix_lv = gs.real(matrix_lv)
-            else:
-                raise ValueError(f"Non-neglible imaginary part. max is {max_imag}")
 
         return matrix_lv
 

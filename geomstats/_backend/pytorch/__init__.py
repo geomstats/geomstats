@@ -25,16 +25,13 @@ from torch import (
     int32,
     int64,
     isnan,
-    kron,
     less,
     logical_or,
-    median,
     meshgrid,
     moveaxis,
     ones,
     ones_like,
     polygamma,
-    quantile,
     reshape,
     scatter_add,
     searchsorted,
@@ -54,7 +51,7 @@ from . import (
     linalg,  # NOQA
     random,  # NOQA
 )
-from ._common import array, atol, cast, from_numpy, rtol
+from ._common import array, atol, cast, from_numpy, rtol, to_numpy
 from ._dtype import (
     _add_default_dtype_by_casting,
     _box_binary_scalar,
@@ -68,16 +65,6 @@ from ._dtype import (
     is_floating,
     set_default_dtype,
 )
-
-_DTYPES = {
-    int32: 0,
-    int64: 1,
-    float32: 2,
-    float64: 3,
-    complex64: 4,
-    complex128: 5,
-}
-
 
 abs = _box_unary_scalar(target=_torch.abs)
 angle = _box_unary_scalar(target=_torch.angle)
@@ -123,31 +110,13 @@ def matmul(x, y, out=None):
         if array_.ndim == 1:
             raise ValueError("ndims must be >=2")
 
-    x, y = convert_to_wider_dtype([x, y])
     return _torch.matmul(x, y, out=out)
-
-
-def to_numpy(x):
-    return x.numpy()
 
 
 def argmax(a, **kwargs):
     if a.dtype == _torch.bool:
-        return _torch.as_tensor(_np.argmax(a.data.numpy(), **kwargs))
+        a = a.to(_torch.uint8)
     return _torch.argmax(a, **kwargs)
-
-
-def convert_to_wider_dtype(tensor_list):
-    dtype_list = [_DTYPES.get(x.dtype, -1) for x in tensor_list]
-    if len(set(dtype_list)) == 1:
-        return tensor_list
-
-    wider_dtype_index = max(dtype_list)
-
-    wider_dtype = list(_DTYPES.keys())[wider_dtype_index]
-
-    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
-    return tensor_list
 
 
 def less_equal(x, y, **kwargs):
@@ -173,28 +142,18 @@ def split(x, indices_or_sections, axis=0):
 
 def logical_and(x, y):
     if _torch.is_tensor(x) or _torch.is_tensor(y):
-        return x * y
+        return _torch.logical_and(_torch.as_tensor(x), _torch.as_tensor(y))
     return x and y
 
 
 def any(x, axis=None):
-    if not _torch.is_tensor(x):
-        x = _torch.tensor(x)
+    x = _torch.as_tensor(x).bool()
     if axis is None:
         return _torch.any(x)
-    if isinstance(axis, int):
-        return _torch.any(x.bool(), axis)
-    if len(axis) == 1:
-        return _torch.any(x, *axis)
-    axis = list(axis)
-    for i_axis, one_axis in enumerate(axis):
-        if one_axis < 0:
-            axis[i_axis] = ndim(x) + one_axis
-    new_axis = tuple(k - 1 if k >= 0 else k for k in axis[1:])
-    return any(_torch.any(x.bool(), axis[0]), new_axis)
+    return _torch.any(x, dim=axis)
 
 
-def flip(x, axis):
+def flip(x, axis=None):
     if isinstance(axis, int):
         axis = [axis]
     if axis is None:
@@ -203,25 +162,14 @@ def flip(x, axis):
 
 
 def concatenate(seq, axis=0, out=None):
-    seq = convert_to_wider_dtype(seq)
     return _torch.cat(seq, dim=axis, out=out)
 
 
 def all(x, axis=None):
-    if not _torch.is_tensor(x):
-        x = _torch.tensor(x)
+    x = _torch.as_tensor(x).bool()
     if axis is None:
-        return x.bool().all()
-    if isinstance(axis, int):
-        return _torch.all(x.bool(), axis)
-    if len(axis) == 1:
-        return _torch.all(x, *axis)
-    axis = list(axis)
-    for i_axis, one_axis in enumerate(axis):
-        if one_axis < 0:
-            axis[i_axis] = ndim(x) + one_axis
-    new_axis = tuple(k - 1 if k >= 0 else k for k in axis[1:])
-    return all(_torch.all(x.bool(), axis[0]), new_axis)
+        return _torch.all(x)
+    return _torch.all(x, dim=axis)
 
 
 def allclose(a, b, atol=atol, rtol=rtol):
@@ -242,7 +190,7 @@ def shape(val):
 def amax(a, axis=None):
     if axis is None:
         return _torch.max(array(a))
-    return _torch.max(array(a), dim=axis).values
+    return _torch.amax(array(a), dim=axis)
 
 
 def maximum(a, b):
@@ -309,8 +257,6 @@ def sum(x, axis=None, keepdims=None, dtype=None):
 
 def einsum(equation, *inputs):
     input_tensors_list = [arg if is_array(arg) else array(arg) for arg in inputs]
-    input_tensors_list = convert_to_wider_dtype(input_tensors_list)
-
     return _torch.einsum(equation, *input_tensors_list)
 
 
@@ -469,7 +415,7 @@ def diagonal(x, offset=0):
 
 def prod(x, axis=None):
     if axis is None:
-        axis = 0
+        return _torch.prod(x)
     return _torch.prod(x, axis)
 
 
@@ -483,7 +429,6 @@ def where(condition, x=None, y=None):
         x = _torch.tensor(x)
     if not _torch.is_tensor(y):
         y = _torch.tensor(y)
-    y = cast(y, x.dtype)
     return _torch.where(condition, x, y)
 
 
@@ -501,7 +446,7 @@ def cumsum(x, axis=None, dtype=None):
 
 def cumprod(x, axis=None, dtype=None):
     if axis is None:
-        axis = 0
+        return x.flatten().cumprod(dim=0, dtype=dtype)
     return _torch.cumprod(x, axis, dtype=dtype)
 
 
@@ -674,49 +619,43 @@ def divide(a, b, ignore_div_zero=False):
     return _torch.nan_to_num(quo, nan=0.0, posinf=0.0, neginf=0.0)
 
 
-def ravel_multi_index(multi_index, dims):
-    """Torch equivalent of np.ravel_multi_index(..., order='C').
-
-    Parameters
-    ----------
-    multi_index : tuple[torch.Tensor]
-        Coordinate tensors, e.g. (rows, cols).
-    dims : tuple[int]
-        Shape of the target array.
-
-    Returns
-    -------
-    flat_indices : torch.Tensor
-        Indices into the flattened array.
-    """
-    if len(multi_index) != len(dims):
-        raise ValueError("multi_index and dims must have the same length.")
-
-    flat_index = _torch.zeros_like(multi_index[0])
-    stride = 1
-
-    for idx, dim in zip(reversed(multi_index), reversed(dims)):
-        flat_index = flat_index + idx * stride
-        stride *= dim
-
-    return flat_index
-
-
 def sort(a, axis=-1):
     sorted_a, _ = _torch.sort(a, dim=axis)
     return sorted_a
 
 
-def amin(a, axis=-1):
-    (values, _) = _torch.min(a, dim=axis)
-    return values
+def amin(a, axis=None):
+    if axis is None:
+        return _torch.min(array(a))
+    return _torch.amin(array(a), dim=axis)
 
 
-def take(a, indices, axis=0):
-    if not _torch.is_tensor(indices):
-        indices = _torch.as_tensor(indices)
+def take(a, indices, axis=None):
+    """Take elements of an array along an axis, as ``np.take``.
 
-    return _torch.squeeze(_torch.index_select(a, axis, indices))
+    Parameters
+    ----------
+    a : array-like
+        Array.
+    indices : array-like or int
+        Indices of the elements to take.
+    axis : int
+        Axis along which to take the elements. If None, the array is
+        flattened first.
+
+    Returns
+    -------
+    out : array-like, shape=[*a.shape[:axis], *indices.shape, *a.shape[axis + 1:]]
+        Elements of the array.
+    """
+    indices = _torch.as_tensor(indices, device=a.device)
+    if axis is None:
+        a = _torch.reshape(a, (-1,))
+        axis = 0
+    axis = axis % a.ndim
+
+    out = _torch.index_select(a, axis, _torch.reshape(indices, (-1,)))
+    return _torch.reshape(out, a.shape[:axis] + indices.shape + a.shape[axis + 1 :])
 
 
 def _unnest_iterable(ls):
@@ -728,12 +667,6 @@ def _unnest_iterable(ls):
         out.append(ls)
 
     return out
-
-
-def pad(a, pad_width, mode="constant", constant_values=0.0):
-    return _torch.nn.functional.pad(
-        a, _unnest_iterable(reversed(pad_width)), mode=mode, value=constant_values
-    )
 
 
 def is_array(x):
@@ -773,15 +706,13 @@ def matvec(A, b):
     Ab : array-like, shape=[..., n]
         Matrix-vector product.
     """
-    A, b = convert_to_wider_dtype([A, b])
-
     if b.ndim == 1:
         return _torch.matmul(A, b)
 
     return _torch.matmul(A, b[..., None])[..., 0]
 
 
-def vecdot(a, b):
+def vecdot(a, b, axis=-1):
     """Compute the dot product of vectors, conjugating the first one.
 
     Parameters
@@ -790,24 +721,42 @@ def vecdot(a, b):
         Vector.
     b : array-like, shape=[..., n]
         Vector.
+    axis : int
+        Axis of the vectors.
 
     Returns
     -------
     vecdot_ab : array-like, shape=[...,]
         Dot product.
     """
-    a, b = convert_to_wider_dtype([a, b])
-    return _torch.linalg.vecdot(a, b)
+    return _torch.linalg.vecdot(a, b, dim=axis)
 
 
 def cross(a, b):
     if a.shape != b.shape:
         a, b = broadcast_arrays(a, b)
-    return _torch.cross(*convert_to_wider_dtype([a, b]), dim=-1)
+    return _torch.cross(a, b, dim=-1)
 
 
 def gamma(a):
-    return _torch.exp(_gammaln(a))
+    """Compute the gamma function.
+
+    PyTorch has no gamma function, so that it is the exponential of
+    ``gammaln``, the logarithm of its absolute value, negated where it is
+    negative, i.e. for negative inputs with an odd floor.
+
+    Parameters
+    ----------
+    a : array-like
+        Input.
+
+    Returns
+    -------
+    gamma_a : array-like
+        Gamma function at the input.
+    """
+    out = _torch.exp(_gammaln(a))
+    return _torch.where((a < 0) & (_torch.floor(a) % 2 == 1), -out, out)
 
 
 def imag(a):
