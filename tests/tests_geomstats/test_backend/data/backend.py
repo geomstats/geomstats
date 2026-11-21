@@ -1,3 +1,5 @@
+import math
+
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import SPDMatrices
@@ -194,6 +196,12 @@ class BackendTestData(TestData):
                 args=(gs.array([[1.0, 2.0], [0.0, 3.0]]),),
                 kwargs={"axis": -1},
                 expected=gs.array([1.0, 0.0]),
+            ),
+            dict(
+                func_name="gamma",
+                args=(gs.array([-2.5, -1.5, -0.5, 0.5]),),
+                expected=math.sqrt(math.pi)
+                * gs.array([-8.0 / 15.0, 4.0 / 3.0, -2.0, 1.0]),
             ),
             # without axis, take indexes the flattened array
             dict(

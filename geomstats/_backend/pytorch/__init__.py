@@ -739,7 +739,24 @@ def cross(a, b):
 
 
 def gamma(a):
-    return _torch.exp(_gammaln(a))
+    """Compute the gamma function.
+
+    PyTorch has no gamma function, so that it is the exponential of
+    ``gammaln``, the logarithm of its absolute value, negated where it is
+    negative, i.e. for negative inputs with an odd floor.
+
+    Parameters
+    ----------
+    a : array-like
+        Input.
+
+    Returns
+    -------
+    gamma_a : array-like
+        Gamma function at the input.
+    """
+    out = _torch.exp(_gammaln(a))
+    return _torch.where((a < 0) & (_torch.floor(a) % 2 == 1), -out, out)
 
 
 def imag(a):
