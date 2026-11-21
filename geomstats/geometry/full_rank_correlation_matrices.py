@@ -950,12 +950,12 @@ class OffLogDiffeo(Diffeo):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Image tangent vector at image point.
         image_point : array-like, shape=[..., n, n]
             Image point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
 
         Returns
         -------
@@ -1162,7 +1162,7 @@ class SPDScalingFinder:
 
         Parameters
         ----------
-        sym_mat : array-like, shape=[..., n, n]
+        spd_matrix : array-like, shape=[..., n, n]
             Symmetric positive-definite matrix.
 
         Returns
