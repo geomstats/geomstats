@@ -248,30 +248,6 @@ def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     return _np.vectorize(pyfunc, signature=signature)(x)
 
 
-def set_diag(x, new_diag):
-    """Set the diagonal along the last two axis.
-
-    Parameters
-    ----------
-    x : array-like, shape=[dim]
-        Initial array.
-    new_diag : array-like, shape=[dim[-2]]
-        Values to set on the diagonal.
-
-    Returns
-    -------
-    None
-
-    Notes
-    -----
-    This mimics tensorflow.linalg.set_diag(x, new_diag), when new_diag is a
-    1-D array, but modifies x instead of creating a copy.
-    """
-    arr_shape = x.shape
-    x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
-    return x
-
-
 def array_from_sparse(indices, data, target_shape):
     """Create an array of given shape, with values at specific indices.
 
@@ -297,10 +273,31 @@ def array_from_sparse(indices, data, target_shape):
     return out
 
 
-def vec_to_diag(vec):
-    """Convert vector to diagonal matrix."""
-    d = vec.shape[-1]
-    return vec[..., None] * eye(d, dtype=vec.dtype)
+def diag_embed(vec, offset=0):
+    """Embed vectors as a diagonal of matrices, over the last two axes.
+
+    It is the inverse of ``diagonal``, for the same offset.
+
+    Parameters
+    ----------
+    vec : array-like, shape=[..., n]
+        Vector.
+    offset : int
+        Offset of the diagonal from the main diagonal.
+
+    Returns
+    -------
+    mat : array-like, shape=[..., n + |offset|, n + |offset|]
+        Matrix, with the vector as its diagonal and zeros elsewhere.
+    """
+    n = vec.shape[-1]
+    if offset == 0:
+        return vec[..., None] * eye(n, dtype=vec.dtype)
+
+    size = n + abs(offset)
+    rows = eye(n, size, k=max(-offset, 0), dtype=vec.dtype)
+    cols = eye(n, size, k=max(offset, 0), dtype=vec.dtype)
+    return _np.matmul(_np.matrix_transpose(rows) * vec[..., None, :], cols)
 
 
 def tril_to_vec(x, k=0):

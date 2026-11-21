@@ -979,7 +979,7 @@ class OffLogDiffeo(Diffeo):
                 e,
             ),
         )
-        return gs.vec_to_diag(-vec), mat
+        return gs.diag_embed(-vec), mat
 
     def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         r"""Inverse tangent diffeomorphism at image point.
@@ -1135,7 +1135,7 @@ class SPDScalingFinder:
         -------
         hessian : array-like, shape=[..., n, n]
         """
-        return spd_matrix + gs.vec_to_diag(1.0 / diag_vec**2)
+        return spd_matrix + gs.diag_embed(1.0 / diag_vec**2)
 
     def _call_single(self, spd_matrix):
         """Apply root finder to find scaling.
@@ -1275,7 +1275,7 @@ class LogScalingDiffeo(Diffeo):
         delta = Matrices.diagonal(base_point_row_1) ** 0.5
         aux = FullRankCorrelationMatrices.diag_action(delta, tangent_vec)
         eye = gs.eye(base_point_row_1.shape[-1])
-        tangent_vec_row_1_0 = -2 * gs.vec_to_diag(
+        tangent_vec_row_1_0 = -2 * gs.diag_embed(
             gs.sum(
                 gs.matmul(
                     gs.linalg.inv(eye + base_point_row_1),

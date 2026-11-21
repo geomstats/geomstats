@@ -140,7 +140,7 @@ class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
         """
         vec_diag = gs.abs(Matrices.diagonal(point))
         vec_diag = gs.where(vec_diag < gs.atol, gs.atol, vec_diag)
-        diag = gs.vec_to_diag(vec_diag)
+        diag = gs.diag_embed(vec_diag)
         strictly_lower_triangular = gs.tril(point, k=-1)
         return diag + strictly_lower_triangular
 
@@ -256,7 +256,7 @@ class CholeskyMetric(RiemannianMetric):
         diag_product_expm = gs.exp(gs.divide(diag_tangent_vec, diag_base_point))
 
         sl_exp = sl_base_point + sl_tangent_vec
-        diag_exp = gs.vec_to_diag(diag_base_point * diag_product_expm)
+        diag_exp = gs.diag_embed(diag_base_point * diag_product_expm)
         return sl_exp + diag_exp
 
     def log(self, point, base_point):
@@ -285,7 +285,7 @@ class CholeskyMetric(RiemannianMetric):
         diag_product_logm = gs.log(gs.divide(diag_point, diag_base_point))
 
         sl_log = sl_point - sl_base_point
-        diag_log = gs.vec_to_diag(diag_base_point * diag_product_logm)
+        diag_log = gs.diag_embed(diag_base_point * diag_product_logm)
         return sl_log + diag_log
 
     def parallel_transport(
@@ -329,7 +329,7 @@ class CholeskyMetric(RiemannianMetric):
         diag_ratio = Matrices.diagonal(end_point) / Matrices.diagonal(base_point)
         sl_tangent_vec = Matrices.to_strictly_lower_triangular(tangent_vec)
         diag_tangent_vec = Matrices.diagonal(tangent_vec)
-        return sl_tangent_vec + gs.vec_to_diag(diag_ratio * diag_tangent_vec)
+        return sl_tangent_vec + gs.diag_embed(diag_ratio * diag_tangent_vec)
 
     def injectivity_radius(self, base_point=None):
         """Radius of the largest ball where the exponential is injective.
@@ -694,7 +694,7 @@ class PLTUnitDiagMatrices(LevelSet):
             Projected point.
         """
         proj_point = self.embedding_space.projection(point)
-        return proj_point + gs.vec_to_diag(
+        return proj_point + gs.diag_embed(
             1 - gs.diagonal(proj_point, axis1=-2, axis2=-1)
         )
 
@@ -717,7 +717,7 @@ class PLTUnitDiagMatrices(LevelSet):
             Tangent vector at base point.
         """
         tangent_vec = self.embedding_space.to_tangent(vector, base_point)
-        return tangent_vec - gs.vec_to_diag(
+        return tangent_vec - gs.diag_embed(
             gs.diagonal(tangent_vec, axis1=-2, axis2=-1)
         )
 
