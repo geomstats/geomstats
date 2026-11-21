@@ -11,7 +11,6 @@ from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.test_case import (
     TestCase,
     autograd_and_torch_only,
-    autograd_only,
     np_only,
 )
 from geomstats.test_cases.backend.autodiff import (
@@ -375,7 +374,7 @@ class TestAutodiffOld(TestCase):
         expected = -(eye[None, :, :, None] + eye[:, None, None, :]) / 2
         self.assertAllClose(hessian, expected)
 
-    @autograd_only
+    @autograd_and_torch_only
     def test_grad_of_solve_sylvester(self):
         """Gradients go through the solution of the Sylvester equation.
 
