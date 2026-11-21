@@ -195,11 +195,10 @@ class HilbertSphereMetric(RiemannianMetric):
             of tangent_vec at the base point.
         """
         proj_tangent_vec = self._space._sinf.to_tangent(tangent_vec, base_point)
-        norm = self._space._sinf.metric.norm(proj_tangent_vec)
+        norm2 = self._space._sinf.metric.squared_norm(proj_tangent_vec)
 
-        norm = gs.clip(norm, -gs.pi, gs.pi)
-        coef_1 = utils.taylor_exp_even_func(norm, utils.cos_close_0, order=4)
-        coef_2 = utils.taylor_exp_even_func(norm, utils.sinc_close_0, order=4)
+        coef_1 = utils.taylor_exp_even_func(norm2, utils.cos_close_0, order=4)
+        coef_2 = utils.taylor_exp_even_func(norm2, utils.sinc_close_0, order=4)
         exp = scalarvecmul(coef_1, base_point) + scalarvecmul(coef_2, proj_tangent_vec)
 
         return exp
@@ -222,11 +221,11 @@ class HilbertSphereMetric(RiemannianMetric):
         """
         inner_prod = self.inner_product(base_point, point)
         cos_angle = gs.clip(inner_prod, -1.0, 1.0)
-        theta = gs.arccos(cos_angle)
-        coef_1_ = utils.taylor_exp_even_func(theta, utils.inv_sinc_close_0, order=5)
-        coef_2_ = utils.taylor_exp_even_func(theta, utils.inv_tanc_close_0, order=5)
-        log = scalarvecmul(theta * coef_1_, point) - scalarvecmul(
-            theta * coef_2_, base_point
+        squared_angle = gs.arccos(cos_angle) ** 2
+        coef_1 = utils.taylor_exp_even_func(
+            squared_angle, utils.inv_sinc_close_0, order=5
         )
-
-        return log
+        coef_2 = utils.taylor_exp_even_func(
+            squared_angle, utils.inv_tanc_close_0, order=5
+        )
+        return scalarvecmul(coef_1, point) - scalarvecmul(coef_2, base_point)
