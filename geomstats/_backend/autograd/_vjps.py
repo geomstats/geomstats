@@ -7,6 +7,7 @@ from autograd.extend import defvjp as _defvjp
 from autograd.extend import defvjp_argnums as _defvjp_argnums
 from autograd.numpy.numpy_vjps import unbroadcast_f as _unbroadcast_f
 from autograd.scipy.linalg import expm as _expm
+from autograd.scipy.linalg import sqrtm as _sqrtm
 
 from ._common import _scatter_add
 from .linalg import logm as _logm
@@ -115,6 +116,16 @@ def _solve_sylvester_vjp(argnums, ans, args, kwargs):
     return vjp
 
 
+def _sqrtm_vjp(ans, x, *args, **kwargs):
+    """Get the VJP of the matrix square root.
+
+    If ``S`` is the square root of ``A``, ``S dS + dS S = dA``, so that the
+    VJP is the ``Y`` solving ``S^T Y + Y S^T = g``.
+    """
+    transposed_ans = _np.matrix_transpose(ans)
+    return lambda g: _solve_sylvester(transposed_ans, transposed_ans, g)
+
+
 def _matrix_function_vjp(_ans, x, fn):
     """Get the VJP of a matrix function.
 
@@ -148,5 +159,6 @@ _defvjp(_np.linalg.trace, _trace_vjp)
 _defvjp(_np.linalg.diagonal, _diagonal_vjp)
 _defvjp(_scatter_add, _scatter_add_vjp_input, None, None, _scatter_add_vjp_src)
 _defvjp(_expm, _functools.partial(_matrix_function_vjp, fn=_expm))
+_defvjp(_sqrtm, _sqrtm_vjp)
 _defvjp(_logm, _functools.partial(_matrix_function_vjp, fn=_logm))
 _defvjp_argnums(_solve_sylvester, _solve_sylvester_vjp)
