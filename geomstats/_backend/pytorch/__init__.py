@@ -503,12 +503,6 @@ def array_from_sparse(indices, data, target_shape):
     ).to_dense()
 
 
-def vectorize(x, pyfunc, multiple_args=False, **kwargs):
-    if multiple_args:
-        return stack(list(map(lambda y: pyfunc(*y), zip(*x))))
-    return stack(list(map(pyfunc, x)))
-
-
 def diag_embed(vec, offset=0):
     """Embed vectors as a diagonal of matrices, over the last two axes.
 
