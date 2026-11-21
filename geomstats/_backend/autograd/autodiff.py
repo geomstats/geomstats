@@ -37,7 +37,7 @@ def _matrix_transpose_vjp(ans, x):
 # autograd does not define the VJPs of these NumPy functions
 _autograd.extend.defvjp(_np.matrix_transpose, _matrix_transpose_vjp)
 _autograd.extend.defvjp(_np.matvec, _matvec_vjp_mat, _matvec_vjp_vec)
-_autograd.extend.defvjp(_np.vecdot, _vecdot_vjp_a, _vecdot_vjp_b)
+_autograd.extend.defvjp(_np.linalg.vecdot, _vecdot_vjp_a, _vecdot_vjp_b)
 
 
 def _broadcast_to_batch(inputs, point_ndims):

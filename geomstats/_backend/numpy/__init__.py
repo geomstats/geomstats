@@ -103,6 +103,7 @@ from numpy import (
     where,
     zeros_like,
 )
+from numpy.linalg import vecdot
 from scipy.special import erf, gamma, polygamma  # NOQA
 
 from . import (
@@ -320,29 +321,6 @@ def outer(a, b):
         Outer product.
     """
     return a[..., :, None] * b[..., None, :]
-
-
-def dot(a, b):
-    """Compute the dot product of vectors.
-
-    The product is bilinear: no argument is conjugated.
-
-    Parameters
-    ----------
-    a : array-like, shape=[..., n]
-        Vector.
-    b : array-like, shape=[..., n]
-        Vector.
-
-    Returns
-    -------
-    dot_ab : array-like, shape=[...,]
-        Dot product.
-    """
-    # vecdot conjugates its first argument
-    if _np.iscomplexobj(a):
-        a = _np.conj(a)
-    return _np.vecdot(a, b)
 
 
 def trace(a):

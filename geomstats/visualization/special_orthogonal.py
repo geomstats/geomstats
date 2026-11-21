@@ -112,9 +112,9 @@ def convert_to_trihedron(point, space=None):
 
     trihedrons = []
     for i in range(n_points):
-        trihedron_vec_1 = gs.dot(rot_mat[i], basis_vec_1)
-        trihedron_vec_2 = gs.dot(rot_mat[i], basis_vec_2)
-        trihedron_vec_3 = gs.dot(rot_mat[i], basis_vec_3)
+        trihedron_vec_1 = gs.matvec(rot_mat[i], basis_vec_1)
+        trihedron_vec_2 = gs.matvec(rot_mat[i], basis_vec_2)
+        trihedron_vec_3 = gs.matvec(rot_mat[i], basis_vec_3)
         trihedron = Trihedron(
             translation[i], trihedron_vec_1, trihedron_vec_2, trihedron_vec_3
         )

@@ -458,7 +458,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         def _make_b(i, matrix, columns_list):
             return gs.array(
-                [-gs.dot(matrix[i, : j + 1], columns_list[j]) for j in range(i)] + [1.0]
+                [-gs.vecdot(matrix[i, : j + 1], columns_list[j]) for j in range(i)]
+                + [1.0]
             )
 
         n = matrix_m.shape[-1]

@@ -95,7 +95,7 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
                 (x.shape[0],), batch_shape, x, inv_cov
             )
 
-            aux = gs.exp(-0.5 * gs.dot(x_, gs.matvec(inv_cov_, x_)))
+            aux = gs.exp(-0.5 * gs.vecdot(x_, gs.matvec(inv_cov_, x_)))
             return scalarvecmul(pdf_normalization, aux)
 
         return pdf

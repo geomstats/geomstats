@@ -100,6 +100,7 @@ from autograd.numpy import (
     vstack,
     zeros_like,
 )
+from autograd.numpy.linalg import vecdot
 
 try:
     from autograd.numpy import trapezoid
@@ -355,29 +356,6 @@ def matmul(*args, **kwargs):
         if arg.ndim == 1:
             raise ValueError("ndims must be >=2")
     return _np.matmul(*args, **kwargs)
-
-
-def dot(a, b):
-    """Compute the dot product of vectors.
-
-    The product is bilinear: no argument is conjugated.
-
-    Parameters
-    ----------
-    a : array-like, shape=[..., n]
-        Vector.
-    b : array-like, shape=[..., n]
-        Vector.
-
-    Returns
-    -------
-    dot_ab : array-like, shape=[...,]
-        Dot product.
-    """
-    # vecdot conjugates its first argument
-    if _np.iscomplexobj(a):
-        a = _np.conj(a)
-    return _np.vecdot(a, b)
 
 
 def trace(a):
