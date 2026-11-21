@@ -78,13 +78,50 @@ class _Logm(_torch.autograd.Function):
 logm = _cast_out_to_input_dtype(_Logm.apply)
 
 
-def sqrtm(x):
-    _check_no_grad("sqrtm", x)
-    np_sqrtm = _scipy.linalg.sqrtm(_to_numpy(x))
-    if np_sqrtm.dtype.kind == "c":
-        np_sqrtm = np_sqrtm.astype(f"complex{int(np_sqrtm.dtype.name[7:]) // 2}")
+@_cast_out_to_input_dtype
+def _sqrtm(x):
+    """Compute the matrix square root with scipy, without gradients."""
+    return _torch.from_numpy(_scipy.linalg.sqrtm(_to_numpy(x))).to(x.device)
 
-    return _torch.from_numpy(np_sqrtm)
+
+class _Sqrtm(_torch.autograd.Function):
+    """Torch autograd function for the matrix square root."""
+
+    @staticmethod
+    def forward(ctx, x):
+        """Compute the matrix square root."""
+        sqrt = _sqrtm(x)
+        ctx.save_for_backward(sqrt)
+        return sqrt
+
+    @staticmethod
+    def backward(ctx, grad):
+        """Run gradients backward.
+
+        If ``S`` is the square root of ``A``, ``S dS + dS S = dA``, so that
+        the gradient with respect to ``A`` is the ``Y`` solving
+        ``S^H Y + Y S^H = g``. It goes through ``_SolveSylvester.apply``, so
+        that it can itself be differentiated.
+        """
+        (sqrt,) = ctx.saved_tensors
+        sqrt_H = sqrt.mT.conj()
+        return _SolveSylvester.apply(sqrt_H, sqrt_H, grad, atol)
+
+
+def sqrtm(x):
+    """Compute the matrix square root.
+
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, n]
+        Matrix.
+
+    Returns
+    -------
+    sqrt : array-like, shape=[..., n, n]
+        Matrix square root.
+    """
+    return _Sqrtm.apply(x)
 
 
 def svd(x, full_matrices=True, compute_uv=True):

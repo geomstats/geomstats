@@ -12,6 +12,7 @@ from geomstats.test.test_case import (
     TestCase,
     autograd_and_torch_only,
     np_only,
+    pytorch_backend,
     torch_only,
 )
 from geomstats.test_cases.backend.autodiff import (
@@ -396,14 +397,44 @@ class TestAutodiffOld(TestCase):
     def test_grad_through_scipy_raises(self):
         """Differentiating a function scipy computes raises, as with PyTorch."""
         point = gs.array([[2.0, 1.0], [1.0, 2.0]])
-        for func in (
-            lambda x: gs.sum(gs.linalg.sqrtm(x), axis=(-2, -1)),
-            lambda x: gs.sum(
-                gs.linalg.fractional_matrix_power(x, 0.5), axis=(-2, -1)
-            ),
-        ):
-            with pytest.raises(NotImplementedError):
-                gs.autodiff.value_and_grad(func, point_ndims=2)(point)
+
+        def fractional_matrix_power_sum(x):
+            return gs.sum(gs.linalg.fractional_matrix_power(x, 0.5), axis=(-2, -1))
+
+        with pytest.raises(NotImplementedError):
+            gs.autodiff.value_and_grad(fractional_matrix_power_sum, point_ndims=2)(
+                point
+            )
+
+    @autograd_and_torch_only
+    def test_grad_of_sqrtm(self):
+        """Gradients go through the matrix square root.
+
+        With S the square root of x, the gradient of sum(S) solves
+        S^T Y + Y S^T = 1. The square root of diag(-4, -9) is diag(2i, 3i),
+        and the gradient of the real part is imaginary, with a sign depending
+        on the complex convention.
+        """
+
+        def sqrtm_sum(x):
+            return gs.sum(gs.linalg.sqrtm(x), axis=(-2, -1))
+
+        def real_sqrtm_sum(x):
+            return gs.real(sqrtm_sum(x))
+
+        expected_grad = gs.array([[1.0 / 4.0, 1.0 / 5.0], [1.0 / 5.0, 1.0 / 6.0]])
+
+        value, grad = gs.autodiff.value_and_grad(sqrtm_sum, point_ndims=2)(
+            gs.array([[4.0, 0.0], [0.0, 9.0]])
+        )
+        self.assertAllClose(value, gs.array(5.0))
+        self.assertAllClose(grad, expected_grad)
+
+        value, grad = gs.autodiff.value_and_grad(real_sqrtm_sum, point_ndims=2)(
+            gs.array([[-4.0, 0.0], [0.0, -9.0]], dtype=gs.get_default_cdtype())
+        )
+        self.assertAllClose(value, gs.array(0.0))
+        self.assertAllClose(grad, (1j if pytorch_backend() else -1j) * expected_grad)
 
     @autograd_and_torch_only
     def test_grad_of_clip(self):
