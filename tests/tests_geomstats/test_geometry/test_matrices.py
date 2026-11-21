@@ -170,3 +170,16 @@ class TestMatricesDiagMetric(MatricesMetricTestCase, metaclass=DataBasedParametr
     _n = random.randint(2, 5)
     space = Matrices(m=_m, n=_n, equip=False).equip_with_metric(MatricesDiagMetric)
     testing_data = MatricesMetricTestData()
+
+    def test_flat_and_sharp(self):
+        """Check flat weights by the coefficients, and sharp inverts it."""
+        tangent_vec_a, tangent_vec_b = self.space.random_point(2)
+        metric = self.space.metric
+
+        cotangent_vec = metric.flat(tangent_vec_a)
+        self.assertAllClose(cotangent_vec, metric.metric_coeffs * tangent_vec_a)
+        self.assertAllClose(metric.sharp(cotangent_vec), tangent_vec_a)
+        self.assertAllClose(
+            gs.sum(cotangent_vec * tangent_vec_b, axis=(-2, -1)),
+            metric.inner_product(tangent_vec_a, tangent_vec_b),
+        )
