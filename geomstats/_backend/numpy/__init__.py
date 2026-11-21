@@ -91,6 +91,7 @@ from numpy import (
     tan,
     tanh,
     tile,
+    trapezoid,
     tril,
     tril_indices,
     triu,
@@ -129,11 +130,6 @@ from ._dtype import (
     is_floating,
     set_default_dtype,
 )
-
-try:
-    from numpy import trapezoid
-except ImportError:
-    from numpy import trapz as trapezoid
 
 
 def has_autodiff():

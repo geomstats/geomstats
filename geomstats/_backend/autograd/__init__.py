@@ -89,6 +89,7 @@ from autograd.numpy import (
     tan,
     tanh,
     tile,
+    trapezoid,
     tril,
     tril_indices,
     triu,
@@ -99,14 +100,7 @@ from autograd.numpy import (
     zeros_like,
 )
 from autograd.numpy.linalg import diagonal, vecdot
-
-try:
-    from autograd.numpy import trapezoid
-except ImportError:
-    from autograd.numpy import trapz as trapezoid
-
 from autograd.scipy.special import erf, gamma, polygamma  # NOQA
-
 
 from . import (
     _vjps,  # NOQA
