@@ -117,6 +117,19 @@ class BackendTestData(TestData):
         smoke_data = []
 
         smoke_data += self._pad_data()
+        # without size, a random function gives a single sample
+        smoke_data += [
+            dict(func_name="random.normal", args=(), expected=()),
+            dict(func_name="random.uniform", args=(), expected=()),
+            dict(
+                func_name="random.multivariate_normal",
+                args=(gs.zeros(2), gs.eye(2)),
+                expected=(2,),
+            ),
+            dict(func_name="random.choice", args=(gs.ones((4, 3)),), expected=(3,)),
+            dict(func_name="random.choice", args=(gs.ones((4, 3)), 2), expected=(2, 3)),
+            dict(func_name="random.choice", args=(5,), expected=()),
+        ]
 
         return self.generate_tests(smoke_data)
 

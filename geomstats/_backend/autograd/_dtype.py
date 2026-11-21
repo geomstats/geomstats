@@ -9,6 +9,8 @@ _COMPLEX_DTYPES = [
 
 
 def cast(x, dtype):
+    if not hasattr(x, "astype"):
+        x = _np.asarray(x)
     return x.astype(dtype)
 
 

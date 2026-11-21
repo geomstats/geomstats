@@ -681,7 +681,7 @@ class SturmsMean(BaseEstimator):
         return X[k % len(X)]
 
     def _sample_next_stochastic(self, X, weights, k):
-        return gs.random.choice(X, 1, p=weights)[0]
+        return X[gs.random.choice(len(X), p=weights)]
 
     def _step_length_cyclic(self, weights, k):
         n_weights = len(weights)
