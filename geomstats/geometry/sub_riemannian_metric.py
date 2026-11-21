@@ -342,8 +342,8 @@ class SubRiemannianMetric:
                 "Specify an initial cotangent vector to define the geodesic."
             )
 
-        initial_point = gs.to_ndarray(initial_point, to_ndim=2)
-        initial_cotangent_vec = gs.to_ndarray(initial_cotangent_vec, to_ndim=2)
+        initial_point = gs.expand_dims_to(initial_point, ndim=2)
+        initial_cotangent_vec = gs.expand_dims_to(initial_cotangent_vec, ndim=2)
 
         n_initial_conditions = initial_cotangent_vec.shape[0]
 
@@ -358,7 +358,7 @@ class SubRiemannianMetric:
             t : array-like, shape=[n_points,]
                 Times at which to compute points of the geodesics.
             """
-            t = gs.to_ndarray(t, to_ndim=1, dtype=initial_cotangent_vec.dtype)
+            t = gs.expand_dims_to(gs.array(t, dtype=initial_cotangent_vec.dtype), ndim=1)
 
             cotangent_vecs = gs.einsum("i,...k->...ik", t, initial_cotangent_vec)
 

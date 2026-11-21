@@ -1543,7 +1543,7 @@ class _SphereVonMisesFisher(_VonMisesFisherBase):
         """
         kappa = self.kappa
         angle = 2.0 * gs.pi * gs.random.rand(n_samples)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
+        angle = gs.expand_dims(angle, axis=-1)
 
         unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
         scalar = gs.random.rand(n_samples)
@@ -1551,7 +1551,7 @@ class _SphereVonMisesFisher(_VonMisesFisherBase):
         coord_x = 1.0 + 1.0 / kappa * gs.log(
             scalar + (1.0 - scalar) * gs.exp(gs.array(-2.0 * kappa))
         )
-        coord_x = gs.to_ndarray(coord_x, to_ndim=2, axis=1)
+        coord_x = gs.expand_dims(coord_x, axis=-1)
         coord_yz = gs.sqrt(1.0 - coord_x**2) * unit_vector
         return gs.hstack((coord_x, coord_yz))
 

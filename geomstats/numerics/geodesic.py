@@ -159,7 +159,7 @@ class ExpODESolver(ExpSolver):
             """
             if not gs.is_array(t):
                 t = gs.array(t)
-            t = gs.to_ndarray(t, to_ndim=1)
+            t = gs.expand_dims_to(t, ndim=1)
 
             result = self._solve(tangent_vec, base_point, t_eval=t)
             return self._simplify_result_t(result)
@@ -641,7 +641,7 @@ class LogODESolver(_LogBatchMixins, LogSolver):
             """
             if not gs.is_array(t):
                 t = gs.array(t)
-            t = gs.to_ndarray(t, to_ndim=1)
+            t = gs.expand_dims_to(t, ndim=1)
 
             if not is_batch:
                 return self._simplify_result_t(result.sol(t))

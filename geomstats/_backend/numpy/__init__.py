@@ -113,10 +113,10 @@ from . import (
 from ._common import (
     array,
     atol,
+    expand_dims_to,
     eye,
     is_array,
     rtol,
-    to_ndarray,
     zeros,
 )
 from ._dtype import (

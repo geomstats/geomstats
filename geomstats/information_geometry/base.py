@@ -150,9 +150,9 @@ class ScipyMultivariateRandomVariable(ScipyRandomVariable):
     """A multivariate random variable."""
 
     def _rvs_single(self, point, n_samples):
-        return gs.to_ndarray(
-            self.scp_rvs(point, size=n_samples),
-            to_ndim=len(self.space.support_shape) + 1,
+        return gs.expand_dims_to(
+            gs.array(self.scp_rvs(point, size=n_samples)),
+            ndim=len(self.space.support_shape) + 1,
         )
 
     def rvs(self, point, n_samples=1):

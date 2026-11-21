@@ -57,7 +57,7 @@ def plot_and_save_video(
     ax = fig.add_subplot(111, projection="3d")
     sphere = visualization.Sphere()
     sphere.plot_heatmap(ax, loss)
-    points = gs.to_ndarray(geodesics[0], to_ndim=2)
+    points = gs.expand_dims_to(geodesics[0], ndim=2)
     sphere.add_points(points)
     sphere.draw(ax, color=color, marker=".")
 
@@ -65,7 +65,7 @@ def plot_and_save_video(
     writer = FFMpegWriter(fps=fps)
     with writer.saving(fig, out, dpi=dpi):
         for points in geodesics[1:]:
-            points = gs.to_ndarray(points, to_ndim=2)
+            points = gs.expand_dims_to(points, ndim=2)
             sphere.draw_points(ax, points=points, color=color, marker=".")
             writer.grab_frame()
 

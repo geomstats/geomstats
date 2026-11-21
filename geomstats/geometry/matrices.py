@@ -966,7 +966,7 @@ class MatricesEuclideanMetric(FlatMixin, RiemannianMetric):
             t : array-like, shape=[n_points,]
                 Times at which to compute points of the geodesics.
             """
-            t = gs.to_ndarray(t, to_ndim=1, dtype=initial_tangent_vec.dtype)
+            t = gs.expand_dims_to(gs.array(t, dtype=initial_tangent_vec.dtype), ndim=1)
             tangent_vecs = gs.einsum(f"n,...{ijk}->...n{ijk}", t, initial_tangent_vec)
             return initial_point + tangent_vecs
 

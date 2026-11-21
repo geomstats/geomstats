@@ -162,8 +162,18 @@ class BackendTestData(TestData):
         return data
 
     def func_out_allclose_test_data(self):
-        # TODO: verify dtype
         smoke_data = [
+            dict(
+                func_name="expand_dims_to",
+                args=(gs.array([1.0, 2.0]), 2),
+                expected=gs.array([[1.0, 2.0]]),
+            ),
+            dict(
+                func_name="expand_dims_to",
+                args=(gs.array([1.0, 2.0]), 2),
+                kwargs={"axis": -1},
+                expected=gs.array([[1.0], [2.0]]),
+            ),
             dict(
                 func_name="trace",
                 args=(gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]),),
