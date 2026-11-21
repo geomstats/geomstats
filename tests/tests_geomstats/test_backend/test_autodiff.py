@@ -341,3 +341,31 @@ class TestAutodiffOld(TestCase):
         self.assertAllClose(third_derivative.shape, (2, 2, 2))
         self.assertAllClose(third_derivative[..., 0], expected_d_theta)
         self.assertAllClose(third_derivative[..., 1], expected_d_phi)
+
+    @autograd_and_torch_only
+    def test_hessian_of_expm(self):
+        """Second derivatives go through the matrix exponential.
+
+        Around 0, sum(expm(x)) is sum(x @ x) / 2 at second order.
+        """
+        hessian = gs.autodiff.hessian(
+            lambda x: gs.sum(gs.linalg.expm(x), axis=(-2, -1)), point_ndim=2
+        )(gs.zeros((2, 2)))
+
+        eye = gs.eye(2)
+        expected = (eye[None, :, :, None] + eye[:, None, None, :]) / 2
+        self.assertAllClose(hessian, expected)
+
+    @autograd_and_torch_only
+    def test_hessian_of_logm(self):
+        """Second derivatives go through the matrix logarithm.
+
+        Around the identity, sum(logm(eye + x)) is -sum(x @ x) / 2 at second order.
+        """
+        hessian = gs.autodiff.hessian(
+            lambda x: gs.sum(gs.linalg.logm(x), axis=(-2, -1)), point_ndim=2
+        )(gs.eye(2))
+
+        eye = gs.eye(2)
+        expected = -(eye[None, :, :, None] + eye[:, None, None, :]) / 2
+        self.assertAllClose(hessian, expected)
