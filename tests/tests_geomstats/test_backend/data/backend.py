@@ -117,6 +117,11 @@ class BackendTestData(TestData):
         smoke_data = []
 
         smoke_data += self._pad_data()
+        # take keeps the axes of size one
+        smoke_data += [
+            dict(func_name="take", args=(gs.ones((1, 3)), 0, -1), expected=(1,)),
+            dict(func_name="take", args=(gs.ones((2, 3)), [[0, 1]], 1), expected=(2, 1, 2)),
+        ]
         # without size, a random function gives a single sample
         smoke_data += [
             dict(func_name="random.normal", args=(), expected=()),
@@ -177,6 +182,29 @@ class BackendTestData(TestData):
 
     def func_out_allclose_test_data(self):
         smoke_data = [
+            # without axis, amin reduces over all axes
+            dict(
+                func_name="amin",
+                args=(gs.array([[1.0, 2.0], [0.0, 3.0]]),),
+                expected=gs.array(0.0),
+            ),
+            dict(
+                func_name="amin",
+                args=(gs.array([[1.0, 2.0], [0.0, 3.0]]),),
+                kwargs={"axis": -1},
+                expected=gs.array([1.0, 0.0]),
+            ),
+            # without axis, take indexes the flattened array
+            dict(
+                func_name="take",
+                args=(gs.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]), gs.array([[0, 5]])),
+                expected=gs.array([[1.0, 6.0]]),
+            ),
+            dict(
+                func_name="argmax",
+                args=(gs.array([False, True, False]),),
+                expected=gs.array(1),
+            ),
             dict(
                 func_name="clip",
                 args=(gs.array([0.0, 1.0, 2.0]),),

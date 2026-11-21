@@ -133,7 +133,7 @@ def to_numpy(x):
 
 def argmax(a, **kwargs):
     if a.dtype == _torch.bool:
-        return _torch.as_tensor(_np.argmax(a.data.numpy(), **kwargs))
+        a = a.to(_torch.uint8)
     return _torch.argmax(a, **kwargs)
 
 
@@ -707,16 +707,38 @@ def sort(a, axis=-1):
     return sorted_a
 
 
-def amin(a, axis=-1):
-    (values, _) = _torch.min(a, dim=axis)
-    return values
+def amin(a, axis=None):
+    if axis is None:
+        return _torch.min(array(a))
+    return _torch.amin(array(a), dim=axis)
 
 
-def take(a, indices, axis=0):
-    if not _torch.is_tensor(indices):
-        indices = _torch.as_tensor(indices)
+def take(a, indices, axis=None):
+    """Take elements of an array along an axis, as ``np.take``.
 
-    return _torch.squeeze(_torch.index_select(a, axis, indices))
+    Parameters
+    ----------
+    a : array-like
+        Array.
+    indices : array-like or int
+        Indices of the elements to take.
+    axis : int
+        Axis along which to take the elements. If None, the array is
+        flattened first.
+
+    Returns
+    -------
+    out : array-like, shape=[*a.shape[:axis], *indices.shape, *a.shape[axis + 1:]]
+        Elements of the array.
+    """
+    indices = _torch.as_tensor(indices, device=a.device)
+    if axis is None:
+        a = _torch.reshape(a, (-1,))
+        axis = 0
+    axis = axis % a.ndim
+
+    out = _torch.index_select(a, axis, _torch.reshape(indices, (-1,)))
+    return _torch.reshape(out, a.shape[:axis] + indices.shape + a.shape[axis + 1 :])
 
 
 def _unnest_iterable(ls):
