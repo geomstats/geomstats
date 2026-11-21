@@ -268,7 +268,7 @@ class CanonicalEuclideanMetric(EuclideanMetric):
         sq_norm : array-like, shape=[...,]
             Squared norm.
         """
-        sq_norm = gs.linalg.norm(vector, axis=-1) ** 2
+        sq_norm = gs.linalg.vector_norm(vector, axis=-1) ** 2
         return repeat_out(self._space.point_ndim, sq_norm, vector, base_point)
 
     def norm(self, vector, base_point=None):
@@ -293,7 +293,7 @@ class CanonicalEuclideanMetric(EuclideanMetric):
         norm : array-like, shape=[...,]
             Norm.
         """
-        norm = gs.linalg.norm(vector, axis=-1)
+        norm = gs.linalg.vector_norm(vector, axis=-1)
         return repeat_out(self._space.point_ndim, norm, vector, base_point)
 
     def flat(self, tangent_vec, base_point=None):

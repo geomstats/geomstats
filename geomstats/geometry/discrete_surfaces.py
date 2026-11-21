@@ -238,9 +238,9 @@ class DiscreteSurfaces(Manifold):
             Triangle area of each face.
         """
         vertex_0, vertex_1, vertex_2 = self._vertices(point)
-        len_edge_12 = gs.linalg.norm((vertex_1 - vertex_2), axis=-1)
-        len_edge_02 = gs.linalg.norm((vertex_0 - vertex_2), axis=-1)
-        len_edge_01 = gs.linalg.norm((vertex_0 - vertex_1), axis=-1)
+        len_edge_12 = gs.linalg.vector_norm((vertex_1 - vertex_2), axis=-1)
+        len_edge_02 = gs.linalg.vector_norm((vertex_0 - vertex_2), axis=-1)
+        len_edge_01 = gs.linalg.vector_norm((vertex_0 - vertex_1), axis=-1)
         half_perimeter = 0.5 * (len_edge_12 + len_edge_02 + len_edge_01)
         return gs.sqrt(
             (
@@ -416,9 +416,9 @@ class DiscreteSurfaces(Manifold):
         """
         n_vertices, n_faces = point.shape[-2], self.faces.shape[0]
         vertex_0, vertex_1, vertex_2 = self._vertices(point)
-        len_edge_12 = gs.linalg.norm((vertex_1 - vertex_2), axis=-1)
-        len_edge_02 = gs.linalg.norm((vertex_0 - vertex_2), axis=-1)
-        len_edge_01 = gs.linalg.norm((vertex_0 - vertex_1), axis=-1)
+        len_edge_12 = gs.linalg.vector_norm((vertex_1 - vertex_2), axis=-1)
+        len_edge_02 = gs.linalg.vector_norm((vertex_0 - vertex_2), axis=-1)
+        len_edge_01 = gs.linalg.vector_norm((vertex_0 - vertex_1), axis=-1)
 
         half_perimeter = 0.5 * (len_edge_12 + len_edge_02 + len_edge_01)
         area = gs.sqrt(

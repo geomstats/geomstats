@@ -807,7 +807,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         transform : array-like, shape=[..., 3, 3]
         Matrix to be applied to the translation part in log
         """
-        angle = gs.linalg.norm(rot_vec, axis=-1)
+        angle = gs.linalg.vector_norm(rot_vec, axis=-1)
 
         skew_mat = self.rotations.skew.matrix_representation(rot_vec)
         sq_skew_mat = gs.matmul(skew_mat, skew_mat)

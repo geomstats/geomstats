@@ -712,7 +712,7 @@ class UniqueDiagonalMatrixAlgorithm:
 
     def _check_convergence(self, new_matrix, matrix):
         mat_diff = new_matrix - matrix
-        return gs.linalg.norm(mat_diff, axis=(-2, -1)) < self.atol
+        return gs.linalg.matrix_norm(mat_diff) < self.atol
 
     def _call_single(self, sym_mat):
         r"""Find unique diagonal matrix corresponding to a full-rank correlation matrix.

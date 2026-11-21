@@ -132,7 +132,7 @@ class HermitianMetric(ComplexRiemannianMetric):
         norm : array-like, shape=[...,]
             Norm.
         """
-        return gs.linalg.norm(vector, axis=-1)
+        return gs.linalg.vector_norm(vector, axis=-1)
 
     @staticmethod
     def exp(tangent_vec, base_point):

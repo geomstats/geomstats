@@ -34,10 +34,36 @@ def _matrix_transpose_vjp(ans, x):
     return lambda g: _np.matrix_transpose(g)
 
 
+def _vector_norm_vjp(ans, x, axis=None, keepdims=False, ord=2):
+    """Get the VJP of the vector norm, for a finite order greater than one."""
+    if not 1 < ord < float("inf"):
+        raise NotImplementedError(f"VJP of vector_norm not implemented for ord={ord}")
+
+    def expand(a):
+        return a if keepdims or axis is None else _np.expand_dims(a, axis)
+
+    return lambda g: (
+        expand(g) * _np.conj(x) * _np.abs(x) ** (ord - 2) / expand(ans) ** (ord - 1)
+    )
+
+
+def _matrix_norm_vjp(ans, x, keepdims=False, ord="fro"):
+    """Get the VJP of the Frobenius matrix norm."""
+    if ord != "fro":
+        raise NotImplementedError(f"VJP of matrix_norm not implemented for ord={ord}")
+
+    def expand(a):
+        return a if keepdims else a[..., None, None]
+
+    return lambda g: expand(g) * _np.conj(x) / expand(ans)
+
+
 # autograd does not define the VJPs of these NumPy functions
 _autograd.extend.defvjp(_np.matrix_transpose, _matrix_transpose_vjp)
 _autograd.extend.defvjp(_np.matvec, _matvec_vjp_mat, _matvec_vjp_vec)
 _autograd.extend.defvjp(_np.linalg.vecdot, _vecdot_vjp_a, _vecdot_vjp_b)
+_autograd.extend.defvjp(_np.linalg.vector_norm, _vector_norm_vjp)
+_autograd.extend.defvjp(_np.linalg.matrix_norm, _matrix_norm_vjp)
 
 
 def _broadcast_to_batch(inputs, point_ndims):

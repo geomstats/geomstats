@@ -337,7 +337,7 @@ class Hypersphere(LevelSet):
         projected_point : array-like, shape=[..., dim + 1]
             Point projected on the hypersphere.
         """
-        norm = gs.linalg.norm(point, axis=-1)
+        norm = gs.linalg.vector_norm(point, axis=-1)
         return scalarvecmul(1.0 / norm, point)
 
     def to_tangent(self, vector, base_point):
@@ -648,7 +648,7 @@ class HypersphereMetric(RiemannianMetric):
                     "Either an end_point or a tangent_vec_b must be given to define the"
                     " geodesic along which to transport."
                 )
-        theta = gs.linalg.norm(direction, axis=-1)
+        theta = gs.linalg.vector_norm(direction, axis=-1)
         eps = gs.where(theta == 0.0, 1.0, theta)
         normalized_b = scalarvecmul(1 / eps, direction)
         pb = gs.vecdot(tangent_vec, normalized_b)
@@ -1370,7 +1370,7 @@ class HypersphereUniform(Distribution):
 
         samples = gs.random.normal(size=size)
         while True:
-            norms = gs.linalg.norm(samples, axis=1)
+            norms = gs.linalg.vector_norm(samples, axis=1)
             mask = gs.isclose(norms, 0.0, atol=gs.atol)
             num_bad_samples = gs.sum(mask)
             if num_bad_samples == 0:

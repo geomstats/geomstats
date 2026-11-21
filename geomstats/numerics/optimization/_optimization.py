@@ -106,7 +106,7 @@ class NewtonMethod(RootFinder):
         status = 1
         for it in range(self.max_iter):
             fun_xk = fun(xk)
-            if gs.linalg.norm(fun_xk) <= self.atol:
+            if gs.linalg.vector_norm(fun_xk) <= self.atol:
                 break
 
             y = gs.linalg.solve(fun_jac(xk), fun_xk)

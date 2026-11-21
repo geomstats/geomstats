@@ -80,8 +80,46 @@ def svd(x, full_matrices=True, compute_uv=True):
     return _torch.linalg.svdvals(x)
 
 
-def norm(x, ord=None, axis=None, keepdims=False):
-    return _torch.linalg.norm(x, ord=ord, dim=axis, keepdim=keepdims)
+def vector_norm(x, axis=None, keepdims=False, ord=2):
+    """Compute the vector norm.
+
+    Parameters
+    ----------
+    x : array-like
+        Array.
+    axis : int or tuple[int] or None
+        Axes over which to compute the norm. If None, all of them.
+    keepdims : bool
+        Whether to keep the reduced axes.
+    ord : int or float
+        Order of the norm.
+
+    Returns
+    -------
+    norm : array-like
+        Norm.
+    """
+    return _torch.linalg.vector_norm(x, ord=ord, dim=axis, keepdim=keepdims)
+
+
+def matrix_norm(x, keepdims=False, ord="fro"):
+    """Compute the matrix norm, over the last two axes.
+
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, m]
+        Matrix.
+    keepdims : bool
+        Whether to keep the reduced axes.
+    ord : str or int or float
+        Order of the norm.
+
+    Returns
+    -------
+    norm : array-like, shape=[...]
+        Norm.
+    """
+    return _torch.linalg.matrix_norm(x, ord=ord, keepdim=keepdims)
 
 
 def matrix_rank(a, hermitian=False, **_unused_kwargs):

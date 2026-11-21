@@ -155,7 +155,8 @@ class DtypeTestData(TestData):
             dict(func_name="triu_to_vec", array_shape=(2, 2)),
             dict(func_name="vec_to_diag", array_shape=3),
             # TODO: add test in BackendsTestData
-            dict(func_name="linalg.norm", array_shape=3),
+            dict(func_name="linalg.vector_norm", array_shape=3),
+            dict(func_name="linalg.matrix_norm", array_shape=(2, 2)),
         ]
 
         return self.generate_tests(data)

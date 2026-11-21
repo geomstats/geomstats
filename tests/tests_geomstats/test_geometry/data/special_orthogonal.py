@@ -186,7 +186,7 @@ class SpecialOrthogonalMatrices3TestData(TestData):
 
     def matrix_from_rotation_vector_test_data(self):
         rot_vec_3 = 1e-11 * gs.array([12.0, 1.0, -81.0])
-        angle = gs.linalg.norm(rot_vec_3)
+        angle = gs.linalg.vector_norm(rot_vec_3)
         skew_rot_vec_3 = 1e-11 * gs.array(
             [[0.0, 81.0, 1.0], [-81.0, 0.0, -12.0], [-1.0, 12.0, 0.0]]
         )
@@ -199,7 +199,7 @@ class SpecialOrthogonalMatrices3TestData(TestData):
         )
 
         rot_vec_4 = gs.array([0.1, 1.3, -0.5])
-        angle = gs.linalg.norm(rot_vec_4)
+        angle = gs.linalg.vector_norm(rot_vec_4)
         skew_rot_vec_4 = gs.array(
             [[0.0, 0.5, 1.3], [-0.5, 0.0, -0.1], [-1.3, 0.1, 0.0]]
         )
@@ -581,7 +581,7 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
         smoke_data = []
         for angle_type in elements:
             point = elements[angle_type]
-            angle = gs.linalg.norm(space.regularize(point))
+            angle = gs.linalg.vector_norm(space.regularize(point))
             if angle_type in [
                 "angle_0",
                 "angle_close_0",
@@ -610,12 +610,12 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
                 )
             ]
         point = self.elements["angle_close_pi_high"]
-        norm = gs.linalg.norm(point)
+        norm = gs.linalg.vector_norm(point)
         smoke_data += [dict(point=point, expected=point / norm * (norm - 2 * gs.pi))]
 
         for angle_type in ["angle_in_pi_2pi", "angle_close_2pi_low"]:
             point = self.elements[angle_type]
-            angle = gs.linalg.norm(point)
+            angle = gs.linalg.vector_norm(point)
             new_angle = gs.pi - (angle - gs.pi)
 
             point_initial = point
@@ -629,7 +629,7 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
             )
         ]
         point = self.elements["angle_close_2pi_high"]
-        angle = gs.linalg.norm(point)
+        angle = gs.linalg.vector_norm(point)
         new_angle = angle - 2 * gs.pi
         expected = new_angle * point / angle
         smoke_data += [dict(point=point, expected=expected)]
@@ -640,7 +640,9 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
             [[1.0, 0.0, 0.0], [2, 0.5, 0.0], [0.0, 0.0, 0.0], [0.5, 0.0, 0.0]]
         )
         expected_2 = (
-            point[1] / gs.linalg.norm(point[1]) * (gs.linalg.norm(point[1]) - 2 * gs.pi)
+            point[1]
+            / gs.linalg.vector_norm(point[1])
+            * (gs.linalg.vector_norm(point[1]) - 2 * gs.pi)
         )
         expected = gs.array(
             [
