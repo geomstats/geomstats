@@ -186,11 +186,12 @@ def _solve_sylvester(a, b, q, tol):
     if (
         a.shape == b.shape
         and _torch.all(_torch.abs(a - b) < tol)
-        and _torch.all(_torch.abs(a - a.mT) < tol)
+        and _torch.all(_torch.abs(a - a.mT.conj()) < tol)
     ):
         eigvals, eigvecs = eigh(a)
         if _torch.all(eigvals > -tol):
-            tilde_q = eigvecs.mT @ q @ eigvecs
+            eigvecs_H = eigvecs.mT.conj()
+            tilde_q = eigvecs_H @ q @ eigvecs
             denom = eigvals[..., :, None] + eigvals[..., None, :]
             is_zero = _torch.abs(denom) <= tol
             tilde_x = _torch.where(
@@ -198,7 +199,7 @@ def _solve_sylvester(a, b, q, tol):
                 _torch.zeros_like(tilde_q),
                 tilde_q / _torch.where(is_zero, _torch.ones_like(denom), denom),
             )
-            return eigvecs @ tilde_x @ eigvecs.mT
+            return eigvecs @ tilde_x @ eigvecs_H
 
     solution = _scipy.linalg.solve_sylvester(_to_numpy(a), _to_numpy(b), _to_numpy(q))
     return _torch.from_numpy(solution).to(q.device)
@@ -246,7 +247,7 @@ class _SolveSylvester(_torch.autograd.Function):
 def solve_sylvester(a, b, q, tol=atol):
     """Solve the Sylvester equation ``A X + X B = Q``.
 
-    If ``A`` and ``B`` are the same symmetric positive semidefinite matrix,
+    If ``A`` and ``B`` are the same Hermitian positive semidefinite matrix,
     the equation is solved in the eigenbasis of ``A``. The entries whose
     eigenvalue sum vanishes are set to zero, which gives the minimum-norm
     solution. Otherwise, scipy is used, matrix by matrix.
@@ -260,7 +261,7 @@ def solve_sylvester(a, b, q, tol=atol):
     q : array-like, shape=[..., m, n]
         Right-hand side, ``Q``.
     tol : float
-        Tolerance on equality, symmetry and eigenvalues.
+        Tolerance on equality, Hermitianity and eigenvalues.
 
     Returns
     -------

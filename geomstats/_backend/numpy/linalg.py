@@ -70,7 +70,7 @@ def logm(x):
 def solve_sylvester(a, b, q, tol=atol):
     """Solve the Sylvester equation ``A X + X B = Q``.
 
-    If ``A`` and ``B`` are the same symmetric positive semidefinite matrix,
+    If ``A`` and ``B`` are the same Hermitian positive semidefinite matrix,
     the equation is solved in the eigenbasis of ``A``. The entries whose
     eigenvalue sum vanishes are set to zero, which gives the minimum-norm
     solution. Otherwise, scipy is used, matrix by matrix.
@@ -84,7 +84,7 @@ def solve_sylvester(a, b, q, tol=atol):
     q : array-like, shape=[..., m, n]
         Right-hand side, ``Q``.
     tol : float
-        Tolerance on equality, symmetry and eigenvalues.
+        Tolerance on equality, Hermitianity and eigenvalues.
 
     Returns
     -------
@@ -94,17 +94,18 @@ def solve_sylvester(a, b, q, tol=atol):
     if (
         a.shape == b.shape
         and _np.allclose(a, b, atol=tol)
-        and _np.all(_np.abs(a - _np.matrix_transpose(a)) < tol)
+        and _np.all(_np.abs(a - _np.conj(_np.matrix_transpose(a))) < tol)
     ):
         eigvals, eigvecs = _np.linalg.eigh(a)
         if _np.all(eigvals > -tol):
-            tilde_q = _np.matrix_transpose(eigvecs) @ q @ eigvecs
+            eigvecs_H = _np.conj(_np.matrix_transpose(eigvecs))
+            tilde_q = eigvecs_H @ q @ eigvecs
             denom = eigvals[..., :, None] + eigvals[..., None, :]
             is_zero = _np.abs(denom) <= tol
             tilde_x = _np.where(
                 is_zero, 0.0, tilde_q / _np.where(is_zero, 1.0, denom)
             )
-            return eigvecs @ tilde_x @ _np.matrix_transpose(eigvecs)
+            return eigvecs @ tilde_x @ eigvecs_H
 
     return _scipy.linalg.solve_sylvester(a, b, q)
 
