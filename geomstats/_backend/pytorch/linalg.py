@@ -48,18 +48,26 @@ class _Logm(_torch.autograd.Function):
 
     @staticmethod
     def backward(ctx, grad):
-        """Run gradients backward."""
+        """Run gradients backward.
+
+        The gradient is the upper right block of ``logm([[x^H, g], [0, x^H]])``.
+        The block matrix is built with differentiable operations, and the
+        logarithm goes through ``_Logm.apply``, so that the gradient can itself
+        be differentiated.
+        """
         (tensor,) = ctx.saved_tensors
 
         tensor_H = tensor.mT.conj().to(grad.dtype)
         n = tensor.size(-1)
-        bshape = tensor.shape[:-2] + (2 * n, 2 * n)
-        backward_tensor = _torch.zeros(*bshape, dtype=grad.dtype, device=grad.device)
-        backward_tensor[..., :n, :n] = tensor_H
-        backward_tensor[..., n:, n:] = tensor_H
-        backward_tensor[..., :n, n:] = grad
+        backward_tensor = _torch.cat(
+            [
+                _torch.cat([tensor_H, grad], dim=-1),
+                _torch.cat([_torch.zeros_like(tensor_H), tensor_H], dim=-1),
+            ],
+            dim=-2,
+        )
 
-        return _Logm._logm(backward_tensor).to(tensor.dtype)[..., :n, n:]
+        return _Logm.apply(backward_tensor).to(tensor.dtype)[..., :n, n:]
 
 
 logm = _cast_out_to_input_dtype(_Logm.apply)

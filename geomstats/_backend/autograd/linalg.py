@@ -27,15 +27,24 @@ from ._common import atol
 
 
 def _adjoint(_ans, x, fn):
+    """Get the VJP of a matrix function.
+
+    The VJP is the upper right block of ``fn([[x^T, g], [0, x^T]])``. The block
+    matrix is built with differentiable operations, so that the VJP can itself
+    be differentiated.
+    """
     transposed_x = _np.matrix_transpose(x)
+    zeros = _np.zeros_like(transposed_x)
+    n = x.shape[-1]
 
     def vjp(g):
-        n = x.shape[-1]
-        size_m = x.shape[:-2] + (2 * n, 2 * n)
-        mat = _np.zeros(size_m)
-        mat[..., :n, :n] = transposed_x
-        mat[..., n:, n:] = transposed_x
-        mat[..., :n, n:] = g
+        mat = _np.concatenate(
+            [
+                _np.concatenate([transposed_x, g], axis=-1),
+                _np.concatenate([zeros, transposed_x], axis=-1),
+            ],
+            axis=-2,
+        )
         return fn(mat)[..., :n, n:]
 
     return vjp
