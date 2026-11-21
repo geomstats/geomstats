@@ -90,7 +90,7 @@ def main(output_file="out.mp4", max_iter=128):
 
     def loss(x, use_gs=False):
         if use_gs:
-            return gs.matvec(x, gs.matvec(A, x))
+            return gs.dot(x, gs.matvec(A, x))
         return np.matmul(x, np.matmul(A, x))
 
     initial_point = gs.array([0.0, 1.0, 0.0])
