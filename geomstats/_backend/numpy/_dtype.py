@@ -56,24 +56,3 @@ def is_bool(x):
 def as_dtype(value):
     """Transform string representing dtype in dtype."""
     return _np.dtype(value)
-
-
-def _dtype_as_str(dtype):
-    return dtype.name
-
-
-def convert_to_wider_dtype(tensor_list):
-    """Cast arrays to their common dtype, following numpy promotion rules.
-
-    Parameters
-    ----------
-    tensor_list : list[array-like]
-        Arrays.
-
-    Returns
-    -------
-    tensor_list : list[array-like]
-        Arrays, with the common dtype.
-    """
-    dtype = _np.result_type(*tensor_list)
-    return [x if x.dtype == dtype else cast(x, dtype) for x in tensor_list]

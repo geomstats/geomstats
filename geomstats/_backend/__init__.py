@@ -60,7 +60,6 @@ BACKEND_ATTRIBUTES = {
         "comb",
         "concatenate",
         "conj",
-        "convert_to_wider_dtype",
         "copy",
         "cos",
         "cosh",

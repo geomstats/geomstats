@@ -69,16 +69,6 @@ from ._dtype import (
     set_default_dtype,
 )
 
-_DTYPES = {
-    int32: 0,
-    int64: 1,
-    float32: 2,
-    float64: 3,
-    complex64: 4,
-    complex128: 5,
-}
-
-
 abs = _box_unary_scalar(target=_torch.abs)
 angle = _box_unary_scalar(target=_torch.angle)
 arccos = _box_unary_scalar(target=_torch.arccos)
@@ -123,7 +113,6 @@ def matmul(x, y, out=None):
         if array_.ndim == 1:
             raise ValueError("ndims must be >=2")
 
-    x, y = convert_to_wider_dtype([x, y])
     return _torch.matmul(x, y, out=out)
 
 
@@ -135,19 +124,6 @@ def argmax(a, **kwargs):
     if a.dtype == _torch.bool:
         a = a.to(_torch.uint8)
     return _torch.argmax(a, **kwargs)
-
-
-def convert_to_wider_dtype(tensor_list):
-    dtype_list = [_DTYPES.get(x.dtype, -1) for x in tensor_list]
-    if len(set(dtype_list)) == 1:
-        return tensor_list
-
-    wider_dtype_index = max(dtype_list)
-
-    wider_dtype = list(_DTYPES.keys())[wider_dtype_index]
-
-    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
-    return tensor_list
 
 
 def less_equal(x, y, **kwargs):
@@ -203,7 +179,6 @@ def flip(x, axis=None):
 
 
 def concatenate(seq, axis=0, out=None):
-    seq = convert_to_wider_dtype(seq)
     return _torch.cat(seq, dim=axis, out=out)
 
 
@@ -309,8 +284,6 @@ def sum(x, axis=None, keepdims=None, dtype=None):
 
 def einsum(equation, *inputs):
     input_tensors_list = [arg if is_array(arg) else array(arg) for arg in inputs]
-    input_tensors_list = convert_to_wider_dtype(input_tensors_list)
-
     return _torch.einsum(equation, *input_tensors_list)
 
 
@@ -795,8 +768,6 @@ def matvec(A, b):
     Ab : array-like, shape=[..., n]
         Matrix-vector product.
     """
-    A, b = convert_to_wider_dtype([A, b])
-
     if b.ndim == 1:
         return _torch.matmul(A, b)
 
@@ -820,14 +791,13 @@ def vecdot(a, b, axis=-1):
     vecdot_ab : array-like, shape=[...,]
         Dot product.
     """
-    a, b = convert_to_wider_dtype([a, b])
     return _torch.linalg.vecdot(a, b, dim=axis)
 
 
 def cross(a, b):
     if a.shape != b.shape:
         a, b = broadcast_arrays(a, b)
-    return _torch.cross(*convert_to_wider_dtype([a, b]), dim=-1)
+    return _torch.cross(a, b, dim=-1)
 
 
 def gamma(a):

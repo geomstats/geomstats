@@ -120,7 +120,6 @@ from ._common import (
 from ._dtype import (
     as_dtype,
     cast,
-    convert_to_wider_dtype,
     get_default_cdtype,
     get_default_dtype,
     is_bool,

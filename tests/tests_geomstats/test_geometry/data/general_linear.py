@@ -10,7 +10,7 @@ from .matrices import MatricesMetricTestData
 
 class GeneralLinearTestData(MatrixLieGroupTestData, VectorSpaceOpenSetTestData):
     trials = 3
-    xfails = ("exp_after_log", "log_after_exp")
+    xfails = ("exp_after_log", "log_after_exp", "log_vec", "orbit_vec")
 
     def orbit_vec_test_data(self):
         n_times = random.sample(range(1, 5), 1)

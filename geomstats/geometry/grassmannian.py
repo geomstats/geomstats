@@ -302,7 +302,6 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
             Linear Algebra and its Applications, 466, 83-101, 2015.
         """
         id_n = self._general_linear.identity
-        id_n, point, base_point = gs.convert_to_wider_dtype([id_n, point, base_point])
         sym2 = 2 * point - id_n
         sym1 = 2 * base_point - id_n
         rot = self._general_linear.compose(sym2, sym1)
