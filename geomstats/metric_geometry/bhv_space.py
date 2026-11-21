@@ -693,7 +693,7 @@ class BHVMetric(PointSetMetric):
 
     Parameters
     ----------
-    total_space : TreeSpace
+    space : TreeSpace
         Set with quotient structure.
     """
 
