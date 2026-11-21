@@ -37,7 +37,7 @@ class _Logm(_torch.autograd.Function):
 
     @staticmethod
     def _logm(x):
-        mat_log = _gsnplinalg.logm(x.detach().cpu().numpy())
+        mat_log = _gsnplinalg.logm(_to_numpy(x))
         return _torch.from_numpy(mat_log).to(x.device)
 
     @staticmethod
@@ -157,6 +157,68 @@ def quadratic_assignment(a, b, options=None):
     return _torch.from_numpy(perm)
 
 
+def _solve_sylvester(a, b, q, tol):
+    """Solve the Sylvester equation, without gradients."""
+    if (
+        a.shape == b.shape
+        and _torch.all(_torch.abs(a - b) < tol)
+        and _torch.all(_torch.abs(a - a.mT) < tol)
+    ):
+        eigvals, eigvecs = eigh(a)
+        if _torch.all(eigvals > -tol):
+            tilde_q = eigvecs.mT @ q @ eigvecs
+            denom = eigvals[..., :, None] + eigvals[..., None, :]
+            is_zero = _torch.abs(denom) <= tol
+            tilde_x = _torch.where(
+                is_zero,
+                _torch.zeros_like(tilde_q),
+                tilde_q / _torch.where(is_zero, _torch.ones_like(denom), denom),
+            )
+            return eigvecs @ tilde_x @ eigvecs.mT
+
+    solution = _scipy.linalg.solve_sylvester(_to_numpy(a), _to_numpy(b), _to_numpy(q))
+    return _torch.from_numpy(solution).to(q.device)
+
+
+class _SolveSylvester(_torch.autograd.Function):
+    """Torch autograd function for the solution of the Sylvester equation."""
+
+    @staticmethod
+    def forward(ctx, a, b, q, tol):
+        """Solve the Sylvester equation."""
+        x = _solve_sylvester(a, b, q, tol)
+        ctx.save_for_backward(a, b, x)
+        ctx.shapes = (a.shape, b.shape, q.shape)
+        ctx.tol = tol
+        return x
+
+    @staticmethod
+    def backward(ctx, grad):
+        """Run gradients backward.
+
+        If ``X`` solves ``A X + X B = Q`` and ``Y`` solves
+        ``A^H Y + Y B^H = g``, the gradients with respect to ``A``, ``B`` and
+        ``Q`` are ``-Y X^H``, ``-X^H Y`` and ``Y``. Unlike differentiating
+        through the solver, this does not involve the eigenvectors of ``A``,
+        whose gradient is undefined for repeated eigenvalues. ``Y`` goes
+        through ``_SolveSylvester.apply``, so that the gradients can
+        themselves be differentiated.
+        """
+        a, b, x = ctx.saved_tensors
+        y = _SolveSylvester.apply(a.mT.conj(), b.mT.conj(), grad, ctx.tol)
+        x_H = x.mT.conj()
+
+        grads = (
+            -y @ x_H if ctx.needs_input_grad[0] else None,
+            -x_H @ y if ctx.needs_input_grad[1] else None,
+            y if ctx.needs_input_grad[2] else None,
+        )
+        return tuple(
+            None if grad_ is None else grad_.sum_to_size(shape)
+            for grad_, shape in zip(grads, ctx.shapes)
+        ) + (None,)
+
+
 def solve_sylvester(a, b, q, tol=atol):
     """Solve the Sylvester equation ``A X + X B = Q``.
 
@@ -181,25 +243,7 @@ def solve_sylvester(a, b, q, tol=atol):
     x : array-like, shape=[..., m, n]
         Solution, ``X``.
     """
-    if (
-        a.shape == b.shape
-        and _torch.all(_torch.abs(a - b) < tol)
-        and _torch.all(_torch.abs(a - a.mT) < tol)
-    ):
-        eigvals, eigvecs = eigh(a)
-        if _torch.all(eigvals > -tol):
-            tilde_q = eigvecs.mT @ q @ eigvecs
-            denom = eigvals[..., :, None] + eigvals[..., None, :]
-            is_zero = _torch.abs(denom) <= tol
-            tilde_x = _torch.where(
-                is_zero,
-                _torch.zeros_like(tilde_q),
-                tilde_q / _torch.where(is_zero, _torch.ones_like(denom), denom),
-            )
-            return eigvecs @ tilde_x @ eigvecs.mT
-
-    solution = _scipy.linalg.solve_sylvester(_to_numpy(a), _to_numpy(b), _to_numpy(q))
-    return _torch.from_numpy(solution)
+    return _SolveSylvester.apply(a, b, q, tol)
 
 
 @_cast_out_to_input_dtype
