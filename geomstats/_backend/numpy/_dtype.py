@@ -2,15 +2,6 @@ import numpy as _np
 
 from geomstats._backend._dtype_utils import _pre_allow_complex_dtype
 
-_DTYPES = {
-    _np.dtype("int32"): 0,
-    _np.dtype("int64"): 1,
-    _np.dtype("float32"): 2,
-    _np.dtype("float64"): 3,
-    _np.dtype("complex64"): 4,
-    _np.dtype("complex128"): 5,
-}
-
 _COMPLEX_DTYPES = [
     _np.complex64,
     _np.complex128,
@@ -69,20 +60,18 @@ def _dtype_as_str(dtype):
     return dtype.name
 
 
-def _get_wider_dtype(tensor_list):
-    dtype_list = [_DTYPES.get(x.dtype, -1) for x in tensor_list]
-    if len(dtype_list) == 1:
-        return dtype_list[0], True
-
-    wider_dtype_index = max(dtype_list)
-    wider_dtype = list(_DTYPES.keys())[wider_dtype_index]
-
-    return wider_dtype, False
-
-
 def convert_to_wider_dtype(tensor_list):
-    wider_dtype, same = _get_wider_dtype(tensor_list)
-    if same:
-        return tensor_list
+    """Cast arrays to their common dtype, following numpy promotion rules.
 
-    return [cast(x, dtype=wider_dtype) for x in tensor_list]
+    Parameters
+    ----------
+    tensor_list : list[array-like]
+        Arrays.
+
+    Returns
+    -------
+    tensor_list : list[array-like]
+        Arrays, with the common dtype.
+    """
+    dtype = _np.result_type(*tensor_list)
+    return [x if x.dtype == dtype else cast(x, dtype) for x in tensor_list]

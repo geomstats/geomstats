@@ -467,24 +467,6 @@ def where(condition, x=None, y=None):
     return _torch.where(condition, x, y)
 
 
-def _is_boolean(x):
-    if isinstance(x, bool):
-        return True
-    if isinstance(x, (tuple, list)):
-        return _is_boolean(x[0])
-    if _torch.is_tensor(x):
-        return x.dtype in [_torch.bool, _torch.uint8]
-    return False
-
-
-def _is_iterable(x):
-    if isinstance(x, (list, tuple)):
-        return True
-    if _torch.is_tensor(x):
-        return ndim(x) > 0
-    return False
-
-
 def copy(x):
     return x.clone()
 
@@ -653,38 +635,69 @@ def is_array(x):
 
 
 def outer(a, b):
-    # TODO: improve for torch > 1.9 (dims=0 fails in 1.9)
-    return _torch.einsum("...i,...j->...ij", a, b)
+    """Compute the outer product of vectors.
+
+    Parameters
+    ----------
+    a : array-like, shape=[..., n]
+        Vector.
+    b : array-like, shape=[..., m]
+        Vector.
+
+    Returns
+    -------
+    outer_ab : array-like, shape=[..., n, m]
+        Outer product.
+    """
+    return a[..., :, None] * b[..., None, :]
 
 
 def matvec(A, b):
+    """Compute the matrix-vector product.
+
+    Parameters
+    ----------
+    A : array-like, shape=[..., n, m]
+        Matrix.
+    b : array-like, shape=[..., m]
+        Vector.
+
+    Returns
+    -------
+    Ab : array-like, shape=[..., n]
+        Matrix-vector product.
+    """
     A, b = convert_to_wider_dtype([A, b])
 
-    if A.ndim == 2 and b.ndim == 1:
-        return _torch.mv(A, b)
-
-    if b.ndim == 1:  # A.ndim > 2
+    if b.ndim == 1:
         return _torch.matmul(A, b)
 
-    if A.ndim == 2:  # b.ndim > 1
-        return _torch.matmul(A, b.T).T
-
-    return _torch.einsum("...ij,...j->...i", A, b)
+    return _torch.matmul(A, b[..., None])[..., 0]
 
 
 def dot(a, b):
+    """Compute the dot product of vectors.
+
+    The product is bilinear: no argument is conjugated.
+
+    Parameters
+    ----------
+    a : array-like, shape=[..., n]
+        Vector.
+    b : array-like, shape=[..., n]
+        Vector.
+
+    Returns
+    -------
+    dot_ab : array-like, shape=[...,]
+        Dot product.
+    """
     a, b = convert_to_wider_dtype([a, b])
 
-    if a.ndim == 1 and b.ndim == 1:
-        return _torch.dot(a, b)
-
-    if b.ndim == 1:
-        return _torch.tensordot(a, b, dims=1)
-
-    if a.ndim == 1:
-        return _torch.tensordot(a, b.T, dims=1)
-
-    return _torch.einsum("...i,...i->...", a, b)
+    # vecdot conjugates its first argument
+    if a.is_complex():
+        a = a.conj()
+    return _torch.linalg.vecdot(a, b)
 
 
 def cross(a, b):
