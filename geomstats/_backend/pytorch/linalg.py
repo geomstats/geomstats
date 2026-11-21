@@ -130,8 +130,26 @@ def matrix_norm(x, keepdims=False, ord="fro"):
     return _torch.linalg.matrix_norm(x, ord=ord, keepdim=keepdims)
 
 
-def matrix_rank(a, hermitian=False, **_unused_kwargs):
-    return _torch.linalg.matrix_rank(a, hermitian=hermitian)
+def matrix_rank(a, tol=None, hermitian=False):
+    """Compute the rank of matrices.
+
+    Parameters
+    ----------
+    a : array-like, shape=[..., m, n]
+        Matrix.
+    tol : float
+        Threshold below which singular values are considered zero. By
+        default, the largest singular value times the largest dimension
+        times the machine precision.
+    hermitian : bool
+        Whether the matrices are hermitian.
+
+    Returns
+    -------
+    rank : array-like, shape=[...]
+        Rank.
+    """
+    return _torch.linalg.matrix_rank(a, atol=tol, hermitian=hermitian)
 
 
 def quadratic_assignment(a, b, options=None):

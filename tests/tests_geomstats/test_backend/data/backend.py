@@ -182,6 +182,24 @@ class BackendTestData(TestData):
 
     def func_out_allclose_test_data(self):
         smoke_data = [
+            dict(
+                func_name="vecdot",
+                args=(gs.array([[1.0, 2.0], [3.0, 4.0]]), gs.eye(2)),
+                kwargs={"axis": 0},
+                expected=gs.array([1.0, 4.0]),
+            ),
+            # without axis, flip reverses all axes
+            dict(
+                func_name="flip",
+                args=(gs.array([[1.0, 2.0], [3.0, 4.0]]),),
+                expected=gs.array([[4.0, 3.0], [2.0, 1.0]]),
+            ),
+            dict(
+                func_name="linalg.matrix_rank",
+                args=(gs.array([[1.0, 0.0], [0.0, 1e-3]]),),
+                kwargs={"tol": 1e-2},
+                expected=gs.array(1),
+            ),
             # without axis, amin reduces over all axes
             dict(
                 func_name="amin",

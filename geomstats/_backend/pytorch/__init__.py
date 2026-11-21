@@ -194,7 +194,7 @@ def any(x, axis=None):
     return any(_torch.any(x.bool(), axis[0]), new_axis)
 
 
-def flip(x, axis):
+def flip(x, axis=None):
     if isinstance(axis, int):
         axis = [axis]
     if axis is None:
@@ -803,7 +803,7 @@ def matvec(A, b):
     return _torch.matmul(A, b[..., None])[..., 0]
 
 
-def vecdot(a, b):
+def vecdot(a, b, axis=-1):
     """Compute the dot product of vectors, conjugating the first one.
 
     Parameters
@@ -812,6 +812,8 @@ def vecdot(a, b):
         Vector.
     b : array-like, shape=[..., n]
         Vector.
+    axis : int
+        Axis of the vectors.
 
     Returns
     -------
@@ -819,7 +821,7 @@ def vecdot(a, b):
         Dot product.
     """
     a, b = convert_to_wider_dtype([a, b])
-    return _torch.linalg.vecdot(a, b)
+    return _torch.linalg.vecdot(a, b, dim=axis)
 
 
 def cross(a, b):
