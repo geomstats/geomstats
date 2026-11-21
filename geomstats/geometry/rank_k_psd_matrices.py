@@ -123,7 +123,7 @@ class RankKPSDMatrices(Manifold):
         )
         reconstruction = gs.einsum("...ij,...j->...ij", eigvecs, regularized)
 
-        return Matrices.mul(reconstruction, gs.matrix_transpose(eigvecs))
+        return gs.matmul(reconstruction, gs.matrix_transpose(eigvecs))
 
     def random_point(self, n_samples=1, bound=1.0):
         r"""Sample random points in PSD(n,k).
@@ -272,7 +272,7 @@ class BuresWassersteinBundle(FiberBundle):
         projected_point : array-like, shape=[..., n, n]
             PSD matrix :math:`X X^T`.
         """
-        return Matrices.mul(point, gs.matrix_transpose(point))
+        return gs.matmul(point, gs.matrix_transpose(point))
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
         r"""Compute the differential of the submersion.
@@ -289,7 +289,7 @@ class BuresWassersteinBundle(FiberBundle):
         projected_tangent_vec : array-like, shape=[..., n, n]
             Tangent vector :math:`X W^T + W X^T` to the base space.
         """
-        product = Matrices.mul(base_point, gs.matrix_transpose(tangent_vec))
+        product = gs.matmul(base_point, gs.matrix_transpose(tangent_vec))
         return product + gs.matrix_transpose(product)
 
     def lift(self, point):
@@ -337,12 +337,12 @@ class BuresWassersteinBundle(FiberBundle):
         if fiber_point is None:
             fiber_point = self.lift(base_point)
         transposed_point = gs.matrix_transpose(fiber_point)
-        alignment = Matrices.mul(transposed_point, fiber_point)
-        projector = Matrices.mul(fiber_point, GeneralLinear.inverse(alignment))
+        alignment = gs.matmul(transposed_point, fiber_point)
+        projector = gs.matmul(fiber_point, GeneralLinear.inverse(alignment))
         right_term = Matrices.mul(transposed_point, tangent_vec, fiber_point)
         sylvester = gs.linalg.solve_sylvester(alignment, alignment, right_term)
-        skew_term = Matrices.mul(projector, sylvester)
-        orth_proj = gs.eye(n) - Matrices.mul(projector, transposed_point)
+        skew_term = gs.matmul(projector, sylvester)
+        orth_proj = gs.eye(n) - gs.matmul(projector, transposed_point)
         orth_part = Matrices.mul(orth_proj, tangent_vec, projector)
         return skew_term + orth_part
 

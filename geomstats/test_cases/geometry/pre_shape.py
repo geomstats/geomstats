@@ -1,7 +1,6 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.matrices import Matrices
 from geomstats.test.random import KendalShapeRandomDataGenerator, get_random_times
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import LevelSetTestCase
@@ -204,7 +203,7 @@ class PreShapeBundleTestCase(FiberBundleTestCase):
         base_point = self.data_generator.random_point(n_points)
 
         aligned_point = self.total_space.fiber_bundle.align(point, base_point)
-        alignment = Matrices.mul(gs.matrix_transpose(aligned_point), base_point)
+        alignment = gs.matmul(gs.matrix_transpose(aligned_point), base_point)
         self.assertAllClose(alignment, gs.matrix_transpose(alignment), atol=atol)
 
     @pytest.mark.random

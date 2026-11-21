@@ -440,7 +440,7 @@ class CholeskyMap(Diffeo):
         aux = Matrices.to_lower_triangular_diagonal_scaled(
             Matrices.mul(inv_base_point, tangent_vec, inv_transpose_base_point)
         )
-        return Matrices.mul(image_point, aux)
+        return gs.matmul(image_point, aux)
 
     @classmethod
     def inverse_tangent(cls, image_tangent_vec, image_point=None, base_point=None):
@@ -532,7 +532,7 @@ class SPDMatrices(VectorSpaceOpenSet):
         eigvals, eigvecs = gs.linalg.eigh(sym)
         regularized = gs.where(eigvals < gs.atol, gs.atol, eigvals)
         reconstruction = gs.einsum("...ij,...j->...ij", eigvecs, regularized)
-        return Matrices.mul(reconstruction, gs.matrix_transpose(eigvecs))
+        return gs.matmul(reconstruction, gs.matrix_transpose(eigvecs))
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in SPD(n) from the log-uniform distribution.
@@ -623,8 +623,8 @@ class SPDAffineMetric(RiemannianMetric):
             Inner-product.
         """
         inv_base_point = GeneralLinear.inverse(base_point)
-        aux_a = Matrices.mul(inv_base_point, tangent_vec_a)
-        aux_b = Matrices.mul(inv_base_point, tangent_vec_b)
+        aux_a = gs.matmul(inv_base_point, tangent_vec_a)
+        aux_b = gs.matmul(inv_base_point, tangent_vec_b)
 
         return Matrices.trace_product(aux_a, aux_b)
 
@@ -875,7 +875,7 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
         rotated_sylvester = rotated_tangent_vec * coefficients
         rotated_hessian = gs.einsum("...ij,...j->...ij", rotated_sylvester, eigvals)
-        rotated_hessian = Matrices.mul(rotated_hessian, rotated_sylvester)
+        rotated_hessian = gs.matmul(rotated_hessian, rotated_sylvester)
         hessian = Matrices.mul(eigvecs, rotated_hessian, transp_eigvecs)
 
         return base_point + tangent_vec + hessian
@@ -935,7 +935,7 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         point_a_sqrt = apply_func_to_eigvalsh(point_a, gs.sqrt)
 
         c_sq_eigvals = gs.linalg.eigvalsh(
-            Matrices.mul(Matrices.mul(point_a_sqrt, point_b), point_a_sqrt)
+            gs.matmul(gs.matmul(point_a_sqrt, point_b), point_a_sqrt)
         )
         cross_term = gs.sum(gs.sqrt(c_sq_eigvals), axis=-1)
 
@@ -1003,7 +1003,7 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         square_root_lift = powermh(end_point_lift, 0.5)
 
         horizontal_velocity = gs.matmul(inverse_square_root_bp, square_root_lift)
-        partial_horizontal_velocity = Matrices.mul(horizontal_velocity, square_root_bp)
+        partial_horizontal_velocity = gs.matmul(horizontal_velocity, square_root_bp)
         partial_horizontal_velocity = partial_horizontal_velocity + gs.matrix_transpose(
             partial_horizontal_velocity
         )
@@ -1027,7 +1027,7 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
             return gs.linalg.solve_sylvester(geodesic_t, geodesic_t, -right)
 
         flow = integrate(force, horizontal_lift_a, n_steps=n_steps, step=step)
-        final_align = Matrices.mul(end_point, flow[-1])
+        final_align = gs.matmul(end_point, flow[-1])
         return final_align + gs.matrix_transpose(final_align)
 
     def injectivity_radius(self, base_point):

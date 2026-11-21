@@ -59,7 +59,7 @@ class MatrixOperationsTestCase(TestCase):
         transpose_shape = self._get_transpose_shape(mat_a)
         mat_b = self.data_generator.random_mat(shape=transpose_shape)
 
-        expected = Matrices.mul(mat_a, mat_b)
+        expected = gs.matmul(mat_a, mat_b)
 
         vec_data = generate_vectorization_data(
             data=[dict(mat_a=mat_a, mat_b=mat_b, expected=expected, atol=atol)],

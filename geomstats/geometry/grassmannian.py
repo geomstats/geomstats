@@ -122,7 +122,7 @@ class Grassmannian(LevelSet):
         first = d - Matrices.mul(
             b, GeneralLinear.inverse(a + gs.eye(p)), gs.matrix_transpose(b)
         )
-        second = a + Matrices.mul(a, a) + Matrices.mul(gs.matrix_transpose(b), b)
+        second = a + gs.matmul(a, a) + gs.matmul(gs.matrix_transpose(b), b)
         row_1 = gs.concatenate([first, gs.zeros_like(b)], axis=-1)
         row_2 = gs.concatenate([gs.matrix_transpose(gs.zeros_like(b)), second], axis=-1)
         return gs.concatenate([row_1, row_2], axis=-2)
@@ -139,7 +139,7 @@ class Grassmannian(LevelSet):
         -------
         submersed_vector : array-like, shape=[..., n, n]
         """
-        return 2 * Matrices.to_symmetric(Matrices.mul(point, vector)) - vector
+        return 2 * Matrices.to_symmetric(gs.matmul(point, vector)) - vector
 
     def random_uniform(self, n_samples=1):
         r"""Sample random points from a uniform distribution.
@@ -166,7 +166,7 @@ class Grassmannian(LevelSet):
             New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
         """
         points = gs.random.normal(size=(n_samples, self.n, self.p))
-        full_rank = Matrices.mul(gs.matrix_transpose(points), points)
+        full_rank = gs.matmul(gs.matrix_transpose(points), points)
         projector = Matrices.mul(
             points, GeneralLinear.inverse(full_rank), gs.matrix_transpose(points)
         )
@@ -238,7 +238,7 @@ class Grassmannian(LevelSet):
         _, eigvecs = gs.linalg.eigh(mat)
         diagonal = gs.array([0.0] * (self.n - self.p) + [1.0] * self.p)
         p_d = gs.einsum("...ij,...j->...ij", eigvecs, diagonal)
-        return Matrices.mul(p_d, gs.matrix_transpose(eigvecs))
+        return gs.matmul(p_d, gs.matrix_transpose(eigvecs))
 
 
 class GrassmannianCanonicalMetric(RiemannianMetric):

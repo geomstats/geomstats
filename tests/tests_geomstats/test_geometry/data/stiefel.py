@@ -1,6 +1,5 @@
 import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices
 from geomstats.test.data import TestData
 
 from .base import LevelSetTestData
@@ -21,7 +20,7 @@ class StiefelStaticMethodsTestData(TestData):
         r_z = gs.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
 
         point1 = gs.array([[1.0, -1.0], [1.0, 1.0], [0.0, 0.0]]) / gs.sqrt(2.0)
-        batch_points = Matrices.mul(
+        batch_points = gs.matmul(
             GeneralLinear.exp(gs.stack([gs.pi * r_z / n for n in [2, 3, 4]])),
             point1,
         )

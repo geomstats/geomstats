@@ -150,7 +150,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         rot = point[..., :n, :n]
         vec = point[..., n, :n]
         scalar = point[..., n, n]
-        submersed_rot = Matrices.mul(rot, gs.matrix_transpose(rot))
+        submersed_rot = gs.matmul(rot, gs.matrix_transpose(rot))
         return (
             homogeneous_representation(submersed_rot, vec, constant=scalar)
             - self._value
@@ -177,7 +177,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         vec = vector[..., n, :n]
         scalar = vector[..., n, n]
         submersed_rot = Matrices.to_symmetric(
-            Matrices.mul(gs.matrix_transpose(skew), rot)
+            gs.matmul(gs.matrix_transpose(skew), rot)
         )
         return homogeneous_representation(submersed_rot, vec, constant=scalar)
 
