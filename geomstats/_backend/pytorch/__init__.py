@@ -25,16 +25,13 @@ from torch import (
     int32,
     int64,
     isnan,
-    kron,
     less,
     logical_or,
-    median,
     meshgrid,
     moveaxis,
     ones,
     ones_like,
     polygamma,
-    quantile,
     reshape,
     scatter_add,
     searchsorted,
@@ -647,34 +644,6 @@ def divide(a, b, ignore_div_zero=False):
     return _torch.nan_to_num(quo, nan=0.0, posinf=0.0, neginf=0.0)
 
 
-def ravel_multi_index(multi_index, dims):
-    """Torch equivalent of np.ravel_multi_index(..., order='C').
-
-    Parameters
-    ----------
-    multi_index : tuple[torch.Tensor]
-        Coordinate tensors, e.g. (rows, cols).
-    dims : tuple[int]
-        Shape of the target array.
-
-    Returns
-    -------
-    flat_indices : torch.Tensor
-        Indices into the flattened array.
-    """
-    if len(multi_index) != len(dims):
-        raise ValueError("multi_index and dims must have the same length.")
-
-    flat_index = _torch.zeros_like(multi_index[0])
-    stride = 1
-
-    for idx, dim in zip(reversed(multi_index), reversed(dims)):
-        flat_index = flat_index + idx * stride
-        stride *= dim
-
-    return flat_index
-
-
 def sort(a, axis=-1):
     sorted_a, _ = _torch.sort(a, dim=axis)
     return sorted_a
@@ -723,12 +692,6 @@ def _unnest_iterable(ls):
         out.append(ls)
 
     return out
-
-
-def pad(a, pad_width, mode="constant", constant_values=0.0):
-    return _torch.nn.functional.pad(
-        a, _unnest_iterable(reversed(pad_width)), mode=mode, value=constant_values
-    )
 
 
 def is_array(x):

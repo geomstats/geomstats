@@ -97,26 +97,9 @@ class BackendTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def _pad_data(self):
-        func_name = "pad"
-
-        n, m = 2, 3
-        args = [
-            (gs.ones((n, n)), [[0, 1], [0, 1]]),
-            (gs.ones((n, n)), [[0, 1], [0, 0]]),
-            (gs.ones((m, n, n)), [[0, 0], [0, 1], [0, 1]]),
-        ]
-        expected = [(n + 1, n + 1), (n + 1, n), (m, n + 1, n + 1)]
-
-        return [
-            {"func_name": func_name, "args": args_, "expected": expected_}
-            for args_, expected_ in zip(args, expected)
-        ]
-
     def func_out_shape_test_data(self):
         smoke_data = []
 
-        smoke_data += self._pad_data()
         # take keeps the axes of size one
         smoke_data += [
             dict(func_name="take", args=(gs.ones((1, 3)), 0, -1), expected=(1,)),

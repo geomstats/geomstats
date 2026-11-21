@@ -401,7 +401,6 @@ class TestAutodiffOld(TestCase):
             lambda x: gs.sum(
                 gs.linalg.fractional_matrix_power(x, 0.5), axis=(-2, -1)
             ),
-            lambda x: gs.sum(gs.linalg.polar(x)[0], axis=(-2, -1)),
         ):
             with pytest.raises(NotImplementedError):
                 gs.autodiff.value_and_grad(func, point_ndims=2)(point)

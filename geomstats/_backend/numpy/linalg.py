@@ -16,7 +16,7 @@ from numpy.linalg import (
     svd,
     vector_norm,
 )
-from scipy.linalg import expm, fractional_matrix_power, polar, sqrtm
+from scipy.linalg import expm, fractional_matrix_power, sqrtm
 
 from ._common import atol
 

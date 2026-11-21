@@ -16,7 +16,7 @@ from autograd.numpy.linalg import (
     svd,
     vector_norm,
 )
-from autograd.scipy.linalg import expm, fractional_matrix_power, polar, sqrtm
+from autograd.scipy.linalg import expm, fractional_matrix_power, sqrtm
 
 from ..numpy.linalg import logm as _logm
 from ..numpy.linalg import quadratic_assignment  # NOQA

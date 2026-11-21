@@ -286,14 +286,6 @@ def fractional_matrix_power(A, t):
     return _torch.from_numpy(out)
 
 
-def polar(*args, **kwargs):
-    """Polar decomposition of a matrix."""
-    _check_no_grad("polar", *args)
-    args = [_to_numpy(arg) for arg in args]
-    unitary, hermitian = _scipy.linalg.polar(*args, **kwargs)
-    return _torch.from_numpy(unitary), _torch.from_numpy(hermitian)
-
-
 def solve(a, b):
     """Solve a linear system with vector right-hand sides.
 
