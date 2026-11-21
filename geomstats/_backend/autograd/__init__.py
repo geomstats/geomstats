@@ -20,7 +20,6 @@ from autograd.numpy import (
     asarray,
     broadcast_to,
     ceil,
-    clip,
     complex64,
     complex128,
     concatenate,
@@ -417,6 +416,30 @@ def matmul(*args, **kwargs):
         if arg.ndim == 1:
             raise ValueError("ndims must be >=2")
     return _np.matmul(*args, **kwargs)
+
+
+def clip(x, min=None, max=None):
+    """Clip the values of an array between min and max.
+
+    Same as ``np.clip``, with the Array API keywords. The bounds are passed
+    positionally, as autograd's VJP of ``np.clip`` only accepts ``a_min``
+    and ``a_max`` as positional arguments.
+
+    Parameters
+    ----------
+    x : array-like
+        Array.
+    min : float or array-like
+        Lower bound. If None, there is no lower bound.
+    max : float or array-like
+        Upper bound. If None, there is no upper bound.
+
+    Returns
+    -------
+    clipped : array-like, shape=x.shape
+        Array with its values clipped.
+    """
+    return _np.clip(x, min, max)
 
 
 def trace(x):

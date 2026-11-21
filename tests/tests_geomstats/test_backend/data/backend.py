@@ -164,6 +164,12 @@ class BackendTestData(TestData):
 
     def func_out_allclose_test_data(self):
         smoke_data = [
+            dict(
+                func_name="clip",
+                args=(gs.array([0.0, 1.0, 2.0]),),
+                kwargs={"min": 0.5, "max": 1.5},
+                expected=gs.array([0.5, 1.0, 1.5]),
+            ),
             # repeated indices are summed
             dict(
                 func_name="scatter_add",

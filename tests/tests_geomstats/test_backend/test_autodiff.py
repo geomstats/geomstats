@@ -392,6 +392,16 @@ class TestAutodiffOld(TestCase):
         self.assertAllClose(grad, gs.stack([expected_grad, expected_grad]))
 
     @autograd_and_torch_only
+    def test_grad_of_clip(self):
+        """Clipped entries get no gradient, with keyword bounds."""
+        value, grad = gs.autodiff.value_and_grad(
+            lambda x: gs.sum(gs.clip(x, min=0.5), axis=-1)
+        )(gs.array([[0.0, 1.0], [2.0, 0.2]]))
+
+        self.assertAllClose(value, gs.array([1.5, 2.5]))
+        self.assertAllClose(grad, gs.array([[0.0, 1.0], [1.0, 0.0]]))
+
+    @autograd_and_torch_only
     def test_grad_of_scatter_add(self):
         """The gradient of a weighted sum of scattered values gathers the weights."""
         weights = gs.array([1.0, 2.0, 3.0])

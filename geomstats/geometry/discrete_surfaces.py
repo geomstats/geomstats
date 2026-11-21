@@ -243,12 +243,13 @@ class DiscreteSurfaces(Manifold):
         len_edge_01 = gs.linalg.vector_norm((vertex_0 - vertex_1), axis=-1)
         half_perimeter = 0.5 * (len_edge_12 + len_edge_02 + len_edge_01)
         return gs.sqrt(
-            (
+            gs.clip(
                 half_perimeter
                 * (half_perimeter - len_edge_12)
                 * (half_perimeter - len_edge_02)
-                * (half_perimeter - len_edge_01)
-            ).clip(min=1e-6)
+                * (half_perimeter - len_edge_01),
+                min=1e-6,
+            )
         )
 
     def vertex_areas(self, point):
@@ -422,12 +423,13 @@ class DiscreteSurfaces(Manifold):
 
         half_perimeter = 0.5 * (len_edge_12 + len_edge_02 + len_edge_01)
         area = gs.sqrt(
-            (
+            gs.clip(
                 half_perimeter
                 * (half_perimeter - len_edge_12)
                 * (half_perimeter - len_edge_02)
-                * (half_perimeter - len_edge_01)
-            ).clip(min=1e-6)
+                * (half_perimeter - len_edge_01),
+                min=1e-6,
+            )
         )
         sq_len_edge_12, sq_len_edge_02, sq_len_edge_01 = (
             len_edge_12 * len_edge_12,
