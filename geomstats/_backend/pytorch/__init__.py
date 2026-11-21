@@ -443,31 +443,6 @@ def diagonal(x, offset=0, axis1=0, axis2=1):
     return _torch.diagonal(x, offset=offset, dim1=axis1, dim2=axis2)
 
 
-def set_diag(x, new_diag):
-    """Set the diagonal along the last two axis.
-
-    Parameters
-    ----------
-    x : array-like, shape=[dim]
-        Initial array.
-    new_diag : array-like, shape=[dim[-2]]
-        Values to set on the diagonal.
-
-    Returns
-    -------
-    None
-
-    Notes
-    -----
-    This mimics tensorflow.linalg.set_diag(x, new_diag), when new_diag is a
-    1-D array, but modifies x instead of creating a copy.
-    """
-    arr_shape = x.shape
-    off_diag = (1 - _torch.eye(arr_shape[-1])) * x
-    diag = _torch.einsum("ij,...i->...ij", _torch.eye(new_diag.shape[-1]), new_diag)
-    return diag + off_diag
-
-
 def prod(x, axis=None):
     if axis is None:
         axis = 0

@@ -135,7 +135,6 @@ BACKEND_ATTRIBUTES = {
         "scatter_add",
         "searchsorted",
         "set_default_dtype",
-        "set_diag",
         "shape",
         "sign",
         "sin",

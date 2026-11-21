@@ -248,30 +248,6 @@ def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     return _np.vectorize(pyfunc, signature=signature)(x)
 
 
-def set_diag(x, new_diag):
-    """Set the diagonal along the last two axis.
-
-    Parameters
-    ----------
-    x : array-like, shape=[dim]
-        Initial array.
-    new_diag : array-like, shape=[dim[-2]]
-        Values to set on the diagonal.
-
-    Returns
-    -------
-    None
-
-    Notes
-    -----
-    This mimics tensorflow.linalg.set_diag(x, new_diag), when new_diag is a
-    1-D array, but modifies x instead of creating a copy.
-    """
-    arr_shape = x.shape
-    x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
-    return x
-
-
 def array_from_sparse(indices, data, target_shape):
     """Create an array of given shape, with values at specific indices.
 
