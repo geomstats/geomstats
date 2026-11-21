@@ -1178,3 +1178,57 @@ class MatricesDiagMetric(MatricesEuclideanMetric):
             tangent_vec_a, self.metric_coeffs * tangent_vec_b
         )
         return repeat_out(2, inner_prod, tangent_vec_a, tangent_vec_b, base_point)
+
+    def flat(self, tangent_vec, base_point=None):
+        """Map a tangent vector to a covector under the Frobenius pairing.
+
+        The covector is the tangent vector weighted by the metric
+        coefficients.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., m, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        cotangent_vec : array-like, shape=[..., m, n]
+            Matrix representing the covector.
+        """
+        return repeat_out(
+            self._space.point_ndim,
+            self.metric_coeffs * tangent_vec,
+            tangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )
+
+    def sharp(self, cotangent_vec, base_point=None):
+        """Map a covector to a tangent vector under the Frobenius pairing.
+
+        The tangent vector is the covector divided by the metric
+        coefficients.
+
+        Parameters
+        ----------
+        cotangent_vec : array-like, shape=[..., m, n]
+            Matrix representing the covector.
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., m, n]
+            Tangent vector at base point.
+        """
+        return repeat_out(
+            self._space.point_ndim,
+            cotangent_vec / self.metric_coeffs,
+            cotangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )
