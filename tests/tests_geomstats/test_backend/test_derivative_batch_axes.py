@@ -7,16 +7,14 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.test.test_case import autodiff_only, autograd_only, pytorch_backend
+from geomstats.test.test_case import autodiff_only, autograd_only
 
 pytestmark = autodiff_only
 
 
 @pytest.mark.parametrize("point_shape", [(), (3,), (2, 2)])
 @pytest.mark.parametrize("batch_shape", [(), (2,), (2, 3), (2, 1, 3)])
-@pytest.mark.parametrize(
-    "operator", ["jacobian_vec", "value_and_jacobian", "hessian_vec"]
-)
+@pytest.mark.parametrize("operator", ["jacobian", "value_and_jacobian", "hessian"])
 def test_pointwise_derivative_preserves_batch_shape(point_shape, batch_shape, operator):
     """Compare each derivative with the analytic diagonal of a cubic."""
     size = math.prod(point_shape)
@@ -28,7 +26,7 @@ def test_pointwise_derivative_preserves_batch_shape(point_shape, batch_shape, op
         + 0.5
     )
     flat_points = points.reshape((-1, size))
-    if operator == "hessian_vec":
+    if operator == "hessian":
         function = lambda point: gs.sum(point**3)
         diagonals = 6.0 * flat_points
     else:
@@ -38,14 +36,7 @@ def test_pointwise_derivative_preserves_batch_shape(point_shape, batch_shape, op
         batch_shape + point_shape + point_shape
     )
 
-    if operator == "value_and_jacobian" and pytorch_backend():
-        if len(point_shape) != 1:
-            pytest.skip("PyTorch value_and_jacobian only supports vector points.")
-        derivative = gs.autodiff.value_and_jacobian(function)
-    else:
-        derivative = getattr(gs.autodiff, operator)(
-            function, point_ndim=len(point_shape)
-        )
+    derivative = getattr(gs.autodiff, operator)(function, point_ndim=len(point_shape))
     result = derivative(gs.array(points))
     if operator == "value_and_jacobian":
         value, result = result
@@ -56,12 +47,12 @@ def test_pointwise_derivative_preserves_batch_shape(point_shape, batch_shape, op
     assert gs.allclose(result, gs.array(expected))
 
 
-@pytest.mark.parametrize("operator", ["jacobian_vec", "hessian_vec"])
+@pytest.mark.parametrize("operator", ["jacobian", "hessian"])
 @autograd_only
 def test_autograd_batched_derivatives_remain_differentiable(operator):
     """Retain nested derivatives through the batch flattening and reshaping."""
     points = gs.reshape(gs.linspace(0.1, 0.6, 12), (2, 2, 3))
-    if operator == "hessian_vec":
+    if operator == "hessian":
         function = lambda point: gs.sum(point**3)
         expected = 6.0 * gs.ones_like(points)
     else:

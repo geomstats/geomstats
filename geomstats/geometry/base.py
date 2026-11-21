@@ -804,7 +804,7 @@ class ImmersedSet(Manifold, abc.ABC):
         -------
         jacobian_immersion : array-like, shape=[..., dim_embedding, dim]
         """
-        return gs.autodiff.jacobian_vec(self.immersion)(base_point)
+        return gs.autodiff.jacobian(self.immersion)(base_point)
 
     def hessian_immersion(self, base_point):
         """Compute the Hessian of the immersion.
@@ -819,7 +819,7 @@ class ImmersedSet(Manifold, abc.ABC):
         hessian_immersion : array-like, shape=[..., embedding_dim, dim, dim]
             Hessian at the base point
         """
-        return gs.autodiff.hessian_vec(
+        return gs.autodiff.hessian(
             self.immersion, func_out_ndim=self.embedding_space.dim
         )(base_point)
 

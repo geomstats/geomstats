@@ -9,9 +9,7 @@ class NumpyRaisesTestData(TestData):
         data = [
             dict(autodiff_func=gs.autodiff.value_and_grad),
             dict(autodiff_func=gs.autodiff.jacobian),
-            dict(autodiff_func=gs.autodiff.jacobian_vec),
             dict(autodiff_func=gs.autodiff.hessian),
-            dict(autodiff_func=gs.autodiff.hessian_vec),
             dict(autodiff_func=gs.autodiff.jacobian_and_hessian),
             dict(autodiff_func=gs.autodiff.value_jacobian_and_hessian),
         ]

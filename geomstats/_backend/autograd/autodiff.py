@@ -1,58 +1,43 @@
 """Wrapper around autograd functions to be consistent with backends."""
 
+import functools as _functools
+
 import autograd as _autograd
 import autograd.numpy as _np
-from autograd import jacobian
+from autograd import jacobian as _autograd_jacobian
+from autograd.tracer import getval as _getval
 
 
-def _get_max_ndim_point(*points):
-    """Identify point with higher dimension.
-
-    Same as `geomstats.vectorization._get_max_ndim_point`.
-
-    Parameters
-    ----------
-    points : array-like
-
-    Returns
-    -------
-    max_ndim_point : array-like
-        Point with higher dimension.
-    """
-    max_ndim_point = points[0]
-    for point in points[1:]:
-        if point.ndim > max_ndim_point.ndim:
-            max_ndim_point = point
-
-    return max_ndim_point
-
-
-def _get_batch_shape(*points, point_ndims=1):
-    """Get batch shape.
-
-    Similar to `geomstats.vectorization.get_batch_shape`.
+def _broadcast_to_batch(inputs, point_ndims):
+    """Broadcast single inputs to the batch shape of the batched ones.
 
     Parameters
     ----------
-    points : array-like or None
-        Point belonging to the space.
+    inputs : list[array-like]
+        Inputs, of shape ``[..., *point_shape]``.
     point_ndims : int or tuple[int]
-        Point number of array dimensions.
+        Number of axes of a point of each input.
 
     Returns
     -------
-    batch_shape : tuple
-        Returns the shape related with batch. () if only one point.
+    inputs : list[array-like]
+        Inputs, all with the same batch shape.
     """
     if isinstance(point_ndims, int):
-        point_max_ndim = _get_max_ndim_point(*points)
-        return point_max_ndim.shape[:-point_ndims]
+        point_ndims = (point_ndims,) * len(inputs)
 
-    for point, point_ndim in zip(points, point_ndims):
-        if point.ndim > point_ndim:
-            return point.shape[:-point_ndim]
-
-    return ()
+    batch_shape = _np.broadcast_shapes(
+        *(
+            _np.shape(input_)[: _np.ndim(input_) - point_ndim]
+            for input_, point_ndim in zip(inputs, point_ndims)
+        )
+    )
+    return [
+        _np.broadcast_to(
+            input_, batch_shape + _np.shape(input_)[_np.ndim(input_) - point_ndim :]
+        )
+        for input_, point_ndim in zip(inputs, point_ndims)
+    ]
 
 
 def custom_gradient(*grad_funcs):
@@ -84,53 +69,28 @@ def custom_gradient(*grad_funcs):
             Function func with gradients specified by grad_funcs.
         """
         wrapped_function = _autograd.extend.primitive(func)
+        _functools.update_wrapper(wrapped_function, func)
 
         def wrapped_grad_func(i, ans, *args, **kwargs):
             grads = grad_funcs[i](*args, **kwargs)
-            if isinstance(grads, float):
-                return lambda g: g * grads
-            if grads.ndim == 2:
-                return lambda g: g[..., None] * grads
-            if grads.ndim == 3:
-                return lambda g: g[..., None, None] * grads
-            return lambda g: g * grads
 
-        if len(grad_funcs) == 1:
-            _autograd.extend.defvjp(
-                wrapped_function,
-                lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
+            # one value per point: g gets the point axes of grads
+            return lambda g: (
+                _np.reshape(g, _np.shape(g) + (1,) * (_np.ndim(grads) - _np.ndim(g)))
+                * grads
             )
-        elif len(grad_funcs) == 2:
-            _autograd.extend.defvjp(
-                wrapped_function,
-                lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
-                lambda ans, *args, **kwargs: wrapped_grad_func(1, ans, *args, **kwargs),
-            )
-        elif len(grad_funcs) == 3:
-            _autograd.extend.defvjp(
-                wrapped_function,
-                lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
-                lambda ans, *args, **kwargs: wrapped_grad_func(1, ans, *args, **kwargs),
-                lambda ans, *args, **kwargs: wrapped_grad_func(2, ans, *args, **kwargs),
-            )
-        else:
-            raise NotImplementedError(
-                "custom_gradient is not yet implemented for more than 3 gradients."
-            )
+
+        _autograd.extend.defvjp(
+            wrapped_function,
+            *(
+                None if grad_func is None else _functools.partial(wrapped_grad_func, i)
+                for i, grad_func in enumerate(grad_funcs)
+            ),
+        )
 
         return wrapped_function
 
     return decorator
-
-
-def _grad(func, argnums=0):
-    def _wrapped_grad(*x, **kwargs):
-        if not hasattr(x[0], "ndim") or x[0].ndim < 2:
-            return _autograd.grad(func, argnum=argnums)(*x, **kwargs)
-
-        return _autograd.elementwise_grad(func, argnum=argnums)(*x, **kwargs)
-
-    return _wrapped_grad
 
 
 @_autograd.differential_operators.unary_to_nary
@@ -166,25 +126,7 @@ def value_and_grad(func, argnums=0, point_ndims=1):
     """
 
     def _value_and_grad(*inputs, **kwargs):
-        batch_shape = _get_batch_shape(*inputs, point_ndims=point_ndims)
-        if len(batch_shape) == 0:
-            return _autograd.value_and_grad(func, argnum=argnums)(*inputs, **kwargs)
-
-        if len(inputs) > 1:
-            point_ndims_ = (
-                (point_ndims,) * len(inputs)
-                if isinstance(point_ndims, int)
-                else point_ndims
-            )
-            inputs_ = []
-            for point, point_ndim in zip(inputs, point_ndims_):
-                if point.shape[:-point_ndim] != batch_shape:
-                    point = _autograd.numpy.broadcast_to(
-                        point, batch_shape + point.shape
-                    )
-                inputs_.append(point)
-            inputs = inputs_
-
+        inputs = _broadcast_to_batch(inputs, point_ndims)
         return _elementwise_value_and_grad(func, argnum=argnums)(*inputs, **kwargs)
 
     return _value_and_grad
@@ -200,153 +142,137 @@ def _value_and_jacobian_op(fun, x):
     return ans, _np.reshape(_np.stack(grads), jacobian_shape)
 
 
-def value_and_jacobian(fun, point_ndim=1):
-    """Compute pointwise values and Jacobians, preserving all batch axes."""
+def value_and_jacobian(func, point_ndim=1):
+    """Return a function that returns func's value and pointwise jacobian.
 
-    def _value_and_jacobian_vec(x):
-        if x.ndim == point_ndim:
-            return _value_and_jacobian_op(fun)(x)
-
-        batch_ndim = x.ndim - point_ndim
-        batch_shape = x.shape[:batch_ndim]
-        x = _np.reshape(x, (-1,) + x.shape[batch_ndim:])
-        ans = []
-        jac = []
-        for one_x in x:
-            ans_, jac_ = _value_and_jacobian_op(fun)(one_x)
-            ans.append(ans_)
-            jac.append(jac_)
-
-        ans, jac = _np.stack(ans), _np.stack(jac)
-        return (
-            _np.reshape(ans, batch_shape + ans.shape[1:]),
-            _np.reshape(jac, batch_shape + jac.shape[1:]),
-        )
-
-    return _value_and_jacobian_vec
-
-
-def jacobian_vec(fun, point_ndim=1):
-    """Wrap autograd jacobian function.
-
-    We note that the jacobian function of autograd is not vectorized
-    by default, thus we modify its behavior here.
-
-    Default autograd behavior:
-
-    If the jacobian for one point of shape (2,) is of shape (3, 2),
-    then calling the jacobian on 4 points with shape (4, 2) will
-    be of shape (3, 2, 4, 2).
-
-    Modified behavior:
-
-    Calling the jacobian on 4 points gives a tensor of shape (4, 3, 2).
-
-    We use a for-loop to allow this function to be vectorized with
-    respect to several inputs in point, because the flag vectorize=True
-    fails.
+    func is evaluated once for both.
 
     Parameters
     ----------
-    fun : callable
-        Function whose jacobian values
-        will be computed.
+    func : callable
+        Function whose jacobian is computed.
     point_ndim : int
-        Number of axes in one point. All preceding axes are batch axes.
+        Number of axes of a point. All preceding axes are batch axes.
 
     Returns
     -------
     func_with_jacobian : callable
-        Function that returns func's jacobian
-        values at its inputs args.
+        Function that returns func's value and
+        func's jacobian at its input point.
     """
+    value_and_jacobian_at_point = _value_and_jacobian_op(func)
 
-    def _jac(x):
-        if x.ndim == point_ndim:
-            return jacobian(fun)(x)
-        batch_ndim = x.ndim - point_ndim
-        batch_shape = x.shape[:batch_ndim]
-        x = _np.reshape(x, (-1,) + x.shape[batch_ndim:])
-        result = _np.stack([jacobian(fun)(one_x) for one_x in x])
-        return _np.reshape(result, batch_shape + result.shape[1:])
+    def _value_and_jacobian(point):
+        """Compute the value and jacobian of func at each point of a batch."""
+        return _apply_pointwise(value_and_jacobian_at_point, point, point_ndim)
 
-    return _jac
+    return _value_and_jacobian
 
 
-def hessian(fun, func_out_ndim=None):
-    """Wrap autograd hessian function.
-
-    For consistency with the other backend, we convert this to a tensor
-    of shape (dim, dim).
+def _apply_pointwise(func_at_point, point, point_ndim):
+    """Apply a function of a single point to each point of a batch.
 
     Parameters
     ----------
-    func : callable
-        Function whose hessian values
-        will be computed.
-    func_out_ndim : int
-        Unused. Here for API consistency.
-
-    Returns
-    -------
-    func_with_hessian : callable
-        Function that returns func's hessian
-        values at its inputs args.
-    """
-
-    def _hess(x):
-        return _autograd.hessian(fun)(x)
-
-    return _hess
-
-
-def hessian_vec(func, point_ndim=1, func_out_ndim=None):
-    """Wrap autograd hessian function.
-
-    We note that the hessian function of autograd is not vectorized
-    by default, thus we modify its behavior here.
-
-    We force the hessian to return a tensor of shape (n_points, dim, dim)
-    when several points are given as inputs.
-
-    Parameters
-    ----------
-    func : callable
-        Function whose hessian values
-        will be computed.
+    func_at_point : callable
+        Function of a single point, returning an array or a tuple of arrays.
+    point : array-like, shape=[..., *point_shape]
+        Point or batch of points.
     point_ndim : int
-        Number of axes in one point. All preceding axes are batch axes.
+        Number of axes of a point. All preceding axes are batch axes.
+
+    Returns
+    -------
+    result : array-like or tuple[array-like]
+        Results stacked along the batch axes.
+    """
+    if point.ndim == point_ndim:
+        return func_at_point(point)
+
+    batch_ndim = point.ndim - point_ndim
+    batch_shape = point.shape[:batch_ndim]
+    points = _np.reshape(point, (-1,) + point.shape[batch_ndim:])
+    results = [func_at_point(one_point) for one_point in points]
+
+    def _stack(arrays):
+        """Stack arrays along the batch axes."""
+        stacked = _np.stack(arrays)
+        return _np.reshape(stacked, batch_shape + stacked.shape[1:])
+
+    if isinstance(results[0], tuple):
+        return tuple(_stack(list(arrays)) for arrays in zip(*results))
+
+    return _stack(results)
+
+
+def jacobian(func, point_ndim=1):
+    """Return a function that returns the pointwise jacobian of func.
+
+    Contrary to the jacobian of autograd, the jacobian of a batch of points
+    is the batch of the jacobians at each point: if the jacobian at a point
+    of shape (2,) has shape (3, 2), then the jacobian at 4 points of shape
+    (4, 2) has shape (4, 3, 2), and not (3, 2, 4, 2).
+
+    Parameters
+    ----------
+    func : callable
+        Function whose jacobian is computed.
+    point_ndim : int
+        Number of axes of a point. All preceding axes are batch axes.
+
+    Returns
+    -------
+    _ : callable
+        Function taking point as input and returning
+        the jacobian of func at point.
+    """
+    jacobian_at_point = _autograd_jacobian(func)
+
+    def _jacobian(point):
+        return _apply_pointwise(jacobian_at_point, point, point_ndim)
+
+    return _jacobian
+
+
+def hessian(func, point_ndim=1, func_out_ndim=None):
+    """Return a function that returns the pointwise hessian of func.
+
+    As for `jacobian`, the hessian of a batch of points is the batch of the
+    hessians at each point.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose hessian is computed.
+    point_ndim : int
+        Number of axes of a point. All preceding axes are batch axes.
     func_out_ndim : int
         Unused. Here for API consistency.
 
     Returns
     -------
-    func_with_hessian : callable
-        Function that returns func's hessian
-        values at its inputs args.
+    _ : callable
+        Function taking point as input and returning
+        the hessian of func at point.
     """
-    hessian_func = hessian(func)
+    hessian_at_point = _autograd.hessian(func)
 
-    def _hess(x):
-        if x.ndim == point_ndim:
-            return hessian_func(x)
-        batch_ndim = x.ndim - point_ndim
-        batch_shape = x.shape[:batch_ndim]
-        x = _np.reshape(x, (-1,) + x.shape[batch_ndim:])
-        result = _np.stack([hessian_func(one_x) for one_x in x])
-        return _np.reshape(result, batch_shape + result.shape[1:])
+    def _hessian(point):
+        return _apply_pointwise(hessian_at_point, point, point_ndim)
 
-    return _hess
+    return _hessian
 
 
-def jacobian_and_hessian(func, func_out_ndim=None):
-    """Wrap autograd jacobian and hessian functions.
+def jacobian_and_hessian(func, point_ndim=1, func_out_ndim=None):
+    """Return a function that returns func's pointwise jacobian and hessian.
 
     Parameters
     ----------
     func : callable
         Function whose jacobian and hessian values
         will be computed.
+    point_ndim : int
+        Number of axes of a point. All preceding axes are batch axes.
     func_out_ndim : int
         Unused. Here for API consistency.
 
@@ -356,10 +282,30 @@ def jacobian_and_hessian(func, func_out_ndim=None):
         Function that returns func's jacobian and
         func's hessian values at its inputs args.
     """
-    return value_and_jacobian(jacobian_vec(func))
+    return value_and_jacobian(
+        jacobian(func, point_ndim=point_ndim), point_ndim=point_ndim
+    )
 
 
-def value_jacobian_and_hessian(func, func_out_ndim=None):
+def _value_jacobian_and_hessian_at_point(func, point):
+    """Compute the value, jacobian and hessian of func at a single point.
+
+    func is evaluated once: the hessian is the jacobian of the jacobian,
+    whose computation records the value of func.
+    """
+    values = []
+
+    def _jacobian(one_point):
+        """Compute the jacobian of func, recording its value."""
+        value, jac = _value_and_jacobian_op(func)(one_point)
+        values.append(value)
+        return jac
+
+    jac, hess = _value_and_jacobian_op(_jacobian)(point)
+    return _getval(values[0]), jac, hess
+
+
+def value_jacobian_and_hessian(func, point_ndim=1, func_out_ndim=None):
     """Compute value, jacobian and hessian.
 
     func is only called once.
@@ -369,25 +315,24 @@ def value_jacobian_and_hessian(func, func_out_ndim=None):
     func : callable
         Function whose jacobian and hessian values
         will be computed.
+    point_ndim : int
+        Number of axes of a point. All preceding axes are batch axes.
     func_out_ndim : int
         Unused. Here for API consistency.
+
+    Returns
+    -------
+    func_with_jacobian_and_hessian : callable
+        Function that returns func's value, jacobian and
+        hessian at its input point.
     """
-    cache = []
 
-    def _cached_value_and_jacobian(fun, return_cached=False):
-        def _jac(x):
-            ans, jac = value_and_jacobian(fun)(x)
-            if not return_cached:
-                cache.append(ans)
-                return jac
+    def _value_jacobian_and_hessian(point):
+        """Compute the value, jacobian and hessian of func at each point of a batch."""
+        return _apply_pointwise(
+            _functools.partial(_value_jacobian_and_hessian_at_point, func),
+            point,
+            point_ndim,
+        )
 
-            value = _np.stack(cache)._value if len(cache) > 1 else cache[0]._value
-            cache.clear()
-
-            return value, ans, jac
-
-        return _jac
-
-    return _cached_value_and_jacobian(
-        _cached_value_and_jacobian(func), return_cached=True
-    )
+    return _value_jacobian_and_hessian

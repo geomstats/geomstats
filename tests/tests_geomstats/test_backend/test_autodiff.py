@@ -176,7 +176,7 @@ class TestAutodiffOld(TestCase):
         points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 5, gs.pi / 2]])
         thetas = points[:, 0]
         phis = points[:, 1]
-        jacobian_ai = gs.autodiff.jacobian_vec(_sphere_immersion)(points)
+        jacobian_ai = gs.autodiff.jacobian(_sphere_immersion)(points)
 
         expected_1i = gs.stack(
             [
@@ -248,7 +248,7 @@ class TestAutodiffOld(TestCase):
         points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 4, gs.pi / 2]])
         thetas = points[:, 0]
         phis = points[:, 1]
-        hessian_1ij = gs.autodiff.hessian_vec(
+        hessian_1ij = gs.autodiff.hessian(
             _first_component_of_sphere_immersion_scalar
         )(points)
 
@@ -287,8 +287,8 @@ class TestAutodiffOld(TestCase):
         """Nested vectorized jacobians equal the vectorized hessian (#1801)."""
         points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 4, gs.pi / 2]])
 
-        jacobian_of_jacobian = gs.autodiff.jacobian_vec(
-            gs.autodiff.jacobian_vec(_first_component_of_sphere_immersion_scalar)
+        jacobian_of_jacobian = gs.autodiff.jacobian(
+            gs.autodiff.jacobian(_first_component_of_sphere_immersion_scalar)
         )(points)
 
         expected = gs.stack(
@@ -321,8 +321,8 @@ class TestAutodiffOld(TestCase):
         point = gs.array([gs.pi / 3, gs.pi])
         theta, phi = point[0], point[1]
 
-        third_derivative = gs.autodiff.jacobian_vec(
-            gs.autodiff.hessian_vec(_first_component_of_sphere_immersion_scalar)
+        third_derivative = gs.autodiff.jacobian(
+            gs.autodiff.hessian(_first_component_of_sphere_immersion_scalar)
         )(point)
 
         expected_d_theta = radius * gs.array(

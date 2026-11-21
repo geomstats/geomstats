@@ -695,7 +695,7 @@ class CoordinateConnection(Connection, ABC):
             Jacobian of the Christoffel symbols.
             :math:`jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l`
         """
-        return gs.autodiff.jacobian_vec(self.christoffels)(base_point)
+        return gs.autodiff.jacobian(self.christoffels)(base_point)
 
     def geodesic_equation(self, state):
         """Compute the geodesic ODE associated with the connection.
