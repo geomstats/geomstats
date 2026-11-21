@@ -20,7 +20,6 @@ from autograd.numpy import (
     asarray,
     broadcast_to,
     ceil,
-    clip,
     complex64,
     complex128,
     concatenate,
@@ -115,6 +114,7 @@ from ._common import (
     eye,
     is_array,
     rtol,
+    scatter_add,
     zeros,
 )
 from ._dtype import (
@@ -418,6 +418,30 @@ def matmul(*args, **kwargs):
     return _np.matmul(*args, **kwargs)
 
 
+def clip(x, min=None, max=None):
+    """Clip the values of an array between min and max.
+
+    Same as ``np.clip``, with the Array API keywords. The bounds are passed
+    positionally, as autograd's VJP of ``np.clip`` only accepts ``a_min``
+    and ``a_max`` as positional arguments.
+
+    Parameters
+    ----------
+    x : array-like
+        Array.
+    min : float or array-like
+        Lower bound. If None, there is no lower bound.
+    max : float or array-like
+        Upper bound. If None, there is no upper bound.
+
+    Returns
+    -------
+    clipped : array-like, shape=x.shape
+        Array with its values clipped.
+    """
+    return _np.clip(x, min, max)
+
+
 def trace(x):
     """Compute the trace of square matrices, over the last two axes.
 
@@ -432,36 +456,3 @@ def trace(x):
         Trace.
     """
     return _np.linalg.trace(x)
-
-
-def scatter_add(input, dim, index, src):
-    """Add values from src into input at the indices specified in index.
-
-    Parameters
-    ----------
-    input : array-like
-        Tensor to scatter values into.
-    dim : int
-        The axis along which to index.
-    index : array-like
-        The indices of elements to scatter.
-    src : array-like
-        The source element(s) to scatter.
-
-    Returns
-    -------
-    input : array-like
-        Modified input array.
-    """
-    if dim == 0:
-        for i, val in zip(index, src):
-            input[i] += val
-        return input
-    if dim == 1:
-        for j in range(len(input)):
-            for i, val in zip(index[j], src[j]):
-                if not isinstance(val, _np.float64):
-                    val = float(val._value)
-                input[j, i] += float(val)
-        return input
-    raise NotImplementedError

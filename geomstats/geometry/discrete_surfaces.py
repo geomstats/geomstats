@@ -243,12 +243,13 @@ class DiscreteSurfaces(Manifold):
         len_edge_01 = gs.linalg.vector_norm((vertex_0 - vertex_1), axis=-1)
         half_perimeter = 0.5 * (len_edge_12 + len_edge_02 + len_edge_01)
         return gs.sqrt(
-            (
+            gs.clip(
                 half_perimeter
                 * (half_perimeter - len_edge_12)
                 * (half_perimeter - len_edge_02)
-                * (half_perimeter - len_edge_01)
-            ).clip(min=1e-6)
+                * (half_perimeter - len_edge_01),
+                min=1e-6,
+            )
         )
 
     def vertex_areas(self, point):
@@ -422,12 +423,13 @@ class DiscreteSurfaces(Manifold):
 
         half_perimeter = 0.5 * (len_edge_12 + len_edge_02 + len_edge_01)
         area = gs.sqrt(
-            (
+            gs.clip(
                 half_perimeter
                 * (half_perimeter - len_edge_12)
                 * (half_perimeter - len_edge_02)
-                * (half_perimeter - len_edge_01)
-            ).clip(min=1e-6)
+                * (half_perimeter - len_edge_01),
+                min=1e-6,
+            )
         )
         sq_len_edge_12, sq_len_edge_02, sq_len_edge_01 = (
             len_edge_12 * len_edge_12,
@@ -487,27 +489,15 @@ class DiscreteSurfaces(Manifold):
                 tangent_vec_diff,
             )
 
-            laplacian_at_tangent_vec = gs.zeros(
-                batch_shape + (n_vertices, 3), dtype=values.dtype
+            index = gs.broadcast_to(
+                gs.expand_dims(id_vertices[1], axis=-1), batch_shape + (n_faces * 3, 3)
             )
-
-            id_vertices_201 = id_vertices[1, :]
-            id_vertices_201 = gs.broadcast_to(
-                id_vertices_201, batch_shape + id_vertices_201.shape
+            return gs.scatter_add(
+                gs.zeros(batch_shape + (n_vertices, 3), dtype=values.dtype),
+                dim=-2,
+                index=index,
+                src=values,
             )
-
-            for i_dim in range(3):
-                laplacian_at_tangent_vec[batch_slc + (slice(None), i_dim)] = (
-                    gs.scatter_add(
-                        input=laplacian_at_tangent_vec[
-                            batch_slc + (slice(None), i_dim)
-                        ],
-                        dim=-1,
-                        index=id_vertices_201,
-                        src=values[batch_slc + (slice(None), i_dim)],
-                    )
-                )
-            return laplacian_at_tangent_vec
 
         return _laplacian
 

@@ -130,6 +130,8 @@ class DiscreteSurfacesSmokeTestData(TestData):
 class ElasticMetricTestData(TestData):
     N_RANDOM_POINTS = [1]
 
+    skips = () if gs.has_autodiff() else ("exp_after_log",)
+
     tolerances = {"exp_after_log": {"atol": 1e-1}}
 
     def exp_after_log_test_data(self):

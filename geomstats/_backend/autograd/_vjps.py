@@ -8,6 +8,7 @@ from autograd.extend import defvjp_argnums as _defvjp_argnums
 from autograd.numpy.numpy_vjps import unbroadcast_f as _unbroadcast_f
 from autograd.scipy.linalg import expm as _expm
 
+from ._common import _scatter_add
 from .linalg import logm as _logm
 from .linalg import solve_sylvester as _solve_sylvester
 
@@ -79,6 +80,16 @@ def _diagonal_vjp(ans, x, offset=0):
     return lambda g: _np.matmul(_np.matrix_transpose(rows) * g[..., None, :], cols)
 
 
+def _scatter_add_vjp_input(ans, input, dim, index, src):
+    """Get the VJP of scatter_add with respect to the input."""
+    return lambda g: g
+
+
+def _scatter_add_vjp_src(ans, input, dim, index, src):
+    """Get the VJP of scatter_add with respect to the added values."""
+    return lambda g: _np.take_along_axis(g, index, axis=dim)
+
+
 def _solve_sylvester_vjp(argnums, ans, args, kwargs):
     """Get the VJPs of the solution of the Sylvester equation.
 
@@ -135,6 +146,7 @@ _defvjp(_np.linalg.vector_norm, _vector_norm_vjp)
 _defvjp(_np.linalg.matrix_norm, _matrix_norm_vjp)
 _defvjp(_np.linalg.trace, _trace_vjp)
 _defvjp(_np.linalg.diagonal, _diagonal_vjp)
+_defvjp(_scatter_add, _scatter_add_vjp_input, None, None, _scatter_add_vjp_src)
 _defvjp(_expm, _functools.partial(_matrix_function_vjp, fn=_expm))
 _defvjp(_logm, _functools.partial(_matrix_function_vjp, fn=_logm))
 _defvjp_argnums(_solve_sylvester, _solve_sylvester_vjp)
