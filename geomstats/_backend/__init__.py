@@ -160,7 +160,6 @@ BACKEND_ATTRIBUTES = {
         "tril_embed",
         "triu_embed",
         "unique",
-        "vectorize",
         "vecdot",
         "vstack",
         "where",

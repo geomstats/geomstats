@@ -187,12 +187,6 @@ def ndim(x):
     return x.ndim
 
 
-def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
-    if multiple_args:
-        return _np.vectorize(pyfunc, signature=signature)(*x)
-    return _np.vectorize(pyfunc, signature=signature)(x)
-
-
 def array_from_sparse(indices, data, target_shape):
     """Create an array of given shape, with values at specific indices.
 
