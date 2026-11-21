@@ -33,7 +33,7 @@ def matrix_matrix_transpose(point):
     mat : array-like, shape=[n, n]
         Matrix resulting from operation.
     """
-    return Matrices.mul(point, gs.matrix_transpose(point))
+    return gs.matmul(point, gs.matrix_transpose(point))
 
 
 def tangent_matrix_matrix_transpose(tangent_vec, base_point):
@@ -56,7 +56,7 @@ def tangent_matrix_matrix_transpose(tangent_vec, base_point):
     image_tangent_vec : array-like, shape=[n, n]
         Matrix resulting from operation.
     """
-    return Matrices.mul(tangent_vec, gs.matrix_transpose(base_point)) + Matrices.mul(
+    return gs.matmul(tangent_vec, gs.matrix_transpose(base_point)) + gs.matmul(
         base_point, gs.matrix_transpose(tangent_vec)
     )
 
@@ -262,7 +262,7 @@ class Matrices(MatrixVectorSpace):
         mat_c : array-like, shape=[..., n, n]
             Commutator.
         """
-        return cls.mul(mat_a, mat_b) - cls.mul(mat_b, mat_a)
+        return gs.matmul(mat_a, mat_b) - gs.matmul(mat_b, mat_a)
 
     @staticmethod
     def diagonal(mat):

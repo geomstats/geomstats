@@ -91,7 +91,7 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
         eigvals, eigvecs = gs.linalg.eigh(herm)
         regularized = gs.where(eigvals < atol, atol, eigvals)
         reconstruction = gs.einsum("...ij,...j->...ij", eigvecs, regularized)
-        return Matrices.mul(reconstruction, ComplexMatrices.transconjugate(eigvecs))
+        return gs.matmul(reconstruction, ComplexMatrices.transconjugate(eigvecs))
 
     def random_point(self, n_samples=1, bound=0.1):
         """Sample in HPD(n) from the log-uniform distribution.
@@ -177,8 +177,8 @@ class HPDAffineMetric(ComplexRiemannianMetric):
             Inner-product.
         """
         inv_base_point = GeneralLinear.inverse(base_point)
-        aux_a = Matrices.mul(inv_base_point, tangent_vec_a)
-        aux_b = Matrices.mul(inv_base_point, tangent_vec_b)
+        aux_a = gs.matmul(inv_base_point, tangent_vec_a)
+        aux_b = gs.matmul(inv_base_point, tangent_vec_b)
 
         return Matrices.trace_product(aux_a, aux_b)
 
@@ -369,7 +369,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
             coefficients, dtype=rotated_tangent_vec.dtype
         )
         rotated_hessian = gs.einsum("...ij,...j->...ij", rotated_sylvester, eigvals)
-        rotated_hessian = Matrices.mul(rotated_hessian, rotated_sylvester)
+        rotated_hessian = gs.matmul(rotated_hessian, rotated_sylvester)
         hessian = Matrices.mul(eigvecs, rotated_hessian, transconj_eigvecs)
 
         return base_point + tangent_vec + hessian
@@ -480,7 +480,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         square_root_lift = powermh(end_point_lift, 0.5)
 
         horizontal_velocity = gs.matmul(inverse_square_root_bp, square_root_lift)
-        partial_horizontal_velocity = Matrices.mul(horizontal_velocity, square_root_bp)
+        partial_horizontal_velocity = gs.matmul(horizontal_velocity, square_root_bp)
         partial_horizontal_velocity += ComplexMatrices.transconjugate(
             partial_horizontal_velocity
         )
@@ -504,7 +504,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
             return gs.linalg.solve_sylvester(geodesic_t, geodesic_t, -right)
 
         flow = integrate(force, horizontal_lift_a, n_steps=n_steps, step=step)
-        final_align = Matrices.mul(end_point, flow[-1])
+        final_align = gs.matmul(end_point, flow[-1])
         return final_align + ComplexMatrices.transconjugate(final_align)
 
     def injectivity_radius(self, base_point):

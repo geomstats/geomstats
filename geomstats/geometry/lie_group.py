@@ -8,7 +8,6 @@ import abc
 import geomstats.backend as gs
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.manifold import Manifold
-from geomstats.geometry.matrices import Matrices
 
 ATOL = 1e-6
 
@@ -44,7 +43,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
         composed : array-like, shape=[..., {dim, [n, n]}]
             Product of ``point_a`` and ``point_b`` along the first dimension.
         """
-        return Matrices.mul(point_a, point_b)
+        return gs.matmul(point_a, point_b)
 
     @classmethod
     def inverse(cls, point):
@@ -123,11 +122,11 @@ class MatrixLieGroup(Manifold, abc.ABC):
             base_point = self.identity
         inverse_base_point = self.inverse(base_point)
 
-        first_term = Matrices.mul(inverse_base_point, tangent_vec_b)
-        first_term = Matrices.mul(tangent_vec_a, first_term)
+        first_term = gs.matmul(inverse_base_point, tangent_vec_b)
+        first_term = gs.matmul(tangent_vec_a, first_term)
 
-        second_term = Matrices.mul(inverse_base_point, tangent_vec_a)
-        second_term = Matrices.mul(tangent_vec_b, second_term)
+        second_term = gs.matmul(inverse_base_point, tangent_vec_a)
+        second_term = gs.matmul(tangent_vec_b, second_term)
 
         return first_term - second_term
 
@@ -389,8 +388,8 @@ class LieGroup(Manifold, abc.ABC):
             if inverse:
                 point = self.inverse(point)
             if left:
-                return lambda tangent_vec: Matrices.mul(point, tangent_vec)
-            return lambda tangent_vec: Matrices.mul(tangent_vec, point)
+                return lambda tangent_vec: gs.matmul(point, tangent_vec)
+            return lambda tangent_vec: gs.matmul(tangent_vec, point)
 
         jacobian = self.jacobian_translation(point, left)
         if inverse:
@@ -570,11 +569,11 @@ class LieGroup(Manifold, abc.ABC):
             base_point = self.identity
         inverse_base_point = self.inverse(base_point)
 
-        first_term = Matrices.mul(inverse_base_point, tangent_vec_b)
-        first_term = Matrices.mul(tangent_vec_a, first_term)
+        first_term = gs.matmul(inverse_base_point, tangent_vec_b)
+        first_term = gs.matmul(tangent_vec_a, first_term)
 
-        second_term = Matrices.mul(inverse_base_point, tangent_vec_a)
-        second_term = Matrices.mul(tangent_vec_b, second_term)
+        second_term = gs.matmul(inverse_base_point, tangent_vec_a)
+        second_term = gs.matmul(tangent_vec_b, second_term)
 
         return first_term - second_term
 

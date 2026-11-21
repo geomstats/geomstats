@@ -186,7 +186,7 @@ class Stiefel(LevelSet):
         -------
         submersed_point : array-like, shape=[..., n, p]
         """
-        return Matrices.mul(gs.matrix_transpose(point), point) - self._value
+        return gs.matmul(gs.matrix_transpose(point), point) - self._value
 
     def tangent_submersion(self, vector, point):
         """Tangent submersion.
@@ -201,7 +201,7 @@ class Stiefel(LevelSet):
         submersed_vector : array-like, shape=[..., n, p]
         """
         return 2 * Matrices.to_symmetric(
-            Matrices.mul(gs.matrix_transpose(point), vector)
+            gs.matmul(gs.matrix_transpose(point), vector)
         )
 
     @staticmethod
@@ -223,7 +223,7 @@ class Stiefel(LevelSet):
         projected : array-like, shape=[..., n, n]
             Projected point.
         """
-        return Matrices.mul(point, gs.matrix_transpose(point))
+        return gs.matmul(point, gs.matrix_transpose(point))
 
     def random_uniform(self, n_samples=1):
         r"""Sample on St(n,p) from the uniform distribution.
@@ -248,9 +248,9 @@ class Stiefel(LevelSet):
 
         std_normal = gs.random.normal(size=size)
         std_normal_transpose = gs.matrix_transpose(std_normal)
-        aux = Matrices.mul(std_normal_transpose, std_normal)
+        aux = gs.matmul(std_normal_transpose, std_normal)
         inv_sqrt_aux = powermh(aux, -1.0 / 2)
-        samples = Matrices.mul(std_normal, inv_sqrt_aux)
+        samples = gs.matmul(std_normal, inv_sqrt_aux)
 
         return samples
 
@@ -293,9 +293,9 @@ class Stiefel(LevelSet):
         tangent_vec : array-like, shape=[..., n, p]
             Tangent vector at base point.
         """
-        aux = Matrices.mul(gs.matrix_transpose(base_point), vector)
+        aux = gs.matmul(gs.matrix_transpose(base_point), vector)
         sym_aux = Matrices.to_symmetric(aux)
-        return vector - Matrices.mul(base_point, sym_aux)
+        return vector - gs.matmul(base_point, sym_aux)
 
     def projection(self, point):
         """Project a close enough matrix to the Stiefel manifold.
@@ -321,7 +321,7 @@ class Stiefel(LevelSet):
         """
         p = self.p
         mat_u, _, mat_v = gs.linalg.svd(point)
-        return Matrices.mul(_left_block(mat_u, p), mat_v)
+        return gs.matmul(_left_block(mat_u, p), mat_v)
 
 
 class StiefelCanonicalMetric(RiemannianMetric):
@@ -392,8 +392,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
             of tangent_vec at the base point.
         """
         p = self._space.p
-        matrix_a = Matrices.mul(gs.matrix_transpose(base_point), tangent_vec)
-        matrix_k = tangent_vec - Matrices.mul(base_point, matrix_a)
+        matrix_a = gs.matmul(gs.matrix_transpose(base_point), tangent_vec)
+        matrix_k = tangent_vec - gs.matmul(base_point, matrix_a)
 
         matrix_q, matrix_r = gs.linalg.qr(matrix_k)
 
@@ -403,9 +403,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
         block = _concatenate_rows(matrix_ar, matrix_rz)
         matrix_mn_e = gs.linalg.expm(block)
 
-        exp = Matrices.mul(
+        exp = gs.matmul(
             base_point, _upper_left_block(matrix_mn_e, p)
-        ) + Matrices.mul(matrix_q, _lower_left_block(matrix_mn_e, p))
+        ) + gs.matmul(matrix_q, _lower_left_block(matrix_mn_e, p))
         return exp
 
     @staticmethod
@@ -434,7 +434,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         diagonal = gs.diagonal(matrix_r, axis1=-2, axis2=-1)
         sign = gs.sign(gs.sign(diagonal) + 0.5)
         diag = algebra_utils.from_vector_to_diagonal_matrix(sign)
-        result = Matrices.mul(matrix_q, diag)
+        result = gs.matmul(matrix_q, diag)
 
         return result
 
@@ -674,7 +674,7 @@ class _ZimmermannLogSolver(LogSolver):
         matrix_d, _, matrix_rt = gs.linalg.svd(matrix_z)
         matrix_r = gs.matrix_transpose(matrix_rt)
 
-        matrix_rd = Matrices.mul(matrix_r, gs.matrix_transpose(matrix_d))
+        matrix_rd = gs.matmul(matrix_r, gs.matrix_transpose(matrix_d))
 
         sub_matrix_v = gs.matmul(_right_block(matrix_v, p), matrix_rd)
         matrix_v_final = _concatenate_columns(matrix_w, sub_matrix_v)
@@ -688,7 +688,7 @@ class _ZimmermannLogSolver(LogSolver):
             axis=-1,
         )
 
-        matrix_rd = Matrices.mul(
+        matrix_rd = gs.matmul(
             matrix_r * sign[..., None, :],
             gs.matrix_transpose(matrix_d),
         )

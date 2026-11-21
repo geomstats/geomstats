@@ -557,7 +557,7 @@ class EuclideanCholeskyDiffeo(Diffeo):
         chol = gs.linalg.cholesky(base_point)
         chol_inv = gs.linalg.inv(chol)
         aux = Matrices.mul(chol_inv, tangent_vec, gs.matrix_transpose(chol_inv))
-        term_1 = Matrices.mul(
+        term_1 = gs.matmul(
             image_point,
             Matrices.to_lower_triangular_diagonal_scaled(aux),
         )
@@ -1277,7 +1277,7 @@ class LogScalingDiffeo(Diffeo):
         eye = gs.eye(base_point_row_1.shape[-1])
         tangent_vec_row_1_0 = -2 * gs.vec_to_diag(
             gs.sum(
-                Matrices.mul(
+                gs.matmul(
                     gs.linalg.inv(eye + base_point_row_1),
                     aux,
                 ),
@@ -1286,8 +1286,8 @@ class LogScalingDiffeo(Diffeo):
         )
 
         tangent_vec_row_1 = aux + 0.5 * (
-            Matrices.mul(tangent_vec_row_1_0, base_point_row_1)
-            + Matrices.mul(base_point_row_1, tangent_vec_row_1_0)
+            gs.matmul(tangent_vec_row_1_0, base_point_row_1)
+            + gs.matmul(base_point_row_1, tangent_vec_row_1_0)
         )
 
         return SymMatrixLog.tangent(

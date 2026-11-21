@@ -43,9 +43,9 @@ def _project_on_rotation_matrices(mat):
         Rotation matrix.
     """
     mat_u, _, mat_vt = gs.linalg.svd(mat)
-    det = gs.linalg.det(Matrices.mul(mat_u, mat_vt))
+    det = gs.linalg.det(gs.matmul(mat_u, mat_vt))
     mat_u = utils.flip_determinant(mat_u, det)
-    return Matrices.mul(mat_u, mat_vt)
+    return gs.matmul(mat_u, mat_vt)
 
 
 class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
@@ -78,7 +78,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         return GeneralLinear(self.n, positive_det=True, equip=False)
 
     def _aux_submersion(self, point):
-        return Matrices.mul(gs.matrix_transpose(point), point)
+        return gs.matmul(gs.matrix_transpose(point), point)
 
     def submersion(self, point):
         """Submersion that defines the manifold.
@@ -106,7 +106,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         submersed_vector : array-like, shape=[..., n, n]
         """
         return 2 * Matrices.to_symmetric(
-            Matrices.mul(gs.matrix_transpose(point), vector)
+            gs.matmul(gs.matrix_transpose(point), vector)
         )
 
     @classmethod
@@ -279,7 +279,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         geodesics then join :math:`R_1` to :math:`R_2`, so the logarithm is
         not uniquely defined.
         """
-        relative_rot = Matrices.mul(gs.matrix_transpose(rotation_mat1), rotation_mat2)
+        relative_rot = gs.matmul(gs.matrix_transpose(rotation_mat1), rotation_mat2)
         n = relative_rot.shape[-1]
         return gs.isclose(gs.linalg.det(gs.eye(n) + relative_rot), 0.0)
 
@@ -1015,7 +1015,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         term_1 = gs.eye(self.dim) + scalarmatmul(coef_1, skew_rot_vec)
 
-        squared_skew_rot_vec = Matrices.mul(skew_rot_vec, skew_rot_vec)
+        squared_skew_rot_vec = gs.matmul(skew_rot_vec, skew_rot_vec)
 
         term_2 = scalarmatmul(coef_2, squared_skew_rot_vec)
 
