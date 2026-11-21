@@ -775,7 +775,7 @@ class PoincareBallMetric(CoordinateRiemannianMetric):
             Gradient of the normalization factor.
         """
         dim = self._space.dim
-        variances = gs.matrix_transpose(gs.to_ndarray(variances, to_ndim=2))
+        variances = gs.matrix_transpose(gs.expand_dims_to(variances, ndim=2))
         dim_range = gs.arange(0, dim, 1.0)
         alpha = self._compute_alpha(dim_range)
 

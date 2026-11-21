@@ -56,7 +56,7 @@ def main():
         gs.stack([tangent_vec_b, tangent_vec_a, pole_ladder], axis=0) / n_steps
     )
 
-    base_point = gs.to_ndarray(base_point, to_ndim=2)
+    base_point = gs.expand_dims_to(base_point, ndim=2)
     origin = gs.concatenate([base_point, base_point, final_geodesic(0.0)], axis=0)
     ax.quiver(
         origin[:, 0],

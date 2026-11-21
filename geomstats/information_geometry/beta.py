@@ -126,7 +126,7 @@ class BetaDistributions(DirichletDistributions):
         """
         data = gs.where(data == 1.0, 1.0 - epsilon, data)
         data = gs.where(data == 0.0, epsilon, data)
-        data = gs.to_ndarray(data, to_ndim=2)
+        data = gs.expand_dims_to(data, ndim=2)
         parameters = []
         for sample in data:
             param_a, param_b, _, _ = beta.fit(sample, floc=loc, fscale=scale)

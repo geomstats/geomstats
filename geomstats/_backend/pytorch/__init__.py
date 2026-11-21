@@ -257,13 +257,27 @@ def mean(x, axis=None, dtype=None, keepdims=False, out=None):
     return _torch.mean(x, dim=axis, dtype=dtype, keepdim=keepdims, out=out)
 
 
-def to_ndarray(x, to_ndim, axis=0, dtype=None):
-    x = _torch.as_tensor(x, dtype=dtype)
+def expand_dims_to(x, ndim, axis=0):
+    """Insert axes at ``axis`` until an array has ``ndim`` axes.
 
-    if x.dim() > to_ndim:
-        raise ValueError("The ndim cannot be adapted properly.")
+    Parameters
+    ----------
+    x : array-like
+        Array, with at most ``ndim`` axes.
+    ndim : int
+        Number of axes of the output.
+    axis : int
+        Position of the inserted axes.
 
-    while x.dim() < to_ndim:
+    Returns
+    -------
+    x : array-like
+        Array with ``ndim`` axes.
+    """
+    if x.dim() > ndim:
+        raise ValueError(f"Cannot expand an array with {x.dim()} axes to {ndim}.")
+
+    while x.dim() < ndim:
         x = _torch.unsqueeze(x, dim=axis)
 
     return x

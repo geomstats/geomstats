@@ -780,7 +780,7 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         geodesics = self._iterate_over_factors("geodesic", args)
 
         def geod_fun(t):
-            t = gs.to_ndarray(t, to_ndim=1)
+            t = gs.expand_dims_to(gs.array(t), ndim=1)
             values = [geodesic(t) for geodesic in geodesics]
             return self._space.embed_to_product(values)
 
