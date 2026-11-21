@@ -36,6 +36,15 @@ class BackendTestData(TestData):
             )
             for offset in (0, 1, -2)
         ]
+        smoke_data += [
+            dict(
+                func_name_1=f"{tri}_embed",
+                func_name_2=f"{tri}_to_vec",
+                a=rand(6 if k == 0 else 3),
+                kwargs={"k": k},
+            )
+            for tri, k in (("tril", 0), ("tril", -1), ("triu", 0), ("triu", 1))
+        ]
         return self.generate_tests(smoke_data)
 
     def _logm_expm_data(self, func_name="linalg.logm"):
@@ -223,26 +232,32 @@ class BackendTestData(TestData):
                 },
                 expected=gs.array([[[0.0, 0.0], [0.0, 1.0]], [[0.0, 0.0], [0.0, 2.0]]]),
             ),
+            # the triangular part is filled row by row
             dict(
-                func_name="mat_from_diag_triu_tril",
-                args=(gs.ones(2), gs.array([2.0]), gs.array([3.0])),
-                expected=gs.array([[1.0, 2.0], [3.0, 1.0]]),
+                func_name="tril_embed",
+                args=(gs.array([1.0, 2.0, 3.0]),),
+                expected=gs.array([[1.0, 0.0], [2.0, 3.0]]),
             ),
             dict(
-                func_name="mat_from_diag_triu_tril",
-                args=(gs.ones(3), gs.array([2.0, 3.0, 4.0]), gs.array([5.0, 6.0, 7.0])),
-                expected=gs.array([[1.0, 2.0, 3.0], [5.0, 1.0, 4.0], [6.0, 7.0, 1.0]]),
+                func_name="tril_embed",
+                args=(gs.array([1.0, 2.0, 3.0]),),
+                kwargs={"k": -1},
+                expected=gs.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [2.0, 3.0, 0.0]]),
             ),
-            # TODO: add (proper) vectorization test
             dict(
-                func_name="mat_from_diag_triu_tril",
-                args=(
-                    gs.ones((2, 2)),
-                    gs.array([[2.0], [2.0]]),
-                    gs.array([[3.0], [3.0]]),
-                ),
-                expected=gs.repeat(
-                    gs.expand_dims(gs.array([[1.0, 2.0], [3.0, 1.0]]), 0), 2, axis=0
+                func_name="triu_embed",
+                args=(gs.array([1.0, 2.0, 3.0]),),
+                expected=gs.array([[1.0, 2.0], [0.0, 3.0]]),
+            ),
+            dict(
+                func_name="triu_embed",
+                args=(gs.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]),),
+                kwargs={"k": 1},
+                expected=gs.array(
+                    [
+                        [[0.0, 1.0, 2.0], [0.0, 0.0, 3.0], [0.0, 0.0, 0.0]],
+                        [[0.0, 4.0, 5.0], [0.0, 0.0, 6.0], [0.0, 0.0, 0.0]],
+                    ]
                 ),
             ),
             dict(

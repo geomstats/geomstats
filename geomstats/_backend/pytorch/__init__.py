@@ -395,10 +395,6 @@ def equal(a, b, **kwargs):
     return _torch.eq(a, b, **kwargs)
 
 
-def diag_indices(*args, **kwargs):
-    return tuple(map(_torch.from_numpy, _np.diag_indices(*args, **kwargs)))
-
-
 def tril(mat, k=0):
     return _torch.tril(mat, diagonal=k)
 
@@ -534,43 +530,119 @@ def diag_embed(vec, offset=0):
 
 
 def tril_to_vec(x, k=0):
+    """Get the lower triangular part of square matrices as vectors.
+
+    It is the inverse of ``tril_embed``, for the same ``k``. The entries are
+    taken row by row.
+
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, n]
+        Square matrix.
+    k : int
+        Diagonal bounding the triangular part, e.g. 0 to include the main
+        diagonal and -1 to exclude it.
+
+    Returns
+    -------
+    vec : array-like, shape=[..., m]
+        Vector, with ``m`` the number of entries of the triangular part.
+    """
     n = x.shape[-1]
     rows, cols = tril_indices(n, k=k)
     return x[..., rows, cols]
 
 
 def triu_to_vec(x, k=0):
+    """Get the upper triangular part of square matrices as vectors.
+
+    It is the inverse of ``triu_embed``, for the same ``k``. The entries are
+    taken row by row.
+
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, n]
+        Square matrix.
+    k : int
+        Diagonal bounding the triangular part, e.g. 0 to include the main
+        diagonal and 1 to exclude it.
+
+    Returns
+    -------
+    vec : array-like, shape=[..., m]
+        Vector, with ``m`` the number of entries of the triangular part.
+    """
     n = x.shape[-1]
     rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]
 
 
-def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
-    """Build matrix from given components.
+def _tri_embed(vec, k, tri_indices):
+    """Embed vectors as a triangular part of square matrices, with a gather.
 
-    Forms a matrix from diagonal, strictly upper triangular and
-    strictly lower traingular parts.
+    The vector is padded with a zero, at which the entries outside the
+    triangular part point.
+    """
+    m = vec.shape[-1]
+    size = int(round(((8 * m + 1) ** 0.5 - 1) / 2))
+    if size * (size + 1) // 2 != m:
+        raise ValueError(f"No triangular part of a square matrix has {m} entries.")
+
+    n = size + (k if k > 0 else -k)
+    rows, cols = tri_indices(n, n, offset=k)
+    index = _torch.full((n, n), m, dtype=_torch.long)
+    index[rows, cols] = _torch.arange(m)
+
+    zero = _torch.zeros(vec.shape[:-1] + (1,), dtype=vec.dtype, device=vec.device)
+    return _torch.cat([vec, zero], dim=-1)[..., index.to(vec.device)]
+
+
+def tril_embed(vec, k=0):
+    """Embed vectors as the lower triangular part of square matrices.
+
+    It is the inverse of ``tril_to_vec``, for the same ``k``. The entries are
+    placed row by row, and the rest of the matrix is zero.
 
     Parameters
     ----------
-    diag : array_like, shape=[..., n]
-    tri_upp : array_like, shape=[..., (n * (n - 1)) / 2]
-    tri_low : array_like, shape=[..., (n * (n - 1)) / 2]
+    vec : array-like, shape=[..., m]
+        Vector, whose size is the number of entries of the triangular part.
+    k : int
+        Diagonal bounding the triangular part: 0 to include the main
+        diagonal, -1 to exclude it. Requires ``k <= 0``.
 
     Returns
     -------
-    mat : array_like, shape=[..., n, n]
+    mat : array-like, shape=[..., n, n]
+        Matrix, with ``n`` such that the triangular part has ``m`` entries.
     """
-    diag, tri_upp, tri_low = convert_to_wider_dtype([diag, tri_upp, tri_low])
+    if k > 0:
+        raise ValueError("tril_embed requires k <= 0.")
+    return _tri_embed(vec, k, _torch.tril_indices)
 
-    n = diag.shape[-1]
-    (i,) = diag_indices(n, ndim=1)
-    j, k = triu_indices(n, k=1)
-    mat = _torch.zeros((diag.shape + (n,)), dtype=diag.dtype)
-    mat[..., i, i] = diag
-    mat[..., j, k] = tri_upp
-    mat[..., k, j] = tri_low
-    return mat
+
+def triu_embed(vec, k=0):
+    """Embed vectors as the upper triangular part of square matrices.
+
+    It is the inverse of ``triu_to_vec``, for the same ``k``. The entries are
+    placed row by row, and the rest of the matrix is zero.
+
+    Parameters
+    ----------
+    vec : array-like, shape=[..., m]
+        Vector, whose size is the number of entries of the triangular part.
+    k : int
+        Diagonal bounding the triangular part: 0 to include the main
+        diagonal, 1 to exclude it. Requires ``k >= 0``.
+
+    Returns
+    -------
+    mat : array-like, shape=[..., n, n]
+        Matrix, with ``n`` such that the triangular part has ``m`` entries.
+    """
+    if k < 0:
+        raise ValueError("triu_embed requires k >= 0.")
+    return _tri_embed(vec, k, _torch.triu_indices)
 
 
 def divide(a, b, ignore_div_zero=False):
