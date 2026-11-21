@@ -27,6 +27,15 @@ class BackendTestData(TestData):
                 a=SpecialOrthogonal(n=3).random_point(2),
             ),
         ]
+        smoke_data += [
+            dict(
+                func_name_1="diag_embed",
+                func_name_2="diagonal",
+                a=rand(3),
+                kwargs={"offset": offset},
+            )
+            for offset in (0, 1, -2)
+        ]
         return self.generate_tests(smoke_data)
 
     def _logm_expm_data(self, func_name="linalg.logm"):
@@ -150,6 +159,18 @@ class BackendTestData(TestData):
                 func_name="trace",
                 args=(gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]),),
                 expected=gs.array([5.0, 13.0]),
+            ),
+            dict(
+                func_name="diag_embed",
+                args=(gs.array([1.0, 2.0]),),
+                kwargs={"offset": 1},
+                expected=gs.array([[0.0, 1.0, 0.0], [0.0, 0.0, 2.0], [0.0, 0.0, 0.0]]),
+            ),
+            dict(
+                func_name="diag_embed",
+                args=(gs.array([1.0, 2.0]),),
+                kwargs={"offset": -1},
+                expected=gs.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 2.0, 0.0]]),
             ),
             dict(
                 func_name="linalg.vector_norm",

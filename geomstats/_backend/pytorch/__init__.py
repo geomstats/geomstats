@@ -538,8 +538,24 @@ def vectorize(x, pyfunc, multiple_args=False, **kwargs):
     return stack(list(map(pyfunc, x)))
 
 
-def vec_to_diag(vec):
-    return _torch.diag_embed(vec, offset=0)
+def diag_embed(vec, offset=0):
+    """Embed vectors as a diagonal of matrices, over the last two axes.
+
+    It is the inverse of ``diagonal``, for the same offset.
+
+    Parameters
+    ----------
+    vec : array-like, shape=[..., n]
+        Vector.
+    offset : int
+        Offset of the diagonal from the main diagonal.
+
+    Returns
+    -------
+    mat : array-like, shape=[..., n + |offset|, n + |offset|]
+        Matrix, with the vector as its diagonal and zeros elsewhere.
+    """
+    return _torch.diag_embed(vec, offset=offset)
 
 
 def tril_to_vec(x, k=0):

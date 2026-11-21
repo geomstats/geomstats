@@ -1183,7 +1183,7 @@ class SphereSphericalCoordinatesMetric(CoordinatePullbackDiffeoMetric):
         """
         theta = base_point[..., 0]
         diagonal = gs.stack([gs.ones_like(theta), gs.sin(theta) ** 2], axis=-1)
-        return gs.vec_to_diag(diagonal)
+        return gs.diag_embed(diagonal)
 
     def inner_product_derivative_matrix(self, base_point=None):
         r"""Compute derivative of the inner prod matrix at base point.

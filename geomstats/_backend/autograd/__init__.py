@@ -297,10 +297,31 @@ def array_from_sparse(indices, data, target_shape):
     return out
 
 
-def vec_to_diag(vec):
-    """Convert vector to diagonal matrix."""
-    d = vec.shape[-1]
-    return vec[..., None] * eye(d, dtype=vec.dtype)
+def diag_embed(vec, offset=0):
+    """Embed vectors as a diagonal of matrices, over the last two axes.
+
+    It is the inverse of ``diagonal``, for the same offset.
+
+    Parameters
+    ----------
+    vec : array-like, shape=[..., n]
+        Vector.
+    offset : int
+        Offset of the diagonal from the main diagonal.
+
+    Returns
+    -------
+    mat : array-like, shape=[..., n + |offset|, n + |offset|]
+        Matrix, with the vector as its diagonal and zeros elsewhere.
+    """
+    n = vec.shape[-1]
+    if offset == 0:
+        return vec[..., None] * eye(n, dtype=vec.dtype)
+
+    size = n + abs(offset)
+    rows = eye(n, size, k=max(-offset, 0), dtype=vec.dtype)
+    cols = eye(n, size, k=max(offset, 0), dtype=vec.dtype)
+    return _np.matmul(_np.matrix_transpose(rows) * vec[..., None, :], cols)
 
 
 def tril_to_vec(x, k=0):
