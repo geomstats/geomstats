@@ -375,6 +375,15 @@ class TestAutodiffOld(TestCase):
         self.assertAllClose(hessian, expected)
 
     @autograd_and_torch_only
+    def test_grad_of_trace(self):
+        """The gradient of the trace is the identity, at each point of a batch."""
+        points = gs.reshape(gs.arange(8.0), (2, 2, 2))
+        value, grad = gs.autodiff.value_and_grad(gs.trace, point_ndims=2)(points)
+
+        self.assertAllClose(value, gs.array([3.0, 11.0]))
+        self.assertAllClose(grad, gs.stack([gs.eye(2), gs.eye(2)]))
+
+    @autograd_and_torch_only
     def test_grad_of_solve_sylvester(self):
         """Gradients go through the solution of the Sylvester equation.
 

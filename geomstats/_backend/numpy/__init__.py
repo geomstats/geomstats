@@ -323,8 +323,20 @@ def outer(a, b):
     return a[..., :, None] * b[..., None, :]
 
 
-def trace(a):
-    return _np.trace(a, axis1=-2, axis2=-1)
+def trace(x):
+    """Compute the trace of square matrices, over the last two axes.
+
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, n]
+        Square matrix.
+
+    Returns
+    -------
+    trace : array-like, shape=[...]
+        Trace.
+    """
+    return _np.linalg.trace(x)
 
 
 def scatter_add(input, dim, index, src):

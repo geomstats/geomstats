@@ -332,10 +332,19 @@ def squeeze(x, axis=None):
 
 
 def trace(x):
-    if x.ndim == 2:
-        return _torch.trace(x)
+    """Compute the trace of square matrices, over the last two axes.
 
-    return _torch.einsum("...ii", x)
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, n]
+        Square matrix.
+
+    Returns
+    -------
+    trace : array-like, shape=[...]
+        Trace.
+    """
+    return _torch.sum(_torch.linalg.diagonal(x), dim=-1)
 
 
 def linspace(start, stop, num=50, endpoint=True, dtype=None):
