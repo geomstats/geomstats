@@ -16,16 +16,8 @@ from torch.linalg import matrix_exp as expm
 
 from ..numpy import linalg as _gsnplinalg
 from ._common import atol
+from ._common import to_numpy as _to_numpy
 from ._dtype import _cast_out_to_input_dtype
-
-
-def _to_numpy(x):
-    """Convert a tensor to a numpy array, for scipy.
-
-    Scipy is not given tensors: with ``SCIPY_ARRAY_API=1``, it would run its
-    numpy-based code on them.
-    """
-    return x.detach().cpu().numpy() if _torch.is_tensor(x) else x
 
 
 def _check_no_grad(name, *args):

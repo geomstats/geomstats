@@ -51,7 +51,7 @@ from . import (
     linalg,  # NOQA
     random,  # NOQA
 )
-from ._common import array, atol, cast, from_numpy, rtol
+from ._common import array, atol, cast, from_numpy, rtol, to_numpy
 from ._dtype import (
     _add_default_dtype_by_casting,
     _box_binary_scalar,
@@ -113,10 +113,6 @@ def matmul(x, y, out=None):
     return _torch.matmul(x, y, out=out)
 
 
-def to_numpy(x):
-    return x.numpy()
-
-
 def argmax(a, **kwargs):
     if a.dtype == _torch.bool:
         a = a.to(_torch.uint8)
@@ -146,25 +142,15 @@ def split(x, indices_or_sections, axis=0):
 
 def logical_and(x, y):
     if _torch.is_tensor(x) or _torch.is_tensor(y):
-        return x * y
+        return _torch.logical_and(_torch.as_tensor(x), _torch.as_tensor(y))
     return x and y
 
 
 def any(x, axis=None):
-    if not _torch.is_tensor(x):
-        x = _torch.tensor(x)
+    x = _torch.as_tensor(x).bool()
     if axis is None:
         return _torch.any(x)
-    if isinstance(axis, int):
-        return _torch.any(x.bool(), axis)
-    if len(axis) == 1:
-        return _torch.any(x, *axis)
-    axis = list(axis)
-    for i_axis, one_axis in enumerate(axis):
-        if one_axis < 0:
-            axis[i_axis] = ndim(x) + one_axis
-    new_axis = tuple(k - 1 if k >= 0 else k for k in axis[1:])
-    return any(_torch.any(x.bool(), axis[0]), new_axis)
+    return _torch.any(x, dim=axis)
 
 
 def flip(x, axis=None):
@@ -180,20 +166,10 @@ def concatenate(seq, axis=0, out=None):
 
 
 def all(x, axis=None):
-    if not _torch.is_tensor(x):
-        x = _torch.tensor(x)
+    x = _torch.as_tensor(x).bool()
     if axis is None:
-        return x.bool().all()
-    if isinstance(axis, int):
-        return _torch.all(x.bool(), axis)
-    if len(axis) == 1:
-        return _torch.all(x, *axis)
-    axis = list(axis)
-    for i_axis, one_axis in enumerate(axis):
-        if one_axis < 0:
-            axis[i_axis] = ndim(x) + one_axis
-    new_axis = tuple(k - 1 if k >= 0 else k for k in axis[1:])
-    return all(_torch.all(x.bool(), axis[0]), new_axis)
+        return _torch.all(x)
+    return _torch.all(x, dim=axis)
 
 
 def allclose(a, b, atol=atol, rtol=rtol):
@@ -214,7 +190,7 @@ def shape(val):
 def amax(a, axis=None):
     if axis is None:
         return _torch.max(array(a))
-    return _torch.max(array(a), dim=axis).values
+    return _torch.amax(array(a), dim=axis)
 
 
 def maximum(a, b):
@@ -439,7 +415,7 @@ def diagonal(x, offset=0):
 
 def prod(x, axis=None):
     if axis is None:
-        axis = 0
+        return _torch.prod(x)
     return _torch.prod(x, axis)
 
 
@@ -453,7 +429,6 @@ def where(condition, x=None, y=None):
         x = _torch.tensor(x)
     if not _torch.is_tensor(y):
         y = _torch.tensor(y)
-    y = cast(y, x.dtype)
     return _torch.where(condition, x, y)
 
 
@@ -471,7 +446,7 @@ def cumsum(x, axis=None, dtype=None):
 
 def cumprod(x, axis=None, dtype=None):
     if axis is None:
-        axis = 0
+        return x.flatten().cumprod(dim=0, dtype=dtype)
     return _torch.cumprod(x, axis, dtype=dtype)
 
 
