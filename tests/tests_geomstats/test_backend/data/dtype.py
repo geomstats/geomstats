@@ -154,6 +154,8 @@ class DtypeTestData(TestData):
             dict(func_name="tril_to_vec", array_shape=(2, 2)),
             dict(func_name="triu_to_vec", array_shape=(2, 2)),
             dict(func_name="diag_embed", array_shape=3),
+            dict(func_name="tril_embed", array_shape=3),
+            dict(func_name="triu_embed", array_shape=3),
             # TODO: add test in BackendsTestData
             dict(func_name="linalg.vector_norm", array_shape=3),
             dict(func_name="linalg.matrix_norm", array_shape=(2, 2)),
@@ -231,10 +233,10 @@ class DtypeTestData(TestData):
         data = [
             # TODO: add test in BackendsTestData
             dict(
-                func_name="mat_from_diag_triu_tril",
-                shape_a=(2,),
-                shape_b=(1,),
-                shape_c=(1,),
+                func_name="linalg.solve_sylvester",
+                shape_a=(3, 3),
+                shape_b=(1, 1),
+                shape_c=(3, 1),
             ),
         ]
         return self.generate_tests(data)

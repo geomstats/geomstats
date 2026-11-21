@@ -82,7 +82,7 @@ class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
         diag_shape = batch_shape + (self.n,)
         diagonal = bound * gs.random.rand(*diag_shape) + gs.atol
 
-        return gs.mat_from_diag_triu_tril(diagonal, gs.array([0.0]), lower_part)
+        return gs.diag_embed(diagonal) + gs.tril_embed(lower_part, k=-1)
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
