@@ -42,6 +42,17 @@ class NewAutodiffTestData(TestData):
                 expected_grad=gs.array([[8.0, 1.0], [2.0, 0.0]]),
             ),
             dict(
+                func=lambda x: gs.sum(
+                    gs.matrix_transpose(x)
+                    * gs.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+                    axis=(-2, -1),
+                ),
+                inputs=(gs.ones((2, 3)),),
+                point_ndims=2,
+                expected_value=21.0,
+                expected_grad=gs.array([[1.0, 3.0, 5.0], [2.0, 4.0, 6.0]]),
+            ),
+            dict(
                 func=lambda x, y: gs.sum((x - y) ** 2, axis=-1),
                 inputs=(
                     gs.array([1.0, 2.0]),

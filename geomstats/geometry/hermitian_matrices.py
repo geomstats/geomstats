@@ -96,7 +96,7 @@ def apply_func_to_eigvalsh(mat, function, check_positive=False):
     if gs.is_complex(mat):
         transp_eigvecs = ComplexMatrices.transconjugate(eigvecs)
     else:
-        transp_eigvecs = gs.transpose(eigvecs)
+        transp_eigvecs = gs.matrix_transpose(eigvecs)
 
     for fun in function:
         eigvals_f = fun(eigvals)

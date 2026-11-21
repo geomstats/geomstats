@@ -38,6 +38,7 @@ class BackendTestData(TestData):
     def unary_op_vec_test_data(self):
         smoke_data = [
             dict(func_name="trace", a=rand(3, 3)),
+            dict(func_name="matrix_transpose", a=rand(3, 4)),
             dict(func_name="linalg.cholesky", a=SPDMatrices(3).random_point()),
             dict(func_name="linalg.eigvalsh", a=SymmetricMatrices(3).random_point()),
             dict(func_name="linalg.det", a=gs.eye(3)),
@@ -133,7 +134,7 @@ class BackendTestData(TestData):
             #      expected=gs.array([[0, 1]] * 2 + [[2, 3]]),
             #      axis=0),
             # dict(func_name=func_name, args=[mat, indices],
-            #      expected=gs.transpose(gs.array([[0, 2]] * 2 + [[1, 3]])),
+            #      expected=gs.matrix_transpose(gs.array([[0, 2]] * 2 + [[1, 3]])),
             #      axis=1),
             # dict(func_name=func_name, args=[mat, 0], expected=gs.array([0, 2]),
             #      axis=1)
@@ -144,6 +145,11 @@ class BackendTestData(TestData):
     def func_out_allclose_test_data(self):
         # TODO: verify dtype
         smoke_data = [
+            dict(
+                func_name="matrix_transpose",
+                args=(gs.array([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]]),),
+                expected=gs.array([[[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]]]),
+            ),
             dict(
                 func_name="array_from_sparse",
                 kwargs={"indices": [(0,)], "data": [1.0], "target_shape": (2,)},

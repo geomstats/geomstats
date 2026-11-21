@@ -33,7 +33,7 @@ def matrix_matrix_transpose(point):
     mat : array-like, shape=[n, n]
         Matrix resulting from operation.
     """
-    return Matrices.mul(point, gs.transpose(point))
+    return Matrices.mul(point, gs.matrix_transpose(point))
 
 
 def tangent_matrix_matrix_transpose(tangent_vec, base_point):
@@ -56,8 +56,8 @@ def tangent_matrix_matrix_transpose(tangent_vec, base_point):
     image_tangent_vec : array-like, shape=[n, n]
         Matrix resulting from operation.
     """
-    return Matrices.mul(tangent_vec, gs.transpose(base_point)) + Matrices.mul(
-        base_point, gs.transpose(tangent_vec)
+    return Matrices.mul(tangent_vec, gs.matrix_transpose(base_point)) + Matrices.mul(
+        base_point, gs.matrix_transpose(tangent_vec)
     )
 
 
@@ -414,7 +414,7 @@ class Matrices(MatrixVectorSpace):
         is_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric.
         """
-        return cls.equal(mat, gs.transpose(mat), atol)
+        return cls.equal(mat, gs.matrix_transpose(mat), atol)
 
     @classmethod
     def is_pd(cls, mat):
@@ -441,7 +441,8 @@ class Matrices(MatrixVectorSpace):
 
         is_pd = gs.all(gs.linalg.eigvalsh(mat) > 0, axis=-1)
         if gs.is_complex(mat):
-            is_pd = gs.logical_and(cls.equal(mat, gs.conj(gs.transpose(mat))), is_pd)
+            is_hermitian = cls.equal(mat, gs.conj(gs.matrix_transpose(mat)))
+            is_pd = gs.logical_and(is_hermitian, is_pd)
 
         return is_pd
 
@@ -481,7 +482,7 @@ class Matrices(MatrixVectorSpace):
         is_skew_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is skew-symmetric.
         """
-        return cls.equal(mat, -gs.transpose(mat), atol)
+        return cls.equal(mat, -gs.matrix_transpose(mat), atol)
 
     @classmethod
     def to_diagonal(cls, mat):
@@ -592,7 +593,7 @@ class Matrices(MatrixVectorSpace):
         sym : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        return 1 / 2 * (mat + gs.transpose(mat))
+        return 1 / 2 * (mat + gs.matrix_transpose(mat))
 
     @classmethod
     def to_skew_symmetric(cls, mat):
@@ -611,7 +612,7 @@ class Matrices(MatrixVectorSpace):
         skew_sym : array-like, shape=[..., n, n]
             Skew-symmetric matrix.
         """
-        return 1 / 2 * (mat - gs.transpose(mat))
+        return 1 / 2 * (mat - gs.matrix_transpose(mat))
 
     @classmethod
     def to_lower_triangular_diagonal_scaled(cls, mat, K=2.0):
@@ -674,7 +675,7 @@ class Matrices(MatrixVectorSpace):
         cong : array-like, shape=[..., n, n]
             Result of the congruent action.
         """
-        return cls.mul(mat_2, mat_1, gs.transpose(mat_2))
+        return cls.mul(mat_2, mat_1, gs.matrix_transpose(mat_2))
 
     @staticmethod
     def frobenius_product(mat_1, mat_2):
@@ -799,7 +800,7 @@ class Matrices(MatrixVectorSpace):
         aligned : array-like, shape=[..., m, n]
             R.point.
         """
-        mat = gs.matmul(gs.transpose(point), base_point)
+        mat = gs.matmul(gs.matrix_transpose(point), base_point)
         left, singular_values, right = gs.linalg.svd(mat, full_matrices=False)
         det = gs.linalg.det(mat)
         conditioning = (
@@ -814,10 +815,10 @@ class Matrices(MatrixVectorSpace):
             logger.warning("Alignment matrix is not unique.")
 
         if flip:
-            flipped = flip_determinant(gs.transpose(right), det)
+            flipped = flip_determinant(gs.matrix_transpose(right), det)
         else:
-            flipped = gs.transpose(right)
-        return Matrices.mul(point, left, gs.transpose(flipped))
+            flipped = gs.matrix_transpose(right)
+        return Matrices.mul(point, left, gs.matrix_transpose(flipped))
 
 
 class MatricesEuclideanMetric(FlatMixin, RiemannianMetric):

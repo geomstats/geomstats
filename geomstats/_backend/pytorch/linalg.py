@@ -51,7 +51,7 @@ class _Logm(_torch.autograd.Function):
         """Run gradients backward."""
         (tensor,) = ctx.saved_tensors
 
-        tensor_H = tensor.transpose(-2, -1).conj().to(grad.dtype)
+        tensor_H = tensor.mT.conj().to(grad.dtype)
         n = tensor.size(-1)
         bshape = tensor.shape[:-2] + (2 * n, 2 * n)
         backward_tensor = _torch.zeros(*bshape, dtype=grad.dtype, device=grad.device)
@@ -138,11 +138,11 @@ def solve_sylvester(a, b, q, tol=atol):
     if (
         a.shape == b.shape
         and _torch.all(_torch.abs(a - b) < tol)
-        and _torch.all(_torch.abs(a - a.transpose(-2, -1)) < tol)
+        and _torch.all(_torch.abs(a - a.mT) < tol)
     ):
         eigvals, eigvecs = eigh(a)
         if _torch.all(eigvals > -tol):
-            tilde_q = eigvecs.transpose(-2, -1) @ q @ eigvecs
+            tilde_q = eigvecs.mT @ q @ eigvecs
             denom = eigvals[..., :, None] + eigvals[..., None, :]
             is_zero = _torch.abs(denom) <= tol
             tilde_x = _torch.where(
@@ -150,7 +150,7 @@ def solve_sylvester(a, b, q, tol=atol):
                 _torch.zeros_like(tilde_q),
                 tilde_q / _torch.where(is_zero, _torch.ones_like(denom), denom),
             )
-            return eigvecs @ tilde_x @ eigvecs.transpose(-2, -1)
+            return eigvecs @ tilde_x @ eigvecs.mT
 
     solution = _scipy.linalg.solve_sylvester(_to_numpy(a), _to_numpy(b), _to_numpy(q))
     return _torch.from_numpy(solution)

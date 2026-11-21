@@ -471,8 +471,8 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             means = cluster_centers
             variances = gs.zeros(self.n_gaussians)
 
-            labeled_data = gs.vstack([labels, gs.transpose(X)])
-            labeled_data = gs.transpose(labeled_data)
+            labeled_data = gs.vstack([labels, gs.matrix_transpose(X)])
+            labeled_data = gs.matrix_transpose(labeled_data)
             for label, cluster_center in enumerate(cluster_centers):
                 label_mask = gs.where(labeled_data[:, 0] == label)
                 grouped_by_label = labeled_data[label_mask][:, 1:]

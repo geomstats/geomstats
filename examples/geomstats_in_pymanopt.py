@@ -75,7 +75,7 @@ def estimate_dominant_eigenvector(matrix):
     num_rows, num_columns = gs.shape(matrix)
     if num_rows != num_columns:
         raise ValueError("Matrix must be square.")
-    if not gs.allclose(gs.sum(matrix - gs.transpose(matrix)), 0.0):
+    if not gs.allclose(gs.sum(matrix - gs.matrix_transpose(matrix)), 0.0):
         raise ValueError("Matrix must be symmetric.")
 
     @pymanopt.function.Callable

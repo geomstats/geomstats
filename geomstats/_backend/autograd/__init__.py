@@ -57,6 +57,7 @@ from autograd.numpy import (
     log,
     logical_and,
     logical_or,
+    matrix_transpose,
     matvec,
     maximum,
     mean,
@@ -214,22 +215,6 @@ def flatten(x):
 
 def ndim(x):
     return x.ndim
-
-
-def transpose(x):
-    """Return the transpose of a matrix.
-
-    Parameters
-    ----------
-    x : array-like, shape=[..., n, m]
-        Matrix.
-
-    Returns
-    -------
-    transpose : array-like, shape=[..., n, m]
-        Transposed matrix.
-    """
-    return _np.swapaxes(x, -1, -2)
 
 
 def where(condition, x=None, y=None):

@@ -78,7 +78,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         return GeneralLinear(self.n, positive_det=True, equip=False)
 
     def _aux_submersion(self, point):
-        return Matrices.mul(gs.transpose(point), point)
+        return Matrices.mul(gs.matrix_transpose(point), point)
 
     def submersion(self, point):
         """Submersion that defines the manifold.
@@ -105,7 +105,9 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         -------
         submersed_vector : array-like, shape=[..., n, n]
         """
-        return 2 * Matrices.to_symmetric(Matrices.mul(gs.transpose(point), vector))
+        return 2 * Matrices.to_symmetric(
+            Matrices.mul(gs.matrix_transpose(point), vector)
+        )
 
     @classmethod
     def inverse(cls, point):
@@ -121,7 +123,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         inverse : array-like, shape=[..., n, n]
             Inverse.
         """
-        return gs.transpose(point)
+        return gs.matrix_transpose(point)
 
     def projection(self, point):
         """Project a matrix on SO(n) by minimizing the Frobenius norm.
@@ -277,7 +279,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         geodesics then join :math:`R_1` to :math:`R_2`, so the logarithm is
         not uniquely defined.
         """
-        relative_rot = Matrices.mul(gs.transpose(rotation_mat1), rotation_mat2)
+        relative_rot = Matrices.mul(gs.matrix_transpose(rotation_mat1), rotation_mat2)
         n = relative_rot.shape[-1]
         return gs.isclose(gs.linalg.det(gs.eye(n) + relative_rot), 0.0)
 
@@ -951,7 +953,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         cos_angle = gs.clip(0.5 * (trace - 1), -1.0, 1.0)
         angle = gs.arccos(cos_angle)
 
-        rot_mat_transpose = gs.transpose(rot_mat)
+        rot_mat_transpose = gs.matrix_transpose(rot_mat)
         skew_vec = self.skew.basis_representation(rot_mat - rot_mat_transpose)
 
         mask_0 = gs.cast(gs.isclose(angle, 0.0), angle.dtype)

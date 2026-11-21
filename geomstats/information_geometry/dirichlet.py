@@ -386,5 +386,5 @@ class DirichletRandomVariable(ScipyMultivariateRandomVariable):
     """A Dirichlet random variable."""
 
     def __init__(self, space):
-        pdf = lambda x, point: dirichlet.pdf(gs.transpose(x), point)
+        pdf = lambda x, point: dirichlet.pdf(gs.matrix_transpose(x), point)
         super().__init__(space, dirichlet.rvs, pdf)
