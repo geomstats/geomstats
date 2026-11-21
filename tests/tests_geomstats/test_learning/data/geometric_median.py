@@ -61,6 +61,18 @@ class GeometricMedianFitTestData(TestData):
 
         atol = 1e-5
         data = [
+            dict(
+                estimator=estimator_0,
+                X=gs.array([[0.0], [0.0], [1.0]]),
+                expected=gs.array([0.0]),
+                atol=atol,
+            ),
+            dict(
+                estimator=estimator_2,
+                X=gs.stack([4.0 * gs.eye(2), gs.eye(2), gs.eye(2)]),
+                expected=gs.eye(2),
+                atol=atol,
+            ),
             dict(estimator=estimator_0, X=X_0, expected=expected_0, atol=atol),
             dict(estimator=estimator_1, X=X_1, expected=expected_1, atol=atol),
             dict(estimator=estimator_2, X=X_2, expected=expected_2, atol=atol),
