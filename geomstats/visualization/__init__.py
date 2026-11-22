@@ -20,6 +20,7 @@ from geomstats.visualization.special_orthogonal import (
     Trihedron,
     convert_to_trihedron,
 )
+from geomstats.visualization.special_linear import Squares, Cubes
 
 AX_SCALE = 1.2
 
@@ -39,6 +40,8 @@ IMPLEMENTED = [
     "S33",
     "M33",
     "SPD2",
+    "SL2",
+    "SL3"
 ]
 
 
@@ -59,9 +62,7 @@ def tutorial_matplotlib():
 
 def plot(points, ax=None, space=None, coords_type=None, **point_draw_kwargs):
     """Plot points in one of the implemented manifolds.
-
     The implemented manifolds are:
-
     - the special orthogonal group SO(3)
     - the special Euclidean group SE(3)
     - the circle S1 and the sphere S2
@@ -70,7 +71,6 @@ def plot(points, ax=None, space=None, coords_type=None, **point_draw_kwargs):
     - the Poincare polydisk
     - the Kendall shape space of 2D triangles
     - the Kendall shape space of 3D triangles
-
     Parameters
     ----------
     points : array-like, shape=[..., dim]
@@ -206,5 +206,13 @@ def plot(points, ax=None, space=None, coords_type=None, **point_draw_kwargs):
     elif space == "SPD2":
         ellipses = Ellipses()
         ellipses.draw_points(points=points)
+    
+    elif space == "SL2":
+        squares = Squares()
+        squares.animate(points=points)
+    
+    elif space == "SL3":
+        cubes = Cubes()
+        cubes.animate(points=points)
 
     return ax
