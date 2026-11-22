@@ -5,7 +5,10 @@ Lead authors: Nicolas Guigui and Nina Miolane.
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.riemannian_metric import (
+    CoordinateRiemannianMetric,
+    RiemannianMetric,
+)
 from geomstats.integrator import integrate
 from geomstats.numerics.bvp import ScipySolveBVP
 from geomstats.numerics.geodesic import ExpODESolver, LogODESolver
@@ -818,7 +821,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         return gs.stack([velocity, sign * acceleration], axis=-3)
 
 
-class _InvariantMetricVector(RiemannianMetric):
+class _InvariantMetricVector(CoordinateRiemannianMetric):
     """Class for invariant metrics on Lie groups represented by vectors.
 
     Parameters
@@ -851,7 +854,7 @@ class _InvariantMetricVector(RiemannianMetric):
         inner_prod : array-like, shape=[..., dim]
             Inner-product of the two tangent vectors.
         """
-        return gs.dot(tangent_vec_a, tangent_vec_b)
+        return gs.vecdot(tangent_vec_a, tangent_vec_b)
 
     def metric_matrix(self, base_point=None):
         """Compute inner product matrix at the tangent space at a base point.
@@ -873,7 +876,7 @@ class _InvariantMetricVector(RiemannianMetric):
         jacobian = self._space.jacobian_translation(point=base_point, left=self.left)
 
         inv_jacobian = gs.linalg.inv(jacobian)
-        inv_jacobian_transposed = gs.transpose(inv_jacobian)
+        inv_jacobian_transposed = gs.matrix_transpose(inv_jacobian)
 
         return Matrices.mul(
             inv_jacobian_transposed, self.metric_mat_at_identity, inv_jacobian
@@ -1218,7 +1221,7 @@ class BiInvariantMetric(RiemannianMetric):
             Inner-product of the two tangent vectors.
         """
         if self._space.point_ndim == 1:
-            return gs.dot(tangent_vec_a, tangent_vec_b)
+            return gs.vecdot(tangent_vec_a, tangent_vec_b)
 
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b) / 2
 
@@ -1300,7 +1303,7 @@ class BiInvariantMetric(RiemannianMetric):
                     " geodesic along which to transport."
                 )
         midpoint = self.exp(1.0 / 2.0 * direction, base_point)
-        transposed = gs.transpose(tangent_vec)
+        transposed = gs.matrix_transpose(tangent_vec)
         transported_vec = Matrices.mul(midpoint, transposed, midpoint)
         return (-1.0) * transported_vec
 

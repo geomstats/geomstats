@@ -75,7 +75,7 @@ def test_newton_checks_final_nonlinear_residual(max_iter, success):
     assert result.nfev == len(function_calls) == max_iter + 1
     assert result.njac == len(jacobian_calls) == max_iter
     assert gs.allclose(function_calls[-1], result.x)
-    assert bool(gs.linalg.norm(result.x**2 - 2.0) <= 0.01) == success
+    assert bool(gs.linalg.vector_norm(result.x**2 - 2.0) <= 0.01) == success
 
 
 def test_damped_newton_checks_convergence_after_its_last_update():

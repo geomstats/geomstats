@@ -114,8 +114,8 @@ class ComplexPoincareDisk(ComplexVectorSpaceOpenSet):
             Points sampled in the unit disk.
         """
         size = (n_samples, 1) if n_samples != 1 else (1,)
-        modulus = bound * gs.random.rand(*size, dtype=gs.get_default_cdtype())
-        angle = 2 * gs.pi * gs.random.rand(*size, dtype=gs.get_default_cdtype())
+        modulus = bound * gs.random.rand(*size)
+        angle = 2 * gs.pi * gs.random.rand(*size)
         return modulus * gs.exp(1j * angle)
 
     def random_tangent_vec(self, base_point, n_samples=1):
@@ -154,11 +154,11 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
 
         Returns
         -------
-        inner_prod_mat : array-like, shape=[...]
+        inner_prod_mat : array-like, shape=[..., 1, 1]
             Inner product matrix.
         """
         inner_prod_mat = 1 / (1 - gs.abs(base_point) ** 2) ** 2
-        return gs.expand_dims(inner_prod_mat, axis=-1)
+        return gs.cast(gs.expand_dims(inner_prod_mat, axis=-1), base_point.dtype)
 
     @staticmethod
     def exp(tangent_vec, base_point):

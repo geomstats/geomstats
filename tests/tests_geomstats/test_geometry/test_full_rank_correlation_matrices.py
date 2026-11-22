@@ -22,7 +22,6 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import expmh
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.lower_triangular_matrices import StrictlyLowerTriangularMatrices
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.open_hemisphere import (
     OpenHemispheresProduct,
     OpenHemisphereToHyperboloidDiffeo,
@@ -114,8 +113,8 @@ class TestCorrelationMatricesBundle(
         )
 
         inverse = GeneralLinear.inverse(base_point)
-        product_1 = Matrices.mul(horizontal_vec, inverse)
-        product_2 = Matrices.mul(inverse, horizontal_vec)
+        product_1 = gs.matmul(horizontal_vec, inverse)
+        product_2 = gs.matmul(inverse, horizontal_vec)
         is_horizontal = gs.all(
             self.base.is_tangent(product_1 + product_2, base_point, atol=atol)
         )

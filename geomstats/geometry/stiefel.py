@@ -186,7 +186,7 @@ class Stiefel(LevelSet):
         -------
         submersed_point : array-like, shape=[..., n, p]
         """
-        return Matrices.mul(gs.transpose(point), point) - self._value
+        return gs.matmul(gs.matrix_transpose(point), point) - self._value
 
     def tangent_submersion(self, vector, point):
         """Tangent submersion.
@@ -200,7 +200,9 @@ class Stiefel(LevelSet):
         -------
         submersed_vector : array-like, shape=[..., n, p]
         """
-        return 2 * Matrices.to_symmetric(Matrices.mul(gs.transpose(point), vector))
+        return 2 * Matrices.to_symmetric(
+            gs.matmul(gs.matrix_transpose(point), vector)
+        )
 
     @staticmethod
     def to_grassmannian(point):
@@ -221,7 +223,7 @@ class Stiefel(LevelSet):
         projected : array-like, shape=[..., n, n]
             Projected point.
         """
-        return Matrices.mul(point, gs.transpose(point))
+        return gs.matmul(point, gs.matrix_transpose(point))
 
     def random_uniform(self, n_samples=1):
         r"""Sample on St(n,p) from the uniform distribution.
@@ -245,10 +247,10 @@ class Stiefel(LevelSet):
         size = (n_samples, n, p) if n_samples != 1 else (n, p)
 
         std_normal = gs.random.normal(size=size)
-        std_normal_transpose = gs.transpose(std_normal)
-        aux = Matrices.mul(std_normal_transpose, std_normal)
+        std_normal_transpose = gs.matrix_transpose(std_normal)
+        aux = gs.matmul(std_normal_transpose, std_normal)
         inv_sqrt_aux = powermh(aux, -1.0 / 2)
-        samples = Matrices.mul(std_normal, inv_sqrt_aux)
+        samples = gs.matmul(std_normal, inv_sqrt_aux)
 
         return samples
 
@@ -291,9 +293,9 @@ class Stiefel(LevelSet):
         tangent_vec : array-like, shape=[..., n, p]
             Tangent vector at base point.
         """
-        aux = Matrices.mul(gs.transpose(base_point), vector)
+        aux = gs.matmul(gs.matrix_transpose(base_point), vector)
         sym_aux = Matrices.to_symmetric(aux)
-        return vector - Matrices.mul(base_point, sym_aux)
+        return vector - gs.matmul(base_point, sym_aux)
 
     def projection(self, point):
         """Project a close enough matrix to the Stiefel manifold.
@@ -319,7 +321,7 @@ class Stiefel(LevelSet):
         """
         p = self.p
         mat_u, _, mat_v = gs.linalg.svd(point)
-        return Matrices.mul(_left_block(mat_u, p), mat_v)
+        return gs.matmul(_left_block(mat_u, p), mat_v)
 
 
 class StiefelCanonicalMetric(RiemannianMetric):
@@ -364,11 +366,11 @@ class StiefelCanonicalMetric(RiemannianMetric):
             322-342, 2017. https://epubs.siam.org/doi/pdf/10.1137/16M1074485
 
         """
-        base_point_transpose = gs.transpose(base_point)
+        base_point_transpose = gs.matrix_transpose(base_point)
 
         identity = gs.eye(self._space.n)
         aux = gs.matmul(
-            gs.transpose(tangent_vec_a),
+            gs.matrix_transpose(tangent_vec_a),
             identity - 0.5 * gs.matmul(base_point, base_point_transpose),
         )
         return Matrices.trace_product(aux, tangent_vec_b)
@@ -390,20 +392,20 @@ class StiefelCanonicalMetric(RiemannianMetric):
             of tangent_vec at the base point.
         """
         p = self._space.p
-        matrix_a = Matrices.mul(gs.transpose(base_point), tangent_vec)
-        matrix_k = tangent_vec - Matrices.mul(base_point, matrix_a)
+        matrix_a = gs.matmul(gs.matrix_transpose(base_point), tangent_vec)
+        matrix_k = tangent_vec - gs.matmul(base_point, matrix_a)
 
         matrix_q, matrix_r = gs.linalg.qr(matrix_k)
 
-        matrix_ar = _concatenate_columns(matrix_a, -gs.transpose(matrix_r))
+        matrix_ar = _concatenate_columns(matrix_a, -gs.matrix_transpose(matrix_r))
 
         matrix_rz = _concatenate_columns(matrix_r, gs.zeros_like(matrix_a))
         block = _concatenate_rows(matrix_ar, matrix_rz)
         matrix_mn_e = gs.linalg.expm(block)
 
-        exp = Matrices.mul(
+        exp = gs.matmul(
             base_point, _upper_left_block(matrix_mn_e, p)
-        ) + Matrices.mul(matrix_q, _lower_left_block(matrix_mn_e, p))
+        ) + gs.matmul(matrix_q, _lower_left_block(matrix_mn_e, p))
         return exp
 
     @staticmethod
@@ -429,10 +431,10 @@ class StiefelCanonicalMetric(RiemannianMetric):
         """
         matrix_q, matrix_r = gs.linalg.qr(base_point + tangent_vec)
 
-        diagonal = gs.diagonal(matrix_r, axis1=-2, axis2=-1)
+        diagonal = gs.diagonal(matrix_r)
         sign = gs.sign(gs.sign(diagonal) + 0.5)
         diag = algebra_utils.from_vector_to_diagonal_matrix(sign)
-        result = Matrices.mul(matrix_q, diag)
+        result = gs.matmul(matrix_q, diag)
 
         return result
 
@@ -456,7 +458,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         def _make_b(i, matrix, columns_list):
             return gs.array(
-                [-gs.dot(matrix[i, : j + 1], columns_list[j]) for j in range(i)] + [1.0]
+                [-gs.vecdot(matrix[i, : j + 1], columns_list[j]) for j in range(i)]
+                + [1.0]
             )
 
         n = matrix_m.shape[-1]
@@ -493,7 +496,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         """
         point, base_point = gs.broadcast_arrays(point, base_point)
 
-        matrix_m = gs.matmul(gs.transpose(base_point), point)
+        matrix_m = gs.matmul(gs.matrix_transpose(base_point), point)
 
         if gs.any(matrix_m[..., 0, 0] < 0.0):
             raise ValueError("Algorithm does no work if m11 <= 0.")
@@ -669,9 +672,9 @@ class _ZimmermannLogSolver(LogSolver):
         matrix_w = _concatenate_rows(matrix_m, matrix_n)
         matrix_z = _lower_right_block(matrix_v, p)
         matrix_d, _, matrix_rt = gs.linalg.svd(matrix_z)
-        matrix_r = gs.transpose(matrix_rt)
+        matrix_r = gs.matrix_transpose(matrix_rt)
 
-        matrix_rd = Matrices.mul(matrix_r, gs.transpose(matrix_d))
+        matrix_rd = gs.matmul(matrix_r, gs.matrix_transpose(matrix_d))
 
         sub_matrix_v = gs.matmul(_right_block(matrix_v, p), matrix_rd)
         matrix_v_final = _concatenate_columns(matrix_w, sub_matrix_v)
@@ -685,9 +688,9 @@ class _ZimmermannLogSolver(LogSolver):
             axis=-1,
         )
 
-        matrix_rd = Matrices.mul(
+        matrix_rd = gs.matmul(
             matrix_r * sign[..., None, :],
-            gs.transpose(matrix_d),
+            gs.matrix_transpose(matrix_d),
         )
         sub_matrix_v = gs.matmul(_right_block(matrix_v, p), matrix_rd)
         return _concatenate_columns(matrix_w, sub_matrix_v)
@@ -725,8 +728,8 @@ class _ZimmermannLogSolver(LogSolver):
         Raises
         ------
         ValueError
-            If the maximum absolute imaginary component of the returned
-            matrix logarithm is at least self.imag_tol.
+            If the maximum absolute imaginary component of the matrix
+            logarithm of an iterate is at least self.imag_tol.
 
         Warns
         -----
@@ -738,9 +741,16 @@ class _ZimmermannLogSolver(LogSolver):
 
         for _ in range(self.max_iter):
             matrix_lv = gs.linalg.logm(matrix_v)
+            if gs.is_complex(matrix_lv):
+                max_imag = gs.amax(gs.abs(gs.imag(matrix_lv)))
+                if max_imag >= self.imag_tol:
+                    raise ValueError(
+                        f"Non-negligible imaginary part. max is {max_imag}"
+                    )
+                matrix_lv = gs.real(matrix_lv)
 
             matrix_c = _lower_right_block(matrix_lv, p)
-            norm_matrix_c = gs.linalg.norm(matrix_c)
+            norm_matrix_c = gs.linalg.vector_norm(matrix_c)
             if norm_matrix_c <= self.tol:
                 break
 
@@ -750,13 +760,6 @@ class _ZimmermannLogSolver(LogSolver):
 
         else:
             warnings.warn("`log` hasn't converged.")
-
-        if gs.is_complex(matrix_lv):
-            max_imag = gs.amax(gs.abs(gs.imag(matrix_lv)))
-            if max_imag < self.imag_tol:
-                matrix_lv = gs.real(matrix_lv)
-            else:
-                raise ValueError(f"Non-neglible imaginary part. max is {max_imag}")
 
         return matrix_lv
 
@@ -793,7 +796,7 @@ class _ZimmermannLogSolver(LogSolver):
             if gs.any(gs.linalg.det(point) * gs.linalg.det(base_point) <= 0.0):
                 raise ValueError("Points from different sheets in log")
 
-        matrix_m = gs.matmul(gs.transpose(base_point), point)
+        matrix_m = gs.matmul(gs.matrix_transpose(base_point), point)
 
         if gs.any(gs.all(gs.isclose(matrix_m, -gs.eye(p)), axis=(-2, -1))):
             raise ValueError(

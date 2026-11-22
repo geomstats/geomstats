@@ -30,13 +30,13 @@ def main():
 
     norm_rv_1 = gs.random.normal(size=group.dim)
     tan_rv_1 = group.lie_algebra.matrix_representation(
-        norm_rv_1 / gs.linalg.norm(norm_rv_1, axis=0) / 2
+        norm_rv_1 / gs.linalg.vector_norm(norm_rv_1, axis=0) / 2
     )
     exp_1 = gs.linalg.expm(tan_rv_1)
 
     norm_rv_2 = gs.random.normal(size=group.dim)
     tan_rv_2 = group.lie_algebra.matrix_representation(
-        norm_rv_2 / gs.linalg.norm(norm_rv_2, axis=0) / 2
+        norm_rv_2 / gs.linalg.vector_norm(norm_rv_2, axis=0) / 2
     )
     exp_2 = gs.linalg.expm(tan_rv_2)
 
@@ -66,7 +66,7 @@ def main():
         )
         for n in orders
     ]
-    frobenius_error = gs.linalg.norm(bch_approximations - correct, axis=1)
+    frobenius_error = gs.linalg.vector_norm(bch_approximations - correct, axis=1)
 
     plt.subplot(2, 1, 1)
     plt.scatter(orders, frobenius_error)

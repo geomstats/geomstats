@@ -3,23 +3,13 @@ from .connection import (
     ConnectionCmpWithTransformTestData,
     ConnectionComparisonTestData,
     ConnectionTestData,
+    CoordinateConnectionComparisonTestData,
+    CoordinateConnectionTestData,
 )
 from .mixins import DistMixinsTestData
 
 
 class RiemannianMetricTestData(DistMixinsTestData, ConnectionTestData):
-    def metric_matrix_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def metric_matrix_is_spd_test_data(self):
-        return self.generate_random_data()
-
-    def cometric_matrix_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def inner_product_derivative_matrix_vec_test_data(self):
-        return self.generate_vec_data()
-
     def inner_product_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -56,6 +46,31 @@ class RiemannianMetricTestData(DistMixinsTestData, ConnectionTestData):
     def dist_is_log_norm_test_data(self):
         return self.generate_random_data()
 
+    def parallel_transport_ivp_norm_test_data(self):
+        return self.generate_random_data()
+
+    def parallel_transport_bvp_norm_test_data(self):
+        return self.generate_random_data()
+
+    def injectivity_radius_vec_test_data(self):
+        return self.generate_vec_data()
+
+
+class CoordinateRiemannianMetricTestData(
+    RiemannianMetricTestData, CoordinateConnectionTestData
+):
+    def metric_matrix_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def metric_matrix_is_spd_test_data(self):
+        return self.generate_random_data()
+
+    def cometric_matrix_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def inner_product_derivative_matrix_vec_test_data(self):
+        return self.generate_vec_data()
+
     def covariant_riemann_tensor_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -77,26 +92,8 @@ class RiemannianMetricTestData(DistMixinsTestData, ConnectionTestData):
     def scalar_curvature_vec_test_data(self):
         return self.generate_vec_data()
 
-    def parallel_transport_ivp_norm_test_data(self):
-        return self.generate_random_data()
-
-    def parallel_transport_bvp_norm_test_data(self):
-        return self.generate_random_data()
-
-    def injectivity_radius_vec_test_data(self):
-        return self.generate_vec_data()
-
 
 class RiemannianMetricComparisonTestData(ConnectionComparisonTestData):
-    def metric_matrix_random_test_data(self):
-        return self.generate_random_data()
-
-    def cometric_matrix_random_test_data(self):
-        return self.generate_random_data()
-
-    def inner_product_derivative_matrix_random_test_data(self):
-        return self.generate_random_data()
-
     def inner_product_random_test_data(self):
         return self.generate_random_data()
 
@@ -118,6 +115,22 @@ class RiemannianMetricComparisonTestData(ConnectionComparisonTestData):
     def dist_random_test_data(self):
         return self.generate_random_data()
 
+    def injectivity_radius_random_test_data(self):
+        return self.generate_random_data()
+
+
+class CoordinateRiemannianMetricComparisonTestData(
+    RiemannianMetricComparisonTestData, CoordinateConnectionComparisonTestData
+):
+    def metric_matrix_random_test_data(self):
+        return self.generate_random_data()
+
+    def cometric_matrix_random_test_data(self):
+        return self.generate_random_data()
+
+    def inner_product_derivative_matrix_random_test_data(self):
+        return self.generate_random_data()
+
     def covariant_riemann_tensor_random_test_data(self):
         return self.generate_random_data()
 
@@ -125,9 +138,6 @@ class RiemannianMetricComparisonTestData(ConnectionComparisonTestData):
         return self.generate_random_data()
 
     def scalar_curvature_random_test_data(self):
-        return self.generate_random_data()
-
-    def injectivity_radius_random_test_data(self):
         return self.generate_random_data()
 
 

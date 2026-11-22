@@ -28,12 +28,6 @@ class L2CurvesMetricTestData(RiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 
-    skips = (
-        "christoffels_vec",
-        "inner_product_derivative_matrix_vec",
-        "metric_matrix_is_spd",
-    )
-
 
 class ElasticMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_not_implemented_errors = False

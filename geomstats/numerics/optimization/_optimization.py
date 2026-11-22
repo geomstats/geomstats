@@ -107,7 +107,7 @@ class NewtonMethod(RootFinder):
         status = 0
         for it in range(self.max_iter + 1):
             fun_xk = fun(xk)
-            if gs.linalg.norm(fun_xk) <= self.atol:
+            if gs.linalg.vector_norm(fun_xk) <= self.atol:
                 status = 1
                 break
 
@@ -116,7 +116,7 @@ class NewtonMethod(RootFinder):
 
             y = gs.linalg.solve(fun_jac(xk), fun_xk)
             if self.damped:
-                lambda_xk = gs.sqrt(gs.dot(fun_xk, y))
+                lambda_xk = gs.sqrt(gs.vecdot(fun_xk, y))
             else:
                 lambda_xk = 0.0
             xk = xk - (1 / (1 + lambda_xk)) * y

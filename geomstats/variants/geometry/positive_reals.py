@@ -6,11 +6,11 @@ import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.open_interval import OpenInterval, OpenIntervalEuclideanMetric
 from geomstats.geometry.positive_reals import LogDiffeo, PositiveReals, PowerDiffeo
-from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.pullback_metric import CoordinatePullbackDiffeoMetric
+from geomstats.geometry.riemannian_metric import CoordinateRiemannianMetric
 
 
-class PullbackLogMetric(PullbackDiffeoMetric):
+class PullbackLogMetric(CoordinatePullbackDiffeoMetric):
     """Logarithmic metric on the positive reals as a pullback metric.
 
     Variant of :class:`geomstats.geometry.positive_reals.LogMetric`
@@ -32,7 +32,7 @@ class PullbackLogMetric(PullbackDiffeoMetric):
         )
 
 
-class PullbackPowerMetric(PullbackDiffeoMetric):
+class PullbackPowerMetric(CoordinatePullbackDiffeoMetric):
     """Power-Euclidean metric on the positive reals as a pullback metric.
 
     Variant of :class:`geomstats.geometry.positive_reals.PowerMetric`
@@ -61,7 +61,7 @@ class PullbackPowerMetric(PullbackDiffeoMetric):
         self.power = power
 
 
-class LogMetric(RiemannianMetric):
+class LogMetric(CoordinateRiemannianMetric):
     """Logarithmic metric on the positive reals given only by its metric matrix.
 
     The Christoffel symbols and the curvature tensors are computed from the
@@ -85,7 +85,7 @@ class LogMetric(RiemannianMetric):
         return gs.expand_dims(1 / base_point**2, axis=-1)
 
 
-class PowerMetric(RiemannianMetric):
+class PowerMetric(CoordinateRiemannianMetric):
     """Power-Euclidean metric on the positive reals given by its metric matrix.
 
     The Christoffel symbols and the curvature tensors are computed from the

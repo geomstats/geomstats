@@ -52,7 +52,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         -------
         mean : array-like, shape=[..., sample_dim]
             Means from the input point.
-        diagonal : array-like, shape=[..., sample_dim, sample_dim]
+        cov : array-like, shape=[..., sample_dim, sample_dim]
             Covariance matrices from the input point.
         """
         batch_shape = get_batch_shape(self.point_ndim, point)
@@ -72,7 +72,6 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
             :math:`sample\_dim ^ 2` elements contain the covariance matrix row by row.
         n_samples : int
             Number of points to sample with each parameter in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -116,7 +115,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
                 (x.shape[0],), batch_shape, x, mean, inv_cov
             )
             aux_0 = x_ - mean_
-            aux_1 = gs.exp(-0.5 * gs.dot(aux_0, gs.matvec(inv_cov_, aux_0)))
+            aux_1 = gs.exp(-0.5 * gs.vecdot(aux_0, gs.matvec(inv_cov_, aux_0)))
             return scalarvecmul(pdf_normalization, aux_1)
 
         return pdf

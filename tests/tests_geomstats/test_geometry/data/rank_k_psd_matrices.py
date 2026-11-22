@@ -47,11 +47,6 @@ class PSDBuresWassersteinMetricTestData(QuotientMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
-    skips = (
-        "curvature_derivative_vec",
-        "directional_curvature_derivative_vec",
-    )
-
     xfails = ("log_after_exp",)
 
 

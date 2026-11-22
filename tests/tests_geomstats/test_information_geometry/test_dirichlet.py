@@ -51,7 +51,9 @@ class TestDirichletDistributions3(
 def equipped_spaces(request):
     space = request.cls.space = DirichletDistributions(dim=request.param)
 
-    request.cls.data_generator = RandomDataGenerator(space, amplitude=5.0)
+    request.cls.data_generator = RandomDataGenerator(
+        space, amplitude=5.0, random_point_kwargs={"low": 0.5, "bound": 4.5}
+    )
 
 
 @pytest.mark.usefixtures("equipped_spaces")

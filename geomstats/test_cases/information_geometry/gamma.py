@@ -3,10 +3,8 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.base import DiffeomorphicManifold
 from geomstats.geometry.diffeo import ReversedDiffeo
-from geomstats.information_geometry.gamma import (
-    GammaDistributions,
-    NaturalToStandardDiffeo,
-)
+from geomstats.geometry.positive_orthant import ScaledReciprocalDiffeo
+from geomstats.information_geometry.gamma import GammaDistributions
 from geomstats.test_cases.geometry.base import VectorSpaceOpenSetTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 from geomstats.test_cases.information_geometry.base import (
@@ -26,7 +24,7 @@ class StandardGammaDistributions(DiffeomorphicManifold):
 
     def __init__(self):
         super().__init__(
-            diffeo=ReversedDiffeo(NaturalToStandardDiffeo()),
+            diffeo=ReversedDiffeo(ScaledReciprocalDiffeo()),
             image_space=GammaDistributions(equip=False),
             dim=2,
             shape=(2,),

@@ -534,11 +534,11 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         term1 = gs.matmul(tangent_vec_a, tangent_vec_b_transconj)
         term1 -= gs.matmul(tangent_vec_b, tangent_vec_a_transconj)
-        norm_term1 = gs.linalg.norm(term1, axis=(-2, -1)) ** 2
+        norm_term1 = gs.linalg.matrix_norm(term1) ** 2
 
         term2 = gs.matmul(tangent_vec_a_transconj, tangent_vec_b)
         term2 -= gs.matmul(tangent_vec_b_transconj, tangent_vec_a)
-        norm_term2 = gs.linalg.norm(term2, axis=(-2, -1)) ** 2
+        norm_term2 = gs.linalg.matrix_norm(term2) ** 2
         return -0.5 * (norm_term1 + norm_term2)
 
     def sectional_curvature(

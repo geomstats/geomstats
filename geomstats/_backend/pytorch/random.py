@@ -1,5 +1,7 @@
 """Torch based random backend."""
 
+import math as _math
+
 import torch as _torch
 from torch import rand, randint
 from torch.distributions.multivariate_normal import (
@@ -9,21 +11,47 @@ from torch.distributions.multivariate_normal import (
 from ._dtype import _allow_complex_dtype
 
 
-def choice(x, a, p=None):
-    """Generate a random sample from a tensor along axis 0."""
-    if not _torch.is_tensor(x):
-        return x
+def choice(a, size=None, replace=True, p=None):
+    """Generate a random sample from an array, along its first axis.
 
-    if p is None:
-        idx = _torch.randint(len(x), (a,), device=x.device)
+    Parameters
+    ----------
+    a : array-like or int
+        Array to sample from, along its first axis. If an int, ``arange(a)``.
+    size : int or tuple[int]
+        Shape of the sample. If None, a single element is returned.
+    replace : bool
+        Whether the sample is with replacement.
+    p : array-like, shape=[len(a)]
+        Probability of each element. If None, uniform.
+
+    Returns
+    -------
+    sample : array-like, shape=[*size, *a.shape[1:]]
+        Random sample.
+    """
+    if isinstance(a, int):
+        a = _torch.arange(a)
+
+    shape = _shape(size)
+    n_samples = _math.prod(shape)
+    if p is None and replace:
+        index = _torch.randint(len(a), (n_samples,), device=a.device)
     else:
-        idx = _torch.multinomial(
-            _torch.as_tensor(p, device=x.device),
-            num_samples=a,
-            replacement=True,
+        weights = (
+            _torch.ones(len(a), device=a.device)
+            if p is None
+            else _torch.as_tensor(p, device=a.device)
         )
+        index = _torch.multinomial(weights, n_samples, replacement=replace)
+    return a[_torch.reshape(index, shape)]
 
-    return x[idx]
+
+def _shape(size):
+    """Get the shape of a sample, a scalar one if size is None."""
+    if size is None:
+        return ()
+    return tuple(size) if hasattr(size, "__iter__") else (size,)
 
 
 def seed(*args, **kwargs):
@@ -31,22 +59,16 @@ def seed(*args, **kwargs):
 
 
 @_allow_complex_dtype
-def normal(loc=0.0, scale=1.0, size=(1,)):
-    if not hasattr(size, "__iter__"):
-        size = (size,)
-    return _torch.normal(mean=loc, std=scale, size=size)
+def normal(loc=0.0, scale=1.0, size=None):
+    return _torch.normal(mean=loc, std=scale, size=_shape(size))
 
 
-def uniform(low=0.0, high=1.0, size=(1,), dtype=None):
-    if not hasattr(size, "__iter__"):
-        size = (size,)
+def uniform(low=0.0, high=1.0, size=None, dtype=None):
     if low >= high:
         raise ValueError("Upper bound must be higher than lower bound")
-    return (high - low) * rand(*size, dtype=dtype) + low
+    return (high - low) * rand(_shape(size), dtype=dtype) + low
 
 
 @_allow_complex_dtype
-def multivariate_normal(mean, cov, size=(1,)):
-    if not hasattr(size, "__iter__"):
-        size = (size,)
-    return _MultivariateNormal(mean, cov).sample(size)
+def multivariate_normal(mean, cov, size=None):
+    return _MultivariateNormal(mean, cov).sample(_shape(size))

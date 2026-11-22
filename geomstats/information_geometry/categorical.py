@@ -17,13 +17,13 @@ class CategoricalDistributions(MultinomialDistributions):
     distribution, i.e. gives the probabilities of ``n`` different outcomes
     in a single experiment.
 
-    Attributes
+    Parameters
     ----------
     dim : int
         Dimension of the manifold of categorical distributions. The
         number of outcomes is dim + 1.
-    embedding_manifold : Manifold
-        Embedding manifold.
+    equip : bool
+        If True, equip space with default metric.
     """
 
     def __init__(self, dim, equip=True):

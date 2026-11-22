@@ -41,7 +41,6 @@ class NormalDistributions:
         Dimension of the sample space of the normal distribution.
     distribution_type : str, {'centered', 'diagonal', 'general'}
         Type of distributions.
-        Optional, default: 'general'.
     """
 
     def __new__(cls, sample_dim, distribution_type="general", equip=True):

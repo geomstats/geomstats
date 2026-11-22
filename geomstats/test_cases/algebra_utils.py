@@ -47,7 +47,7 @@ class AlgebraUtilsTestCase(TestCase):
         point = gs.random.uniform(size=batch_shape + (m, n))
 
         res = utils.columnwise_scaling(diag_vec, point)
-        res_ = gs.matmul(point, gs.vec_to_diag(diag_vec))
+        res_ = gs.matmul(point, gs.diag_embed(diag_vec))
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
@@ -58,5 +58,5 @@ class AlgebraUtilsTestCase(TestCase):
         point = gs.random.uniform(size=batch_shape + (m, n))
 
         res = utils.rowwise_scaling(diag_vec, point)
-        res_ = gs.matmul(gs.vec_to_diag(diag_vec), point)
+        res_ = gs.matmul(gs.diag_embed(diag_vec), point)
         self.assertAllClose(res, res_, atol=atol)

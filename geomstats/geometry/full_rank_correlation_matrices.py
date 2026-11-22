@@ -556,8 +556,8 @@ class EuclideanCholeskyDiffeo(Diffeo):
 
         chol = gs.linalg.cholesky(base_point)
         chol_inv = gs.linalg.inv(chol)
-        aux = Matrices.mul(chol_inv, tangent_vec, gs.transpose(chol_inv))
-        term_1 = Matrices.mul(
+        aux = Matrices.mul(chol_inv, tangent_vec, gs.matrix_transpose(chol_inv))
+        term_1 = gs.matmul(
             image_point,
             Matrices.to_lower_triangular_diagonal_scaled(aux),
         )
@@ -712,7 +712,7 @@ class UniqueDiagonalMatrixAlgorithm:
 
     def _check_convergence(self, new_matrix, matrix):
         mat_diff = new_matrix - matrix
-        return gs.linalg.norm(mat_diff, axis=(-2, -1)) < self.atol
+        return gs.linalg.matrix_norm(mat_diff) < self.atol
 
     def _call_single(self, sym_mat):
         r"""Find unique diagonal matrix corresponding to a full-rank correlation matrix.
@@ -979,7 +979,7 @@ class OffLogDiffeo(Diffeo):
                 e,
             ),
         )
-        return gs.vec_to_diag(-vec), mat
+        return gs.diag_embed(-vec), mat
 
     def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         r"""Inverse tangent diffeomorphism at image point.
@@ -1135,7 +1135,7 @@ class SPDScalingFinder:
         -------
         hessian : array-like, shape=[..., n, n]
         """
-        return spd_matrix + gs.vec_to_diag(1.0 / diag_vec**2)
+        return spd_matrix + gs.diag_embed(1.0 / diag_vec**2)
 
     def _call_single(self, spd_matrix):
         """Apply root finder to find scaling.
@@ -1275,9 +1275,9 @@ class LogScalingDiffeo(Diffeo):
         delta = Matrices.diagonal(base_point_row_1) ** 0.5
         aux = FullRankCorrelationMatrices.diag_action(delta, tangent_vec)
         eye = gs.eye(base_point_row_1.shape[-1])
-        tangent_vec_row_1_0 = -2 * gs.vec_to_diag(
+        tangent_vec_row_1_0 = -2 * gs.diag_embed(
             gs.sum(
-                Matrices.mul(
+                gs.matmul(
                     gs.linalg.inv(eye + base_point_row_1),
                     aux,
                 ),
@@ -1286,8 +1286,8 @@ class LogScalingDiffeo(Diffeo):
         )
 
         tangent_vec_row_1 = aux + 0.5 * (
-            Matrices.mul(tangent_vec_row_1_0, base_point_row_1)
-            + Matrices.mul(base_point_row_1, tangent_vec_row_1_0)
+            gs.matmul(tangent_vec_row_1_0, base_point_row_1)
+            + gs.matmul(base_point_row_1, tangent_vec_row_1_0)
         )
 
         return SymMatrixLog.tangent(

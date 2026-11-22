@@ -8,7 +8,13 @@ import geomstats.backend as gs
 from geomstats.geometry.grassmannian import Grassmannian
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.test_case import TestCase, autograd_and_torch_only, np_only
+from geomstats.test.test_case import (
+    TestCase,
+    autograd_and_torch_only,
+    np_only,
+    pytorch_backend,
+    torch_only,
+)
 from geomstats.test_cases.backend.autodiff import (
     AutodiffTestCase,
     MetricDistGradTestCase,
@@ -176,7 +182,7 @@ class TestAutodiffOld(TestCase):
         points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 5, gs.pi / 2]])
         thetas = points[:, 0]
         phis = points[:, 1]
-        jacobian_ai = gs.autodiff.jacobian_vec(_sphere_immersion)(points)
+        jacobian_ai = gs.autodiff.jacobian(_sphere_immersion)(points)
 
         expected_1i = gs.stack(
             [
@@ -248,7 +254,7 @@ class TestAutodiffOld(TestCase):
         points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 4, gs.pi / 2]])
         thetas = points[:, 0]
         phis = points[:, 1]
-        hessian_1ij = gs.autodiff.hessian_vec(
+        hessian_1ij = gs.autodiff.hessian(
             _first_component_of_sphere_immersion_scalar
         )(points)
 
@@ -287,8 +293,8 @@ class TestAutodiffOld(TestCase):
         """Nested vectorized jacobians equal the vectorized hessian (#1801)."""
         points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 4, gs.pi / 2]])
 
-        jacobian_of_jacobian = gs.autodiff.jacobian_vec(
-            gs.autodiff.jacobian_vec(_first_component_of_sphere_immersion_scalar)
+        jacobian_of_jacobian = gs.autodiff.jacobian(
+            gs.autodiff.jacobian(_first_component_of_sphere_immersion_scalar)
         )(points)
 
         expected = gs.stack(
@@ -321,8 +327,8 @@ class TestAutodiffOld(TestCase):
         point = gs.array([gs.pi / 3, gs.pi])
         theta, phi = point[0], point[1]
 
-        third_derivative = gs.autodiff.jacobian_vec(
-            gs.autodiff.hessian_vec(_first_component_of_sphere_immersion_scalar)
+        third_derivative = gs.autodiff.jacobian(
+            gs.autodiff.hessian(_first_component_of_sphere_immersion_scalar)
         )(point)
 
         expected_d_theta = radius * gs.array(
@@ -341,3 +347,148 @@ class TestAutodiffOld(TestCase):
         self.assertAllClose(third_derivative.shape, (2, 2, 2))
         self.assertAllClose(third_derivative[..., 0], expected_d_theta)
         self.assertAllClose(third_derivative[..., 1], expected_d_phi)
+
+    @autograd_and_torch_only
+    def test_hessian_of_expm(self):
+        """Second derivatives go through the matrix exponential.
+
+        Around 0, sum(expm(x)) is sum(x @ x) / 2 at second order.
+        """
+        hessian = gs.autodiff.hessian(
+            lambda x: gs.sum(gs.linalg.expm(x), axis=(-2, -1)), point_ndim=2
+        )(gs.zeros((2, 2)))
+
+        eye = gs.eye(2)
+        expected = (eye[None, :, :, None] + eye[:, None, None, :]) / 2
+        self.assertAllClose(hessian, expected)
+
+    @autograd_and_torch_only
+    def test_hessian_of_logm(self):
+        """Second derivatives go through the matrix logarithm.
+
+        Around the identity, sum(logm(eye + x)) is -sum(x @ x) / 2 at second order.
+        """
+        hessian = gs.autodiff.hessian(
+            lambda x: gs.sum(gs.linalg.logm(x), axis=(-2, -1)), point_ndim=2
+        )(gs.eye(2))
+
+        eye = gs.eye(2)
+        expected = -(eye[None, :, :, None] + eye[:, None, None, :]) / 2
+        self.assertAllClose(hessian, expected)
+
+    @autograd_and_torch_only
+    def test_grad_of_diagonal(self):
+        """The gradient of a weighted sum of the diagonal has the weights on it."""
+        weights = gs.array([1.0, 2.0])
+
+        def weighted_diagonal_sum(x):
+            return gs.sum(weights * gs.diagonal(x), axis=-1)
+
+        points = gs.reshape(gs.arange(12.0), (2, 2, 3))
+        value, grad = gs.autodiff.value_and_grad(weighted_diagonal_sum, point_ndims=2)(
+            points
+        )
+
+        expected_grad = gs.array([[1.0, 0.0, 0.0], [0.0, 2.0, 0.0]])
+        self.assertAllClose(value, gs.array([8.0, 26.0]))
+        self.assertAllClose(grad, gs.stack([expected_grad, expected_grad]))
+
+    @torch_only
+    def test_grad_through_scipy_raises(self):
+        """Differentiating a function scipy computes raises, as with PyTorch."""
+        point = gs.array([[2.0, 1.0], [1.0, 2.0]])
+
+        def fractional_matrix_power_sum(x):
+            return gs.sum(gs.linalg.fractional_matrix_power(x, 0.5), axis=(-2, -1))
+
+        with pytest.raises(NotImplementedError):
+            gs.autodiff.value_and_grad(fractional_matrix_power_sum, point_ndims=2)(
+                point
+            )
+
+    @autograd_and_torch_only
+    def test_grad_of_sqrtm(self):
+        """Gradients go through the matrix square root.
+
+        With S the square root of x, the gradient of sum(S) solves
+        S^T Y + Y S^T = 1. The square root of diag(-4, -9) is diag(2i, 3i),
+        and the gradient of the real part is imaginary, with a sign depending
+        on the complex convention.
+        """
+
+        def sqrtm_sum(x):
+            return gs.sum(gs.linalg.sqrtm(x), axis=(-2, -1))
+
+        def real_sqrtm_sum(x):
+            return gs.real(sqrtm_sum(x))
+
+        expected_grad = gs.array([[1.0 / 4.0, 1.0 / 5.0], [1.0 / 5.0, 1.0 / 6.0]])
+
+        value, grad = gs.autodiff.value_and_grad(sqrtm_sum, point_ndims=2)(
+            gs.array([[4.0, 0.0], [0.0, 9.0]])
+        )
+        self.assertAllClose(value, gs.array(5.0))
+        self.assertAllClose(grad, expected_grad)
+
+        value, grad = gs.autodiff.value_and_grad(real_sqrtm_sum, point_ndims=2)(
+            gs.array([[-4.0, 0.0], [0.0, -9.0]], dtype=gs.get_default_cdtype())
+        )
+        self.assertAllClose(value, gs.array(0.0))
+        self.assertAllClose(grad, (1j if pytorch_backend() else -1j) * expected_grad)
+
+    @autograd_and_torch_only
+    def test_grad_of_clip(self):
+        """Clipped entries get no gradient, with keyword bounds."""
+        value, grad = gs.autodiff.value_and_grad(
+            lambda x: gs.sum(gs.clip(x, min=0.5), axis=-1)
+        )(gs.array([[0.0, 1.0], [2.0, 0.2]]))
+
+        self.assertAllClose(value, gs.array([1.5, 2.5]))
+        self.assertAllClose(grad, gs.array([[0.0, 1.0], [1.0, 0.0]]))
+
+    @autograd_and_torch_only
+    def test_grad_of_scatter_add(self):
+        """The gradient of a weighted sum of scattered values gathers the weights."""
+        weights = gs.array([1.0, 2.0, 3.0])
+
+        def weighted_scatter_add_sum(src):
+            index = gs.broadcast_to(gs.array([0, 2, 0]), src.shape)
+            out = gs.scatter_add(gs.zeros(src.shape), dim=-1, index=index, src=src)
+            return gs.sum(weights * out, axis=-1)
+
+        src = gs.array([[1.0, 2.0, 3.0], [0.0, 1.0, 0.0]])
+        value, grad = gs.autodiff.value_and_grad(weighted_scatter_add_sum)(src)
+
+        self.assertAllClose(value, gs.array([10.0, 3.0]))
+        self.assertAllClose(grad, gs.array([[1.0, 3.0, 1.0], [1.0, 3.0, 1.0]]))
+
+    @autograd_and_torch_only
+    def test_grad_of_trace(self):
+        """The gradient of the trace is the identity, at each point of a batch."""
+        points = gs.reshape(gs.arange(8.0), (2, 2, 2))
+        value, grad = gs.autodiff.value_and_grad(gs.trace, point_ndims=2)(points)
+
+        self.assertAllClose(value, gs.array([3.0, 11.0]))
+        self.assertAllClose(grad, gs.stack([gs.eye(2), gs.eye(2)]))
+
+    @autograd_and_torch_only
+    def test_grad_of_solve_sylvester(self):
+        """Gradients go through the solution of the Sylvester equation.
+
+        With x X + X x = 1 and x^T Y + Y x^T = 1, the gradient of sum(X) is
+        -(Y X^T + X^T Y), and Y = X for a symmetric x. At the identity, the
+        eigenvalues are repeated.
+        """
+
+        def sylvester_sum(x):
+            ones = gs.ones(x.shape[-2:])
+            return gs.sum(gs.linalg.solve_sylvester(x, x, ones), axis=(-2, -1))
+
+        points = [gs.eye(2), gs.array([[1.0, 0.0], [0.0, 3.0]])]
+        expected_grads = [
+            -gs.ones((2, 2)),
+            -gs.array([[5.0 / 8.0, 1.0 / 3.0], [1.0 / 3.0, 13.0 / 72.0]]),
+        ]
+        for point, expected_grad in zip(points, expected_grads):
+            _, grad = gs.autodiff.value_and_grad(sylvester_sum, point_ndims=2)(point)
+            self.assertAllClose(grad, expected_grad)

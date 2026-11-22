@@ -114,11 +114,12 @@ class AgainstEinsumTestCase(TestCase):
 
 
 class BackendTestCase(TestCase):
-    def test_compose_with_inverse(self, func_name_1, func_name_2, a):
+    def test_compose_with_inverse(self, func_name_1, func_name_2, a, kwargs=None):
         gs_fnc_1 = get_backend_fnc(func_name_1)
         gs_fnc_2 = get_backend_fnc(func_name_2)
+        kwargs = kwargs or {}
 
-        out = gs_fnc_2(gs_fnc_1(a))
+        out = gs_fnc_2(gs_fnc_1(a, **kwargs), **kwargs)
         self.assertAllClose(out, a)
 
     def test_unary_op(self, func_name, a, expected, atol):

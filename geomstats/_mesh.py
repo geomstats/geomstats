@@ -50,7 +50,7 @@ class Surface:
 
         face_centroids = (vertex_0 + vertex_1 + vertex_2) / 3
         normals = 0.5 * gs.cross(vertex_1 - vertex_0, vertex_2 - vertex_0)
-        area = gs.linalg.norm(normals, axis=-1)
+        area = gs.linalg.vector_norm(normals, axis=-1)
         unit_normals = gs.einsum("...ij,...i->...ij", normals, 1 / area)
 
         return face_centroids, unit_normals, gs.expand_dims(area, axis=-1)

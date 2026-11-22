@@ -1,6 +1,5 @@
 """Pytorch based linear algebra backend."""
 
-import numpy as _np
 import scipy as _scipy
 import torch as _torch
 from torch.linalg import (
@@ -15,9 +14,23 @@ from torch.linalg import (
 )
 from torch.linalg import matrix_exp as expm
 
-from ..numpy import atol
 from ..numpy import linalg as _gsnplinalg
+from ._common import atol
+from ._common import to_numpy as _to_numpy
 from ._dtype import _cast_out_to_input_dtype
+
+
+def _check_no_grad(name, *args):
+    """Raise if gradients are needed through a function computed by scipy.
+
+    Scipy is given detached arrays, so that the gradients would be lost.
+    """
+    if _torch.is_grad_enabled() and any(
+        _torch.is_tensor(arg) and arg.requires_grad for arg in args
+    ):
+        raise NotImplementedError(
+            f"{name} cannot be differentiated with PyTorch: scipy computes it."
+        )
 
 
 class _Logm(_torch.autograd.Function):
@@ -29,7 +42,7 @@ class _Logm(_torch.autograd.Function):
 
     @staticmethod
     def _logm(x):
-        mat_log = _gsnplinalg.logm(x.detach().cpu().numpy())
+        mat_log = _gsnplinalg.logm(_to_numpy(x))
         return _torch.from_numpy(mat_log).to(x.device)
 
     @staticmethod
@@ -40,31 +53,75 @@ class _Logm(_torch.autograd.Function):
 
     @staticmethod
     def backward(ctx, grad):
-        """Run gradients backward."""
+        """Run gradients backward.
+
+        The gradient is the upper right block of ``logm([[x^H, g], [0, x^H]])``.
+        The block matrix is built with differentiable operations, and the
+        logarithm goes through ``_Logm.apply``, so that the gradient can itself
+        be differentiated.
+        """
         (tensor,) = ctx.saved_tensors
 
-        vectorized = tensor.ndim == 3
-        axes = (0, 2, 1) if vectorized else (1, 0)
-        tensor_H = tensor.permute(axes).conj().to(grad.dtype)
+        tensor_H = tensor.mT.conj().to(grad.dtype)
         n = tensor.size(-1)
-        bshape = tensor.shape[:-2] + (2 * n, 2 * n)
-        backward_tensor = _torch.zeros(*bshape, dtype=grad.dtype, device=grad.device)
-        backward_tensor[..., :n, :n] = tensor_H
-        backward_tensor[..., n:, n:] = tensor_H
-        backward_tensor[..., :n, n:] = grad
+        backward_tensor = _torch.cat(
+            [
+                _torch.cat([tensor_H, grad], dim=-1),
+                _torch.cat([_torch.zeros_like(tensor_H), tensor_H], dim=-1),
+            ],
+            dim=-2,
+        )
 
-        return _Logm._logm(backward_tensor).to(tensor.dtype)[..., :n, n:]
+        return _Logm.apply(backward_tensor).to(tensor.dtype)[..., :n, n:]
 
 
 logm = _cast_out_to_input_dtype(_Logm.apply)
 
 
-def sqrtm(x):
-    np_sqrtm = _np.vectorize(_scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
-    if np_sqrtm.dtype.kind == "c":
-        np_sqrtm = np_sqrtm.astype(f"complex{int(np_sqrtm.dtype.name[7:]) // 2}")
+@_cast_out_to_input_dtype
+def _sqrtm(x):
+    """Compute the matrix square root with scipy, without gradients."""
+    return _torch.from_numpy(_scipy.linalg.sqrtm(_to_numpy(x))).to(x.device)
 
-    return _torch.from_numpy(np_sqrtm)
+
+class _Sqrtm(_torch.autograd.Function):
+    """Torch autograd function for the matrix square root."""
+
+    @staticmethod
+    def forward(ctx, x):
+        """Compute the matrix square root."""
+        sqrt = _sqrtm(x)
+        ctx.save_for_backward(sqrt)
+        return sqrt
+
+    @staticmethod
+    def backward(ctx, grad):
+        """Run gradients backward.
+
+        If ``S`` is the square root of ``A``, ``S dS + dS S = dA``, so that
+        the gradient with respect to ``A`` is the ``Y`` solving
+        ``S^H Y + Y S^H = g``. It goes through ``_SolveSylvester.apply``, so
+        that it can itself be differentiated.
+        """
+        (sqrt,) = ctx.saved_tensors
+        sqrt_H = sqrt.mT.conj()
+        return _SolveSylvester.apply(sqrt_H, sqrt_H, grad, atol)
+
+
+def sqrtm(x):
+    """Compute the matrix square root.
+
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, n]
+        Matrix.
+
+    Returns
+    -------
+    sqrt : array-like, shape=[..., n, n]
+        Matrix square root.
+    """
+    return _Sqrtm.apply(x)
 
 
 def svd(x, full_matrices=True, compute_uv=True):
@@ -74,88 +131,189 @@ def svd(x, full_matrices=True, compute_uv=True):
     return _torch.linalg.svdvals(x)
 
 
-def norm(x, ord=None, axis=None, keepdims=False):
-    return _torch.linalg.norm(x, ord=ord, dim=axis, keepdim=keepdims)
+def vector_norm(x, axis=None, keepdims=False, ord=2):
+    """Compute the vector norm.
+
+    Parameters
+    ----------
+    x : array-like
+        Array.
+    axis : int or tuple[int] or None
+        Axes over which to compute the norm. If None, all of them.
+    keepdims : bool
+        Whether to keep the reduced axes.
+    ord : int or float
+        Order of the norm.
+
+    Returns
+    -------
+    norm : array-like
+        Norm.
+    """
+    return _torch.linalg.vector_norm(x, ord=ord, dim=axis, keepdim=keepdims)
 
 
-def matrix_rank(a, hermitian=False, **_unused_kwargs):
-    return _torch.linalg.matrix_rank(a, hermitian=hermitian)
+def matrix_norm(x, keepdims=False, ord="fro"):
+    """Compute the matrix norm, over the last two axes.
+
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, m]
+        Matrix.
+    keepdims : bool
+        Whether to keep the reduced axes.
+    ord : str or int or float
+        Order of the norm.
+
+    Returns
+    -------
+    norm : array-like, shape=[...]
+        Norm.
+    """
+    return _torch.linalg.matrix_norm(x, ord=ord, keepdim=keepdims)
 
 
-def quadratic_assignment(a, b, options):
-    return list(_scipy.optimize.quadratic_assignment(a, b, options=options).col_ind)
+def matrix_rank(a, tol=None, hermitian=False):
+    """Compute the rank of matrices.
+
+    Parameters
+    ----------
+    a : array-like, shape=[..., m, n]
+        Matrix.
+    tol : float
+        Threshold below which singular values are considered zero. By
+        default, the largest singular value times the largest dimension
+        times the machine precision.
+    hermitian : bool
+        Whether the matrices are hermitian.
+
+    Returns
+    -------
+    rank : array-like, shape=[...]
+        Rank.
+    """
+    return _torch.linalg.matrix_rank(a, atol=tol, hermitian=hermitian)
 
 
-def solve_sylvester(a, b, q):
+def quadratic_assignment(a, b, options=None):
+    """Solve the quadratic assignment problem.
+
+    Parameters
+    ----------
+    a : array-like, shape=[..., n, n]
+        First matrix.
+    b : array-like, shape=[..., n, n]
+        Second matrix.
+    options : dict
+        Options of ``scipy.optimize.quadratic_assignment``.
+
+    Returns
+    -------
+    perm : array-like, shape=[..., n]
+        Permutation of the nodes of ``b`` that is optimal for ``a``.
+    """
+    perm = _gsnplinalg.quadratic_assignment(
+        _to_numpy(a), _to_numpy(b), options=options
+    )
+    return _torch.from_numpy(perm)
+
+
+def _solve_sylvester(a, b, q, tol):
+    """Solve the Sylvester equation, without gradients."""
     if (
         a.shape == b.shape
-        and _torch.all(a == b)
-        and _torch.all(_torch.abs(a - a.transpose(-2, -1)) < 1e-6)
+        and _torch.all(_torch.abs(a - b) < tol)
+        and _torch.all(_torch.abs(a - a.mT.conj()) < tol)
     ):
         eigvals, eigvecs = eigh(a)
-        if _torch.all(eigvals >= 1e-6):
-            tilde_q = eigvecs.transpose(-2, -1) @ q @ eigvecs
-            tilde_x = tilde_q / (eigvals[..., :, None] + eigvals[..., None, :])
-            return eigvecs @ tilde_x @ eigvecs.transpose(-2, -1)
-
-        conditions = _torch.all(eigvals >= 1e-6) or (
-            a.shape[-1] >= 2.0
-            and _torch.all(eigvals[..., 0] > -1e-6)
-            and _torch.all(eigvals[..., 1] >= 1e-6)
-            and _torch.all(_torch.abs(q + q.transpose(-2, -1)) < 1e-6)
-        )
-        if conditions:
-            tilde_q = eigvecs.transpose(-2, -1) @ q @ eigvecs
-            tilde_x = tilde_q / (
-                eigvals[..., :, None] + eigvals[..., None, :] + _torch.eye(a.shape[-1])
+        if _torch.all(eigvals > -tol):
+            eigvecs_H = eigvecs.mT.conj()
+            tilde_q = eigvecs_H @ q @ eigvecs
+            denom = eigvals[..., :, None] + eigvals[..., None, :]
+            is_zero = _torch.abs(denom) <= tol
+            tilde_x = _torch.where(
+                is_zero,
+                _torch.zeros_like(tilde_q),
+                tilde_q / _torch.where(is_zero, _torch.ones_like(denom), denom),
             )
-            return eigvecs @ tilde_x @ eigvecs.transpose(-2, -1)
+            return eigvecs @ tilde_x @ eigvecs_H
 
-    solution = _np.vectorize(
-        _scipy.linalg.solve_sylvester, signature="(m,m),(n,n),(m,n)->(m,n)"
-    )(a, b, q)
-    return _torch.from_numpy(solution)
+    solution = _scipy.linalg.solve_sylvester(_to_numpy(a), _to_numpy(b), _to_numpy(q))
+    return _torch.from_numpy(solution).to(q.device)
 
 
-# (TODO) (sait) _torch.linalg.cholesky_ex for even faster way
-def is_single_matrix_pd(mat):
-    """Check if 2D square matrix is positive definite."""
-    if mat.shape[0] != mat.shape[1]:
-        return False
-    if mat.dtype in [_torch.complex64, _torch.complex128]:
-        is_hermitian = _torch.all(
-            _torch.abs(mat - _torch.conj(_torch.transpose(mat, 0, 1))) < atol
+class _SolveSylvester(_torch.autograd.Function):
+    """Torch autograd function for the solution of the Sylvester equation."""
+
+    @staticmethod
+    def forward(ctx, a, b, q, tol):
+        """Solve the Sylvester equation."""
+        x = _solve_sylvester(a, b, q, tol)
+        ctx.save_for_backward(a, b, x)
+        ctx.shapes = (a.shape, b.shape, q.shape)
+        ctx.tol = tol
+        return x
+
+    @staticmethod
+    def backward(ctx, grad):
+        """Run gradients backward.
+
+        If ``X`` solves ``A X + X B = Q`` and ``Y`` solves
+        ``A^H Y + Y B^H = g``, the gradients with respect to ``A``, ``B`` and
+        ``Q`` are ``-Y X^H``, ``-X^H Y`` and ``Y``. Unlike differentiating
+        through the solver, this does not involve the eigenvectors of ``A``,
+        whose gradient is undefined for repeated eigenvalues. ``Y`` goes
+        through ``_SolveSylvester.apply``, so that the gradients can
+        themselves be differentiated.
+        """
+        a, b, x = ctx.saved_tensors
+        y = _SolveSylvester.apply(a.mT.conj(), b.mT.conj(), grad, ctx.tol)
+        x_H = x.mT.conj()
+
+        grads = (
+            -y @ x_H if ctx.needs_input_grad[0] else None,
+            -x_H @ y if ctx.needs_input_grad[1] else None,
+            y if ctx.needs_input_grad[2] else None,
         )
-        if not is_hermitian:
-            return False
-        eigvals = _torch.linalg.eigvalsh(mat)
-        return _torch.min(_torch.real(eigvals)) > 0
-    try:
-        _torch.linalg.cholesky(mat)
-        return True
-    except RuntimeError:
-        return False
+        return tuple(
+            None if grad_ is None else grad_.sum_to_size(shape)
+            for grad_, shape in zip(grads, ctx.shapes)
+        ) + (None,)
+
+
+def solve_sylvester(a, b, q, tol=atol):
+    """Solve the Sylvester equation ``A X + X B = Q``.
+
+    If ``A`` and ``B`` are the same Hermitian positive semidefinite matrix,
+    the equation is solved in the eigenbasis of ``A``. The entries whose
+    eigenvalue sum vanishes are set to zero, which gives the minimum-norm
+    solution. Otherwise, scipy is used, matrix by matrix.
+
+    Parameters
+    ----------
+    a : array-like, shape=[..., m, m]
+        First coefficient matrix, ``A``.
+    b : array-like, shape=[..., n, n]
+        Second coefficient matrix, ``B``.
+    q : array-like, shape=[..., m, n]
+        Right-hand side, ``Q``.
+    tol : float
+        Tolerance on equality, Hermitianity and eigenvalues.
+
+    Returns
+    -------
+    x : array-like, shape=[..., m, n]
+        Solution, ``X``.
+    """
+    return _SolveSylvester.apply(a, b, q, tol)
 
 
 @_cast_out_to_input_dtype
 def fractional_matrix_power(A, t):
     """Compute the fractional power of a matrix."""
-    if A.ndim == 2:
-        out = _scipy.linalg.fractional_matrix_power(A, t)
-    else:
-        out = _np.stack([_scipy.linalg.fractional_matrix_power(A_, t) for A_ in A])
-
-    return _torch.tensor(out)
-
-
-def polar(*args, **kwargs):
-    """Polar decomposition of a matrix."""
-    func = _np.vectorize(
-        _scipy.linalg.polar, signature="(n,n)->(n,n),(n,n)", excluded=["side"]
-    )
-    unitary, hermitian = func = func(*args, **kwargs)
-
-    return _torch.from_numpy(unitary), _torch.from_numpy(hermitian)
+    _check_no_grad("fractional_matrix_power", A, t)
+    out = _scipy.linalg.fractional_matrix_power(_to_numpy(A), t)
+    return _torch.from_numpy(out)
 
 
 def solve(a, b):

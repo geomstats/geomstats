@@ -89,7 +89,7 @@ def convert_to_trihedron(point, space=None):
     - the trihedron's orientation is the rotation of the canonical basis
       of R^3 by the rotation part of point.
     """
-    point = gs.to_ndarray(point, to_ndim=2)
+    point = gs.expand_dims_to(point, ndim=2)
     n_points, _ = point.shape
 
     dim_rotations = SO3_GROUP.dim
@@ -112,9 +112,9 @@ def convert_to_trihedron(point, space=None):
 
     trihedrons = []
     for i in range(n_points):
-        trihedron_vec_1 = gs.dot(rot_mat[i], basis_vec_1)
-        trihedron_vec_2 = gs.dot(rot_mat[i], basis_vec_2)
-        trihedron_vec_3 = gs.dot(rot_mat[i], basis_vec_3)
+        trihedron_vec_1 = gs.matvec(rot_mat[i], basis_vec_1)
+        trihedron_vec_2 = gs.matvec(rot_mat[i], basis_vec_2)
+        trihedron_vec_3 = gs.matvec(rot_mat[i], basis_vec_3)
         trihedron = Trihedron(
             translation[i], trihedron_vec_1, trihedron_vec_2, trihedron_vec_3
         )

@@ -34,7 +34,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
     Parameters
     ----------
     sample_dim : int
-          Dimension of the sample space of the multivariate normal distribution.
+        Dimension of the sample space of the multivariate normal distribution.
     """
 
     def __init__(self, sample_dim, equip=True):
@@ -59,8 +59,6 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
 
         Parameters
         ----------
-        sample_dim : int
-            Dimension of the sample space of the multivariate normal distribution.
         point : array-like, shape=[..., 2 * sample_dim]
             Input point from which means and diagonals are extracted.
 
@@ -120,7 +118,6 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
 
         Returns
         -------
@@ -172,7 +169,6 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             the diagonal of the covariance matrix.
         n_samples : int
             Number of points to sample with each pair of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -281,7 +277,6 @@ class DiagonalNormalMetric(RiemannianMetric):
             Tangent vector at base point.
         base_point: array-like, shape=[..., 2 * sample_dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------

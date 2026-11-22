@@ -231,7 +231,7 @@ class TangentPCA(_BasePCA):
         else:
             X = tangent_vecs
         X = X - self.mean_
-        X_transformed = gs.matmul(X, gs.transpose(self.components_))
+        X_transformed = gs.matmul(X, gs.matrix_transpose(self.components_))
         return X_transformed
 
     def inverse_transform(self, X):
