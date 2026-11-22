@@ -600,10 +600,10 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         )
 
     def jacobian_translation(self, point, left=True):
-        """Compute the Jacobian matrix resulting from translation.
+        r"""Compute the Jacobian matrix resulting from translation.
 
         Compute the matrix of the differential of the left/right translations
-        from the identity to point in SE(3).
+        from the identity to point in SE(2).
 
         Parameters
         ----------
@@ -615,15 +615,41 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
 
         Returns
         -------
-        jacobian : array-like, shape=[..., 3]
+        jacobian : array-like, shape=[..., 3, 3]
             Jacobian of the left / right translation.
-        """
-        n_points = point.shape[0] if gs.ndim(point) > 1 else 1
-        out = gs.eye(self.dim)
 
-        if n_points > 1:
-            return gs.repeat(gs.expand_dims(out, axis=0), n_points, axis=0)
-        return out
+        Notes
+        -----
+        With :math:`point = (\theta, t)`, the composition is
+        :math:`(\theta_a, t_a) (\theta_b, t_b) = (\theta_a + \theta_b,
+        R(\theta_a) t_b + t_a)`. The differential of the left translation
+        at the identity is therefore :math:`\mathrm{diag}(1, R(\theta))`, and
+        that of the right translation has the column :math:`J t` with
+        :math:`J = R(\pi / 2)` below the identity in its first column.
+        """
+        point = self.regularize(point)
+        rot_vec = point[..., : self.rotations.dim]
+        translation = point[..., self.rotations.dim :]
+        batch_shape = point.shape[:-1]
+
+        one = gs.ones(batch_shape + (1, 1))
+        zeros_row = gs.zeros(batch_shape + (1, 2))
+        first_row = gs.concatenate([one, zeros_row], axis=-1)
+
+        if left:
+            rot_mat = self.rotations.matrix_from_rotation_vector(rot_vec)
+            zeros_col = gs.zeros(batch_shape + (2, 1))
+            lower_block = gs.concatenate([zeros_col, rot_mat], axis=-1)
+        else:
+            perp_translation = gs.stack(
+                [-translation[..., 1], translation[..., 0]], axis=-1
+            )
+            eye = gs.broadcast_to(gs.eye(2), batch_shape + (2, 2))
+            lower_block = gs.concatenate(
+                [gs.expand_dims(perp_translation, axis=-1), eye], axis=-1
+            )
+
+        return gs.concatenate([first_row, lower_block], axis=-2)
 
     def _exp_translation_transform(self, rot_vec):
         base_1 = gs.eye(2)
@@ -758,7 +784,9 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
             )
 
         else:
-            inv_skew_mat = -self.rotations.skew.matrix_representation(rot_vec)
+            inv_skew_mat = -self.rotations.skew.matrix_representation(
+                point[..., dim_rotations:]
+            )
             eye = gs.eye(self.n)
             if is_vec:
                 eye = gs.repeat(gs.expand_dims(eye, axis=0), n_points, axis=0)
