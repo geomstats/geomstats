@@ -153,9 +153,12 @@ class DtypeTestData(TestData):
             dict(func_name="triu", array_shape=(2, 2), kwargs={"k": 1}),
             dict(func_name="tril_to_vec", array_shape=(2, 2)),
             dict(func_name="triu_to_vec", array_shape=(2, 2)),
-            dict(func_name="vec_to_diag", array_shape=3),
+            dict(func_name="diag_embed", array_shape=3),
+            dict(func_name="tril_embed", array_shape=3),
+            dict(func_name="triu_embed", array_shape=3),
             # TODO: add test in BackendsTestData
-            dict(func_name="linalg.norm", array_shape=3),
+            dict(func_name="linalg.vector_norm", array_shape=3),
+            dict(func_name="linalg.matrix_norm", array_shape=(2, 2)),
         ]
 
         return self.generate_tests(data)
@@ -202,7 +205,6 @@ class DtypeTestData(TestData):
 
     def binary_op_given_shape_test_data(self):
         data = [
-            dict(func_name="cross", shape_a=3, shape_b=3),
             dict(func_name="divide", shape_a=3, shape_b=3),
             dict(
                 func_name="divide",
@@ -211,14 +213,6 @@ class DtypeTestData(TestData):
                 func_b=gs.zeros,
                 kwargs={"ignore_div_zero": True},
             ),
-            dict(func_name="dot", shape_a=3, shape_b=3),
-            dict(func_name="dot", shape_a=3, shape_b=(2, 3)),
-            dict(func_name="dot", shape_a=(2, 3), shape_b=(2, 3)),
-            dict(func_name="matmul", shape_a=(2, 2), shape_b=(2, 2)),
-            dict(func_name="matmul", shape_a=(2, 3), shape_b=(3, 2)),
-            dict(func_name="matvec", shape_a=(3, 3), shape_b=3),
-            dict(func_name="matvec", shape_a=(3, 3), shape_b=(2, 3)),
-            dict(func_name="matvec", shape_a=(2, 3, 3), shape_b=(2, 3)),
             dict(func_name="outer", shape_a=3, shape_b=3),
             dict(func_name="outer", shape_a=3, shape_b=(2, 3)),
             dict(func_name="outer", shape_a=(2, 3), shape_b=(2, 3)),
@@ -230,10 +224,10 @@ class DtypeTestData(TestData):
         data = [
             # TODO: add test in BackendsTestData
             dict(
-                func_name="mat_from_diag_triu_tril",
-                shape_a=(2,),
-                shape_b=(1,),
-                shape_c=(1,),
+                func_name="linalg.solve_sylvester",
+                shape_a=(3, 3),
+                shape_b=(1, 1),
+                shape_c=(3, 1),
             ),
         ]
         return self.generate_tests(data)

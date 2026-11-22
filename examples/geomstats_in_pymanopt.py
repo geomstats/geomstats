@@ -60,7 +60,7 @@ class GeomstatsSphere(EuclideanEmbeddedSubmanifold):
     def randvec(self, base_point):
         random_point = gs.random.normal(size=self.dim + 1)
         random_tangent_vector = self.proj(base_point, random_point)
-        return random_tangent_vector / gs.linalg.norm(random_tangent_vector)
+        return random_tangent_vector / gs.linalg.vector_norm(random_tangent_vector)
 
     def zerovec(self, base_point):
         return gs.zeros_like(self.rand())
@@ -75,16 +75,16 @@ def estimate_dominant_eigenvector(matrix):
     num_rows, num_columns = gs.shape(matrix)
     if num_rows != num_columns:
         raise ValueError("Matrix must be square.")
-    if not gs.allclose(gs.sum(matrix - gs.transpose(matrix)), 0.0):
+    if not gs.allclose(gs.sum(matrix - gs.matrix_transpose(matrix)), 0.0):
         raise ValueError("Matrix must be symmetric.")
 
     @pymanopt.function.Callable
     def cost(vector):
-        return -gs.dot(vector, gs.dot(matrix, vector))
+        return -gs.vecdot(vector, gs.matvec(matrix, vector))
 
     @pymanopt.function.Callable
     def egrad(vector):
-        return -2 * gs.dot(matrix, vector)
+        return -2 * gs.matvec(matrix, vector)
 
     sphere = GeomstatsSphere(num_columns)
     problem = pymanopt.Problem(manifold=sphere, cost=cost, egrad=egrad)
@@ -109,12 +109,15 @@ if __name__ == "__main__":
         dominant_eigenvector_estimate = -dominant_eigenvector_estimate
 
     logging.info(
-        "l2-norm of dominant eigenvector: %s", gs.linalg.norm(dominant_eigenvector)
+        "l2-norm of dominant eigenvector: %s",
+        gs.linalg.vector_norm(dominant_eigenvector),
     )
     logging.info(
         "l2-norm of dominant eigenvector estimate: %s",
-        gs.linalg.norm(dominant_eigenvector_estimate),
+        gs.linalg.vector_norm(dominant_eigenvector_estimate),
     )
-    error_norm = gs.linalg.norm(dominant_eigenvector - dominant_eigenvector_estimate)
+    error_norm = gs.linalg.vector_norm(
+        dominant_eigenvector - dominant_eigenvector_estimate
+    )
     logging.info("l2-norm of difference vector: %s", error_norm)
     logging.info("solution found: %s", gs.isclose(error_norm, 0.0, atol=1e-3))

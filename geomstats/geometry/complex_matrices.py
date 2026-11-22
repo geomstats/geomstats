@@ -69,7 +69,7 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
         axes = list(range(0, ndim))
         axes[-1] = ndim - 2
         axes[-2] = ndim - 1
-        return gs.transpose(gs.conj(mat))
+        return gs.matrix_transpose(gs.conj(mat))
 
     @classmethod
     def is_hermitian(cls, mat, atol=gs.atol):
@@ -297,5 +297,5 @@ class ComplexMatricesMetric(HermitianMetric):
         norm : array-like, shape=[...,]
             Norm.
         """
-        norm = gs.linalg.norm(vector, axis=(-2, -1))
+        norm = gs.linalg.matrix_norm(vector)
         return repeat_out(self._space.point_ndim, norm, vector, base_point)

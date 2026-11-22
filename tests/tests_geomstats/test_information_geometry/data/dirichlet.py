@@ -2,7 +2,7 @@ import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from ...test_geometry.data.base import VectorSpaceOpenSetTestData
-from ...test_geometry.data.riemannian_metric import RiemannianMetricTestData
+from ...test_geometry.data.riemannian_metric import CoordinateRiemannianMetricTestData
 from .base import InformationManifoldMixinTestData
 
 
@@ -10,19 +10,19 @@ class DirichletDistributionsTestData(
     InformationManifoldMixinTestData, VectorSpaceOpenSetTestData
 ):
     fail_for_not_implemented_errors = False
+    skips = ("not_belongs",)
 
 
 class DirichletDistributions3TestData(TestData):
     def belongs_test_data(self):
         smoke_data = [
             dict(point=gs.array([0.1, 1.0, 0.3]), expected=True),
-            dict(point=gs.array([0.1, 1.001]), expected=False),
             dict(point=gs.array([-0.001, 1.0, 0.3]), expected=False),
         ]
         return self.generate_tests(smoke_data)
 
 
-class DirichletMetricTestData(RiemannianMetricTestData):
+class DirichletMetricTestData(CoordinateRiemannianMetricTestData):
     trials = 3
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False

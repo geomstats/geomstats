@@ -61,8 +61,6 @@ class ComplexPoincareDiskMetricTestData(ComplexRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 
-    skips = ("sectional_curvature_vec",)
-
     def inner_product_test_data(self):
         data = [
             dict(

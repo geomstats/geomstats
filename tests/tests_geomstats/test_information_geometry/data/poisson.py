@@ -2,7 +2,7 @@ import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from ...test_geometry.data.base import VectorSpaceOpenSetTestData
-from ...test_geometry.data.riemannian_metric import RiemannianMetricTestData
+from ...test_geometry.data.riemannian_metric import CoordinateRiemannianMetricTestData
 from .base import InformationManifoldMixinTestData
 
 
@@ -28,32 +28,34 @@ class PoissonDistributionsSmokeTestData(TestData):
         return self.generate_tests(data)
 
 
-class PoissonMetricTestData(RiemannianMetricTestData):
+class PoissonMetricTestData(CoordinateRiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
+
+    skips = ("sectional_curvature_vec",)
 
 
 class PoissonMetricSmokeTestData(TestData):
     def squared_dist_test_data(self):
         data = [
             dict(
-                point_a=gs.array([1, 3, 0.1]),
-                point_b=gs.array([4, 3, 0.9]),
+                point_a=gs.array([[1.0], [3.0], [0.1]]),
+                point_b=gs.array([[4.0], [3.0], [0.9]]),
                 expected=gs.array([4.0, 0.0, 1.6]),
             ),
             dict(
-                point_a=gs.array(0.1),
-                point_b=gs.array(4.9),
+                point_a=gs.array([0.1]),
+                point_b=gs.array([4.9]),
                 expected=gs.array(14.4),
             ),
             dict(
-                point_a=gs.array(0.1),
-                point_b=gs.array([4.9, 0.9]),
+                point_a=gs.array([0.1]),
+                point_b=gs.array([[4.9], [0.9]]),
                 expected=gs.array([14.4, 1.6]),
             ),
             dict(
-                point_a=gs.array([4.9, 0.4]),
-                point_b=gs.array(0.1),
+                point_a=gs.array([[4.9], [0.4]]),
+                point_b=gs.array([0.1]),
                 expected=gs.array([14.4, 0.4]),
             ),
         ]

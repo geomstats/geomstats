@@ -150,7 +150,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         rot = point[..., :n, :n]
         vec = point[..., n, :n]
         scalar = point[..., n, n]
-        submersed_rot = Matrices.mul(rot, gs.transpose(rot))
+        submersed_rot = gs.matmul(rot, gs.matrix_transpose(rot))
         return (
             homogeneous_representation(submersed_rot, vec, constant=scalar)
             - self._value
@@ -176,7 +176,9 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         skew = vector[..., :n, :n]
         vec = vector[..., n, :n]
         scalar = vector[..., n, n]
-        submersed_rot = Matrices.to_symmetric(Matrices.mul(gs.transpose(skew), rot))
+        submersed_rot = Matrices.to_symmetric(
+            gs.matmul(gs.matrix_transpose(skew), rot)
+        )
         return homogeneous_representation(submersed_rot, vec, constant=scalar)
 
     def random_point(self, n_samples=1, bound=1.0):
@@ -220,7 +222,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
             Inverse of point.
         """
         n = point.shape[-1] - 1
-        transposed_rot = gs.transpose(point[..., :n, :n])
+        transposed_rot = gs.matrix_transpose(point[..., :n, :n])
         translation = point[..., :n, -1]
         translation = gs.einsum("...ij,...j->...i", transposed_rot, translation)
         return homogeneous_representation(transposed_rot, -translation)
@@ -644,7 +646,7 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
             rot_vec**2, utils.cosc_close_0, order=4
         )
         transform = gs.einsum(
-            "...l, ...jk -> ...jk", inv_determinant, gs.transpose(exp_transform)
+            "...l, ...jk -> ...jk", inv_determinant, gs.matrix_transpose(exp_transform)
         )
 
         return transform
@@ -805,7 +807,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         transform : array-like, shape=[..., 3, 3]
         Matrix to be applied to the translation part in log
         """
-        angle = gs.linalg.norm(rot_vec, axis=-1)
+        angle = gs.linalg.vector_norm(rot_vec, axis=-1)
 
         skew_mat = self.rotations.skew.matrix_representation(rot_vec)
         sq_skew_mat = gs.matmul(skew_mat, skew_mat)

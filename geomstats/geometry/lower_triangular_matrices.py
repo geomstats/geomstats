@@ -34,12 +34,7 @@ class LowerTriangularMatrices(MatrixVectorSpace):
         basis : array-like, shape=[dim, n, n]
             Basis matrices of the space.
         """
-        rows, cols = gs.tril_indices(self.n)
-        tril_idxs = gs.ravel_multi_index((rows, cols), (self.n, self.n))
-
-        vector_bases = gs.eye(self.n * self.n)[tril_idxs]
-
-        return gs.reshape(vector_bases, [-1, self.n, self.n])
+        return gs.tril_embed(gs.eye(self.dim))
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a matrix is lower triangular.
@@ -170,11 +165,7 @@ class StrictlyLowerTriangularMatrices(LevelSet, MatrixVectorSpace):
         basis : array-like, shape=[dim, n, n]
             Basis matrices of the space.
         """
-        rows, cols = gs.tril_indices(self.n, k=-1)
-        tril_idxs = gs.ravel_multi_index((rows, cols), (self.n, self.n))
-
-        vector_bases = gs.eye(self.n * self.n)[tril_idxs]
-        return gs.reshape(vector_bases, [-1, self.n, self.n])
+        return gs.tril_embed(gs.eye(self.dim), k=-1)
 
     @staticmethod
     def basis_representation(matrix_representation):
@@ -206,4 +197,4 @@ class StrictlyLowerTriangularMatrices(LevelSet, MatrixVectorSpace):
             Projected point.
         """
         proj_point = self.embedding_space.projection(point)
-        return proj_point - gs.vec_to_diag(gs.diagonal(proj_point, axis1=-2, axis2=-1))
+        return proj_point - gs.diag_embed(gs.diagonal(proj_point))

@@ -38,10 +38,8 @@ class LogNormalSPD:
         samples_euclidean = gs.random.multivariate_normal(mean_vec, cov, (n_samples,))
         diag = samples_euclidean[:, :n]
         off_diag = samples_euclidean[:, n:] / gs.sqrt(2.0)
-        samples_sym = gs.mat_from_diag_triu_tril(
-            diag=diag, tri_upp=off_diag, tri_low=off_diag
-        )
-        return samples_sym
+        upper = gs.triu_embed(off_diag, k=1)
+        return gs.diag_embed(diag) + upper + gs.matrix_transpose(upper)
 
     def sample(self, n_samples):
         """Generate samples for SPD manifold."""

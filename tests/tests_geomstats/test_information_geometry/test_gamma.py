@@ -1,9 +1,9 @@
 import pytest
 
+from geomstats.geometry.positive_orthant import ScaledReciprocalDiffeo
 from geomstats.information_geometry.gamma import (
     GammaDistributions,
     GammaDistributionsRandomVariable,
-    NaturalToStandardDiffeo,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import GammaRandomDataGenerator, RandomDataGenerator
@@ -25,7 +25,7 @@ from .data.gamma import (
 class TestNaturalToStandardDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
     space = GammaDistributions(equip=False)
     image_space = StandardGammaDistributions()
-    diffeo = NaturalToStandardDiffeo()
+    diffeo = ScaledReciprocalDiffeo()
     testing_data = NaturalToStandardDiffeoTestData()
 
 
@@ -49,5 +49,7 @@ class TestGammaDistributionsSmoke(
 
 class TestGammaMetric(GammaMetricTestCase, metaclass=DataBasedParametrizer):
     space = GammaDistributions()
-    data_generator = RandomDataGenerator(space, amplitude=20.0)
+    data_generator = RandomDataGenerator(
+        space, amplitude=20.0, random_point_kwargs={"low": 0.5, "bound": 4.5}
+    )
     testing_data = GammaMetricTestData()

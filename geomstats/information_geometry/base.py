@@ -25,7 +25,6 @@ class InformationManifoldMixin:
             Point representing a probability distribution.
         n_samples : int
             Number of points to sample for each set of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -98,7 +97,6 @@ class ScipyUnivariateRandomVariable(ScipyRandomVariable):
             Point representing a univariate distribution.
         n_samples : int
             Number of points to sample with each pair of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -152,9 +150,9 @@ class ScipyMultivariateRandomVariable(ScipyRandomVariable):
     """A multivariate random variable."""
 
     def _rvs_single(self, point, n_samples):
-        return gs.to_ndarray(
-            self.scp_rvs(point, size=n_samples),
-            to_ndim=len(self.space.support_shape) + 1,
+        return gs.expand_dims_to(
+            gs.array(self.scp_rvs(point, size=n_samples)),
+            ndim=len(self.space.support_shape) + 1,
         )
 
     def rvs(self, point, n_samples=1):
@@ -166,7 +164,6 @@ class ScipyMultivariateRandomVariable(ScipyRandomVariable):
             Point representing a distribution.
         n_samples : int
             Number of points to sample with each pair of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------

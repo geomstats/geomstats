@@ -145,7 +145,7 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
 
             # NB: normalization is done outside
             length = upper_bound - lower_bound
-            value += length * gs.dot(
+            value += length * gs.vecdot(
                 srv_1[x_min_index + x_index], srv_2[y_min_index + y_index]
             )
 

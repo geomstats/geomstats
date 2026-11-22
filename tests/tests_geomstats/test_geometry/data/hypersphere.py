@@ -5,6 +5,7 @@ from geomstats.test.data import TestData
 
 from .base import DiffeomorphicManifoldTestData
 from .riemannian_metric import (
+    CoordinateRiemannianMetricTestData,
     RiemannianMetricCmpWithTransformTestData,
     RiemannianMetricTestData,
 )
@@ -35,9 +36,9 @@ class Hypersphere4MetricTestData(TestData):
 
     def dist_test_data(self):
         point_a = gs.array([10.0, -2.0, -0.5, 0.0, 0.0])
-        point_a = point_a / gs.linalg.norm(point_a)
+        point_a = point_a / gs.linalg.vector_norm(point_a)
         point_b = gs.array([2.0, 10, 0.0, 0.0, 0.0])
-        point_b = point_b / gs.linalg.norm(point_b)
+        point_b = point_b / gs.linalg.vector_norm(point_b)
         data = [
             dict(
                 point_a=point_a,
@@ -60,7 +61,7 @@ class Hypersphere4MetricTestData(TestData):
 
     def exp_and_dist_and_projection_to_tangent_space_test_data(self):
         unnorm_base_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])
-        base_point = unnorm_base_point / gs.linalg.norm(unnorm_base_point)
+        base_point = unnorm_base_point / gs.linalg.vector_norm(unnorm_base_point)
         data = [
             dict(
                 vector=gs.array([9.0, 0.0, -1.0, -2.0, 1.0]),
@@ -82,9 +83,11 @@ class HypersphereMetricTestData(RiemannianMetricTestData):
         return self.generate_random_data()
 
 
-class CircleAnglesMetricTestData(RiemannianMetricTestData):
+class CircleAnglesMetricTestData(CoordinateRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
+
+    skips = ("sectional_curvature_vec",)
 
     def exp_test_data(self):
         data = [

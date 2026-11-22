@@ -2,7 +2,7 @@ import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from .base import LevelSetTestData, MatrixVectorSpaceTestData
-from .euclidean import EuclideanMetricTestData
+from .matrices import MatricesMetricTestData
 
 
 class SymmetricMatricesTestData(MatrixVectorSpaceTestData):
@@ -93,15 +93,13 @@ class SymmetricHollowMatricesTestData(LevelSetTestData, MatrixVectorSpaceTestDat
     pass
 
 
-class HollowMatricesPermutationInvariantMetricTestData(EuclideanMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
+class HollowMatricesPermutationInvariantMetricTestData(MatricesMetricTestData):
+    pass
 
 
 class NullRowSumsSymmetricMatricesTestData(LevelSetTestData, MatrixVectorSpaceTestData):
     pass
 
 
-class NullRowSumsPermutationInvariantMetricTestData(EuclideanMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
+class NullRowSumsPermutationInvariantMetricTestData(MatricesMetricTestData):
+    pass

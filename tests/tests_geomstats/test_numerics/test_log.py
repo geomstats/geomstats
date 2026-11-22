@@ -15,6 +15,7 @@ from geomstats.numerics.geodesic import (
     LogShootingSolver,
     MultiresPathStraightening,
     PathStraightening,
+    PolynomialPathLogSolver,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.test_case import autodiff_only
@@ -91,6 +92,8 @@ def _create_params_path_straightening():
                 ),
             )
         )
+
+    params.append((space, PolynomialPathLogSolver(space)))
 
     return params
 

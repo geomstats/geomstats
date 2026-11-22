@@ -1608,7 +1608,7 @@ class DynamicProgrammingAligner(AlignerAlgorithm):
 
         initial_srv = self._resample_srv_function(self._srv_transform(base_point))
         end_srv = self._resample_srv_function(self._srv_transform(point))
-        scalar_products = gs.matmul(initial_srv, gs.transpose(end_srv))
+        scalar_products = gs.matmul(initial_srv, gs.matrix_transpose(end_srv))
 
         patterns = {
             (delta_x_index, delta_y_index): self._segment_pattern(
@@ -1873,7 +1873,7 @@ class RotationBundle(FiberBundle):
 
     def _rotate(self, point, rotation):
         """Rotate discrete curve starting at origin."""
-        return gs.transpose(gs.matmul(rotation, gs.transpose(point)))
+        return gs.matrix_transpose(gs.matmul(rotation, gs.matrix_transpose(point)))
 
     def align(self, point, base_point, return_rotation=False):
         """Align point to base point.
@@ -1899,7 +1899,7 @@ class RotationBundle(FiberBundle):
         initial_srv = transform(base_point)
         end_srv = transform(point)
 
-        mat = gs.matmul(gs.transpose(initial_srv), end_srv)
+        mat = gs.matmul(gs.matrix_transpose(initial_srv), end_srv)
         u_svd, _, vt_svd = gs.linalg.svd(mat)
         sign = gs.linalg.det(gs.matmul(u_svd, vt_svd))
         vt_svd[..., -1, :] = scalarvecmul(sign, vt_svd[..., -1, :])

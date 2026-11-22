@@ -6,10 +6,8 @@ Lead author: Yann Cabanes.
 import logging
 
 import geomstats.backend as gs
-from geomstats import algebra_utils as utils
 from geomstats.geometry.base import ComplexMatrixVectorSpace
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
-from geomstats.geometry.matrices import Matrices
 
 logger = logging.getLogger(__name__)
 
@@ -96,12 +94,12 @@ def apply_func_to_eigvalsh(mat, function, check_positive=False):
     if gs.is_complex(mat):
         transp_eigvecs = ComplexMatrices.transconjugate(eigvecs)
     else:
-        transp_eigvecs = gs.transpose(eigvecs)
+        transp_eigvecs = gs.matrix_transpose(eigvecs)
 
     for fun in function:
-        eigvals_f = fun(eigvals)
-        eigvals_f = utils.from_vector_to_diagonal_matrix(eigvals_f)
-        reconstruction.append(Matrices.mul(eigvecs, eigvals_f, transp_eigvecs))
+        reconstruction.append(
+            gs.matmul(eigvecs * fun(eigvals)[..., None, :], transp_eigvecs)
+        )
     return reconstruction if return_list else reconstruction[0]
 
 

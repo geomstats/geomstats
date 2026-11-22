@@ -43,9 +43,9 @@ def _project_on_rotation_matrices(mat):
         Rotation matrix.
     """
     mat_u, _, mat_vt = gs.linalg.svd(mat)
-    det = gs.linalg.det(Matrices.mul(mat_u, mat_vt))
+    det = gs.linalg.det(gs.matmul(mat_u, mat_vt))
     mat_u = utils.flip_determinant(mat_u, det)
-    return Matrices.mul(mat_u, mat_vt)
+    return gs.matmul(mat_u, mat_vt)
 
 
 class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
@@ -78,7 +78,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         return GeneralLinear(self.n, positive_det=True, equip=False)
 
     def _aux_submersion(self, point):
-        return Matrices.mul(gs.transpose(point), point)
+        return gs.matmul(gs.matrix_transpose(point), point)
 
     def submersion(self, point):
         """Submersion that defines the manifold.
@@ -105,7 +105,9 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         -------
         submersed_vector : array-like, shape=[..., n, n]
         """
-        return 2 * Matrices.to_symmetric(Matrices.mul(gs.transpose(point), vector))
+        return 2 * Matrices.to_symmetric(
+            gs.matmul(gs.matrix_transpose(point), vector)
+        )
 
     @classmethod
     def inverse(cls, point):
@@ -121,7 +123,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         inverse : array-like, shape=[..., n, n]
             Inverse.
         """
-        return gs.transpose(point)
+        return gs.matrix_transpose(point)
 
     def projection(self, point):
         """Project a matrix on SO(n) by minimizing the Frobenius norm.
@@ -277,7 +279,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         geodesics then join :math:`R_1` to :math:`R_2`, so the logarithm is
         not uniquely defined.
         """
-        relative_rot = Matrices.mul(gs.transpose(rotation_mat1), rotation_mat2)
+        relative_rot = gs.matmul(gs.matrix_transpose(rotation_mat1), rotation_mat2)
         n = relative_rot.shape[-1]
         return gs.isclose(gs.linalg.det(gs.eye(n) + relative_rot), 0.0)
 
@@ -832,7 +834,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         regularized_point : array-like, shape=[..., 3]
             Regularized point.
         """
-        theta = gs.linalg.norm(point, axis=-1)
+        theta = gs.linalg.vector_norm(point, axis=-1)
         k = gs.floor(theta / 2.0 / gs.pi)
 
         # angle in [0;2pi)
@@ -869,7 +871,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             return self.regularize(tangent_vec)
 
         tangent_vec_metric_norm = self.metric.norm(tangent_vec)
-        tangent_vec_canonical_norm = gs.linalg.norm(tangent_vec, axis=-1)
+        tangent_vec_canonical_norm = gs.linalg.vector_norm(tangent_vec, axis=-1)
 
         # This avoids dividing by 0
         norm_eps = gs.where(
@@ -951,7 +953,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         cos_angle = gs.clip(0.5 * (trace - 1), -1.0, 1.0)
         angle = gs.arccos(cos_angle)
 
-        rot_mat_transpose = gs.transpose(rot_mat)
+        rot_mat_transpose = gs.matrix_transpose(rot_mat)
         skew_vec = self.skew.basis_representation(rot_mat - rot_mat_transpose)
 
         mask_0 = gs.cast(gs.isclose(angle, 0.0), angle.dtype)
@@ -969,12 +971,11 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         vector_outer = scalarmatmul(
             1.0 / safe_denominator, sym_part - scalarmatmul(cos_angle, gs.eye(3))
         )
-        vector_outer = gs.set_diag(
-            vector_outer, gs.maximum(0.0, gs.diagonal(vector_outer, axis1=-2, axis2=-1))
-        )
-        squared_diag_comp = gs.diagonal(vector_outer, axis1=-2, axis2=-1)
+        diag = gs.diagonal(vector_outer)
+        squared_diag_comp = gs.maximum(0.0, diag)
+        vector_outer = vector_outer + gs.diag_embed(squared_diag_comp - diag)
         diag_comp = gs.sqrt(squared_diag_comp)
-        norm_line = gs.linalg.norm(vector_outer, axis=-1)
+        norm_line = gs.linalg.vector_norm(vector_outer, axis=-1)
         max_line_index = gs.argmax(norm_line, axis=-1)
 
         if is_vec:
@@ -1013,7 +1014,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         term_1 = gs.eye(self.dim) + scalarmatmul(coef_1, skew_rot_vec)
 
-        squared_skew_rot_vec = Matrices.mul(skew_rot_vec, skew_rot_vec)
+        squared_skew_rot_vec = gs.matmul(skew_rot_vec, skew_rot_vec)
 
         term_2 = scalarmatmul(coef_2, squared_skew_rot_vec)
 

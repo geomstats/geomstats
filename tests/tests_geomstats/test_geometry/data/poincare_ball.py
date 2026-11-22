@@ -2,14 +2,14 @@ import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from .base import VectorSpaceOpenSetTestData
-from .riemannian_metric import RiemannianMetricTestData
+from .riemannian_metric import CoordinateRiemannianMetricTestData
 
 
 class PoincareBallTestData(VectorSpaceOpenSetTestData):
     xfails = ("projection_belongs",)
 
 
-class PoincareBallMetricTestData(RiemannianMetricTestData):
+class PoincareBallMetricTestData(CoordinateRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 

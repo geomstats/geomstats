@@ -159,7 +159,7 @@ class GradientDescent(BaseGradientDescent):
         sq_dist = 0.0
         var = 0.0
 
-        norm_old = gs.linalg.norm(points)
+        norm_old = gs.linalg.vector_norm(points)
         step_size = self.init_step_size
 
         while iteration < self.max_iter:
@@ -169,7 +169,7 @@ class GradientDescent(BaseGradientDescent):
 
             tangent_mean = _scalarmulsum(weights, logs)
             tangent_mean /= sum_weights
-            norm = gs.linalg.norm(tangent_mean)
+            norm = gs.linalg.vector_norm(tangent_mean)
 
             sq_dist = space.metric.squared_norm(tangent_mean, mean)
 
@@ -568,7 +568,7 @@ class CircleMean(BaseEstimator):
             gs.pi - parts + mean
         ) - (2 * gs.pi * (n_samples - i) / n_samples) ** 2
         minus_vec = gs.where(m_plus, plus_vec, minus_vec)
-        means = gs.transpose(gs.vstack([means, var + minus_vec]))
+        means = gs.matrix_transpose(gs.vstack([means, var + minus_vec]))
         return means
 
     def fit(self, X, y=None):
@@ -681,7 +681,7 @@ class SturmsMean(BaseEstimator):
         return X[k % len(X)]
 
     def _sample_next_stochastic(self, X, weights, k):
-        return gs.random.choice(X, 1, p=weights)[0]
+        return X[gs.random.choice(len(X), p=weights)]
 
     def _step_length_cyclic(self, weights, k):
         n_weights = len(weights)

@@ -67,6 +67,7 @@ class _ScaledMethodsRegistry:
         "squared_norm",
         "squared_dist",
         "covariant_riemann_tensor",
+        "flat",
     ]
     _QUADRATIC_LIST = []
     _INVERSE_LIST = [
@@ -75,6 +76,7 @@ class _ScaledMethodsRegistry:
         "hamiltonian",
         "sectional_curvature",
         "scalar_curvature",
+        "sharp",
     ]
     _INVERSE_SQRT_LIST = ["normalize", "random_unit_tangent_vec", "normal_basis"]
     _RESERVED_NAMES = ("underlying_metric", "scale")

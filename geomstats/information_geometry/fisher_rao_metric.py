@@ -4,10 +4,10 @@ from scipy.integrate import quad_vec
 
 import geomstats.backend as gs
 from geomstats._einsum import scalarmatmul
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.riemannian_metric import CoordinateRiemannianMetric
 
 
-class FisherRaoMetric(RiemannianMetric):
+class FisherRaoMetric(CoordinateRiemannianMetric):
     r"""Class to derive the information metric from the pdf in InformationManifoldMixin.
 
     Given a statistical manifold with coordinates :math:`\theta`,

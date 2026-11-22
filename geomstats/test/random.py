@@ -32,12 +32,13 @@ def get_random_times(n_times, sort=True):
 
 
 class RandomDataGenerator:
-    def __init__(self, space, amplitude=2.0):
+    def __init__(self, space, amplitude=2.0, random_point_kwargs=None):
         self.space = space
         self.amplitude = amplitude
+        self.random_point_kwargs = random_point_kwargs or {}
 
     def random_point(self, n_points=1):
-        return self.space.random_point(n_points)
+        return self.space.random_point(n_points, **self.random_point_kwargs)
 
     def random_tangent_vec(self, base_point):
         tangent_vec = self.space.random_tangent_vec(base_point)

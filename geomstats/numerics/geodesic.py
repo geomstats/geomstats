@@ -1,5 +1,6 @@
 """Geodesic solvers implementation."""
 
+import math
 from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
@@ -95,8 +96,7 @@ class ExpODESolver(ExpSolver):
         self._integrator = integrator
 
     def _solve(self, tangent_vec, base_point, t_eval=None):
-        if base_point.ndim != tangent_vec.ndim:
-            base_point = gs.broadcast_to(base_point, tangent_vec.shape)
+        base_point, tangent_vec = gs.broadcast_arrays(base_point, tangent_vec)
 
         state_axis = -(self._space.point_ndim + 1)
         initial_state = gs.stack([base_point, tangent_vec], axis=state_axis)
@@ -145,8 +145,6 @@ class ExpODESolver(ExpSolver):
                 "Can't solve for geodesic at different t with this integrator."
             )
 
-        base_point = gs.broadcast_to(base_point, tangent_vec.shape)
-
         def path(t):
             """Time parametrized geodesic curve.
 
@@ -160,10 +158,8 @@ class ExpODESolver(ExpSolver):
                 Geodesic points evaluated at t.
             """
             if not gs.is_array(t):
-                t = gs.array([t])
-
-            if gs.ndim(t) == 0:
-                t = gs.expand_dims(t, axis=0)
+                t = gs.array(t)
+            t = gs.expand_dims_to(t, ndim=1)
 
             result = self._solve(tangent_vec, base_point, t_eval=t)
             return self._simplify_result_t(result)
@@ -495,6 +491,11 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         self.n_nodes = n_nodes
         self.integrator = integrator
         self.initialization = initialization
+        if use_jac and space.point_ndim != 1:
+            raise ValueError(
+                "The Jacobian of the geodesic equation is only implemented for "
+                "points represented by a vector. Use `use_jac=False`."
+            )
         self.use_jac = use_jac
 
         self.grid = self._create_grid()
@@ -509,7 +510,7 @@ class LogODESolver(_LogBatchMixins, LogSolver):
             point_0 = gs.flatten(base_point)
             point_1 = gs.flatten(point)
 
-        pos_init = gs.transpose(gs.linspace(point_0, point_1, self.n_nodes))
+        pos_init = gs.matrix_transpose(gs.linspace(point_0, point_1, self.n_nodes))
 
         vel_init = self.n_nodes * (pos_init[:, 1:] - pos_init[:, :-1])
         vel_init = gs.hstack([vel_init, vel_init[:, [-2]]])
@@ -568,7 +569,9 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         df_dvelocity = -2 * gs.einsum("...ijk,k...->ij...", gamma, velocity)
 
         jac_nw = gs.zeros((dim, dim, raveled_state.shape[1]))
-        jac_ne = gs.squeeze(gs.permute_dims(gs.tile(gs.eye(dim), (n_nodes, 1, 1))))
+        jac_ne = gs.broadcast_to(
+            gs.expand_dims(gs.eye(dim), axis=-1), (dim, dim, n_nodes)
+        )
 
         jac_sw = df_dposition
         jac_se = df_dvelocity
@@ -613,8 +616,7 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         path : callable
             Time parametrized geodesic curve. `f(t)`. 0 <= t <= 1.
         """
-        if point.ndim != base_point.ndim:
-            point, base_point = gs.broadcast_arrays(point, base_point)
+        point, base_point = gs.broadcast_arrays(point, base_point)
 
         is_batch = point.ndim > self._space.point_ndim
         if not is_batch:
@@ -638,10 +640,8 @@ class LogODESolver(_LogBatchMixins, LogSolver):
                 Geodesic points evaluated at t.
             """
             if not gs.is_array(t):
-                t = gs.array([t])
-
-            if gs.ndim(t) == 0:
-                t = gs.expand_dims(t, axis=0)
+                t = gs.array(t)
+            t = gs.expand_dims_to(t, ndim=1)
 
             if not is_batch:
                 return self._simplify_result_t(result.sol(t))
@@ -1177,3 +1177,169 @@ class MultiresPathStraightening(_DiscreteGeodesicBVPBatchMixins, PathBasedLogSol
                 break
 
         return discrete_path
+
+
+class PolynomialPathLogSolver(
+    _LogBatchMixins, _DiscreteGeodesicBVPBatchMixins, PathBasedLogSolver
+):
+    """Geodesic boundary value problem restricted to polynomial paths.
+
+    The coordinates of the path are polynomial functions of time of degree
+    ``degree``, with fixed values at times 0 and 1. The free coefficients
+    minimize the energy of the path, approximated by its average squared
+    speed at ``n_times`` uniformly sampled times.
+
+    Parameters
+    ----------
+    space : Manifold
+        Equipped manifold.
+    degree : int
+        Degree of the polynomial functions of time.
+    n_times : int
+        Number of times at which the path is sampled.
+    optimizer : Minimizer
+        Optimizer to solve the energy minimization problem.
+    """
+
+    def __init__(self, space, degree=5, n_times=200, optimizer=None):
+        super().__init__(space)
+
+        if optimizer is None:
+            optimizer = ScipyMinimize(method="BFGS", autodiff_jac=gs.has_autodiff())
+
+        self.degree = degree
+        self.n_times = n_times
+        self.optimizer = optimizer
+
+    def _coefficients(self, free_coefficients, point, base_point):
+        """Assemble the coefficients of the path.
+
+        Parameters
+        ----------
+        free_coefficients : array-like, shape=[degree - 1, *point_shape]
+            Coefficients of the monomials of degree 1 to degree - 1.
+        point : array-like, shape=[*point_shape]
+            End point.
+        base_point : array-like, shape=[*point_shape]
+            Initial point.
+
+        Returns
+        -------
+        coefficients : array-like, shape=[degree + 1, *point_shape]
+            Coefficients of the monomials of degree 0 to degree.
+        """
+        last_coefficient = point - base_point - gs.sum(free_coefficients, axis=0)
+        return gs.concatenate(
+            [
+                gs.expand_dims(base_point, axis=0),
+                free_coefficients,
+                gs.expand_dims(last_coefficient, axis=0),
+            ],
+            axis=0,
+        )
+
+    def _path(self, coefficients, times):
+        """Evaluate the path.
+
+        Parameters
+        ----------
+        coefficients : array-like, shape=[degree + 1, *point_shape]
+            Coefficients of the monomials of degree 0 to degree.
+        times : array-like, shape=[n_times,]
+            Times.
+
+        Returns
+        -------
+        path : array-like, shape=[n_times, *point_shape]
+            Points of the path.
+        """
+        powers = gs.stack([times**power for power in range(self.degree + 1)])
+        return gs.einsum("kn,k...->n...", powers, coefficients)
+
+    def _velocity(self, coefficients, times):
+        """Evaluate the velocity of the path.
+
+        Parameters
+        ----------
+        coefficients : array-like, shape=[degree + 1, *point_shape]
+            Coefficients of the monomials of degree 0 to degree.
+        times : array-like, shape=[n_times,]
+            Times.
+
+        Returns
+        -------
+        velocity : array-like, shape=[n_times, *point_shape]
+            Velocities of the path.
+        """
+        powers = gs.stack(
+            [power * times ** (power - 1) for power in range(1, self.degree + 1)]
+        )
+        return gs.einsum("kn,k...->n...", powers, coefficients[1:])
+
+    def _solve_single(self, point, base_point):
+        """Find the coefficients of the polynomial geodesic.
+
+        Parameters
+        ----------
+        point : array-like, shape=[*point_shape]
+            End point.
+        base_point : array-like, shape=[*point_shape]
+            Initial point.
+
+        Returns
+        -------
+        coefficients : array-like, shape=[degree + 1, *point_shape]
+            Coefficients of the monomials of degree 0 to degree.
+        """
+        free_shape = (self.degree - 1,) + self._space.shape
+        times = gs.linspace(0.0, 1.0, self.n_times)
+
+        def objective(flat_free_coefficients):
+            free_coefficients = gs.reshape(flat_free_coefficients, free_shape)
+            coefficients = self._coefficients(free_coefficients, point, base_point)
+            path = self._path(coefficients, times)
+            velocity = self._velocity(coefficients, times)
+            return gs.mean(self._space.metric.squared_norm(velocity, path))
+
+        init_free_coefficients = gs.zeros(math.prod(free_shape))
+        sol = self.optimizer.minimize(objective, init_free_coefficients)
+
+        free_coefficients = gs.reshape(gs.array(sol.x), free_shape)
+        return self._coefficients(free_coefficients, point, base_point)
+
+    def _discrete_geodesic_bvp_single(self, point, base_point):
+        """Solve boundary value problem (BVP).
+
+        Parameters
+        ----------
+        point : array-like, shape=[*point_shape]
+            End point.
+        base_point : array-like, shape=[*point_shape]
+            Initial point.
+
+        Returns
+        -------
+        discr_geod_path : array-like, shape=[n_times, *point_shape]
+            Discrete geodesic.
+        """
+        coefficients = self._solve_single(point, base_point)
+        return self._path(coefficients, gs.linspace(0.0, 1.0, self.n_times))
+
+    def _log_single(self, point, base_point):
+        """Logarithm map.
+
+        The initial velocity of a polynomial path is its coefficient of degree 1.
+
+        Parameters
+        ----------
+        point : array-like, shape=[*point_shape]
+            End point.
+        base_point : array-like, shape=[*point_shape]
+            Initial point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[*point_shape]
+            Tangent vector at the base point.
+        """
+        return self._solve_single(point, base_point)[1]

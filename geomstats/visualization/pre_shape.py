@@ -202,10 +202,10 @@ class KendallSphere:
         u_theta = gs.cos(theta) * self.ua + gs.sin(theta) * self.na
         triangle = gs.cos(phi / 2.0) * self.pole + gs.sin(phi / 2.0) * u_theta
         triangle = scale * triangle
-        triangle3d = gs.transpose(
+        triangle3d = gs.matrix_transpose(
             gs.stack((triangle[:, 0], triangle[:, 1], 0.5 * gs.ones(3)))
         )
-        triangle3d = self.rotation(theta, phi) @ gs.transpose(triangle3d)
+        triangle3d = self.rotation(theta, phi) @ gs.matrix_transpose(triangle3d)
 
         x = list(triangle3d[0]) + [triangle3d[0, 0]]
         y = list(triangle3d[1]) + [triangle3d[1, 0]]
@@ -233,7 +233,7 @@ class KendallSphere:
                 [-gs.sin(phi), 0, gs.cos(phi)],
             ]
         )
-        return rot_th @ rot_phi @ gs.transpose(rot_th)
+        return rot_th @ rot_phi @ gs.matrix_transpose(rot_th)
 
     def draw_points(self, alpha=1, zorder=0, **kwargs):
         """Draw points on the Kendall sphere."""
@@ -259,8 +259,8 @@ class KendallSphere:
         exp = S32.quotient.metric.exp(tangent_vec, base_point)
         bp = self.convert_to_spherical_coordinates(base_point)
         exp = self.convert_to_spherical_coordinates(exp)
-        tv = exp - gs.dot(exp, 2.0 * bp) * 2.0 * bp
-        tv = tv / gs.linalg.norm(tv) * norm
+        tv = exp - gs.vecdot(exp, 2.0 * bp) * 2.0 * bp
+        tv = tv / gs.linalg.vector_norm(tv) * norm
         self.ax.quiver(bp[0], bp[1], bp[2], tv[0], tv[1], tv[2], **kwargs)
 
 
@@ -484,16 +484,16 @@ class KendallDisk:
         )
         pole = gs.array([0.0, 0.0, 1.0])
 
-        tv = exp - gs.dot(exp, bp) * bp
-        u_tv = tv / gs.linalg.norm(tv)
-        u_r = (gs.dot(pole, bp) * bp - pole) / gs.linalg.norm(
-            gs.dot(pole, bp) * bp - pole
+        tv = exp - gs.vecdot(exp, bp) * bp
+        u_tv = tv / gs.linalg.vector_norm(tv)
+        u_r = (gs.vecdot(pole, bp) * bp - pole) / gs.linalg.vector_norm(
+            gs.vecdot(pole, bp) * bp - pole
         )
         u_th = gs.cross(bp, u_r)
-        x_r, x_th = gs.dot(u_tv, u_r), gs.dot(u_tv, u_th)
+        x_r, x_th = gs.vecdot(u_tv, u_r), gs.vecdot(u_tv, u_th)
 
         bp = self.convert_to_planar_coordinates(base_point)
-        u_r = bp / gs.linalg.norm(bp)
+        u_r = bp / gs.linalg.vector_norm(bp)
         u_th = gs.array([[0.0, -1.0], [1.0, 0.0]]) @ u_r
         tv = S33.quotient.metric.norm(tangent_vec, base_point) * (
             x_r * u_r + x_th * u_th

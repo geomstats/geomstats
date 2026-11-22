@@ -130,6 +130,8 @@ class DiscreteSurfacesSmokeTestData(TestData):
 class ElasticMetricTestData(TestData):
     N_RANDOM_POINTS = [1]
 
+    skips = () if gs.has_autodiff() else ("exp_after_log",)
+
     tolerances = {"exp_after_log": {"atol": 1e-1}}
 
     def exp_after_log_test_data(self):
@@ -144,11 +146,6 @@ class ElasticMetricTestData(TestData):
 
 class L2SurfacesMetricTestData(RiemannianMetricTestData):
     trials = 1
-    skips = (
-        "inner_product_derivative_matrix_vec",
-        "metric_matrix_is_spd",
-        "christoffels_vec",
-    )
     N_RANDOM_POINTS = [1]
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False

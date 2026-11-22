@@ -5,6 +5,17 @@ atol = 1e-6
 rtol = 1e-5
 
 
+def to_numpy(x):
+    """Convert a tensor to a numpy array.
+
+    The tensor is detached, moved to the cpu and its conjugation is resolved.
+    Non-tensors are returned as they are.
+    """
+    if not _torch.is_tensor(x):
+        return x
+    return x.detach().cpu().resolve_conj().numpy()
+
+
 def from_numpy(x):
     if _torch.is_tensor(x):
         return x

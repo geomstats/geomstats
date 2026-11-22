@@ -59,7 +59,7 @@ class MatrixOperationsTestCase(TestCase):
         transpose_shape = self._get_transpose_shape(mat_a)
         mat_b = self.data_generator.random_mat(shape=transpose_shape)
 
-        expected = Matrices.mul(mat_a, mat_b)
+        expected = gs.matmul(mat_a, mat_b)
 
         vec_data = generate_vectorization_data(
             data=[dict(mat_a=mat_a, mat_b=mat_b, expected=expected, atol=atol)],
@@ -114,13 +114,13 @@ class MatrixOperationsTestCase(TestCase):
         self.assertAllClose(left, right, atol=atol)
 
     def test_transpose(self, mat, expected, atol):
-        res = gs.transpose(mat)
+        res = gs.matrix_transpose(mat)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
     def test_transpose_vec(self, n_reps, atol):
         mat = self.data_generator.random_mat()
-        expected = gs.transpose(mat)
+        expected = gs.matrix_transpose(mat)
 
         vec_data = generate_vectorization_data(
             data=[dict(mat=mat, expected=expected, atol=atol)],
@@ -302,7 +302,7 @@ class MatrixOperationsTestCase(TestCase):
     def test_trace_product_vec(self, n_reps, atol):
         mat_1 = self.data_generator.random_mat()
         shape = mat_1.shape[-2:]
-        mat_2 = gs.transpose(self.data_generator.random_mat(shape=shape))
+        mat_2 = gs.matrix_transpose(self.data_generator.random_mat(shape=shape))
 
         expected = Matrices.trace_product(mat_1, mat_2)
 
