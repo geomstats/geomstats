@@ -94,6 +94,7 @@ class TestPullbackPoincareHalfSpaceMetricCmp(
 
 
 def test_nearby_vertical_distance():
+    """Vertical distances agree with the log height ratio even for nearby points."""
     metric = PoincareHalfSpace(dim=2).metric
     point = gs.array([0.0, 1.0], dtype=gs.float64)
     other = gs.array([[0.0, 1.0], [0.0, 1.0 + 1e-9]], dtype=gs.float64)
