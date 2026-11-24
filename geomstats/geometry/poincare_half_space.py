@@ -376,10 +376,9 @@ class PoincareHalfSpaceMetric(CoordinatePullbackDiffeoMetric):
         dist : array-like, shape=[...,]
             Geodesic distance between the two points.
         """
-        diff_norm = gs.sum((point_a - point_b) ** 2, axis=-1)
-        return gs.arccosh(
-            1 + diff_norm / (2 * point_a[..., -1] * point_b[..., -1])
-        )
+        diff_norm = gs.linalg.vector_norm(point_a - point_b, axis=-1)
+        height = gs.sqrt(point_a[..., -1]) * gs.sqrt(point_b[..., -1])
+        return 2 * gs.arcsinh(0.5 * diff_norm / height)
 
     def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.

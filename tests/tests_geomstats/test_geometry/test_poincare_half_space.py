@@ -2,6 +2,7 @@ import random
 
 import pytest
 
+import geomstats.backend as gs
 from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
@@ -90,3 +91,14 @@ class TestPullbackPoincareHalfSpaceMetricCmp(
     other_space.equip_with_metric(PullbackPoincareHalfSpaceMetric)
 
     testing_data = PullbackPoincareHalfSpaceMetricCmpTestData()
+
+
+def test_nearby_vertical_distance():
+    metric = PoincareHalfSpace(dim=2).metric
+    point = gs.array([0.0, 1.0], dtype=gs.float64)
+    other = gs.array([[0.0, 1.0], [0.0, 1.0 + 1e-9]], dtype=gs.float64)
+    expected = gs.log(other[..., -1])
+    assert gs.allclose(metric.dist(point, other), expected, atol=0.0, rtol=1e-10)
+    assert gs.allclose(
+        metric.squared_dist(point, other), expected**2, atol=0.0, rtol=1e-10
+    )
