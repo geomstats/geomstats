@@ -1,7 +1,7 @@
 import geomstats.backend as gs
-from geomstats.geometry.base import ComplexMatrixVectorSpace
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import SquareMatrices
+from geomstats.geometry.manifold import _get_default_dtype
 
 
 def get_random_quaternion(n_points=1):
@@ -64,19 +64,14 @@ class VectorSpaceRandomDataGenerator(RandomDataGenerator):
 
 class MatrixVectorSpaceRandomDataGenerator(VectorSpaceRandomDataGenerator):
     def random_basis_representation(self, n_points=1):
-        dtype = (
-            gs.get_default_cdtype()
-            if isinstance(self, ComplexMatrixVectorSpace)
-            else None
-        )
+        dtype = _get_default_dtype(self.space.field == "complex")
 
         if n_points == 1:
             return gs.random.rand(self.space.dim, dtype=dtype)
 
         return gs.reshape(
-            gs.random.rand(n_points * self.space.dim),
+            gs.random.rand(n_points * self.space.dim, dtype=dtype),
             (n_points, -1),
-            dtype=dtype,
         )
 
 

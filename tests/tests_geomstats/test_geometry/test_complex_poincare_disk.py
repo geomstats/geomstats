@@ -1,10 +1,8 @@
 from geomstats.geometry.complex_poincare_disk import ComplexPoincareDisk
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.test_case import np_only
-from geomstats.test_cases.geometry.base import ComplexVectorSpaceOpenSetTestCase
-from geomstats.test_cases.geometry.complex_riemannian_metric import (
-    ComplexRiemannianMetricTestCase,
-)
+from geomstats.test_cases.geometry.base import VectorSpaceOpenSetTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.complex_poincare_disk import (
     ComplexPoincareDiskMetricTestData,
@@ -13,7 +11,7 @@ from .data.complex_poincare_disk import (
 
 
 class TestComplexPoincareDisk(
-    ComplexVectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer
+    VectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer
 ):
     space = ComplexPoincareDisk(equip=False)
     testing_data = ComplexPoincareDiskTestData()
@@ -21,7 +19,7 @@ class TestComplexPoincareDisk(
 
 @np_only
 class TestComplexPoincareDiskMetric(
-    ComplexRiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     space = ComplexPoincareDisk()
     testing_data = ComplexPoincareDiskMetricTestData()

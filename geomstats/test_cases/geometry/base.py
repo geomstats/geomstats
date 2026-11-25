@@ -1,13 +1,13 @@
 import pytest
 
 import geomstats.backend as gs
+from geomstats.geometry.manifold import _get_default_dtype
 from geomstats.test.random import (
     EmbeddedSpaceRandomDataGenerator,
     MatrixVectorSpaceRandomDataGenerator,
     VectorSpaceRandomDataGenerator,
 )
 from geomstats.test.vectorization import generate_vectorization_data
-from geomstats.test_cases.geometry.complex_manifold import ComplexManifoldTestCase
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
 from geomstats.test_cases.geometry.mixins import ProjectionTestCaseMixins
 from geomstats.vectorization import get_batch_shape
@@ -24,7 +24,7 @@ from geomstats.vectorization import get_batch_shape
 # TODO: review "passes" in tests (maybe not implemented error?)
 
 
-class _VectorSpaceTestCaseMixins(ProjectionTestCaseMixins):
+class VectorSpaceTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = VectorSpaceRandomDataGenerator(self.space)
@@ -63,8 +63,6 @@ class _VectorSpaceTestCaseMixins(ProjectionTestCaseMixins):
 
         self.assertAllClose(result, expected, atol=atol)
 
-
-class VectorSpaceTestCase(_VectorSpaceTestCaseMixins, ManifoldTestCase):
     @pytest.mark.mathprop
     def test_basis_cardinality(self):
         """Check number of basis elements is the dimension.
@@ -91,10 +89,6 @@ class VectorSpaceTestCase(_VectorSpaceTestCaseMixins, ManifoldTestCase):
 
     def test_basis(self, expected, atol):
         self.assertAllClose(self.space.basis, expected, atol=atol)
-
-
-class ComplexVectorSpaceTestCase(_VectorSpaceTestCaseMixins, ComplexManifoldTestCase):
-    pass
 
 
 class MatrixVectorSpaceTestCase(VectorSpaceTestCase):
@@ -131,7 +125,8 @@ class MatrixVectorSpaceTestCase(VectorSpaceTestCase):
         mat = self.data_generator.random_point(n_points)
         vec = self.space.basis_representation(mat)
 
-        res = gs.einsum("...i,...ijk->...jk", vec, self.space.basis)
+        basis = self.space.basis
+        res = gs.einsum("...i,...ijk->...jk", gs.cast(vec, basis.dtype), basis)
         self.assertAllClose(res, mat, atol=atol)
 
     def test_matrix_representation(self, basis_representation, expected, atol):
@@ -140,7 +135,9 @@ class MatrixVectorSpaceTestCase(VectorSpaceTestCase):
 
     @pytest.mark.vec
     def test_matrix_representation_vec(self, n_reps, atol):
-        basis_representation = gs.random.rand(self.space.dim)
+        basis_representation = gs.random.rand(
+            self.space.dim, dtype=_get_default_dtype(self.space.field == "complex")
+        )
         expected = self.space.matrix_representation(basis_representation)
 
         vec_data = generate_vectorization_data(
@@ -159,7 +156,10 @@ class MatrixVectorSpaceTestCase(VectorSpaceTestCase):
 
     @pytest.mark.random
     def test_matrix_representation_belongs(self, n_points, atol):
-        vec = gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
+        dtype = _get_default_dtype(self.space.field == "complex")
+        vec = gs.reshape(
+            gs.random.rand(n_points * self.space.dim, dtype=dtype), (n_points, -1)
+        )
         point = self.space.matrix_representation(vec)
 
         self.test_belongs(point, gs.ones(n_points, dtype=bool), atol)
@@ -174,15 +174,14 @@ class MatrixVectorSpaceTestCase(VectorSpaceTestCase):
 
     @pytest.mark.random
     def test_basis_representation_after_matrix_representation(self, n_points, atol):
-        vec = gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
+        dtype = _get_default_dtype(self.space.field == "complex")
+        vec = gs.reshape(
+            gs.random.rand(n_points * self.space.dim, dtype=dtype), (n_points, -1)
+        )
         point = self.space.matrix_representation(vec)
         vec_ = self.space.basis_representation(point)
 
         self.assertAllClose(vec_, vec, atol=atol)
-
-
-class ComplexMatrixVectorSpaceTestCase(ComplexVectorSpaceTestCase):
-    pass
 
 
 class LevelSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
@@ -257,7 +256,7 @@ class LevelSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
         self._test_vectorization(vec_data)
 
 
-class _OpenSetTestCaseMixins(ProjectionTestCaseMixins):
+class OpenSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = EmbeddedSpaceRandomDataGenerator(self.space)
@@ -273,17 +272,7 @@ class _OpenSetTestCaseMixins(ProjectionTestCaseMixins):
         self.assertAllEqual(res, expected)
 
 
-class OpenSetTestCase(_OpenSetTestCaseMixins, ManifoldTestCase):
-    pass
-
-
 class VectorSpaceOpenSetTestCase(OpenSetTestCase):
-    pass
-
-
-class ComplexVectorSpaceOpenSetTestCase(
-    _OpenSetTestCaseMixins, ComplexManifoldTestCase
-):
     pass
 
 
