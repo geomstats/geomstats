@@ -17,19 +17,19 @@ References
 import math
 
 import geomstats.backend as gs
-from geomstats.geometry.base import ComplexVectorSpaceOpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
-from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import HermitianMatrices, expmh, powermh
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.spd_matrices import SymMatrixLog, logmh
 from geomstats.integrator import integrate
 from geomstats.vectorization import repeat_out
 
 
-class HPDMatrices(ComplexVectorSpaceOpenSet):
+class HPDMatrices(VectorSpaceOpenSet):
     """Class for the manifold of Hermitian positive definite (HPD) matrices.
 
     Parameters
@@ -39,8 +39,9 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
     """
 
     def __init__(self, n, equip=True):
+        embedding_space = HermitianMatrices(n)
         super().__init__(
-            dim=n**2, shape=(n, n), embedding_space=HermitianMatrices(n), equip=equip
+            dim=embedding_space.dim, embedding_space=embedding_space, equip=equip
         )
         self.n = n
 
@@ -153,7 +154,7 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
         return Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
 
-class HPDAffineMetric(ComplexRiemannianMetric):
+class HPDAffineMetric(RiemannianMetric):
     """Class for the affine-invariant metric on the HPD manifold."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -180,7 +181,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         aux_a = gs.matmul(inv_base_point, tangent_vec_a)
         aux_b = gs.matmul(inv_base_point, tangent_vec_b)
 
-        return Matrices.trace_product(aux_a, aux_b)
+        return gs.real(Matrices.trace_product(aux_a, aux_b))
 
     def exp(self, tangent_vec, base_point):
         """Compute the affine-invariant exponential map.
@@ -302,7 +303,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         return repeat_out(self._space.point_ndim, radius, base_point)
 
 
-class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
+class HPDBuresWassersteinMetric(RiemannianMetric):
     """Class for the Bures-Wasserstein metric on the HPD manifold."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -335,7 +336,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         rotated_tangent_vec_b = Matrices.mul(transconj_eigvecs, tangent_vec_b, eigvecs)
 
         coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
-        result = (
+        result = gs.real(
             ComplexMatrices.frobenius_product(
                 gs.cast(coefficients, dtype=rotated_tangent_vec_a.dtype)
                 * rotated_tangent_vec_a,

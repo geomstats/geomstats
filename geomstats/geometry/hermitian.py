@@ -6,12 +6,64 @@ Lead author: Yann Cabanes.
 import math
 
 import geomstats.backend as gs
-from geomstats.geometry.base import ComplexVectorSpace
-from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
+from geomstats.geometry.base import VectorSpace
+from geomstats.geometry.diffeo import LinearIsomorphism
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import repeat_out
 
 
-class Hermitian(ComplexVectorSpace):
+class RealCoordinatesDiffeo(LinearIsomorphism):
+    r"""Real coordinates of a complex vector.
+
+    .. math::
+
+        F(x + iy) = (x, y)
+
+    It is a real linear isomorphism from :math:`\mathbb{C}^n` to
+    :math:`\mathbb{R}^{2n}`, with the real parts first.
+
+    Parameters
+    ----------
+    dim : int
+        Complex dimension.
+    """
+
+    def __init__(self, dim):
+        super().__init__(space_ndim=1)
+        self.dim = dim
+
+    def __call__(self, base_point):
+        """Split a point into its real and imaginary parts.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., 2 * dim]
+            Image point.
+        """
+        return gs.concatenate([gs.real(base_point), gs.imag(base_point)], axis=-1)
+
+    def inverse(self, image_point):
+        """Combine real and imaginary parts into a point.
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., 2 * dim]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+        """
+        return image_point[..., : self.dim] + 1j * image_point[..., self.dim :]
+
+
+class Hermitian(VectorSpace):
     """Class for Hermitian spaces.
 
     By definition, a Hermitian space is a complex vector space
@@ -20,11 +72,13 @@ class Hermitian(ComplexVectorSpace):
     Parameters
     ----------
     dim : int
-        Dimension of the Hermitian space.
+        Complex dimension of the Hermitian space.
+    equip : bool
+        Whether to equip space with default metric.
     """
 
     def __init__(self, dim, equip=True):
-        super().__init__(shape=(dim,), equip=equip)
+        super().__init__(shape=(dim,), equip=equip, field="complex")
 
     @staticmethod
     def default_metric():
@@ -40,6 +94,10 @@ class Hermitian(ComplexVectorSpace):
         identity : array-like, shape=[n]
         """
         return gs.zeros(self.dim, dtype=gs.get_default_cdtype())
+
+    def _create_basis(self):
+        """Create the canonical basis."""
+        return gs.eye(self.dim, dtype=gs.get_default_cdtype())
 
     def exp(self, tangent_vec, base_point=None):
         """Compute the group exponential, which is simply the addition.
@@ -59,14 +117,17 @@ class Hermitian(ComplexVectorSpace):
         return tangent_vec + base_point
 
 
-class HermitianMetric(ComplexRiemannianMetric):
-    """Class for Hermitian metrics.
+class HermitianMetric(RiemannianMetric):
+    """Class for the Hermitian metric.
 
-    As a Riemannian metric, the Hermitian metric is:
+    The inner product is the real part of the Hermitian product, and it is
+    independent of the base point. The metric is flat, and geodesics are
+    straight lines.
 
-    - flat: the inner-product is independent of the base point.
-    - positive definite: it has signature (dimension, 0, 0),
-      where dimension is the dimension of the Hermitian space.
+    Parameters
+    ----------
+    space : Hermitian
+        Manifold.
     """
 
     def metric_matrix(self, base_point=None):
@@ -92,6 +153,8 @@ class HermitianMetric(ComplexRiemannianMetric):
     def inner_product(tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
 
+        It is the real part of the Hermitian product.
+
         Parameters
         ----------
         tangent_vec_a: array-like, shape=[..., dim]
@@ -100,14 +163,13 @@ class HermitianMetric(ComplexRiemannianMetric):
             Tangent vector at base point.
         base_point: array-like, shape=[..., dim]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        return gs.vecdot(tangent_vec_a, tangent_vec_b)
+        return gs.real(gs.vecdot(tangent_vec_a, tangent_vec_b))
 
     @staticmethod
     def norm(vector, base_point=None):

@@ -7,7 +7,6 @@ import abc
 import math
 
 import geomstats.backend as gs
-from geomstats.geometry.complex_manifold import ComplexManifold
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.pullback_metric import PullbackMetric
 from geomstats.vectorization import get_batch_shape
@@ -107,10 +106,10 @@ class VectorSpace(Manifold, abc.ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         bound : float
-            Side of hypercube support of the uniform distribution.
-            Optional, default: 1.0
+            Half side of the hypercube support of the uniform distribution.
+            If the field is complex, it bounds both the real and imaginary
+            parts.
 
         Returns
         -------
@@ -120,7 +119,10 @@ class VectorSpace(Manifold, abc.ABC):
         size = (self.dim,)
         if n_samples != 1:
             size = (n_samples,) + size
-        return bound * (gs.random.rand(*size) - 0.5) * 2
+        point = bound * (gs.random.rand(*size) - 0.5) * 2
+        if self.field == "complex":
+            point = point + 1j * bound * (gs.random.rand(*size) - 0.5) * 2
+        return point
 
     def random_tangent_vec(self, base_point=None, n_samples=1):
         """Generate random tangent vec.
@@ -213,7 +215,10 @@ class MatrixVectorSpace(VectorSpace, abc.ABC):
         matrix_representation : array-like, shape=[..., *point_shape]
             Matrix.
         """
-        return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)
+        basis = self.basis
+        return gs.einsum(
+            "...i,ijk ->...jk", gs.cast(basis_representation, basis.dtype), basis
+        )
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in the vector space with a uniform distribution in a box.
@@ -233,122 +238,6 @@ class MatrixVectorSpace(VectorSpace, abc.ABC):
            Sample.
         """
         return self.matrix_representation(super().random_point(n_samples, bound))
-
-
-class ComplexVectorSpace(ComplexManifold, abc.ABC):
-    """Abstract class for complex vector spaces.
-
-    Parameters
-    ----------
-    shape : tuple
-        Shape of the elements of the vector space. The dimension is the
-        product of these values by default.
-    """
-
-    def __init__(self, shape, dim=None, **kwargs):
-        if dim is None:
-            dim = math.prod(shape)
-        super().__init__(shape=shape, dim=dim, **kwargs)
-
-    def belongs(self, point, atol=gs.atol):
-        """Evaluate if the point belongs to the vector space.
-
-        This method checks the shape of the input point.
-
-        Parameters
-        ----------
-        point : array-like, shape=[.., *point_shape]
-            Point to test.
-        atol : float
-            Unused here.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the space.
-        """
-        belongs = self.shape == point.shape[-self.point_ndim :]
-        shape = point.shape[: -self.point_ndim]
-        if belongs:
-            return gs.ones(shape, dtype=bool)
-        return gs.zeros(shape, dtype=bool)
-
-    def is_tangent(self, vector, base_point=None, atol=gs.atol):
-        """Check whether the vector is tangent at base_point.
-
-        Tangent vectors are identified with points of the vector space so
-        this checks the shape of the input vector.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., *point_shape]
-            Vector.
-        base_point : array-like, shape=[..., *point_shape]
-            Point in the vector space.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        is_tangent : bool
-            Boolean denoting if vector is a tangent vector at the base point.
-        """
-        belongs = self.belongs(vector, atol)
-        if base_point is not None and base_point.ndim > vector.ndim:
-            return gs.broadcast_to(belongs, base_point.shape[: -self.point_ndim])
-        return belongs
-
-    def to_tangent(self, vector, base_point=None):
-        """Project a vector to a tangent space of the vector space.
-
-        This method is for compatibility and returns vector.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., *point_shape]
-            Vector.
-        base_point : array-like, shape=[..., *point_shape]
-            Point in the vector space
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., *point_shape]
-            Tangent vector at base point.
-        """
-        tangent_vec = self.projection(vector)
-        if base_point is not None and base_point.ndim > vector.ndim:
-            return gs.broadcast_to(tangent_vec, base_point.shape)
-        return tangent_vec
-
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample in the complex vector space with a uniform distribution in a box.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Side of hypercube support of the uniform distribution.
-            Optional, default: 1.0
-
-        Returns
-        -------
-        point : array-like, shape=[..., *point_shape]
-           Sample.
-        """
-        size = self.shape
-        if n_samples != 1:
-            size = (n_samples,) + self.shape
-        point = bound * (
-            gs.random.rand(*size, dtype=gs.get_default_cdtype()) - 0.5 - 0.5j
-        )
-        return point
-
-
-class ComplexMatrixVectorSpace(ComplexVectorSpace):
-    """A matrix vector space."""
 
 
 class LevelSet(Manifold, abc.ABC):
@@ -515,14 +404,20 @@ class OpenSet(Manifold, abc.ABC):
     Parameters
     ----------
     embedding_space: Manifold
-        Embedding space that contains the manifold.
+        Embedding space that contains the manifold. The field and the
+        representation of points are the ones of the embedding space.
     """
 
     def __init__(self, embedding_space, shape=None, **kwargs):
         self.embedding_space = embedding_space
         if shape is None:
             shape = embedding_space.shape
-        super().__init__(shape=shape, **kwargs)
+        super().__init__(
+            shape=shape,
+            field=embedding_space.field,
+            complex_repr=embedding_space.complex_repr,
+            **kwargs,
+        )
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -640,93 +535,6 @@ class VectorSpaceOpenSet(OpenSet, abc.ABC):
         if base_point is not None and base_point.ndim > vector.ndim:
             return gs.broadcast_to(tangent_vec, base_point.shape)
         return tangent_vec
-
-
-class ComplexVectorSpaceOpenSet(ComplexManifold, abc.ABC):
-    """Class for manifolds that are open sets of a complex vector space.
-
-    In this case, tangent vectors are identified with vectors of the embedding
-    space.
-
-    Parameters
-    ----------
-    dim: int
-        Dimension of the manifold. It is often the same as the embedding space
-        dimension but may differ in some cases.
-    embedding_space: VectorSpace
-        Embedding space that contains the manifold.
-    """
-
-    def __init__(self, embedding_space, shape=None, **kwargs):
-        if shape is None:
-            shape = embedding_space.shape
-        super().__init__(shape=shape, intrinsic=False, **kwargs)
-        self.embedding_space = embedding_space
-
-    def is_tangent(self, vector, base_point=None, atol=gs.atol):
-        """Check whether the vector is tangent at base_point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., *point_shape]
-            Vector.
-        base_point : array-like, shape=[..., *point_shape]
-            Point on the manifold.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        is_tangent : bool
-            Boolean denoting if vector is a tangent vector at the base point.
-        """
-        is_tangent = self.embedding_space.belongs(vector, atol)
-        if base_point is not None and base_point.ndim > vector.ndim:
-            return gs.broadcast_to(is_tangent, base_point.shape[: -self.point_ndim])
-        return is_tangent
-
-    def to_tangent(self, vector, base_point=None):
-        """Project a vector to a tangent space of the manifold.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., *point_shape]
-            Vector.
-        base_point : array-like, shape=[..., *point_shape]
-            Point on the manifold.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., *point_shape]
-            Tangent vector at base point.
-        """
-        tangent_vec = self.embedding_space.projection(vector)
-        if base_point is not None and base_point.ndim > vector.ndim:
-            return gs.broadcast_to(tangent_vec, base_point.shape)
-        return tangent_vec
-
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample random points on the manifold.
-
-        If the manifold is compact, a uniform distribution is used.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
-
-        Returns
-        -------
-        samples : array-like, shape=[..., *point_shape]
-            Points sampled on the hypersphere.
-        """
-        sample = self.embedding_space.random_point(n_samples, bound)
-        return self.projection(sample)
 
 
 class ImmersedSet(Manifold, abc.ABC):

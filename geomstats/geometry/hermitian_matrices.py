@@ -6,8 +6,10 @@ Lead author: Yann Cabanes.
 import logging
 
 import geomstats.backend as gs
-from geomstats.geometry.base import ComplexMatrixVectorSpace
+from geomstats.geometry.base import MatrixVectorSpace
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
+from geomstats.geometry.manifold import _get_default_dtype
+from geomstats.geometry.matrices import Matrices
 
 logger = logging.getLogger(__name__)
 
@@ -103,23 +105,90 @@ def apply_func_to_eigvalsh(mat, function, check_positive=False):
     return reconstruction if return_list else reconstruction[0]
 
 
-class HermitianMatrices(ComplexMatrixVectorSpace):
+class HermitianMatrices(MatrixVectorSpace):
     """Class for the vector space of Hermitian matrices of size n.
+
+    It is a real vector space, whose elements are complex matrices.
 
     Parameters
     ----------
     n : int
         Integer representing the shapes of the matrices: n x n.
+    equip : bool
+        Whether to equip space with default metric.
     """
 
     def __init__(self, n, equip=True):
-        super().__init__(dim=n * (n + 1) - n, shape=(n, n), equip=equip)
         self.n = n
+        super().__init__(
+            dim=n**2,
+            shape=(n, n),
+            equip=equip,
+            field="real",
+            complex_repr=True,
+        )
 
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return ComplexMatricesMetric
+
+    def _create_basis(self):
+        """Compute the basis of the vector space of Hermitian matrices.
+
+        The basis is made of the diagonal matrices :math:`E_{kk}`, then of
+        :math:`E_{kl} + E_{lk}` and finally of :math:`i(E_{kl} - E_{lk})`,
+        for :math:`k < l`.
+        """
+        n = self.n
+        n_upper = n * (n - 1) // 2
+        real_indices = [(k, k, k) for k in range(n)]
+        real_values = [1.0] * n
+        imag_indices, imag_values = [], []
+        index = n
+        for row in range(n):
+            for col in range(row + 1, n):
+                real_indices.extend([(index, row, col), (index, col, row)])
+                real_values.extend([1.0, 1.0])
+                imag_indices.extend(
+                    [(index + n_upper, row, col), (index + n_upper, col, row)]
+                )
+                imag_values.extend([1.0, -1.0])
+                index += 1
+
+        shape = (self.dim, n, n)
+        real_part = gs.array_from_sparse(real_indices, real_values, shape)
+        imag_part = (
+            gs.array_from_sparse(imag_indices, imag_values, shape)
+            if imag_indices
+            else gs.zeros(shape)
+        )
+        cdtype = _get_default_dtype(self.complex_repr)
+        return gs.cast(real_part, cdtype) + 1j * gs.cast(imag_part, cdtype)
+
+    def basis_representation(self, matrix_representation):
+        """Compute the coefficients of Hermitian matrices in the basis.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., n, n]
+            Hermitian matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., n**2]
+            Real coefficients in the basis.
+        """
+        rows, cols = gs.triu_indices(self.n, k=1)
+        upper = matrix_representation[..., rows, cols]
+        return gs.concatenate(
+            [
+                gs.real(Matrices.diagonal(matrix_representation)),
+                gs.real(upper),
+                gs.imag(upper),
+            ],
+            axis=-1,
+        )
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a matrix is Hermitian.
@@ -154,7 +223,7 @@ class HermitianMatrices(ComplexMatrixVectorSpace):
         Returns
         -------
         herm : array-like, shape=[..., n, n]
-            Symmetric matrix.
+            Hermitian matrix.
         """
         return ComplexMatrices.to_hermitian(point)
 

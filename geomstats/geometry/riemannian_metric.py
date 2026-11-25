@@ -28,7 +28,8 @@ class RiemannianMetric(Connection, ABC):
     def __init__(self, space, signature=None):
         super().__init__(space=space)
         if signature is None:
-            signature = (space.dim, 0)
+            real_dim = 2 * space.dim if space.field == "complex" else space.dim
+            signature = (real_dim, 0)
         self.signature = signature
 
     def __mul__(self, scalar):
@@ -136,8 +137,9 @@ class RiemannianMetric(Connection, ABC):
             Inner-product.
         """
         inner_prod_mat = self.metric_matrix(base_point)
-        aux = gs.einsum("...j,...jk->...k", tangent_vec_a, inner_prod_mat)
-        return gs.vecdot(aux, tangent_vec_b)
+        return gs.real(
+            gs.vecdot(tangent_vec_a, gs.matvec(inner_prod_mat, tangent_vec_b))
+        )
 
     def inner_coproduct(self, cotangent_vec_a, cotangent_vec_b, base_point=None):
         """Compute inner coproduct between two cotangent vectors at base point.
@@ -158,10 +160,10 @@ class RiemannianMetric(Connection, ABC):
         inner_coproduct : float
             Inner coproduct between the two cotangent vectors.
         """
-        vector_2 = gs.einsum(
-            "...ij,...j->...i", self.cometric_matrix(base_point), cotangent_vec_b
+        cometric_mat = self.cometric_matrix(base_point)
+        return gs.real(
+            gs.vecdot(cotangent_vec_a, gs.matvec(cometric_mat, cotangent_vec_b))
         )
-        return gs.vecdot(cotangent_vec_a, vector_2)
 
     def hamiltonian(self, state):
         r"""Compute the hamiltonian energy associated to the cometric.
@@ -273,9 +275,9 @@ class RiemannianMetric(Connection, ABC):
             raise ValueError(
                 "Several tangent vectors is only applicable to a single base point."
             )
-        point_shape = self._space.shape
-        vec_shape = (n_vectors, *point_shape) if n_vectors > 1 else point_shape
-        random_vector = gs.random.rand(*vec_shape)
+        random_vector = self._space.random_tangent_vec(
+            base_point=base_point, n_samples=n_vectors
+        )
         return self.normalize(random_vector, base_point)
 
     def squared_dist(self, point_a, point_b):

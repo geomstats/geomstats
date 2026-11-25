@@ -33,15 +33,16 @@ import math
 
 import geomstats.backend as gs
 from geomstats._einsum import scalarmatmul
-from geomstats.geometry.base import ComplexVectorSpaceOpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
-from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian_matrices import expmh, powermh
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.vectorization import repeat_out
 
 
-class Siegel(ComplexVectorSpaceOpenSet):
+class Siegel(VectorSpaceOpenSet):
     """Class for the Siegel space.
 
     Parameters
@@ -54,9 +55,14 @@ class Siegel(ComplexVectorSpaceOpenSet):
     """
 
     def __init__(self, n, symmetric=False, equip=True):
+        embedding_space = (
+            SymmetricMatrices(n, field="complex")
+            if symmetric
+            else ComplexMatrices(m=n, n=n)
+        )
         super().__init__(
-            dim=n**2,
-            embedding_space=ComplexMatrices(m=n, n=n),
+            dim=embedding_space.dim,
+            embedding_space=embedding_space,
             equip=equip,
         )
         self.n = n
@@ -86,11 +92,7 @@ class Siegel(ComplexVectorSpaceOpenSet):
         aux = gs.matmul(point, point_transconj)
 
         belongs = gs.all(gs.linalg.eigvalsh(aux) <= 1 + atol, axis=-1)
-
-        if self.symmetric:
-            return gs.logical_and(belongs, Matrices.is_symmetric(point))
-
-        return belongs
+        return gs.logical_and(belongs, self.embedding_space.belongs(point, atol))
 
     def projection(self, point, atol=gs.atol):
         """Project a matrix to the Siegel space.
@@ -107,8 +109,7 @@ class Siegel(ComplexVectorSpaceOpenSet):
         projected : array-like, shape=[..., n, n]
             Matrix in the Siegel space.
         """
-        if self.symmetric:
-            point = Matrices.to_symmetric(point)
+        point = self.embedding_space.projection(point)
 
         point_transconj = ComplexMatrices.transconjugate(point)
         aux = gs.matmul(point, point_transconj)
@@ -149,7 +150,7 @@ class Siegel(ComplexVectorSpaceOpenSet):
         samples = gs.random.rand(*size, dtype=gs.get_default_cdtype())
         samples -= 0.5 + 0.5j
         samples *= bound * (1 - gs.atol) * 2**0.5 / n
-        return samples
+        return self.embedding_space.projection(samples)
 
     def random_tangent_vec(self, base_point, n_samples=1):
         """Sample on the tangent space of Siegel space from the uniform distribution.
@@ -176,7 +177,7 @@ class Siegel(ComplexVectorSpaceOpenSet):
         return self.to_tangent(samples, base_point)
 
 
-class SiegelMetric(ComplexRiemannianMetric):
+class SiegelMetric(RiemannianMetric):
     """Class for the Siegel metric."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):

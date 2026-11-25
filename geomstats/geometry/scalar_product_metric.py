@@ -166,7 +166,7 @@ class ScalarProductMetric:
 
     Parameters
     ----------
-    space : Manifold or ComplexManifold
+    space : Manifold
         A manifold equipped with a metric which is being scaled.
     scale : float
         The value by which to scale the metric. Note that this rescales the
