@@ -67,19 +67,7 @@ class AgainstNumpyTestData(TestData):
         return [{"func_name": func_name, "args": args_} for args_ in args]
 
     def func_like_np_test_data(self):
-        data = [
-            dict(
-                func_name="ravel_multi_index",
-                args=[
-                    (
-                        gs.array([0, 1, 1, 2, 2, 2]),
-                        gs.array([0, 0, 1, 0, 1, 2]),
-                    ),
-                    (3, 3),
-                ],
-            ),
-        ]
-        data += self._einsum_data()
+        data = self._einsum_data()
 
         return self.generate_tests(data)
 
@@ -102,7 +90,7 @@ class AgainstNumpyTestData(TestData):
             dict(func_name="matmul", a=rand(2, 3), b=rand(3, 2)),
             dict(func_name="outer", a=rand(3), b=rand(3)),
             dict(func_name="outer", a=rand(3), b=rand(4)),
-            dict(func_name="dot", a=rand(3), b=rand(3)),
+            dict(func_name="vecdot", a=rand(3), b=rand(3)),
             dict(func_name="cross", a=rand(3), b=rand(3)),
         ]
 

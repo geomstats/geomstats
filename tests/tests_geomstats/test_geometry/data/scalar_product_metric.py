@@ -16,6 +16,8 @@ class WrapperTestData(TestData):
             dict(func_name="dist", scale=2.0, expected=gs.sqrt(2)),
             dict(func_name="metric_matrix", scale=2.0, expected=2.0),
             dict(func_name="cometric_matrix", scale=2.0, expected=1.0 / 2.0),
+            dict(func_name="flat", scale=2.0, expected=2.0),
+            dict(func_name="sharp", scale=2.0, expected=1.0 / 2.0),
             dict(
                 func_name="normalize",
                 scale=2.0,

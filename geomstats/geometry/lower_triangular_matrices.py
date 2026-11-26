@@ -5,7 +5,7 @@ Lead author: Saiteja Utpala.
 
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet, MatrixVectorSpace
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric, MatrixOperations
 
 
 class LowerTriangularMatrices(MatrixVectorSpace):
@@ -34,12 +34,7 @@ class LowerTriangularMatrices(MatrixVectorSpace):
         basis : array-like, shape=[dim, n, n]
             Basis matrices of the space.
         """
-        rows, cols = gs.tril_indices(self.n)
-        tril_idxs = gs.ravel_multi_index((rows, cols), (self.n, self.n))
-
-        vector_bases = gs.eye(self.n * self.n)[tril_idxs]
-
-        return gs.reshape(vector_bases, [-1, self.n, self.n])
+        return gs.tril_embed(gs.eye(self.dim))
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a matrix is lower triangular.
@@ -58,7 +53,7 @@ class LowerTriangularMatrices(MatrixVectorSpace):
         """
         belongs = super().belongs(point)
         if gs.any(belongs):
-            is_lower_triangular = Matrices.is_lower_triangular(point, atol)
+            is_lower_triangular = MatrixOperations.is_lower_triangular(point, atol)
             return gs.logical_and(belongs, is_lower_triangular)
         return belongs
 
@@ -142,7 +137,7 @@ class StrictlyLowerTriangularMatrices(LevelSet, MatrixVectorSpace):
         -------
         submersed_point : array-like, shape=[..., n]
         """
-        return Matrices.diagonal(point)
+        return MatrixOperations.diagonal(point)
 
     def tangent_submersion(self, vector, point):
         """Tangent submersion.
@@ -156,7 +151,7 @@ class StrictlyLowerTriangularMatrices(LevelSet, MatrixVectorSpace):
         -------
         submersed_vector : array-like, shape=[..., n]
         """
-        submersed_vector = Matrices.diagonal(vector)
+        submersed_vector = MatrixOperations.diagonal(vector)
         if point is not None and point.ndim > vector.ndim:
             return gs.broadcast_to(submersed_vector, point.shape[:-1])
 
@@ -170,11 +165,7 @@ class StrictlyLowerTriangularMatrices(LevelSet, MatrixVectorSpace):
         basis : array-like, shape=[dim, n, n]
             Basis matrices of the space.
         """
-        rows, cols = gs.tril_indices(self.n, k=-1)
-        tril_idxs = gs.ravel_multi_index((rows, cols), (self.n, self.n))
-
-        vector_bases = gs.eye(self.n * self.n)[tril_idxs]
-        return gs.reshape(vector_bases, [-1, self.n, self.n])
+        return gs.tril_embed(gs.eye(self.dim), k=-1)
 
     @staticmethod
     def basis_representation(matrix_representation):
@@ -206,4 +197,4 @@ class StrictlyLowerTriangularMatrices(LevelSet, MatrixVectorSpace):
             Projected point.
         """
         proj_point = self.embedding_space.projection(point)
-        return proj_point - gs.vec_to_diag(gs.diagonal(proj_point, axis1=-2, axis2=-1))
+        return proj_point - gs.diag_embed(gs.diagonal(proj_point))

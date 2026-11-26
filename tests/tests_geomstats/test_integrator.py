@@ -5,7 +5,7 @@ import pytest
 import geomstats.backend as gs
 import geomstats.integrator as integrator
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatrixOperations
 from geomstats.test.test_case import TestCase
 
 
@@ -16,7 +16,7 @@ class TestIntegrator(TestCase):
         self.euclidean = Euclidean(self.dimension)
         self.matrices = Matrices(self.dimension, self.dimension)
         self.intercept = self.euclidean.random_point()
-        self.slope = Matrices.to_symmetric(self.matrices.random_point())
+        self.slope = MatrixOperations.to_symmetric(self.matrices.random_point())
 
     @staticmethod
     def function_linear(_state, _time):

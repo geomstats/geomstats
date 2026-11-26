@@ -27,7 +27,7 @@ class GradientDescent:
         x = x_ini
         for _ in range(self.max_iter):
             grad_x = grad(x, i_pt, e_pt)
-            grad_norm = gs.linalg.norm(grad_x)
+            grad_norm = gs.linalg.vector_norm(grad_x)
             if grad_norm < self.tol:
                 break
             grad_x = -self.lrate * grad_x

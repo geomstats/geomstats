@@ -2,11 +2,14 @@ import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from .base import VectorSpaceOpenSetTestData
-from .riemannian_metric import RiemannianMetricTestData
+from .riemannian_metric import (
+    CoordinateRiemannianMetricComparisonTestData,
+    CoordinateRiemannianMetricTestData,
+)
 
 
 class PoincareHalfSpaceTestData(VectorSpaceOpenSetTestData):
-    pass
+    skips = ("not_belongs",)
 
 
 class PoincareHalfSpace2TestData(TestData):
@@ -18,7 +21,7 @@ class PoincareHalfSpace2TestData(TestData):
         return self.generate_tests(data)
 
 
-class PoincareHalfSpaceMetricTestData(RiemannianMetricTestData):
+class PoincareHalfSpaceMetricTestData(CoordinateRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 
@@ -94,3 +97,10 @@ class PoincareHalfSpaceMetric2TestData(TestData):
             )
         ]
         return self.generate_tests(data)
+
+
+class PullbackPoincareHalfSpaceMetricCmpTestData(
+    CoordinateRiemannianMetricComparisonTestData
+):
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False

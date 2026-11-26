@@ -1,10 +1,10 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import ComplexMatrixVectorSpaceTestData
+from .base import MatrixVectorSpaceTestData
 
 
-class HermitianMatricesTestData(ComplexMatrixVectorSpaceTestData):
+class HermitianMatricesTestData(MatrixVectorSpaceTestData):
     pass
 
 

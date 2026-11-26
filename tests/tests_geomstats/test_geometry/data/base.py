@@ -1,26 +1,19 @@
-from .complex_manifold import ComplexManifoldTestData
 from .manifold import ManifoldTestData
 from .mixins import ProjectionMixinsTestData
 
 
-class _VectorSpaceMixinsTestData(ProjectionMixinsTestData):
+class VectorSpaceTestData(ProjectionMixinsTestData, ManifoldTestData):
     def random_point_is_tangent_test_data(self):
         return self.generate_random_data()
 
     def to_tangent_is_projection_test_data(self):
         return self.generate_random_data()
 
-
-class VectorSpaceTestData(_VectorSpaceMixinsTestData, ManifoldTestData):
     def basis_cardinality_test_data(self):
         return None
 
     def basis_belongs_test_data(self):
         return self.generate_tests([dict()])
-
-
-class ComplexVectorSpaceTestData(_VectorSpaceMixinsTestData, ComplexManifoldTestData):
-    pass
 
 
 class MatrixVectorSpaceTestData(VectorSpaceTestData):
@@ -43,10 +36,6 @@ class MatrixVectorSpaceTestData(VectorSpaceTestData):
         return self.generate_random_data()
 
 
-class ComplexMatrixVectorSpaceTestData(ComplexVectorSpaceTestData):
-    pass
-
-
 class LevelSetTestData(ProjectionMixinsTestData, ManifoldTestData):
     def submersion_vec_test_data(self):
         return self.generate_vec_data()
@@ -55,22 +44,12 @@ class LevelSetTestData(ProjectionMixinsTestData, ManifoldTestData):
         return self.generate_vec_data()
 
 
-class _OpenSetMixinsTestData(ProjectionMixinsTestData):
+class OpenSetTestData(ProjectionMixinsTestData, ManifoldTestData):
     def to_tangent_is_tangent_in_embedding_space_test_data(self):
         return self.generate_random_data()
 
 
-class OpenSetTestData(_OpenSetMixinsTestData, ManifoldTestData):
-    pass
-
-
 class VectorSpaceOpenSetTestData(OpenSetTestData):
-    pass
-
-
-class ComplexVectorSpaceOpenSetTestData(
-    _OpenSetMixinsTestData, ComplexManifoldTestData
-):
     pass
 
 

@@ -4,6 +4,7 @@ The n-dimensional hyperbolic regardless its different representations.
 """
 
 import geomstats.backend as gs
+from geomstats._einsum import scalarvecmul
 from geomstats.geometry.diffeo import Diffeo
 
 
@@ -116,17 +117,6 @@ class HyperbolicDiffeo(Diffeo):
         )
 
 
-def _scalarvecmul(scalar, vec):
-    """Vectorized scalar vector multiplication.
-
-    Parameters
-    ----------
-    scalar : array-like, shape=[...]
-    vec : array-like, shape=[..., dim]
-    """
-    return gs.einsum("...,...i->...i", scalar, vec)
-
-
 class _Hyperbolic:
     """Class for the n-dimensional hyperbolic space.
 
@@ -220,7 +210,7 @@ class _Hyperbolic:
         squared_norm = gs.sum(point**2, -1)
         denominator = 1 - squared_norm
         t = (1 + squared_norm) / denominator
-        intrinsic = _scalarvecmul(1.0 / denominator, 2 * point)
+        intrinsic = scalarvecmul(1.0 / denominator, 2 * point)
         return gs.concatenate([t[..., None], intrinsic], -1)
 
     @classmethod
@@ -285,7 +275,7 @@ class _Hyperbolic:
         """
         sq_norm = gs.sum(point**2, axis=-1)
         den = 1 + sq_norm + 2 * point[..., -1]
-        component_1 = _scalarvecmul(2.0 / den, point[..., :-1])
+        component_1 = scalarvecmul(2.0 / den, point[..., :-1])
         component_2 = (sq_norm - 1) / den
         return gs.concatenate([component_1, component_2[..., None]], axis=-1)
 
@@ -309,7 +299,7 @@ class _Hyperbolic:
         """
         sq_norm = gs.sum(point**2, axis=-1)
         den = 1 + sq_norm - 2 * point[..., -1]
-        component_1 = _scalarvecmul(2.0 / den, point[..., :-1])
+        component_1 = scalarvecmul(2.0 / den, point[..., :-1])
         component_2 = (1 - sq_norm) / den
         return gs.concatenate([component_1, component_2[..., None]], axis=-1)
 
@@ -336,9 +326,9 @@ class _Hyperbolic:
         sq_norm = gs.sum(base_point**2, axis=-1)
         den = 1.0 + sq_norm + 2.0 * base_point[..., -1]
         scalar_prod = gs.sum(base_point * tangent_vec, axis=-1)
-        component_1 = _scalarvecmul(
+        component_1 = scalarvecmul(
             2.0 / den, tangent_vec[..., :-1]
-        ) - 4.0 * _scalarvecmul(
+        ) - 4.0 * scalarvecmul(
             (scalar_prod + tangent_vec[..., -1]) / den**2,
             base_point[..., :-1],
         )
@@ -375,9 +365,9 @@ class _Hyperbolic:
         sq_norm = gs.sum(base_point**2, axis=-1)
         den = 1 + sq_norm - 2 * base_point[..., -1]
         scalar_prod = gs.sum(base_point * tangent_vec, -1)
-        component_1 = _scalarvecmul(
+        component_1 = scalarvecmul(
             2.0 / den, tangent_vec[..., :-1]
-        ) - 4.0 * _scalarvecmul(
+        ) - 4.0 * scalarvecmul(
             (scalar_prod - tangent_vec[..., -1]) / den**2,
             base_point[..., :-1],
         )
@@ -412,10 +402,10 @@ class _Hyperbolic:
             Tangent vector in the Poincare ball.
         """
         den = 1 + base_point[..., 0]
-        return -_scalarvecmul(
+        return -scalarvecmul(
             tangent_vec[..., 0] / den**2,
             base_point[..., 1:],
-        ) + _scalarvecmul(1 / den, tangent_vec[..., 1:])
+        ) + scalarvecmul(1 / den, tangent_vec[..., 1:])
 
     @staticmethod
     def ball_to_extrinsic_tangent(tangent_vec, base_point):
@@ -441,9 +431,9 @@ class _Hyperbolic:
         scalar_prod = gs.sum(tangent_vec * base_point, axis=-1)
         den = (1 - sq_norm) ** 2
 
-        term_1 = 2 * _scalarvecmul(1 - sq_norm, tangent_vec)
-        term_2 = 4 * _scalarvecmul(scalar_prod, base_point)
-        return _scalarvecmul(
+        term_1 = 2 * scalarvecmul(1 - sq_norm, tangent_vec)
+        term_2 = 4 * scalarvecmul(scalar_prod, base_point)
+        return scalarvecmul(
             1 / den,
             gs.concatenate([4 * scalar_prod[..., None], term_1 + term_2], axis=-1),
         )

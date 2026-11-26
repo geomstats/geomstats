@@ -19,7 +19,6 @@ import logging
 import matplotlib
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-import numpy as np
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
@@ -42,7 +41,7 @@ def gradient_descent(
         euclidean_grad = -lr * grad(x)
         tangent_vec = manifold.to_tangent(vector=euclidean_grad, base_point=x)
         x = manifold.metric.exp(base_point=x, tangent_vec=tangent_vec)
-        if gs.abs(loss(x, use_gs=True) - loss(x_prev, use_gs=True)) <= precision:
+        if gs.abs(loss(x) - loss(x_prev)) <= precision:
             logging.info("x: %s", x)
             logging.info("reached precision %s", precision)
             logging.info("iterations: %d", i)
@@ -58,7 +57,7 @@ def plot_and_save_video(
     ax = fig.add_subplot(111, projection="3d")
     sphere = visualization.Sphere()
     sphere.plot_heatmap(ax, loss)
-    points = gs.to_ndarray(geodesics[0], to_ndim=2)
+    points = gs.expand_dims_to(geodesics[0], ndim=2)
     sphere.add_points(points)
     sphere.draw(ax, color=color, marker=".")
 
@@ -66,7 +65,7 @@ def plot_and_save_video(
     writer = FFMpegWriter(fps=fps)
     with writer.saving(fig, out, dpi=dpi):
         for points in geodesics[1:]:
-            points = gs.to_ndarray(points, to_ndim=2)
+            points = gs.expand_dims_to(points, ndim=2)
             sphere.draw_points(ax, points=points, color=color, marker=".")
             writer.grab_frame()
 
@@ -88,10 +87,8 @@ def main(output_file="out.mp4", max_iter=128):
     def grad(x):
         return 2 * gs.matvec(A, x)
 
-    def loss(x, use_gs=False):
-        if use_gs:
-            return gs.matvec(x, gs.matvec(A, x))
-        return np.matmul(x, np.matmul(A, x))
+    def loss(x):
+        return gs.vecdot(x, gs.matvec(A, x))
 
     initial_point = gs.array([0.0, 1.0, 0.0])
     previous_x = initial_point
@@ -105,13 +102,13 @@ def main(output_file="out.mp4", max_iter=128):
             initial_point=previous_x, initial_tangent_vec=initial_tangent_vec
         )
 
-        t = np.linspace(0, 1, n_steps)
+        t = gs.linspace(0.0, 1.0, n_steps)
         geodesics.append(geodesic(t))
         previous_x = x
     if output_file:
         plot_and_save_video(geodesics, loss, out=output_file)
-    eig, _ = np.linalg.eig(A)
-    np.testing.assert_almost_equal(loss(x), np.min(eig), decimal=2)
+    min_eigval = gs.amin(gs.linalg.eigvalsh(A))
+    assert gs.isclose(loss(x), min_eigval, atol=1e-2)
 
 
 if __name__ == "__main__":

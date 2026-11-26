@@ -1,11 +1,11 @@
 """The Siegel manifold.
 
-The Siegel manifold is a generalization of the Poincare disk to complex matrices
-of singular values strictly lower than one.
+The Siegel manifold is a generalization of the Poincaré disk to complex matrices
+of singular values strictly smaller than one.
 It is defined as the set of complex matrices M such that:
 I - M @ M.conj().T is a positive definite matrix.
 Warning: another more restrictive definition of the Siegel disk also exists
-which add a symmetry condition on the matrices.
+which adds a symmetry condition on the matrices.
 It has been proven in [Cabanes2022]_ that the sub-manifold of symmetric Siegel
 matrices is a totally geodesic sub-manifold of the Siegel space.
 The sub-manifold of real Siegel matrices is also a totally geodesic sub-manifold
@@ -20,25 +20,30 @@ References
     in Poincaré and Siegel disks: application for audio and radar
     clutter classification, PhD thesis, 2022
 .. [Cabanes2021] Yann Cabanes and Frank Nielsen.
-    New theoreticla tools in the Siegel space for vectorial
+    New theoretical tools in the Siegel space for vectorial
     autoregressive data classification,
     Geometric Science of Information, 2021.
     https://franknielsen.github.io/IG/GSI2021-SiegelLogExpClassification.pdf
-.. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
+.. [JV2016] B. Jeuris and R. Vandebril. The Kähler mean of Block-Toeplitz
     matrices with Toeplitz structured blocks, 2016.
     https://epubs.siam.org/doi/pdf/10.1137/15M102112X
 """
 
+import math
+
 import geomstats.backend as gs
 from geomstats import algebra_utils as utils
-from geomstats.geometry.base import ComplexVectorSpaceOpenSet
-from geomstats.geometry.complex_matrices import ComplexMatrices
-from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
+from geomstats._einsum import scalarmatmul
+from geomstats.geometry.base import VectorSpaceOpenSet
+from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatrixOperations
 from geomstats.geometry.hermitian_matrices import apply_func_to_eigvalsh, powermh
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
+from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from geomstats.vectorization import repeat_out
 
 
-class Siegel(ComplexVectorSpaceOpenSet):
+class Siegel(VectorSpaceOpenSet):
     """Class for the Siegel space.
 
     Parameters
@@ -48,13 +53,17 @@ class Siegel(ComplexVectorSpaceOpenSet):
     symmetric : bool
         If symmetric is True, add a symmetry condition
         on the matrices to belong to the Siegel space.
-        Optional, default: False.
     """
 
     def __init__(self, n, symmetric=False, equip=True):
+        embedding_space = (
+            SymmetricMatrices(n, field="complex")
+            if symmetric
+            else ComplexMatrices(m=n, n=n)
+        )
         super().__init__(
-            dim=n**2,
-            embedding_space=ComplexMatrices(m=n, n=n),
+            dim=embedding_space.dim,
+            embedding_space=embedding_space,
             equip=equip,
         )
         self.n = n
@@ -74,23 +83,17 @@ class Siegel(ComplexVectorSpaceOpenSet):
             Point to be checked.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Boolean denoting if mat belongs to the Siegel space.
+            Boolean denoting if point belongs to the Siegel space.
         """
-        point_transconj = ComplexMatrices.transconjugate(point)
+        point_transconj = ComplexMatrixOperations.transconjugate(point)
         aux = gs.matmul(point, point_transconj)
 
-        axis = -1 if gs.ndim(point) == 3 else None
-        belongs = gs.all(gs.linalg.eigvalsh(aux) <= 1 + atol, axis=axis)
-
-        if self.symmetric:
-            return gs.logical_and(belongs, Matrices.is_symmetric(point))
-
-        return belongs
+        belongs = gs.all(gs.linalg.eigvalsh(aux) <= 1 + atol, axis=-1)
+        return gs.logical_and(belongs, self.embedding_space.belongs(point, atol))
 
     def projection(self, point, atol=gs.atol):
         """Project a matrix to the Siegel space.
@@ -101,17 +104,15 @@ class Siegel(ComplexVectorSpaceOpenSet):
             Matrix to project.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
-        projected: array-like, shape=[..., n, n]
+        projected : array-like, shape=[..., n, n]
             Matrix in the Siegel space.
         """
-        if self.symmetric:
-            point = Matrices.to_symmetric(point)
+        point = self.embedding_space.projection(point)
 
-        point_transconj = ComplexMatrices.transconjugate(point)
+        point_transconj = ComplexMatrixOperations.transconjugate(point)
         aux = gs.matmul(point, point_transconj)
 
         eigenvalues = gs.linalg.eigvalsh(aux)
@@ -120,27 +121,24 @@ class Siegel(ComplexVectorSpaceOpenSet):
         scalars = gs.where(
             (max_eigenvalues > 1.0 - gs.atol), (1 - atol) / max_eigenvalues, 1.0
         )
-        return gs.einsum("...,...ij->...ij", scalars, point)
+        return scalarmatmul(scalars, point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Generate random points in the Siegel space.
 
         The Siegel space is the set of complex matrices of singular values
-        strictly lower than one.
-        The Frobenius norm of a matrix is greater than or equal to the spectral norm
-        which corresponds to the largest singular value of a matrix.
-        Then, simulating a matrix with Frobenius norm strictly lower than one,
-        its singular values are also strictly lower than one,
-        therefore this matrix belongs to the Siegel disk.
+        strictly smaller than one.
+        The Frobenius norm of a matrix is greater than or equal to its spectral
+        norm, i.e. its largest singular value.
+        Hence, a matrix with Frobenius norm strictly smaller than one has all its
+        singular values strictly smaller than one, and belongs to the Siegel disk.
 
         Parameters
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         bound : float
-            Bound of the interval in which to sample in the tangent space.
-            Optional, default: 1.
+            Bound of the interval in which to sample.
 
         Returns
         -------
@@ -153,7 +151,7 @@ class Siegel(ComplexVectorSpaceOpenSet):
         samples = gs.random.rand(*size, dtype=gs.get_default_cdtype())
         samples -= 0.5 + 0.5j
         samples *= bound * (1 - gs.atol) * 2**0.5 / n
-        return samples
+        return self.embedding_space.projection(samples)
 
     def random_tangent_vec(self, base_point, n_samples=1):
         """Sample on the tangent space of Siegel space from the uniform distribution.
@@ -162,10 +160,8 @@ class Siegel(ComplexVectorSpaceOpenSet):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
-            Optional, default: None.
 
         Returns
         -------
@@ -182,7 +178,7 @@ class Siegel(ComplexVectorSpaceOpenSet):
         return self.to_tangent(samples, base_point)
 
 
-class SiegelMetric(ComplexRiemannianMetric):
+class SiegelMetric(RiemannianMetric):
     """Class for the Siegel metric."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -213,8 +209,8 @@ class SiegelMetric(ComplexRiemannianMetric):
         """
         identity = gs.eye(base_point.shape[-1], dtype=base_point.dtype)
 
-        base_point_transconj = ComplexMatrices.transconjugate(base_point)
-        tangent_vec_b_transconj = ComplexMatrices.transconjugate(tangent_vec_b)
+        base_point_transconj = ComplexMatrixOperations.transconjugate(base_point)
+        tangent_vec_b_transconj = ComplexMatrixOperations.transconjugate(tangent_vec_b)
 
         aux_1 = gs.matmul(base_point, base_point_transconj)
 
@@ -230,7 +226,7 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         aux_a = gs.matmul(inv_aux_3, tangent_vec_a)
         aux_b = gs.matmul(inv_aux_4, tangent_vec_b_transconj)
-        trace = Matrices.trace_product(aux_a, aux_b)
+        trace = MatrixOperations.trace_product(aux_a, aux_b)
 
         return gs.real(trace)
 
@@ -241,7 +237,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at zero.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
             Point on the Siegel space.
 
@@ -251,7 +247,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             Tangent vector at zero (null matrix).
         """
         identity = gs.eye(base_point.shape[-1], dtype=base_point.dtype)
-        base_point_transconj = ComplexMatrices.transconjugate(base_point)
+        base_point_transconj = ComplexMatrixOperations.transconjugate(base_point)
         aux_1 = gs.matmul(base_point, base_point_transconj)
         aux_2 = gs.matmul(base_point_transconj, base_point)
         aux_3 = identity - aux_1
@@ -270,14 +266,14 @@ class SiegelMetric(ComplexRiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point.
+            Tangent vector at zero (null matrix).
 
         Returns
         -------
         exp : array-like, shape=[..., n, n]
             Point on the manifold.
         """
-        tangent_vec_transconj = ComplexMatrices.transconjugate(tangent_vec)
+        tangent_vec_transconj = ComplexMatrixOperations.transconjugate(tangent_vec)
         squared_radius = gs.matmul(tangent_vec, tangent_vec_transconj)
 
         def tanh_card(eigvals):
@@ -295,14 +291,14 @@ class SiegelMetric(ComplexRiemannianMetric):
         """Define an isometry for the Siegel metric.
 
         Isometry for the Siegel metric sending point_to_zero
-        (parameter of the isometry) on zero.
+        (parameter of the isometry) to zero.
 
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
             Point on the Siegel space.
         point_to_zero : array-like, shape=[..., n, n]
-            Point send on zero (null matrix) by the isometry.
+            Point sent to zero (null matrix) by the isometry.
 
         Returns
         -------
@@ -310,7 +306,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             Image of point by the isometry.
         """
         identity = gs.eye(point.shape[-1], dtype=point.dtype)
-        point_to_zero_transconj = ComplexMatrices.transconjugate(point_to_zero)
+        point_to_zero_transconj = ComplexMatrixOperations.transconjugate(point_to_zero)
         aux_1 = gs.matmul(point_to_zero, point_to_zero_transconj)
         aux_2 = gs.matmul(point_to_zero_transconj, point_to_zero)
         aux_3 = identity - aux_1
@@ -366,7 +362,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         log_at_zero : array-like, shape=[..., n, n]
             Riemannian logarithm at zero (null matrix).
         """
-        point_transconj = ComplexMatrices.transconjugate(point)
+        point_transconj = ComplexMatrixOperations.transconjugate(point)
         squared_radius = gs.matmul(point, point_transconj)
 
         def arctanh_card(eigvals):
@@ -396,7 +392,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             Tangent vector at the base point.
         """
         identity = gs.eye(base_point.shape[-1], dtype=base_point.dtype)
-        base_point_transconj = ComplexMatrices.transconjugate(base_point)
+        base_point_transconj = ComplexMatrixOperations.transconjugate(base_point)
         aux_1 = gs.matmul(base_point, base_point_transconj)
         aux_2 = gs.matmul(base_point_transconj, base_point)
         aux_3 = identity - aux_1
@@ -410,7 +406,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         """Compute the Siegel logarithm map.
 
         Compute the Riemannian logarithm at point base_point
-        of point wrt the metric defined in inner_product.
+        of point with respect to the metric defined in inner_product.
         Return a tangent vector at point base_point.
 
         Parameters
@@ -431,6 +427,104 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         return self.tangent_vec_from_zero_to_base_point(
             tangent_vec=logarithm_at_zero, base_point=base_point
+        )
+
+    @staticmethod
+    def tangent_isometry(tangent_vec, point, point_to_zero):
+        r"""Compute the differential of the isometry at a point.
+
+        Denoting `point_to_zero` by :math:`A` and `point` by :math:`Z`,
+        the isometry is
+
+        .. math::
+
+            \phi_A(Z) = (I - AA^*)^{-1/2} (Z - A) (I - A^* Z)^{-1}
+            (I - A^* A)^{1/2}
+
+        and its differential at :math:`Z` is
+
+        .. math::
+
+            d\phi_A(Z)[W] = (I - AA^*)^{-1/2} (I + (Z - A) M^{-1} A^*)
+            W M^{-1} (I - A^* A)^{1/2}
+
+        with :math:`M = I - A^* Z`.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at point.
+        point : array-like, shape=[..., n, n]
+            Point on the Siegel space.
+        point_to_zero : array-like, shape=[..., n, n]
+            Point sent to zero (null matrix) by the isometry.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at the image of point by the isometry.
+        """
+        identity = gs.eye(point.shape[-1], dtype=point.dtype)
+        point_to_zero_transconj = ComplexMatrixOperations.transconjugate(point_to_zero)
+        aux_1 = gs.matmul(point_to_zero, point_to_zero_transconj)
+        aux_2 = gs.matmul(point_to_zero_transconj, point_to_zero)
+        factor_1 = powermh(identity - aux_1, -1 / 2)
+        factor_4 = powermh(identity - aux_2, 1 / 2)
+        inv_aux_3 = gs.linalg.inv(identity - gs.matmul(point_to_zero_transconj, point))
+        aux_4 = gs.matmul(point - point_to_zero, inv_aux_3)
+        factor_2 = identity + gs.matmul(aux_4, point_to_zero_transconj)
+        prod_1 = gs.matmul(factor_1, factor_2)
+        prod_2 = gs.matmul(prod_1, tangent_vec)
+        prod_3 = gs.matmul(prod_2, inv_aux_3)
+        return gs.matmul(prod_3, factor_4)
+
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
+
+        The Siegel space is a symmetric space, so the parallel transport along
+        a geodesic is the differential of the transvection along it. Denoting
+        `base_point` by :math:`B`, `end_point` by :math:`C` and the isometry
+        by :math:`\phi`, the transvection from :math:`B` to :math:`C` is
+        :math:`\phi_{-B} \circ \phi_{-Y} \circ \phi_B` with
+        :math:`Y = \phi_B(C)`.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., n, n]
+            Point on the Siegel space.
+        direction : array-like, shape=[..., n, n]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        end_point : array-like, shape=[..., n, n]
+            Point on the Siegel space to transport to. Unused if `direction`
+            is given.
+
+        Returns
+        -------
+        transported_tangent_vec : array-like, shape=[..., n, n]
+            Transported tangent vector at `exp_(base_point)(direction)`.
+        """
+        if direction is not None:
+            end_point = self.exp(direction, base_point)
+        elif end_point is None:
+            raise ValueError(
+                "Either an end_point or a direction must be given to define the"
+                " geodesic along which to transport."
+            )
+
+        tangent_vec_at_zero = self.tangent_vec_from_base_point_to_zero(
+            tangent_vec, base_point
+        )
+        end_point_at_zero = self.isometry(point=end_point, point_to_zero=base_point)
+        transported_at_zero = self.tangent_vec_from_zero_to_base_point(
+            tangent_vec_at_zero, end_point_at_zero
+        )
+        return self.tangent_isometry(
+            transported_at_zero, end_point_at_zero, -base_point
         )
 
     def squared_dist(self, point_a, point_b):
@@ -455,12 +549,12 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         identity = gs.eye(point_a.shape[-1], dtype=point_a.dtype)
 
-        point_a_transconj = ComplexMatrices.transconjugate(point_a)
-        point_b_transconj = ComplexMatrices.transconjugate(point_b)
+        point_a_transconj = ComplexMatrixOperations.transconjugate(point_a)
+        point_b_transconj = ComplexMatrixOperations.transconjugate(point_b)
 
         factor_1 = point_b - point_a
 
-        factor_3 = ComplexMatrices.transconjugate(factor_1)
+        factor_3 = ComplexMatrixOperations.transconjugate(factor_1)
 
         aux_2 = gs.matmul(point_a_transconj, point_b)
 
@@ -489,7 +583,7 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         logarithm = gs.linalg.logm(frac)
 
-        sq_dist = Matrices.trace_product(logarithm, logarithm) * 0.25
+        sq_dist = MatrixOperations.trace_product(logarithm, logarithm) * 0.25
         sq_dist = gs.real(sq_dist)
         return gs.maximum(sq_dist, 0)
 
@@ -506,7 +600,6 @@ class SiegelMetric(ComplexRiemannianMetric):
             Tangent vector at zero.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -520,7 +613,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             return _scale(scalars, tangent_vec)
 
         def _scale(scalars, tangent_vec):
-            return gs.einsum("...,...ij->...ij", scalars, tangent_vec)
+            return scalarmatmul(scalars, tangent_vec)
 
         zero = gs.zeros([self._space.n, self._space.n], dtype=tangent_vec_a.dtype)
 
@@ -534,16 +627,16 @@ class SiegelMetric(ComplexRiemannianMetric):
         tangent_vec_b = tangent_vec_b - _scale(inner_prod, tangent_vec_a)
         tangent_vec_b = _scale_by_norm(tangent_vec_b)
 
-        tangent_vec_a_transconj = ComplexMatrices.transconjugate(tangent_vec_a)
-        tangent_vec_b_transconj = ComplexMatrices.transconjugate(tangent_vec_b)
+        tangent_vec_a_transconj = ComplexMatrixOperations.transconjugate(tangent_vec_a)
+        tangent_vec_b_transconj = ComplexMatrixOperations.transconjugate(tangent_vec_b)
 
         term1 = gs.matmul(tangent_vec_a, tangent_vec_b_transconj)
         term1 -= gs.matmul(tangent_vec_b, tangent_vec_a_transconj)
-        norm_term1 = gs.linalg.norm(term1, axis=(-2, -1)) ** 2
+        norm_term1 = gs.linalg.matrix_norm(term1) ** 2
 
         term2 = gs.matmul(tangent_vec_a_transconj, tangent_vec_b)
         term2 -= gs.matmul(tangent_vec_b_transconj, tangent_vec_a)
-        norm_term2 = gs.linalg.norm(term2, axis=(-2, -1)) ** 2
+        norm_term2 = gs.linalg.matrix_norm(term2) ** 2
         return -0.5 * (norm_term1 + norm_term2)
 
     def sectional_curvature(
@@ -562,10 +655,9 @@ class SiegelMetric(ComplexRiemannianMetric):
         tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
-            Base point. Optional, default is zero
+            Base point.
         atol : float
             Tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -580,3 +672,22 @@ class SiegelMetric(ComplexRiemannianMetric):
                 tangent_vec_b, base_point
             )
         return self.sectional_curvature_at_zero(tangent_vec_a, tangent_vec_b, atol=atol)
+
+    def injectivity_radius(self, base_point=None):
+        """Compute the radius of the injectivity domain.
+
+        The Siegel disk is a Hadamard manifold, so the injectivity radius is
+        infinite everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        radius = gs.array(math.inf)
+        return repeat_out(self._space.point_ndim, radius, base_point)

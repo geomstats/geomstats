@@ -36,12 +36,14 @@ class SpecialOrthogonalMatricesTestData(
     fail_for_not_implemented_errors = False
 
     tolerances = {
-        "projection_belongs": {"atol": 1e-5},
-        "matrix_from_rotation_vector_after_rotation_vector_from_matrix": {"atol": 1e-1},
+        "random_uniform_sample_mean": {"atol": 1e-1},
     }
 
     def are_antipodals_vec_test_data(self):
         return self.generate_vec_data()
+
+    def random_uniform_sample_mean_test_data(self):
+        return self.generate_tests([dict(n_samples=1000)])
 
 
 class SpecialOrthogonalMatrices2TestData(TestData):
@@ -129,6 +131,17 @@ class SpecialOrthogonalMatrices3TestData(TestData):
     def are_antipodals_test_data(self):
         mat1 = gs.eye(3)
         mat2 = gs.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
+
+        rot = SpecialOrthogonal(
+            3, point_type="vector", equip=False
+        ).matrix_from_rotation_vector
+        base_mat = rot(gs.array([-1.5, -1.0, -1.0]))
+        nearby_mat = gs.matmul(base_mat, rot(gs.array([1e-6, 0.0, 0.0])))
+        antipodal_mat = gs.matmul(base_mat, rot(gs.pi * gs.array([0.0, 0.6, 0.8])))
+        near_antipodal_mat = gs.matmul(
+            base_mat, rot((gs.pi - 1e-3) * gs.array([0.0, 0.6, 0.8]))
+        )
+
         data = [
             dict(rotation_mat1=mat1, rotation_mat2=mat2, expected=gs.array(True)),
             dict(
@@ -136,12 +149,44 @@ class SpecialOrthogonalMatrices3TestData(TestData):
                 rotation_mat2=gs.stack([mat2, mat2]),
                 expected=gs.array([True, False]),
             ),
+            dict(
+                rotation_mat1=base_mat,
+                rotation_mat2=nearby_mat,
+                expected=gs.array(False),
+            ),
+            dict(
+                rotation_mat1=base_mat,
+                rotation_mat2=antipodal_mat,
+                expected=gs.array(True),
+            ),
+            dict(
+                rotation_mat1=base_mat,
+                rotation_mat2=near_antipodal_mat,
+                expected=gs.array(False),
+            ),
+        ]
+        return self.generate_tests(data)
+
+    def log_test_data(self):
+        rot = SpecialOrthogonal(
+            3, point_type="vector", equip=False
+        ).matrix_from_rotation_vector
+        base_mat = rot(gs.array([-1.5, -1.0, -1.0]))
+        nearby_mat = gs.matmul(base_mat, rot(gs.array([1e-6, 0.0, 0.0])))
+        skew = gs.array([[0.0, 0.0, 0.0], [0.0, 0.0, -1e-6], [0.0, 1e-6, 0.0]])
+
+        data = [
+            dict(
+                point=nearby_mat,
+                base_point=base_mat,
+                expected=gs.matmul(base_mat, skew),
+            ),
         ]
         return self.generate_tests(data)
 
     def matrix_from_rotation_vector_test_data(self):
         rot_vec_3 = 1e-11 * gs.array([12.0, 1.0, -81.0])
-        angle = gs.linalg.norm(rot_vec_3)
+        angle = gs.linalg.vector_norm(rot_vec_3)
         skew_rot_vec_3 = 1e-11 * gs.array(
             [[0.0, 81.0, 1.0], [-81.0, 0.0, -12.0], [-1.0, 12.0, 0.0]]
         )
@@ -154,7 +199,7 @@ class SpecialOrthogonalMatrices3TestData(TestData):
         )
 
         rot_vec_4 = gs.array([0.1, 1.3, -0.5])
-        angle = gs.linalg.norm(rot_vec_4)
+        angle = gs.linalg.vector_norm(rot_vec_4)
         skew_rot_vec_4 = gs.array(
             [[0.0, 0.5, 1.3], [-0.5, 0.0, -0.1], [-1.3, 0.1, 0.0]]
         )
@@ -191,8 +236,6 @@ class SpecialOrthogonalVectorsTestData(
 
 
 class SpecialOrthogonal2VectorsTestData(SpecialOrthogonalVectorsTestData):
-    fail_for_not_implemented_errors = False
-
     trials = 3
     skips = ("projection_belongs",)
 
@@ -223,7 +266,7 @@ class SpecialOrthogonal2VectorsSmokeTestData(TestData):
         data = [
             dict(
                 point=gs.eye(2) + 1e-12 * gs.ones((2, 2)),
-                expected=gs.eye(2),
+                expected=gs.array([0.0]),
             )
         ]
         return self.generate_tests(data)
@@ -427,7 +470,7 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
         data = [
             dict(
                 point=gs.eye(3) + 1e-12 * gs.ones((3, 3)),
-                expected=gs.eye(3),
+                expected=gs.zeros(3),
             )
         ]
         return self.generate_tests(data)
@@ -538,7 +581,7 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
         smoke_data = []
         for angle_type in elements:
             point = elements[angle_type]
-            angle = gs.linalg.norm(space.regularize(point))
+            angle = gs.linalg.vector_norm(space.regularize(point))
             if angle_type in [
                 "angle_0",
                 "angle_close_0",
@@ -567,12 +610,12 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
                 )
             ]
         point = self.elements["angle_close_pi_high"]
-        norm = gs.linalg.norm(point)
+        norm = gs.linalg.vector_norm(point)
         smoke_data += [dict(point=point, expected=point / norm * (norm - 2 * gs.pi))]
 
         for angle_type in ["angle_in_pi_2pi", "angle_close_2pi_low"]:
             point = self.elements[angle_type]
-            angle = gs.linalg.norm(point)
+            angle = gs.linalg.vector_norm(point)
             new_angle = gs.pi - (angle - gs.pi)
 
             point_initial = point
@@ -586,7 +629,7 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
             )
         ]
         point = self.elements["angle_close_2pi_high"]
-        angle = gs.linalg.norm(point)
+        angle = gs.linalg.vector_norm(point)
         new_angle = angle - 2 * gs.pi
         expected = new_angle * point / angle
         smoke_data += [dict(point=point, expected=expected)]
@@ -597,7 +640,9 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
             [[1.0, 0.0, 0.0], [2, 0.5, 0.0], [0.0, 0.0, 0.0], [0.5, 0.0, 0.0]]
         )
         expected_2 = (
-            point[1] / gs.linalg.norm(point[1]) * (gs.linalg.norm(point[1]) - 2 * gs.pi)
+            point[1]
+            / gs.linalg.vector_norm(point[1])
+            * (gs.linalg.vector_norm(point[1]) - 2 * gs.pi)
         )
         expected = gs.array(
             [

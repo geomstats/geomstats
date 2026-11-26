@@ -120,7 +120,7 @@ def _pre_allow_complex_dtype(cast, complex_dtypes, get_default_dtype):
                 if dtype in complex_dtypes:
                     out = out + 1j * func(*args, **kwargs)
 
-                if out.dtype != dtype:
+                if getattr(out, "dtype", None) != dtype:
                     return cast(out, dtype)
 
                 return out

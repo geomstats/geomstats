@@ -9,16 +9,19 @@ References
     Geometry [math.DG]. Université Côte d'Azur, 2022.
 """
 
+import math
+
 import geomstats.backend as gs
 from geomstats.geometry.base import DiffeomorphicManifold, LevelSet, VectorSpaceOpenSet
 from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
 from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric, MatrixOperations
 from geomstats.geometry.open_hemisphere import OpenHemisphere, OpenHemispheresProduct
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import repeat_out
 
 
 class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
@@ -79,7 +82,29 @@ class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
         diag_shape = batch_shape + (self.n,)
         diagonal = bound * gs.random.rand(*diag_shape) + gs.atol
 
-        return gs.mat_from_diag_triu_tril(diagonal, gs.array([0.0]), lower_part)
+        return gs.diag_embed(diagonal) + gs.tril_embed(lower_part, k=-1)
+
+    def to_tangent(self, vector, base_point=None):
+        """Project a vector to a tangent space of the manifold.
+
+        The tangent space is the lower triangular matrices at every point,
+        so the vector is projected in the embedding space. The projection
+        of :class:`MatrixLieGroup`, which goes through the identity, is
+        ill-conditioned for points with small diagonal elements.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+            Vector.
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
+        return VectorSpaceOpenSet.to_tangent(self, vector, base_point)
 
     def belongs(self, point, atol=gs.atol):
         """Check if mat is lower triangular with >0 diagonal.
@@ -98,7 +123,7 @@ class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
             Boolean denoting if mat belongs to cholesky space.
         """
         is_lower_triangular = self.embedding_space.belongs(point, atol)
-        diagonal = Matrices.diagonal(point)
+        diagonal = MatrixOperations.diagonal(point)
         is_positive = gs.all(diagonal > 0, axis=-1)
         return gs.logical_and(is_lower_triangular, is_positive)
 
@@ -113,9 +138,9 @@ class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
         -------
         projected: array-like, shape=[..., n, n]
         """
-        vec_diag = gs.abs(Matrices.diagonal(point))
+        vec_diag = gs.abs(MatrixOperations.diagonal(point))
         vec_diag = gs.where(vec_diag < gs.atol, gs.atol, vec_diag)
-        diag = gs.vec_to_diag(vec_diag)
+        diag = gs.diag_embed(vec_diag)
         strictly_lower_triangular = gs.tril(point, k=-1)
         return diag + strictly_lower_triangular
 
@@ -149,10 +174,10 @@ class CholeskyMetric(RiemannianMetric):
         ip_diagonal : array-like, shape=[...]
             Inner-product.
         """
-        inv_sqrt_diagonal = gs.power(Matrices.diagonal(base_point), -2)
-        tangent_vec_a_diagonal = Matrices.diagonal(tangent_vec_a)
-        tangent_vec_b_diagonal = Matrices.diagonal(tangent_vec_b)
-        prod = tangent_vec_a_diagonal * tangent_vec_b_diagonal * inv_sqrt_diagonal
+        inv_squared_diagonal = gs.power(MatrixOperations.diagonal(base_point), -2)
+        tangent_vec_a_diagonal = MatrixOperations.diagonal(tangent_vec_a)
+        tangent_vec_b_diagonal = MatrixOperations.diagonal(tangent_vec_b)
+        prod = tangent_vec_a_diagonal * tangent_vec_b_diagonal * inv_squared_diagonal
         return gs.sum(prod, axis=-1)
 
     @staticmethod
@@ -171,9 +196,9 @@ class CholeskyMetric(RiemannianMetric):
         ip_sl : array-like, shape=[...]
             Inner-product.
         """
-        sl_tagnet_vec_a = gs.tril_to_vec(tangent_vec_a, k=-1)
-        sl_tagnet_vec_b = gs.tril_to_vec(tangent_vec_b, k=-1)
-        ip_sl = gs.dot(sl_tagnet_vec_a, sl_tagnet_vec_b)
+        sl_tangent_vec_a = gs.tril_to_vec(tangent_vec_a, k=-1)
+        sl_tangent_vec_b = gs.tril_to_vec(tangent_vec_b, k=-1)
+        ip_sl = gs.vecdot(sl_tangent_vec_a, sl_tangent_vec_b)
         return ip_sl
 
     @classmethod
@@ -224,14 +249,14 @@ class CholeskyMetric(RiemannianMetric):
         exp : array-like, shape=[..., n, n]
             Riemannian exponential.
         """
-        sl_base_point = Matrices.to_strictly_lower_triangular(base_point)
-        sl_tangent_vec = Matrices.to_strictly_lower_triangular(tangent_vec)
-        diag_base_point = Matrices.diagonal(base_point)
-        diag_tangent_vec = Matrices.diagonal(tangent_vec)
+        sl_base_point = MatrixOperations.to_strictly_lower_triangular(base_point)
+        sl_tangent_vec = MatrixOperations.to_strictly_lower_triangular(tangent_vec)
+        diag_base_point = MatrixOperations.diagonal(base_point)
+        diag_tangent_vec = MatrixOperations.diagonal(tangent_vec)
         diag_product_expm = gs.exp(gs.divide(diag_tangent_vec, diag_base_point))
 
         sl_exp = sl_base_point + sl_tangent_vec
-        diag_exp = gs.vec_to_diag(diag_base_point * diag_product_expm)
+        diag_exp = gs.diag_embed(diag_base_point * diag_product_expm)
         return sl_exp + diag_exp
 
     def log(self, point, base_point):
@@ -253,15 +278,77 @@ class CholeskyMetric(RiemannianMetric):
         log : array-like, shape=[..., n, n]
             Riemannian logarithm.
         """
-        sl_base_point = Matrices.to_strictly_lower_triangular(base_point)
-        sl_point = Matrices.to_strictly_lower_triangular(point)
-        diag_base_point = Matrices.diagonal(base_point)
-        diag_point = Matrices.diagonal(point)
+        sl_base_point = MatrixOperations.to_strictly_lower_triangular(base_point)
+        sl_point = MatrixOperations.to_strictly_lower_triangular(point)
+        diag_base_point = MatrixOperations.diagonal(base_point)
+        diag_point = MatrixOperations.diagonal(point)
         diag_product_logm = gs.log(gs.divide(diag_point, diag_base_point))
 
         sl_log = sl_point - sl_base_point
-        diag_log = gs.vec_to_diag(diag_base_point * diag_product_logm)
+        diag_log = gs.diag_embed(diag_base_point * diag_product_logm)
         return sl_log + diag_log
+
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector
+        along the geodesic between two points ``base_point`` and ``end_point``
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
+        t*direction)`.
+
+        .. math::
+
+            P_{L \rightarrow K}(X) = \lfloor X \rfloor
+            + \mathbb{D}(K) \mathbb{D}(L)^{-1} \mathbb{D}(X)
+
+        where :math:`\lfloor \cdot \rfloor` is the strictly lower triangular
+        part and :math:`\mathbb{D}` the diagonal part [TP2019]_.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold. Point to transport from.
+        direction : array-like, shape=[..., n, n]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        end_point : array-like, shape=[..., n, n]
+            Point on the manifold. Point to transport to.
+
+        Returns
+        -------
+        transported_tangent_vec : array-like, shape=[..., n, n]
+            Transported tangent vector at `end_point`.
+        """
+        if end_point is None:
+            end_point = self.exp(direction, base_point)
+
+        diag_ratio = MatrixOperations.diagonal(end_point) / MatrixOperations.diagonal(base_point)
+        sl_tangent_vec = MatrixOperations.to_strictly_lower_triangular(tangent_vec)
+        diag_tangent_vec = MatrixOperations.diagonal(tangent_vec)
+        return sl_tangent_vec + gs.diag_embed(diag_ratio * diag_tangent_vec)
+
+    def injectivity_radius(self, base_point=None):
+        """Radius of the largest ball where the exponential is injective.
+
+        The space is isometric to a Euclidean space, so the injectivity
+        radius is infinite everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        radius = gs.array(math.inf)
+        return repeat_out(self._space.point_ndim, radius, base_point)
 
     def squared_dist(self, point_a, point_b):
         """Compute the Cholesky Metric squared distance.
@@ -280,15 +367,15 @@ class CholeskyMetric(RiemannianMetric):
         _ : array-like, shape=[...]
             Riemannian squared distance.
         """
-        log_diag_a = gs.log(Matrices.diagonal(point_a))
-        log_diag_b = gs.log(Matrices.diagonal(point_b))
+        log_diag_a = gs.log(MatrixOperations.diagonal(point_a))
+        log_diag_b = gs.log(MatrixOperations.diagonal(point_b))
         diag_diff = log_diag_a - log_diag_b
         squared_dist_diag = gs.sum((diag_diff) ** 2, axis=-1)
 
-        sl_a = Matrices.to_strictly_lower_triangular(point_a)
-        sl_b = Matrices.to_strictly_lower_triangular(point_b)
+        sl_a = MatrixOperations.to_strictly_lower_triangular(point_a)
+        sl_b = MatrixOperations.to_strictly_lower_triangular(point_b)
         sl_diff = sl_a - sl_b
-        squared_dist_sl = Matrices.frobenius_product(sl_diff, sl_diff)
+        squared_dist_sl = MatrixOperations.frobenius_product(sl_diff, sl_diff)
         return squared_dist_sl + squared_dist_diag
 
 
@@ -310,10 +397,10 @@ class InvariantPositiveLowerTriangularMatricesMetric(_InvariantMetricMatrix):
         inner_prod : array-like, shape=[...]
             Inner-product of the two tangent vectors.
         """
-        if Matrices.is_diagonal(self.metric_mat_at_identity):
+        if MatrixOperations.is_diagonal(self.metric_mat_at_identity):
             return super().inner_product_at_identity(tangent_vec_a, tangent_vec_b)
 
-        return gs.dot(
+        return gs.vecdot(
             gs.tril_to_vec(tangent_vec_a),
             gs.matvec(self.metric_mat_at_identity, gs.tril_to_vec(tangent_vec_b)),
         )
@@ -573,7 +660,7 @@ class PLTUnitDiagMatrices(LevelSet):
         -------
         submersed_point : array-like, shape=[..., n]
         """
-        return Matrices.diagonal(point) - gs.ones(self.n)
+        return MatrixOperations.diagonal(point) - gs.ones(self.n)
 
     def tangent_submersion(self, vector, point):
         """Tangent submersion.
@@ -587,7 +674,7 @@ class PLTUnitDiagMatrices(LevelSet):
         -------
         submersed_vector : array-like, shape=[..., n]
         """
-        submersed_vector = Matrices.diagonal(vector)
+        submersed_vector = MatrixOperations.diagonal(vector)
         if point is not None and point.ndim > vector.ndim:
             return gs.broadcast_to(submersed_vector, point.shape[:-1])
 
@@ -607,8 +694,8 @@ class PLTUnitDiagMatrices(LevelSet):
             Projected point.
         """
         proj_point = self.embedding_space.projection(point)
-        return proj_point + gs.vec_to_diag(
-            1 - gs.diagonal(proj_point, axis1=-2, axis2=-1)
+        return proj_point + gs.diag_embed(
+            1 - gs.diagonal(proj_point)
         )
 
     def to_tangent(self, vector, base_point):
@@ -630,8 +717,8 @@ class PLTUnitDiagMatrices(LevelSet):
             Tangent vector at base point.
         """
         tangent_vec = self.embedding_space.to_tangent(vector, base_point)
-        return tangent_vec - gs.vec_to_diag(
-            gs.diagonal(tangent_vec, axis1=-2, axis2=-1)
+        return tangent_vec - gs.diag_embed(
+            gs.diagonal(tangent_vec)
         )
 
     def random_point(self, n_samples=1, bound=1.0):

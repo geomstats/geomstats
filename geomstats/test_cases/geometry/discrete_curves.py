@@ -65,11 +65,11 @@ def elastic_distance(space, point_a, point_b, a=1.0, b=0.5):
     length_a = space.length(point_a)
     length_b = space.length(point_b)
 
-    velocity_a_norm = gs.linalg.norm(velocity_a, axis=-1)
-    velocity_b_norm = gs.linalg.norm(velocity_b, axis=-1)
+    velocity_a_norm = gs.linalg.vector_norm(velocity_a, axis=-1)
+    velocity_b_norm = gs.linalg.vector_norm(velocity_b, axis=-1)
 
     aux_theta = gs.arccos(
-        gs.dot(velocity_a, velocity_b) / (velocity_a_norm * velocity_b_norm)
+        gs.vecdot(velocity_a, velocity_b) / (velocity_a_norm * velocity_b_norm)
     )
     max_value = gs.pi / lambda_
 

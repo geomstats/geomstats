@@ -39,7 +39,7 @@ def main():
 
     initial_point = gs.array([gs.sqrt(2.0), 1.0, 0.0])
     stack_initial_point = gs.stack([initial_point] * space.n_disks, axis=0)
-    initial_point = gs.to_ndarray(stack_initial_point, to_ndim=3)
+    initial_point = gs.expand_dims_to(stack_initial_point, ndim=3)
 
     end_point_intrinsic = gs.array([1.5, 1.5])
     end_point_intrinsic = gs.reshape(end_point_intrinsic, (1, 1, 2))
@@ -48,7 +48,7 @@ def main():
 
     vector = gs.array([3.5, 0.6, 0.8])
     stack_vector = gs.stack([vector] * space.n_disks, axis=0)
-    vector = gs.to_ndarray(stack_vector, to_ndim=3)
+    vector = gs.expand_dims_to(stack_vector, ndim=3)
     initial_tangent_vec = space.to_tangent(vector=vector, base_point=initial_point)
     fig = plt.figure()
     plot_geodesic_between_two_points(

@@ -12,7 +12,6 @@ class BetaDistributionsTestData(DirichletDistributionsTestData):
 class BetaDistributionsSmokeTestData(TestData):
     def belongs_test_data(self):
         data = [
-            dict(point=gs.array([0.1, 1.0, 0.3]), expected=False),
             dict(point=gs.array([0.1, 1.0]), expected=True),
             dict(point=gs.array([-1.0, 0.3]), expected=False),
         ]

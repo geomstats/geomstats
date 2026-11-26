@@ -4,6 +4,7 @@ Lead author: Anna Calissano.
 """
 
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
@@ -70,8 +71,7 @@ class FullRankMatrices(VectorSpaceOpenSet):
             Projected point.
         """
         belongs = self.belongs(point)
-        regularization = gs.einsum(
-            "...,ij->...ij",
+        regularization = scalarmatmul(
             gs.where(~belongs, gs.atol, 0.0),
             gs.eye(self.embedding_space.shape[0], self.embedding_space.shape[1]),
         )

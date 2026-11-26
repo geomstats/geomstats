@@ -134,7 +134,7 @@ class LocalizationTestData(TestData):
         rotation = gs.array(
             [[gs.cos(angle), -gs.sin(angle)], [gs.sin(angle), gs.cos(angle)]]
         )
-        expected = gs.matvec(gs.transpose(rotation), gs.array([-0.3, 0.1]))
+        expected = gs.matvec(gs.matrix_transpose(rotation), gs.array([-0.3, 0.1]))
 
         data = [
             dict(

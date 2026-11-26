@@ -162,11 +162,13 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         cluster_centers = self._pick_init_cluster_centers(X)
         self.init_cluster_centers_ = gs.copy(cluster_centers)
 
-        dists = [
-            gs.to_ndarray(self.space.metric.dist(cluster_centers[i], X), 2, 1)
-            for i in range(self.n_clusters)
-        ]
-        dists = gs.hstack(dists)
+        dists = gs.stack(
+            [
+                self.space.metric.dist(cluster_centers[i], X)
+                for i in range(self.n_clusters)
+            ],
+            axis=-1,
+        )
         self.labels_ = gs.argmin(dists, 1)
 
         for index in range(self.max_iter):
@@ -183,11 +185,13 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                 else:
                     cluster_centers[i] = X[randint(0, n_samples - 1)]
 
-            dists = [
-                gs.to_ndarray(self.space.metric.dist(cluster_centers[i], X), 2, 1)
-                for i in range(self.n_clusters)
-            ]
-            dists = gs.hstack(dists)
+            dists = gs.stack(
+                [
+                    self.space.metric.dist(cluster_centers[i], X)
+                    for i in range(self.n_clusters)
+                ],
+                axis=-1,
+            )
             self.labels_ = gs.argmin(dists, 1)
             dists_to_closest_cluster_center = gs.amin(dists, 1)
             self.inertia_ = gs.sum(dists_to_closest_cluster_center**2)

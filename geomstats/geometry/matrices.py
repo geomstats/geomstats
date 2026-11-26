@@ -8,9 +8,10 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import flip_determinant, from_vector_to_diagonal_matrix
 from geomstats.geometry.base import MatrixVectorSpace
-from geomstats.geometry.diffeo import VectorSpaceDiffeo
-from geomstats.geometry.euclidean import EuclideanMetric
-from geomstats.vectorization import repeat_out
+from geomstats.geometry.connection import FlatMixin
+from geomstats.geometry.diffeo import LinearIsomorphism
+from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import check_is_batch, repeat_out
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ def matrix_matrix_transpose(point):
     mat : array-like, shape=[n, n]
         Matrix resulting from operation.
     """
-    return Matrices.mul(point, gs.transpose(point))
+    return gs.matmul(point, gs.matrix_transpose(point))
 
 
 def tangent_matrix_matrix_transpose(tangent_vec, base_point):
@@ -55,12 +56,12 @@ def tangent_matrix_matrix_transpose(tangent_vec, base_point):
     image_tangent_vec : array-like, shape=[n, n]
         Matrix resulting from operation.
     """
-    return Matrices.mul(tangent_vec, gs.transpose(base_point)) + Matrices.mul(
-        base_point, gs.transpose(tangent_vec)
+    return gs.matmul(tangent_vec, gs.matrix_transpose(base_point)) + gs.matmul(
+        base_point, gs.matrix_transpose(tangent_vec)
     )
 
 
-class FlattenDiffeo(VectorSpaceDiffeo):
+class FlattenDiffeo(LinearIsomorphism):
     """A diffeo from matrices to Euclidean by flattening.
 
     Parameters
@@ -88,7 +89,7 @@ class FlattenDiffeo(VectorSpaceDiffeo):
         """
         if base_point is None:
             return None
-        return Matrices.flatten(base_point)
+        return MatrixOperations.flatten(base_point)
 
     def inverse(self, image_point=None):
         r"""Inverse diffeomorphism at image point.
@@ -110,7 +111,7 @@ class FlattenDiffeo(VectorSpaceDiffeo):
         return gs.reshape(image_point, image_point.shape[:-1] + (self.m, self.n))
 
 
-class BasisRepresentationDiffeo(VectorSpaceDiffeo):
+class BasisRepresentationDiffeo(LinearIsomorphism):
     """A diffeo from matrices to Euclidean through basis representation.
 
     Parameters
@@ -159,49 +160,8 @@ class BasisRepresentationDiffeo(VectorSpaceDiffeo):
         return self._space.matrix_representation(image_point)
 
 
-class Matrices(MatrixVectorSpace):
-    """Class for the space of matrices (m, n).
-
-    Parameters
-    ----------
-    m, n : int
-        Integers representing the shapes of the matrices: m x n.
-    """
-
-    def __init__(self, m, n, equip=True):
-        geomstats.errors.check_integer(n, "n")
-        geomstats.errors.check_integer(m, "m")
-
-        super().__init__(shape=(m, n), equip=equip)
-        self.m = m
-        self.n = n
-
-    def _create_basis(self):
-        """Create the canonical basis."""
-        m, n = self.m, self.n
-        return gs.reshape(gs.eye(n * m), (n * m, m, n))
-
-    @staticmethod
-    def default_metric():
-        """Metric to equip the space with if equip is True."""
-        return MatricesMetric
-
-    def basis_representation(self, matrix_representation):
-        """Compute the coefficient in the usual matrix basis.
-
-        This simply flattens the input.
-
-        Parameters
-        ----------
-        matrix_representation : array-like, shape=[..., n, n]
-            Matrix.
-
-        Returns
-        -------
-        basis_representation : array-like, shape=[..., dim]
-            Representation in the basis.
-        """
-        return self.flatten(matrix_representation)
+class MatrixOperations:
+    """Operations on matrices."""
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
@@ -261,7 +221,7 @@ class Matrices(MatrixVectorSpace):
         mat_c : array-like, shape=[..., n, n]
             Commutator.
         """
-        return cls.mul(mat_a, mat_b) - cls.mul(mat_b, mat_a)
+        return gs.matmul(mat_a, mat_b) - gs.matmul(mat_b, mat_a)
 
     @staticmethod
     def diagonal(mat):
@@ -277,7 +237,7 @@ class Matrices(MatrixVectorSpace):
         diagonal : array-like, shape=[..., min(m, n)]
             Vector of diagonal coefficients.
         """
-        return gs.diagonal(mat, axis1=-2, axis2=-1)
+        return gs.diagonal(mat)
 
     @staticmethod
     def is_square(mat):
@@ -413,7 +373,7 @@ class Matrices(MatrixVectorSpace):
         is_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric.
         """
-        return cls.equal(mat, gs.transpose(mat), atol)
+        return cls.equal(mat, gs.matrix_transpose(mat), atol)
 
     @classmethod
     def is_pd(cls, mat):
@@ -428,16 +388,22 @@ class Matrices(MatrixVectorSpace):
         -------
         is_pd : array-like, shape=[...,]
             Boolean evaluating if the matrix is positive definite.
+
+        Notes
+        -----
+        A real matrix is checked through the eigenvalues of its lower
+        triangle, as a Cholesky decomposition would. A complex matrix must
+        also be hermitian.
         """
-        if mat.ndim == 2:
-            return gs.array(gs.linalg.is_single_matrix_pd(mat))
+        if mat.shape[-1] != mat.shape[-2]:
+            return gs.zeros(mat.shape[:-2]) > 0
 
-        shape = mat.shape
-        if mat.ndim > 3:
-            mat = gs.reshape(mat, (-1,) + shape[-2:])
+        is_pd = gs.all(gs.linalg.eigvalsh(mat) > 0, axis=-1)
+        if gs.is_complex(mat):
+            is_hermitian = cls.equal(mat, gs.conj(gs.matrix_transpose(mat)))
+            is_pd = gs.logical_and(is_hermitian, is_pd)
 
-        is_pd = gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
-        return gs.reshape(is_pd, shape[:-2])
+        return is_pd
 
     @classmethod
     def is_spd(cls, mat, atol=gs.atol):
@@ -475,7 +441,7 @@ class Matrices(MatrixVectorSpace):
         is_skew_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is skew-symmetric.
         """
-        return cls.equal(mat, -gs.transpose(mat), atol)
+        return cls.equal(mat, -gs.matrix_transpose(mat), atol)
 
     @classmethod
     def to_diagonal(cls, mat):
@@ -586,7 +552,7 @@ class Matrices(MatrixVectorSpace):
         sym : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        return 1 / 2 * (mat + gs.transpose(mat))
+        return 1 / 2 * (mat + gs.matrix_transpose(mat))
 
     @classmethod
     def to_skew_symmetric(cls, mat):
@@ -605,7 +571,7 @@ class Matrices(MatrixVectorSpace):
         skew_sym : array-like, shape=[..., n, n]
             Skew-symmetric matrix.
         """
-        return 1 / 2 * (mat - gs.transpose(mat))
+        return 1 / 2 * (mat - gs.matrix_transpose(mat))
 
     @classmethod
     def to_lower_triangular_diagonal_scaled(cls, mat, K=2.0):
@@ -628,28 +594,6 @@ class Matrices(MatrixVectorSpace):
         diag = cls.to_diagonal(mat) / K
         return slt + diag
 
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample from a uniform distribution in a cube.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Bound of the interval in which to sample each entry.
-            Optional, default: 1.
-
-        Returns
-        -------
-        point : array-like, shape=[..., m, n]
-            Sample.
-        """
-        m, n = self.m, self.n
-        size = (n_samples, m, n) if n_samples != 1 else (m, n)
-        point = bound * (gs.random.rand(*size) - 0.5)
-        return point
-
     @classmethod
     def congruent(cls, mat_1, mat_2):
         r"""Compute the congruent action of mat_2 on mat_1.
@@ -668,7 +612,7 @@ class Matrices(MatrixVectorSpace):
         cong : array-like, shape=[..., n, n]
             Result of the congruent action.
         """
-        return cls.mul(mat_2, mat_1, gs.transpose(mat_2))
+        return cls.mul(mat_2, mat_1, gs.matrix_transpose(mat_2))
 
     @staticmethod
     def frobenius_product(mat_1, mat_2):
@@ -717,11 +661,9 @@ class Matrices(MatrixVectorSpace):
         """Return a flattened form of the matrix.
 
         Flatten a matrix (compatible with vectorization on data axis 0).
-        The reverse operation is reshape. These operations are often called
-        matrix vectorization / matricization in mathematics
-        (https://en.wikipedia.org/wiki/Tensor_reshaping).
-        The names flatten / reshape were chosen to avoid  confusion with
-        vectorization on data axis 0.
+        The reverse operation is `Matrices.matrix_representation`. These
+        operations are often called matrix vectorization / matricization in
+        mathematics (https://en.wikipedia.org/wiki/Tensor_reshaping).
 
         Parameters
         ----------
@@ -736,41 +678,6 @@ class Matrices(MatrixVectorSpace):
         batch_shape = mat.shape[:-2]
         mat_shape = mat.shape[-2:]
         return gs.reshape(mat, batch_shape + (math.prod(mat_shape),))
-
-    def reshape(self, vec):
-        """Return a matricized form of the vector.
-
-        Matricize a vector (compatible with vectorization on data axis 0).
-        The reverse operation is matrices.flatten. These operations are often
-        called matrix vectorization / matricization in mathematics
-        (https://en.wikipedia.org/wiki/Tensor_reshaping).
-        The names flatten / reshape were chosen to avoid  confusion with
-        vectorization on data axis 0.
-
-        Parameters
-        ----------
-        vec : array-like, shape=[..., m * n]
-            Vector.
-
-        Returns
-        -------
-        mat : array-like, shape=[..., m, n]
-            Matricized copy of vec.
-        """
-        is_data_vectorized_on_axis_0 = gs.ndim(gs.array(vec)) == 2
-        if is_data_vectorized_on_axis_0:
-            vector_size = vec.shape[1]
-            shape = (vec.shape[0], self.m, self.n)
-        else:
-            vector_size = vec.shape[0]
-            shape = (
-                self.m,
-                self.n,
-            )
-
-        if vector_size != self.m * self.n:
-            raise ValueError("Incompatible vector and matrix sizes")
-        return gs.reshape(vec, shape)
 
     @classmethod
     def align_matrices(cls, point, base_point, flip=True):
@@ -793,7 +700,7 @@ class Matrices(MatrixVectorSpace):
         aligned : array-like, shape=[..., m, n]
             R.point.
         """
-        mat = gs.matmul(gs.transpose(point), base_point)
+        mat = gs.matmul(gs.matrix_transpose(point), base_point)
         left, singular_values, right = gs.linalg.svd(mat, full_matrices=False)
         det = gs.linalg.det(mat)
         conditioning = (
@@ -808,13 +715,272 @@ class Matrices(MatrixVectorSpace):
             logger.warning("Alignment matrix is not unique.")
 
         if flip:
-            flipped = flip_determinant(gs.transpose(right), det)
+            flipped = flip_determinant(gs.matrix_transpose(right), det)
         else:
-            flipped = gs.transpose(right)
-        return Matrices.mul(point, left, gs.transpose(flipped))
+            flipped = gs.matrix_transpose(right)
+        return MatrixOperations.mul(point, left, gs.matrix_transpose(flipped))
 
 
-class MatricesMetric(EuclideanMetric):
+class Matrices(MatrixVectorSpace):
+    """Class for the space of matrices (m, n).
+
+    Parameters
+    ----------
+    m, n : int
+        Integers representing the shapes of the matrices: m x n.
+    """
+
+    def __init__(self, m, n, equip=True):
+        geomstats.errors.check_integer(n, "n")
+        geomstats.errors.check_integer(m, "m")
+
+        super().__init__(shape=(m, n), equip=equip)
+        self.m = m
+        self.n = n
+
+    def _create_basis(self):
+        """Create the canonical basis."""
+        m, n = self.m, self.n
+        return gs.reshape(gs.eye(n * m), (n * m, m, n))
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return MatricesMetric
+
+    def basis_representation(self, matrix_representation):
+        """Compute the coefficient in the usual matrix basis.
+
+        This simply flattens the input.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., dim]
+            Representation in the basis.
+        """
+        return MatrixOperations.flatten(matrix_representation)
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample from a uniform distribution in a cube.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample each entry.
+            Optional, default: 1.
+
+        Returns
+        -------
+        point : array-like, shape=[..., m, n]
+            Sample.
+        """
+        m, n = self.m, self.n
+        size = (n_samples, m, n) if n_samples != 1 else (m, n)
+        point = bound * (gs.random.rand(*size) - 0.5)
+        return point
+
+    def matrix_representation(self, basis_representation):
+        """Compute the matrix representation for the given basis coefficients.
+
+        The coefficients in the canonical basis are the flattened entries of
+        the matrix, so this reshapes them into a matrix.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., m * n]
+            Coefficients in the basis.
+
+        Returns
+        -------
+        matrix_representation : array-like, shape=[..., m, n]
+            Matrix.
+        """
+        return gs.reshape(
+            basis_representation, basis_representation.shape[:-1] + (self.m, self.n)
+        )
+
+
+class MatricesEuclideanMetric(FlatMixin, RiemannianMetric):
+    """Class for flat metrics on matrix vector spaces.
+
+    The inner product is independent of the base point, so the exponential
+    and logarithm are the addition and the subtraction, geodesics are
+    straight lines and the parallel transport is the identity. The inner
+    product itself is defined by the subclasses.
+    """
+
+    def exp(self, tangent_vec, base_point):
+        """Compute exp map of a base point in tangent vector direction.
+
+        The Riemannian exponential is vector addition in the vector space.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *shape]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., *shape]
+            Riemannian exponential.
+        """
+        return base_point + tangent_vec
+
+    def log(self, point, base_point):
+        """Compute log map using a base point and other point.
+
+        The Riemannian logarithm is the subtraction in the vector space.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *shape]
+            Point.
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+
+        Returns
+        -------
+        log : array-like, shape=[..., *shape]
+            Riemannian logarithm.
+        """
+        return point - base_point
+
+    def parallel_transport(
+        self, tangent_vec, base_point=None, direction=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
+
+        On a vector space, the parallel transport of a (tangent) vector
+        returns the vector itself.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *shape]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., *shape]
+            Point on the manifold. Point to transport from.
+            Optional, default: None
+        direction : array-like, shape=[..., *shape]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+            Optional, default: None.
+        end_point : array-like, shape=[..., *shape]
+            Point on the manifold. Point to transport to.
+            Optional, default: None.
+
+        Returns
+        -------
+        transported_tangent_vec : array-like, shape=[..., *shape]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+        """
+        transported_tangent_vec = gs.copy(tangent_vec)
+        return repeat_out(
+            self._space.point_ndim,
+            transported_tangent_vec,
+            tangent_vec,
+            base_point,
+            direction,
+            end_point,
+            out_shape=self._space.shape,
+        )
+
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
+        """Generate parameterized function for the geodesic curve.
+
+        Geodesic curve defined by either:
+
+        - an initial point and an initial tangent vector,
+        - an initial point and an end point.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., *shape]
+            Point on the manifold, initial point of the geodesic.
+        end_point : array-like, shape=[..., *shape], optional
+            Point on the manifold, end point of the geodesic. If None,
+            an initial tangent vector must be given.
+        initial_tangent_vec : array-like, shape=[..., *shape], optional
+            Tangent vector at base point, the initial speed of the geodesics.
+            Optional, default: None.
+            If None, an end point must be given and a logarithm is computed.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve. If a batch of initial
+            conditions is passed, the output array's first dimension
+            represents the different initial conditions, and the second
+            corresponds to time.
+        """
+        if end_point is None and initial_tangent_vec is None:
+            raise ValueError(
+                "Specify an end point or an initial tangent "
+                "vector to define the geodesic."
+            )
+        if end_point is not None:
+            if initial_tangent_vec is not None:
+                raise ValueError(
+                    "Cannot specify both an end point and an initial tangent vector."
+                )
+
+            initial_tangent_vec = self.log(end_point, initial_point)
+
+        is_batch = check_is_batch(
+            self._space.point_ndim, initial_point, initial_tangent_vec
+        )
+        if is_batch:
+            initial_point = gs.expand_dims(
+                initial_point, axis=-(self._space.point_ndim + 1)
+            )
+
+        ijk = "ijk"[: self._space.point_ndim]
+
+        def path(t):
+            """Generate parameterized function for geodesic curve.
+
+            Parameters
+            ----------
+            t : array-like, shape=[n_points,]
+                Times at which to compute points of the geodesics.
+            """
+            t = gs.expand_dims_to(gs.array(t, dtype=initial_tangent_vec.dtype), ndim=1)
+            tangent_vecs = gs.einsum(f"n,...{ijk}->...n{ijk}", t, initial_tangent_vec)
+            return initial_point + tangent_vecs
+
+        return path
+
+    def injectivity_radius(self, base_point=None):
+        """Compute the radius of the injectivity domain.
+
+        This is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        radius = gs.array(math.inf)
+        return repeat_out(self._space.point_ndim, radius, base_point)
+
+
+class MatricesMetric(MatricesEuclideanMetric):
     """Euclidean metric on matrices given by Frobenius inner-product."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -835,7 +1001,7 @@ class MatricesMetric(EuclideanMetric):
         inner_prod : array-like, shape=[...,]
             Frobenius inner-product of tangent_vec_a and tangent_vec_b.
         """
-        inner_prod = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        inner_prod = MatrixOperations.frobenius_product(tangent_vec_a, tangent_vec_b)
         return repeat_out(
             self._space.point_ndim, inner_prod, tangent_vec_a, tangent_vec_b, base_point
         )
@@ -859,9 +1025,7 @@ class MatricesMetric(EuclideanMetric):
         sq_norm : array-like, shape=[...,]
             Squared norm.
         """
-        init_axis = len(vector.shape[:-2])
-        axis = (init_axis, init_axis + 1)
-        sq_norm = gs.linalg.norm(vector, axis=axis) ** 2
+        sq_norm = gs.linalg.matrix_norm(vector) ** 2
         return repeat_out(self._space.point_ndim, sq_norm, vector, base_point)
 
     def norm(self, vector, base_point=None):
@@ -882,11 +1046,65 @@ class MatricesMetric(EuclideanMetric):
         norm : array-like, shape=[...,]
             Norm.
         """
-        norm = gs.linalg.norm(vector, axis=(-2, -1))
+        norm = gs.linalg.matrix_norm(vector)
         return repeat_out(self._space.point_ndim, norm, vector, base_point)
 
+    def flat(self, tangent_vec, base_point=None):
+        """Map a tangent vector to a covector under the Frobenius pairing.
 
-class MatricesDiagMetric(EuclideanMetric):
+        The Frobenius metric is the Frobenius pairing itself, so this is the
+        identity.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *shape]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        cotangent_vec : array-like, shape=[..., *shape]
+            Matrix representing the covector.
+        """
+        return repeat_out(
+            self._space.point_ndim,
+            gs.copy(tangent_vec),
+            tangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )
+
+    def sharp(self, cotangent_vec, base_point=None):
+        """Map a covector to a tangent vector under the Frobenius pairing.
+
+        The Frobenius metric is the Frobenius pairing itself, so this is the
+        identity.
+
+        Parameters
+        ----------
+        cotangent_vec : array-like, shape=[..., *shape]
+            Matrix representing the covector.
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *shape]
+            Tangent vector at base point.
+        """
+        return repeat_out(
+            self._space.point_ndim,
+            gs.copy(cotangent_vec),
+            cotangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )
+
+
+class MatricesDiagMetric(MatricesEuclideanMetric):
     """Flat metric on matrices given by a diagonal metric matrix.
 
     Parameters
@@ -943,7 +1161,61 @@ class MatricesDiagMetric(EuclideanMetric):
         we just need to multiply each element of the tangent vector by the corresponding
         diagonal coefficient. (Avoids unnecessary reshapings.)
         """
-        inner_prod = Matrices.frobenius_product(
+        inner_prod = MatrixOperations.frobenius_product(
             tangent_vec_a, self.metric_coeffs * tangent_vec_b
         )
         return repeat_out(2, inner_prod, tangent_vec_a, tangent_vec_b, base_point)
+
+    def flat(self, tangent_vec, base_point=None):
+        """Map a tangent vector to a covector under the Frobenius pairing.
+
+        The covector is the tangent vector weighted by the metric
+        coefficients.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., m, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        cotangent_vec : array-like, shape=[..., m, n]
+            Matrix representing the covector.
+        """
+        return repeat_out(
+            self._space.point_ndim,
+            self.metric_coeffs * tangent_vec,
+            tangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )
+
+    def sharp(self, cotangent_vec, base_point=None):
+        """Map a covector to a tangent vector under the Frobenius pairing.
+
+        The tangent vector is the covector divided by the metric
+        coefficients.
+
+        Parameters
+        ----------
+        cotangent_vec : array-like, shape=[..., m, n]
+            Matrix representing the covector.
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., m, n]
+            Tangent vector at base point.
+        """
+        return repeat_out(
+            self._space.point_ndim,
+            cotangent_vec / self.metric_coeffs,
+            cotangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )

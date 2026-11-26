@@ -3,10 +3,8 @@ import random
 import pytest
 
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.information_geometry.multinomial import (
-    MultinomialDistributions,
-    SimplexToPositiveHypersphere,
-)
+from geomstats.geometry.simplex import SqrtDiffeo
+from geomstats.information_geometry.multinomial import MultinomialDistributions
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import DiffeoBasedRandomDataGenerator
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
@@ -28,7 +26,7 @@ class TestSimplexToPositiveHypersphere(DiffeoTestCase, metaclass=DataBasedParame
     dim = random.randint(2, 5)
     space = MultinomialDistributions(dim=dim, n_draws=1, equip=False)
     image_space = Hypersphere(dim=dim, equip=False)
-    diffeo = SimplexToPositiveHypersphere()
+    diffeo = SqrtDiffeo()
 
     image_data_generator = DiffeoBasedRandomDataGenerator(space, diffeo)
 

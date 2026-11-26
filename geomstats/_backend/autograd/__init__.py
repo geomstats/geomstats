@@ -18,10 +18,8 @@ from autograd.numpy import (
     argmax,
     argmin,
     asarray,
-    broadcast_arrays,
     broadcast_to,
     ceil,
-    clip,
     complex64,
     complex128,
     concatenate,
@@ -31,8 +29,6 @@ from autograd.numpy import (
     cross,
     cumprod,
     cumsum,
-    diag_indices,
-    diagonal,
     einsum,
     empty,
     empty_like,
@@ -51,28 +47,25 @@ from autograd.numpy import (
     int64,
     isclose,
     isnan,
-    kron,
     less,
     less_equal,
     linspace,
     log,
     logical_and,
     logical_or,
+    matrix_transpose,
+    matvec,
     maximum,
     mean,
-    median,
     meshgrid,
     minimum,
     mod,
     moveaxis,
     ones,
     ones_like,
-    pad,
     permute_dims,
     power,
     prod,
-    quantile,
-    ravel_multi_index,
     repeat,
     reshape,
     searchsorted,
@@ -90,6 +83,7 @@ from autograd.numpy import (
     tan,
     tanh,
     tile,
+    trapezoid,
     tril,
     tril_indices,
     triu,
@@ -99,16 +93,11 @@ from autograd.numpy import (
     vstack,
     zeros_like,
 )
-
-try:
-    from autograd.numpy import trapezoid
-except ImportError:
-    from autograd.numpy import trapz as trapezoid
-
+from autograd.numpy.linalg import diagonal, vecdot
 from autograd.scipy.special import erf, gamma, polygamma  # NOQA
 
-
 from . import (
+    _vjps,  # NOQA
     autodiff,  # NOQA
     linalg,  # NOQA
     random,  # NOQA
@@ -116,19 +105,16 @@ from . import (
 from ._common import (
     array,
     atol,
+    expand_dims_to,
     eye,
     is_array,
     rtol,
-    to_ndarray,
+    scatter_add,
     zeros,
-    _is_boolean,
-    _is_iterable,
 )
 from ._dtype import (
-    _get_wider_dtype,
     as_dtype,
     cast,
-    convert_to_wider_dtype,
     get_default_cdtype,
     get_default_dtype,
     is_bool,
@@ -148,15 +134,31 @@ def has_autodiff():
     return True
 
 
+def broadcast_arrays(*arrays):
+    """Broadcast arrays against each other.
+
+    Built on ``broadcast_to``, which autograd can differentiate.
+    """
+    target_shape = _np.broadcast_shapes(*[shape(array) for array in arrays])
+    return tuple(broadcast_to(array, target_shape) for array in arrays)
+
+
 def outer(a, b):
-    if a.ndim > 1 and b.ndim > 1:
-        return _np.einsum("...i,...j->...ij", a, b)
+    """Compute the outer product of vectors.
 
-    out = _np.outer(a, b).reshape(a.shape + b.shape)
-    if b.ndim > 1:
-        out = out.swapaxes(0, -2)
+    Parameters
+    ----------
+    a : array-like, shape=[..., n]
+        Vector.
+    b : array-like, shape=[..., m]
+        Vector.
 
-    return out
+    Returns
+    -------
+    outer_ab : array-like, shape=[..., n, m]
+        Outer product.
+    """
+    return a[..., :, None] * b[..., None, :]
 
 
 def to_numpy(x):
@@ -203,22 +205,6 @@ def ndim(x):
     return x.ndim
 
 
-def transpose(x):
-    """Return the transpose of a matrix.
-
-    Parameters
-    ----------
-    x : array-like, shape=[..., n, m]
-        Matrix.
-
-    Returns
-    -------
-    transpose : array-like, shape=[..., n, m]
-        Transposed matrix.
-    """
-    return _np.swapaxes(x, -1, -2)
-
-
 def where(condition, x=None, y=None):
     """Return elements chosen from x or y depending on condition.
 
@@ -240,36 +226,6 @@ def where(condition, x=None, y=None):
         return _np.where(condition)
 
     return _np.where(array(condition), x, y)
-
-
-def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
-    if multiple_args:
-        return _np.vectorize(pyfunc, signature=signature)(*x)
-    return _np.vectorize(pyfunc, signature=signature)(x)
-
-
-def set_diag(x, new_diag):
-    """Set the diagonal along the last two axis.
-
-    Parameters
-    ----------
-    x : array-like, shape=[dim]
-        Initial array.
-    new_diag : array-like, shape=[dim[-2]]
-        Values to set on the diagonal.
-
-    Returns
-    -------
-    None
-
-    Notes
-    -----
-    This mimics tensorflow.linalg.set_diag(x, new_diag), when new_diag is a
-    1-D array, but modifies x instead of creating a copy.
-    """
-    arr_shape = x.shape
-    x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
-    return x
 
 
 def array_from_sparse(indices, data, target_shape):
@@ -297,58 +253,156 @@ def array_from_sparse(indices, data, target_shape):
     return out
 
 
-def vec_to_diag(vec):
-    """Convert vector to diagonal matrix."""
-    d = vec.shape[-1]
-    return _np.squeeze(vec[..., None, :] * eye(d, dtype=vec.dtype)[None, :, :])
+def diag_embed(vec, offset=0):
+    """Embed vectors as a diagonal of matrices, over the last two axes.
+
+    It is the inverse of ``diagonal``, for the same offset.
+
+    Parameters
+    ----------
+    vec : array-like, shape=[..., n]
+        Vector.
+    offset : int
+        Offset of the diagonal from the main diagonal.
+
+    Returns
+    -------
+    mat : array-like, shape=[..., n + |offset|, n + |offset|]
+        Matrix, with the vector as its diagonal and zeros elsewhere.
+    """
+    n = vec.shape[-1]
+    if offset == 0:
+        return vec[..., None] * eye(n, dtype=vec.dtype)
+
+    size = n + abs(offset)
+    rows = eye(n, size, k=max(-offset, 0), dtype=vec.dtype)
+    cols = eye(n, size, k=max(offset, 0), dtype=vec.dtype)
+    return _np.matmul(_np.matrix_transpose(rows) * vec[..., None, :], cols)
 
 
 def tril_to_vec(x, k=0):
+    """Get the lower triangular part of square matrices as vectors.
+
+    It is the inverse of ``tril_embed``, for the same ``k``. The entries are
+    taken row by row.
+
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, n]
+        Square matrix.
+    k : int
+        Diagonal bounding the triangular part, e.g. 0 to include the main
+        diagonal and -1 to exclude it.
+
+    Returns
+    -------
+    vec : array-like, shape=[..., m]
+        Vector, with ``m`` the number of entries of the triangular part.
+    """
     n = x.shape[-1]
     rows, cols = _np.tril_indices(n, k=k)
     return x[..., rows, cols]
 
 
 def triu_to_vec(x, k=0):
+    """Get the upper triangular part of square matrices as vectors.
+
+    It is the inverse of ``triu_embed``, for the same ``k``. The entries are
+    taken row by row.
+
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, n]
+        Square matrix.
+    k : int
+        Diagonal bounding the triangular part, e.g. 0 to include the main
+        diagonal and 1 to exclude it.
+
+    Returns
+    -------
+    vec : array-like, shape=[..., m]
+        Vector, with ``m`` the number of entries of the triangular part.
+    """
     n = x.shape[-1]
     rows, cols = _np.triu_indices(n, k=k)
     return x[..., rows, cols]
 
 
-def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
-    """Build matrix from given components.
+def _tri_embed(vec, k, tri_indices):
+    """Embed vectors as a triangular part of square matrices, with a gather.
 
-    Forms a matrix from diagonal, strictly upper triangular and
-    strictly lower traingular parts.
+    The vector is padded with a zero, at which the entries outside the
+    triangular part point.
+    """
+    m = vec.shape[-1]
+    size = int(round(((8 * m + 1) ** 0.5 - 1) / 2))
+    if size * (size + 1) // 2 != m:
+        raise ValueError(f"No triangular part of a square matrix has {m} entries.")
+
+    n = size + (k if k > 0 else -k)
+    rows, cols = tri_indices(n, k=k)
+    index = _np.full((n, n), m)
+    index[rows, cols] = _np.arange(m)
+
+    zero = _np.zeros(vec.shape[:-1] + (1,), dtype=vec.dtype)
+    return _np.concatenate([vec, zero], axis=-1)[..., index]
+
+
+def tril_embed(vec, k=0):
+    """Embed vectors as the lower triangular part of square matrices.
+
+    It is the inverse of ``tril_to_vec``, for the same ``k``. The entries are
+    placed row by row, and the rest of the matrix is zero.
 
     Parameters
     ----------
-    diag : array_like, shape=[..., n]
-    tri_upp : array_like, shape=[..., (n * (n - 1)) / 2]
-    tri_low : array_like, shape=[..., (n * (n - 1)) / 2]
+    vec : array-like, shape=[..., m]
+        Vector, whose size is the number of entries of the triangular part.
+    k : int
+        Diagonal bounding the triangular part: 0 to include the main
+        diagonal, -1 to exclude it. Requires ``k <= 0``.
 
     Returns
     -------
-    mat : array_like, shape=[..., n, n]
+    mat : array-like, shape=[..., n, n]
+        Matrix, with ``n`` such that the triangular part has ``m`` entries.
     """
-    diag, tri_upp, tri_low = convert_to_wider_dtype([diag, tri_upp, tri_low])
+    if k > 0:
+        raise ValueError("tril_embed requires k <= 0.")
+    return _tri_embed(vec, k, _np.tril_indices)
 
-    n = diag.shape[-1]
-    (i,) = _np.diag_indices(n, ndim=1)
-    j, k = _np.triu_indices(n, k=1)
-    mat = zeros(diag.shape + (n,), dtype=diag.dtype)
-    mat[..., i, i] = diag
-    mat[..., j, k] = tri_upp
-    mat[..., k, j] = tri_low
-    return mat
+
+def triu_embed(vec, k=0):
+    """Embed vectors as the upper triangular part of square matrices.
+
+    It is the inverse of ``triu_to_vec``, for the same ``k``. The entries are
+    placed row by row, and the rest of the matrix is zero.
+
+    Parameters
+    ----------
+    vec : array-like, shape=[..., m]
+        Vector, whose size is the number of entries of the triangular part.
+    k : int
+        Diagonal bounding the triangular part: 0 to include the main
+        diagonal, 1 to exclude it. Requires ``k >= 0``.
+
+    Returns
+    -------
+    mat : array-like, shape=[..., n, n]
+        Matrix, with ``n`` such that the triangular part has ``m`` entries.
+    """
+    if k < 0:
+        raise ValueError("triu_embed requires k >= 0.")
+    return _tri_embed(vec, k, _np.triu_indices)
 
 
 def divide(a, b, ignore_div_zero=False):
     if ignore_div_zero is False:
         return _np.divide(a, b)
 
-    wider_dtype, _ = _get_wider_dtype([a, b])
-    return _np.divide(a, b, out=zeros(a.shape, dtype=wider_dtype), where=b != 0)
+    return _np.divide(
+        a, b, out=zeros(a.shape, dtype=_np.result_type(a, b)), where=b != 0
+    )
 
 
 def matmul(*args, **kwargs):
@@ -358,56 +412,41 @@ def matmul(*args, **kwargs):
     return _np.matmul(*args, **kwargs)
 
 
-def matvec(A, b):
-    if b.ndim == 1:
-        return _np.matmul(A, b)
-    if A.ndim == 2:
-        return _np.matmul(A, b.T).T
-    return _np.einsum("...ij,...j->...i", A, b)
+def clip(x, min=None, max=None):
+    """Clip the values of an array between min and max.
 
-
-def dot(a, b):
-    if b.ndim == 1:
-        return _np.dot(a, b)
-
-    if a.ndim == 1:
-        return _np.dot(a, b.T)
-
-    return _np.einsum("...i,...i->...", a, b)
-
-
-def trace(a):
-    return _np.trace(a, axis1=-2, axis2=-1)
-
-
-def scatter_add(input, dim, index, src):
-    """Add values from src into input at the indices specified in index.
+    Same as ``np.clip``, with the Array API keywords. The bounds are passed
+    positionally, as autograd's VJP of ``np.clip`` only accepts ``a_min``
+    and ``a_max`` as positional arguments.
 
     Parameters
     ----------
-    input : array-like
-        Tensor to scatter values into.
-    dim : int
-        The axis along which to index.
-    index : array-like
-        The indices of elements to scatter.
-    src : array-like
-        The source element(s) to scatter.
+    x : array-like
+        Array.
+    min : float or array-like
+        Lower bound. If None, there is no lower bound.
+    max : float or array-like
+        Upper bound. If None, there is no upper bound.
 
     Returns
     -------
-    input : array-like
-        Modified input array.
+    clipped : array-like, shape=x.shape
+        Array with its values clipped.
     """
-    if dim == 0:
-        for i, val in zip(index, src):
-            input[i] += val
-        return input
-    if dim == 1:
-        for j in range(len(input)):
-            for i, val in zip(index[j], src[j]):
-                if not isinstance(val, _np.float64):
-                    val = float(val._value)
-                input[j, i] += float(val)
-        return input
-    raise NotImplementedError
+    return _np.clip(x, min, max)
+
+
+def trace(x):
+    """Compute the trace of square matrices, over the last two axes.
+
+    Parameters
+    ----------
+    x : array-like, shape=[..., n, n]
+        Square matrix.
+
+    Returns
+    -------
+    trace : array-like, shape=[...]
+        Trace.
+    """
+    return _np.linalg.trace(x)

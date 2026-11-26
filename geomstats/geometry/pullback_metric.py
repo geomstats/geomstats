@@ -4,13 +4,16 @@ Lead author: Nina Miolane.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.riemannian_metric import (
+    CoordinateRiemannianMetric,
+    RiemannianMetric,
+)
 from geomstats.numerics.geodesic import ExpODESolver, LogShootingSolver
 from geomstats.numerics.ivp import GSIVPIntegrator
 from geomstats.vectorization import check_is_batch
 
 
-class PullbackMetric(RiemannianMetric):
+class PullbackMetric(CoordinateRiemannianMetric):
     r"""Pullback metric.
 
     Let :math:`f` be an immersion :math:`f: M \rightarrow N`
@@ -189,24 +192,6 @@ class PullbackDiffeoMetric(RiemannianMetric):
         super().__init__(space, signature=signature)
         self.diffeo = diffeo
         self.image_space = image_space
-
-    def metric_matrix(self, base_point=None):
-        """Metric matrix at the tangent space at a base point.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., *shape]
-            Base point.
-
-        Returns
-        -------
-        mat : array-like, shape=[..., dim, dim]
-            Inner-product matrix.
-        """
-        raise NotImplementedError(
-            "The computation of the pullback metric matrix"
-            " is not implemented yet in general shape setting."
-        )
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
@@ -468,6 +453,71 @@ class PullbackDiffeoMetric(RiemannianMetric):
             image_curvature, image_point=image_base_point, base_point=base_point
         )
 
+    def curvature_derivative(
+        self,
+        tangent_vec_a,
+        tangent_vec_b,
+        tangent_vec_c,
+        tangent_vec_d,
+        base_point=None,
+    ):
+        r"""Compute the covariant derivative of the curvature.
+
+        The diffeomorphism is an isometry, so the covariant derivative of the
+        curvature is pulled back from the image space.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        tangent_vec_b : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        tangent_vec_c : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        tangent_vec_d : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        base_point : array-like, shape=[..., *shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        curvature_derivative : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        """
+        image_base_point = self.diffeo(base_point)
+        image_tangent_vec_a = self.diffeo.tangent(
+            tangent_vec_a,
+            base_point=base_point,
+            image_point=image_base_point,
+        )
+        image_tangent_vec_b = self.diffeo.tangent(
+            tangent_vec_b,
+            base_point=base_point,
+            image_point=image_base_point,
+        )
+        image_tangent_vec_c = self.diffeo.tangent(
+            tangent_vec_c,
+            base_point=base_point,
+            image_point=image_base_point,
+        )
+        image_tangent_vec_d = self.diffeo.tangent(
+            tangent_vec_d,
+            base_point=base_point,
+            image_point=image_base_point,
+        )
+        image_curvature_derivative = self.image_space.metric.curvature_derivative(
+            image_tangent_vec_a,
+            image_tangent_vec_b,
+            image_tangent_vec_c,
+            image_tangent_vec_d,
+            image_base_point,
+        )
+        return self.diffeo.inverse_tangent(
+            image_curvature_derivative,
+            image_point=image_base_point,
+            base_point=base_point,
+        )
+
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
     ):
@@ -518,3 +568,81 @@ class PullbackDiffeoMetric(RiemannianMetric):
         return self.diffeo.inverse_tangent(
             image_parallel_transport, image_point=image_end_point, base_point=end_point
         )
+
+    def injectivity_radius(self, base_point=None):
+        """Compute the radius of the injectivity domain.
+
+        The diffeomorphism is an isometry between the space and the image
+        space, so the injectivity radius is the one of the image metric at
+        the image of the base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        image_base_point = None if base_point is None else self.diffeo(base_point)
+        return self.image_space.metric.injectivity_radius(image_base_point)
+
+
+class CoordinatePullbackDiffeoMetric(PullbackDiffeoMetric, CoordinateRiemannianMetric):
+    """Pullback metric induced by a diffeomorphism, on a chart.
+
+    Points are represented by their ``dim`` coordinates. The metric matrix
+    is the Gram matrix of the pullback inner product on the canonical basis,
+    i.e. :math:`J^T G J`, with :math:`J` the differential of the
+    diffeomorphism and :math:`G` the metric matrix of the image space.
+    """
+
+    def metric_matrix(self, base_point=None):
+        """Metric matrix at the tangent space at a base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., dim, dim]
+            Inner-product matrix.
+        """
+        dim = self._space.dim
+        image_point = self.diffeo(base_point)
+        basis = gs.eye(dim, dtype=base_point.dtype)
+        image_tangent_vecs = [
+            self.diffeo.tangent(
+                gs.broadcast_to(basis[index], base_point.shape),
+                base_point=base_point,
+                image_point=image_point,
+            )
+            for index in range(dim)
+        ]
+
+        inner_products = {}
+        for index_a in range(dim):
+            for index_b in range(index_a, dim):
+                inner_products[index_a, index_b] = (
+                    self.image_space.metric.inner_product(
+                        image_tangent_vecs[index_a],
+                        image_tangent_vecs[index_b],
+                        image_point,
+                    )
+                )
+
+        rows = [
+            gs.stack(
+                [
+                    inner_products[min(index_a, index_b), max(index_a, index_b)]
+                    for index_b in range(dim)
+                ],
+                axis=-1,
+            )
+            for index_a in range(dim)
+        ]
+        return gs.stack(rows, axis=-2)

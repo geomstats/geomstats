@@ -4,7 +4,7 @@ import math
 from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.vectorization import get_batch_shape
 
@@ -111,7 +111,7 @@ class CongruenceAction(GroupAction):
         orbit_point : array-like, shape=[..., n, n]
             A point on the orbit of point.
         """
-        return Matrices.mul(group_elem, point, gs.transpose(group_elem))
+        return MatrixOperations.mul(group_elem, point, gs.matrix_transpose(group_elem))
 
 
 class PermutationAction(CongruenceAction):
@@ -157,7 +157,7 @@ class RowPermutationAction(GroupAction):
             Permuted matrices.
         """
         perm_mat = permutation_matrix_from_vector(group_elem, dtype=point.dtype)
-        return gs.matmul(gs.transpose(perm_mat), point)
+        return gs.matmul(gs.matrix_transpose(perm_mat), point)
 
 
 def permutation_matrix_from_vector(group_elem, dtype=gs.int64):

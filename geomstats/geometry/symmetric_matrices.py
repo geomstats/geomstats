@@ -9,9 +9,14 @@ from geomstats.geometry.base import (
     LevelSet,
     MatrixVectorSpace,
 )
+from geomstats.geometry.complex_matrices import ComplexMatricesMetric
 from geomstats.geometry.diffeo import Diffeo
-from geomstats.geometry.euclidean import EuclideanMetric
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.manifold import _get_default_dtype
+from geomstats.geometry.matrices import (
+    MatricesEuclideanMetric,
+    MatricesMetric,
+    MatrixOperations,
+)
 from geomstats.vectorization import repeat_out, repeat_out_multiple_ndim
 
 
@@ -22,15 +27,25 @@ class SymmetricMatrices(MatrixVectorSpace):
     ----------
     n : int
         Integer representing the shapes of the matrices: n x n.
+    equip : bool
+        Whether to equip space with default metric.
+    field : str, {"real", "complex"}
+        Field over which the vector space is defined.
     """
 
-    def __init__(self, n, equip=True):
+    def __init__(self, n, equip=True, field="real"):
         self.n = n
-        super().__init__(dim=int(n * (n + 1) / 2), shape=(n, n), equip=equip)
+        super().__init__(
+            dim=int(n * (n + 1) / 2),
+            shape=(n, n),
+            equip=equip,
+            field=field,
+        )
 
-    @staticmethod
-    def default_metric():
+    def default_metric(self):
         """Metric to equip the space with if equip is True."""
+        if self.field == "complex":
+            return ComplexMatricesMetric
         return MatricesMetric
 
     def _create_basis(self):
@@ -47,7 +62,8 @@ class SymmetricMatrices(MatrixVectorSpace):
                     indices.extend([(k, row, col), (k, col, row)])
                     values.extend([1.0, 1.0])
 
-        return gs.array_from_sparse(indices, values, (k + 1, self.n, self.n))
+        basis = gs.array_from_sparse(indices, values, (k + 1, self.n, self.n))
+        return gs.cast(basis, _get_default_dtype(self.complex_repr))
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a matrix is symmetric.
@@ -66,7 +82,7 @@ class SymmetricMatrices(MatrixVectorSpace):
         """
         belongs = super().belongs(point)
         if gs.any(belongs):
-            is_symmetric = Matrices.is_symmetric(point, atol)
+            is_symmetric = MatrixOperations.is_symmetric(point, atol)
             return gs.logical_and(belongs, is_symmetric)
         return belongs
 
@@ -83,7 +99,7 @@ class SymmetricMatrices(MatrixVectorSpace):
         sym : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        return Matrices.to_symmetric(point)
+        return MatrixOperations.to_symmetric(point)
 
     @staticmethod
     def basis_representation(matrix_representation):
@@ -123,23 +139,11 @@ class SymmetricMatrices(MatrixVectorSpace):
                 "(n_samples, n * (n + 1) / 2)"
             )
         mat_dim = int(mat_dim)
-        shape = (mat_dim, mat_dim)
-        mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
-        indices = list(zip(*gs.triu_indices(mat_dim)))
-        if gs.ndim(basis_representation) == 1:
-            upper_triangular = gs.array_from_sparse(
-                indices, basis_representation, shape
-            )
-        else:
-            upper_triangular = gs.stack(
-                [
-                    gs.array_from_sparse(indices, data, shape)
-                    for data in basis_representation
-                ]
-            )
-
-        mat = Matrices.to_symmetric(upper_triangular) * mask
-        return mat
+        indices = gs.arange(mat_dim)
+        row = gs.minimum(indices[:, None], indices[None, :])
+        column = gs.maximum(indices[:, None], indices[None, :])
+        vector_indices = column + row * (2 * mat_dim - row - 1) // 2
+        return basis_representation[..., vector_indices]
 
 
 class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
@@ -187,7 +191,7 @@ class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
         -------
         submersed_point : array-like, shape=[..., n]
         """
-        return Matrices.diagonal(point)
+        return MatrixOperations.diagonal(point)
 
     def tangent_submersion(self, vector, point):
         """Tangent submersion.
@@ -245,10 +249,10 @@ class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
         projected : array-like, shape=[..., *point_shape]
             Projected point.
         """
-        return point - Matrices.to_diagonal(point)
+        return point - MatrixOperations.to_diagonal(point)
 
 
-class HollowMatricesPermutationInvariantMetric(EuclideanMetric):
+class HollowMatricesPermutationInvariantMetric(MatricesEuclideanMetric):
     r"""A permutation-invariant metric on the space of hollow matrices.
 
     It is flat Riemannian metric invariant by the congruence action
@@ -624,7 +628,7 @@ class NullRowSumsSymmetricMatrices(LevelSet, DiffeomorphicMatrixVectorSpace):
         )
 
 
-class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
+class NullRowSumsPermutationInvariantMetric(MatricesEuclideanMetric):
     r"""A permutation-invariant metric on the space of null-row-sums symmetric matrices.
 
     It is flat Riemannian metric invariant by the congruence action
@@ -724,7 +728,7 @@ class NullRowSumsPermutationInvariantMetric(EuclideanMetric):
         else:
             out_alpha = 0.0
         out_delta = (
-            self.delta * gs.sum(Matrices.diagonal(tangent_vec) ** 2, axis=-1)
+            self.delta * gs.sum(MatrixOperations.diagonal(tangent_vec) ** 2, axis=-1)
             if self.delta > gs.atol
             else 0.0
         )

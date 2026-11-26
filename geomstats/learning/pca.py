@@ -17,7 +17,7 @@ import geomstats.backend as gs
 from geomstats._logging import warn_max_iterations
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.hyperbolic import Hyperbolic
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.learning._sklearn import PCA
 from geomstats.learning.exponential_barycenter import ExponentialBarycenter
@@ -222,8 +222,8 @@ class TangentPCA(_BasePCA):
         tangent_vecs = self._geometry.log(X, base_point=self.base_point_)
         if self.space.point_ndim == 2:
             if (
-                gs.all(Matrices.is_square(tangent_vecs))
-                and Matrices.is_symmetric(tangent_vecs).all()
+                gs.all(MatrixOperations.is_square(tangent_vecs))
+                and MatrixOperations.is_symmetric(tangent_vecs).all()
             ):
                 X = SymmetricMatrices.basis_representation(tangent_vecs)
             else:
@@ -231,7 +231,7 @@ class TangentPCA(_BasePCA):
         else:
             X = tangent_vecs
         X = X - self.mean_
-        X_transformed = gs.matmul(X, gs.transpose(self.components_))
+        X_transformed = gs.matmul(X, gs.matrix_transpose(self.components_))
         return X_transformed
 
     def inverse_transform(self, X):
@@ -254,8 +254,8 @@ class TangentPCA(_BasePCA):
         scores = self.mean_ + gs.matmul(X, self.components_)
 
         if self.space.point_ndim > 1:
-            if gs.all(Matrices.is_square(self.base_point_)) and gs.all(
-                Matrices.is_symmetric(self.base_point_)
+            if gs.all(MatrixOperations.is_square(self.base_point_)) and gs.all(
+                MatrixOperations.is_symmetric(self.base_point_)
             ):
                 scores = SymmetricMatrices(
                     self.base_point_.shape[-1]
@@ -289,8 +289,8 @@ class TangentPCA(_BasePCA):
         tangent_vecs = self._geometry.log(X, base_point=base_point)
 
         if self.space.point_ndim > 1:
-            if gs.all(Matrices.is_square(tangent_vecs)) and gs.all(
-                Matrices.is_symmetric(tangent_vecs)
+            if gs.all(MatrixOperations.is_square(tangent_vecs)) and gs.all(
+                MatrixOperations.is_symmetric(tangent_vecs)
             ):
                 X = SymmetricMatrices.basis_representation(tangent_vecs)
             else:

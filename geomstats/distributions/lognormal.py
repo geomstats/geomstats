@@ -3,7 +3,7 @@
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import CanonicalEuclideanMetric, Euclidean
 from geomstats.geometry.hermitian_matrices import expmh, powermh
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric, MatrixOperations
 from geomstats.geometry.spd_matrices import (
     SPDAffineMetric,
     SPDLogEuclideanMetric,
@@ -38,10 +38,8 @@ class LogNormalSPD:
         samples_euclidean = gs.random.multivariate_normal(mean_vec, cov, (n_samples,))
         diag = samples_euclidean[:, :n]
         off_diag = samples_euclidean[:, n:] / gs.sqrt(2.0)
-        samples_sym = gs.mat_from_diag_triu_tril(
-            diag=diag, tri_upp=off_diag, tri_low=off_diag
-        )
-        return samples_sym
+        upper = gs.triu_embed(off_diag, k=1)
+        return gs.diag_embed(diag) + upper + gs.matrix_transpose(upper)
 
     def sample(self, n_samples):
         """Generate samples for SPD manifold."""
@@ -60,7 +58,7 @@ class LogNormalSPD:
                 gs.zeros(self.space.dim), self.cov, n_samples
             )
             mean_half = powermh(self.mean, 0.5)
-            _samples = Matrices.mul(mean_half, samples_sym, mean_half)
+            _samples = MatrixOperations.mul(mean_half, samples_sym, mean_half)
 
         return expmh(_samples)
 

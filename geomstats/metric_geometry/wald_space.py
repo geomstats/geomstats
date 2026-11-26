@@ -20,7 +20,7 @@ from abc import ABC
 
 import geomstats.backend as gs
 from geomstats.geometry.hermitian_matrices import powermh
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.metric_geometry.point_set import (
     Point,
@@ -632,9 +632,9 @@ def _squared_dist_and_grad_affine(space, topology, ambient_point):
         target = space.ambient_space.metric.squared_dist(corr, ambient_point)
 
         target_grad = 2 * gs.trace(
-            Matrices.mul(
+            MatrixOperations.mul(
                 gs.linalg.logm(
-                    Matrices.mul(inv_sqrt_ambient_point, corr, inv_sqrt_ambient_point)
+                    MatrixOperations.mul(inv_sqrt_ambient_point, corr, inv_sqrt_ambient_point)
                 ),
                 sqrt_ambient_point,
                 inv_corr,

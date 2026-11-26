@@ -28,7 +28,6 @@ class TestSurface(SurfaceTestCase, metaclass=DataBasedParametrizer):
     testing_data = SurfaceTestData()
 
 
-@torch_only
 class TestDiscreteSurfaces(DiscreteSurfacesTestCase, metaclass=DataBasedParametrizer):
     _, _faces = data_utils.load_cube()
     _faces = gs.array(_faces)
@@ -37,7 +36,6 @@ class TestDiscreteSurfaces(DiscreteSurfacesTestCase, metaclass=DataBasedParametr
     testing_data = DiscreteSurfacesTestData()
 
 
-@torch_only
 @pytest.mark.smoke
 class TestDiscreteSurfacesSmoke(
     DiscreteSurfacesTestCase, metaclass=DataBasedParametrizer
@@ -61,21 +59,17 @@ class TestDiscreteSurfacesSmoke(
     testing_data = DiscreteSurfacesSmokeTestData()
 
 
-@torch_only
 class TestElasticMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     _vertices, _faces = data_utils.load_cube()
     _vertices = gs.array(_vertices, dtype=gs.float64)
     _faces = gs.array(_faces)
 
-    if pytorch_backend():
-        space = DiscreteSurfaces(_faces)
-
+    space = DiscreteSurfaces(_faces)
+    if gs.has_autodiff():
         space.metric.log_solver.n_nodes = 100
         space.metric.exp_solver.n_steps = 100
 
-        data_generator = SurfacesLocalRandomDataGenerator(
-            space, _vertices, amplitude=10.0
-        )
+    data_generator = SurfacesLocalRandomDataGenerator(space, _vertices, amplitude=10.0)
     testing_data = ElasticMetricTestData()
 
 

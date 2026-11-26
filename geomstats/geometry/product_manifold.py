@@ -7,27 +7,17 @@ import math
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.complex_manifold import ComplexManifold
-from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import get_batch_shape
 
-COMPLEX_OBJECTS = (ComplexRiemannianMetric, ComplexManifold)
-
 
 def _factor_is_complex(factor):
-    if (
-        isinstance(factor, COMPLEX_OBJECTS)
-        or hasattr(factor, "underlying_metric")
-        and isinstance(factor.underlying_metric, COMPLEX_OBJECTS)
-    ):
-        return True
-
-    return False
+    space = factor._space if hasattr(factor, "_space") else factor
+    return space.complex_repr
 
 
-def _has_mixed_fields(factors):
+def _has_mixed_reprs(factors):
     bools = [_factor_is_complex(factor) for factor in factors]
     if len(set(bools)) == 2:
         return True
@@ -83,12 +73,12 @@ def _find_product_shape(factors, point_ndim):
 
 class _IterateOverFactorsMixins:
     def __init__(
-        self, factors, cum_index, pool_outputs, has_mixed_fields, *args, **kwargs
+        self, factors, cum_index, pool_outputs, has_mixed_reprs, *args, **kwargs
     ):
         self.factors = factors
         self._cum_index = cum_index
         self._pool_outputs = pool_outputs
-        self._has_mixed_fields = has_mixed_fields
+        self._has_mixed_reprs = has_mixed_reprs
         super().__init__(*args, **kwargs)
 
     def embed_to_product(self, points):
@@ -162,7 +152,7 @@ class _IterateOverFactorsMixins:
                 for projected_point in projected_points
             ]
 
-        if self._has_mixed_fields:
+        if self._has_mixed_reprs:
             for i, (factor, projected_point) in enumerate(
                 zip(self.factors, projected_points)
             ):
@@ -174,7 +164,7 @@ class _IterateOverFactorsMixins:
     @staticmethod
     def _reshape_trailing(argument, factor):
         """Convert the trailing dimensions to match the shape of a factor manifold."""
-        space = factor._space if isinstance(factor, RiemannianMetric) else factor
+        space = factor._space if hasattr(factor, "_space") else factor
 
         if space.point_ndim == 1:
             return argument
@@ -274,7 +264,16 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
         factor_flatten_shapes = [math.prod(factor.shape) for factor in factors]
 
-        dim = sum([factor.dim for factor in factors])
+        complex_repr = any(factor.complex_repr for factor in factors)
+        field = (
+            "complex"
+            if all(factor.field == "complex" for factor in factors)
+            else "real"
+        )
+        dim = sum(
+            factor.dim if factor.field == field else 2 * factor.dim
+            for factor in factors
+        )
 
         shape = _find_product_shape(factors, point_ndim)
 
@@ -304,11 +303,13 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
             factors=factors,
             cum_index=cum_index,
             pool_outputs=True,
-            has_mixed_fields=_has_mixed_fields(factors),
+            has_mixed_reprs=_has_mixed_reprs(factors),
             dim=dim,
             shape=shape,
             intrinsic=intrinsic,
             equip=equip,
+            field=field,
+            complex_repr=complex_repr,
         )
 
     @staticmethod
@@ -535,7 +536,7 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             factors=factors,
             cum_index=space._cum_index,
             pool_outputs=False,
-            has_mixed_fields=space._has_mixed_fields,
+            has_mixed_reprs=space._has_mixed_reprs,
             signature=(sig_pos, sig_neg),
         )
 
@@ -686,8 +687,28 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             Distance.
         """
         args = {"point_a": point_a, "point_b": point_b}
-        dists = gs.array(self._iterate_over_factors("dist", args))
-        return gs.linalg.norm(dists, ord=2, axis=0)
+        dists = gs.stack(self._iterate_over_factors("dist", args), axis=-1)
+        return gs.linalg.vector_norm(dists, axis=-1)
+
+    def injectivity_radius(self, base_point=None):
+        """Compute the radius of the injectivity domain.
+
+        The injectivity radius of a product is the minimum of the injectivity
+        radii of its factors.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., self.shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        args = {"base_point": base_point}
+        radii = gs.array(self._iterate_over_factors("injectivity_radius", args))
+        return gs.amin(radii, axis=0)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
@@ -760,7 +781,7 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         geodesics = self._iterate_over_factors("geodesic", args)
 
         def geod_fun(t):
-            t = gs.to_ndarray(t, to_ndim=1)
+            t = gs.expand_dims_to(gs.array(t), ndim=1)
             values = [geodesic(t) for geodesic in geodesics]
             return self._space.embed_to_product(values)
 
