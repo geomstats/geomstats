@@ -24,8 +24,10 @@ from .data.lie_algebra import MatrixLieAlgebraTestData
 from .data.matrices import MatricesMetricTestData
 from .data.special_euclidean import (
     SpecialEuclidean2VectorsTestData,
+    SpecialEuclideanMatrices1TestData,
     SpecialEuclideanMatrices2TestData,
     SpecialEuclideanMatricesCanonicalLeftMetricTestData,
+    SpecialEuclideanMatricesLieAlgebra1TestData,
     SpecialEuclideanMatricesLieAlgebra2TestData,
     SpecialEuclideanMatricesTestData,
     SpecialEuclideanVectorsTestData,
@@ -34,7 +36,7 @@ from .data.special_euclidean import (
 
 
 @pytest.mark.parametrize("n_reps", random.sample(range(2, 5), 1))
-@pytest.mark.parametrize("n", [2] + random.sample(range(3, 6), 1))
+@pytest.mark.parametrize("n", [1, 2] + random.sample(range(3, 6), 1))
 @pytest.mark.vec
 def test_homogeneous_representation_vec(n, n_reps):
     return homogeneous_representation_vec_test_case(n, n_reps, atol=gs.atol)
@@ -52,6 +54,7 @@ def test_homogeneous_representation(rotation, translation, constant, expected):
 @pytest.fixture(
     scope="class",
     params=[
+        1,
         2,
         random.randint(3, 5),
     ],
@@ -65,6 +68,14 @@ class TestSpecialEuclideanMatrices(
     MatrixLieGroupTestCase, LevelSetTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = SpecialEuclideanMatricesTestData()
+
+
+@pytest.mark.smoke
+class TestSpecialEuclideanMatrices1(
+    MatrixLieGroupTestCase, LevelSetTestCase, metaclass=DataBasedParametrizer
+):
+    space = _SpecialEuclideanMatrices(n=1, equip=False)
+    testing_data = SpecialEuclideanMatrices1TestData()
 
 
 @pytest.mark.smoke
@@ -105,7 +116,7 @@ class TestSpecialEuclidean2Vectors(
 
 @pytest.fixture(
     scope="class",
-    params=[random.randint(2, 3)],
+    params=[1, random.randint(2, 3)],
 )
 def equipped_SE_matrix_groups(request):
     n = request.param
@@ -122,6 +133,7 @@ class TestSpecialEuclideanMatricesCanonicalLeftMetric(
 @pytest.fixture(
     scope="class",
     params=[
+        1,
         2,
         random.randint(3, 5),
     ],
@@ -137,10 +149,18 @@ class TestSpecialEuclideanMatricesLieAlgebra(
     testing_data = MatrixLieAlgebraTestData()
 
 
-@pytest.mark.parametrize("n,expected", [(2, 3), (3, 6), (10, 55)])
+@pytest.mark.parametrize("n,expected", [(1, 1), (2, 3), (3, 6), (10, 55)])
 def test_dim_mla(n, expected):
     space = SpecialEuclideanMatricesLieAlgebra(n=n, equip=False)
     assert space.dim == expected
+
+
+@pytest.mark.smoke
+class TestSpecialEuclideanMatricesLieAlgebra1(
+    MatrixLieAlgebraTestCase, metaclass=DataBasedParametrizer
+):
+    space = SpecialEuclideanMatricesLieAlgebra(n=1, equip=False)
+    testing_data = SpecialEuclideanMatricesLieAlgebra1TestData()
 
 
 @pytest.mark.smoke

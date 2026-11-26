@@ -122,7 +122,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
             lie_algebra=SpecialEuclideanMatricesLieAlgebra(n=n, equip=False),
             equip=equip,
         )
-        self.rotations = SpecialOrthogonal(n=n, equip=True)
+        self.rotations = SpecialOrthogonal(n=n, equip=True) if n > 1 else None
         self.translations = Euclidean(dim=n, equip=False)
 
     @staticmethod
@@ -203,7 +203,11 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
             Sample in SE(n).
         """
         random_translation = self.translations.random_point(n_samples)
-        random_rotation = self.rotations.random_uniform(n_samples)
+        if self.n == 1:
+            size = (1, 1) if n_samples == 1 else (n_samples, 1, 1)
+            random_rotation = gs.ones(size)
+        else:
+            random_rotation = self.rotations.random_uniform(n_samples)
         random_point = homogeneous_representation(random_rotation, random_translation)
         return random_point
 
@@ -249,7 +253,10 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
             return gs.copy(point)
 
         n = self.n
-        projected_rot = self.rotations.projection(point[..., :n, :n])
+        if n == 1:
+            projected_rot = gs.ones(point[..., :n, :n].shape)
+        else:
+            projected_rot = self.rotations.projection(point[..., :n, :n])
         translation = point[..., :n, -1]
         return homogeneous_representation(projected_rot, translation)
 
@@ -1072,12 +1079,22 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
                     " geodesic along which to transport."
                 )
         rot_a = tangent_vec[..., :n, :n]
+        translation = tangent_vec[..., :n, n]
+        if n == 1:
+            return repeat_out(
+                self._space.point_ndim,
+                homogeneous_representation(rot_a, translation, 0.0),
+                tangent_vec,
+                base_point,
+                direction,
+                out_shape=self._space.shape,
+            )
+
         rot_b = direction[..., :n, :n]
         rot_bp = base_point[..., :n, :n]
         transported_rot = self._space.rotations.metric.parallel_transport(
             rot_a, rot_bp, rot_b
         )
-        translation = tangent_vec[..., :n, n]
 
         return homogeneous_representation(transported_rot, translation, 0.0)
 
@@ -1149,6 +1166,8 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
             Injectivity radius.
         """
         n = self._space.n
+        if n == 1:
+            return repeat_out(self._space.point_ndim, gs.array(math.inf), base_point)
         rotation = base_point[..., :n, :n]
         rotation_radius = gs.pi * (self._space.dim - n) ** 0.5
         return gs.where(gs.sum(rotation, axis=(-2, -1)) == 0, math.inf, rotation_radius)
@@ -1210,7 +1229,7 @@ class SpecialEuclideanMatricesLieAlgebra(MatrixLieAlgebra):
         dim = int(n * (n + 1) / 2)
         super().__init__(dim=dim, representation_dim=n + 1, equip=equip)
 
-        self.skew = SkewSymmetricMatrices(n, equip=False)
+        self.skew = SkewSymmetricMatrices(n, equip=False) if n > 1 else None
 
     @staticmethod
     def default_metric():
@@ -1220,14 +1239,17 @@ class SpecialEuclideanMatricesLieAlgebra(MatrixLieAlgebra):
     def _create_basis(self):
         """Create the canonical basis."""
         n = self.n
+        indices = [(row, row, n) for row in range(n)]
+        add_basis = gs.array_from_sparse(indices, [1.0] * n, (n, n + 1, n + 1))
+
+        if n == 1:
+            return add_basis
+
         basis = homogeneous_representation(
             self.skew.basis,
             gs.zeros((self.skew.dim, n)),
             0.0,
         )
-
-        indices = [(row, row, n) for row in range(n)]
-        add_basis = gs.array_from_sparse(indices, [1.0] * n, (n, n + 1, n + 1))
 
         return gs.vstack([basis, add_basis])
 
@@ -1251,7 +1273,10 @@ class SpecialEuclideanMatricesLieAlgebra(MatrixLieAlgebra):
         belongs = point_dim1 == point_dim2 == self.n + 1
 
         rotation = point[..., : self.n, : self.n]
-        rot_belongs = self.skew.belongs(rotation, atol=atol)
+        if self.n == 1:
+            rot_belongs = MatrixOperations.is_skew_symmetric(mat=rotation, atol=atol)
+        else:
+            rot_belongs = self.skew.belongs(rotation, atol=atol)
 
         belongs = gs.logical_and(belongs, rot_belongs)
 
@@ -1316,8 +1341,10 @@ class SpecialEuclideanMatricesLieAlgebra(MatrixLieAlgebra):
         basis_representation : array-like, shape=[..., dim]
             Representation in the basis.
         """
+        translation_part = matrix_representation[..., :-1, self.n]
+        if self.n == 1:
+            return translation_part
         skew_part = self.skew.basis_representation(
             matrix_representation[..., : self.n, : self.n]
         )
-        translation_part = matrix_representation[..., :-1, self.n]
         return gs.concatenate([skew_part, translation_part[..., :]], axis=-1)
