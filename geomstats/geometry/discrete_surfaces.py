@@ -21,7 +21,7 @@ from geomstats._mesh import Surface
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.fiber_bundle import AlignerAlgorithm, FiberBundle
 from geomstats.geometry.manifold import Manifold, register_quotient
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 from geomstats.geometry.nfold_manifold import NFoldMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -754,7 +754,7 @@ class ElasticMetric(RiemannianMetric):
 
         return self.d1 * gs.sum(
             gs.trace(
-                Matrices.mul(
+                MatrixOperations.mul(
                     xa_0,
                     ginv_bp,
                     gs.matrix_transpose(xb_0),

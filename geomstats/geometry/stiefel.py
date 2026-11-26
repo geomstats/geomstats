@@ -12,7 +12,7 @@ import geomstats.errors
 from geomstats import algebra_utils
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.hermitian_matrices import powermh
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatrixOperations
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.numerics.geodesic import LogSolver
 from geomstats.vectorization import repeat_out
@@ -200,7 +200,7 @@ class Stiefel(LevelSet):
         -------
         submersed_vector : array-like, shape=[..., n, p]
         """
-        return 2 * Matrices.to_symmetric(
+        return 2 * MatrixOperations.to_symmetric(
             gs.matmul(gs.matrix_transpose(point), vector)
         )
 
@@ -294,7 +294,7 @@ class Stiefel(LevelSet):
             Tangent vector at base point.
         """
         aux = gs.matmul(gs.matrix_transpose(base_point), vector)
-        sym_aux = Matrices.to_symmetric(aux)
+        sym_aux = MatrixOperations.to_symmetric(aux)
         return vector - gs.matmul(base_point, sym_aux)
 
     def projection(self, point):
@@ -373,7 +373,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             gs.matrix_transpose(tangent_vec_a),
             identity - 0.5 * gs.matmul(base_point, base_point_transpose),
         )
-        return Matrices.trace_product(aux, tangent_vec_b)
+        return MatrixOperations.trace_product(aux, tangent_vec_b)
 
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
@@ -754,7 +754,7 @@ class _ZimmermannLogSolver(LogSolver):
             if norm_matrix_c <= self.tol:
                 break
 
-            matrix_phi = gs.linalg.expm(-Matrices.to_skew_symmetric(matrix_c))
+            matrix_phi = gs.linalg.expm(-MatrixOperations.to_skew_symmetric(matrix_c))
             aux_matrix = gs.matmul(_right_block(matrix_v, p), matrix_phi)
             matrix_v = _concatenate_columns(_left_block(matrix_v, p), aux_matrix)
 

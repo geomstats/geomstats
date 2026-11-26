@@ -10,7 +10,7 @@ from geomstats.geometry.base import LevelSet
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 
 ATOL = 1e-5
@@ -105,7 +105,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         -------
         submersed_vector : array-like, shape=[..., n, n]
         """
-        return 2 * Matrices.to_symmetric(
+        return 2 * MatrixOperations.to_symmetric(
             gs.matmul(gs.matrix_transpose(point), vector)
         )
 
@@ -187,7 +187,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             size = (n_samples, self.n, self.n)
         random_mat = gs.random.normal(size=size)
         rotation_mat, upper = gs.linalg.qr(random_mat)
-        diag = Matrices.diagonal(upper)
+        diag = MatrixOperations.diagonal(upper)
         signs = 1.0 - 2.0 * gs.cast(diag < 0, rotation_mat.dtype)
         rotation_mat = rotation_mat * signs[..., None, :]
         det = gs.linalg.det(rotation_mat)

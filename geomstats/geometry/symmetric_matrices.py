@@ -13,9 +13,9 @@ from geomstats.geometry.complex_matrices import ComplexMatricesMetric
 from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.manifold import _get_default_dtype
 from geomstats.geometry.matrices import (
-    Matrices,
     MatricesEuclideanMetric,
     MatricesMetric,
+    MatrixOperations,
 )
 from geomstats.vectorization import repeat_out, repeat_out_multiple_ndim
 
@@ -82,7 +82,7 @@ class SymmetricMatrices(MatrixVectorSpace):
         """
         belongs = super().belongs(point)
         if gs.any(belongs):
-            is_symmetric = Matrices.is_symmetric(point, atol)
+            is_symmetric = MatrixOperations.is_symmetric(point, atol)
             return gs.logical_and(belongs, is_symmetric)
         return belongs
 
@@ -99,7 +99,7 @@ class SymmetricMatrices(MatrixVectorSpace):
         sym : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        return Matrices.to_symmetric(point)
+        return MatrixOperations.to_symmetric(point)
 
     @staticmethod
     def basis_representation(matrix_representation):
@@ -191,7 +191,7 @@ class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
         -------
         submersed_point : array-like, shape=[..., n]
         """
-        return Matrices.diagonal(point)
+        return MatrixOperations.diagonal(point)
 
     def tangent_submersion(self, vector, point):
         """Tangent submersion.
@@ -249,7 +249,7 @@ class SymmetricHollowMatrices(LevelSet, MatrixVectorSpace):
         projected : array-like, shape=[..., *point_shape]
             Projected point.
         """
-        return point - Matrices.to_diagonal(point)
+        return point - MatrixOperations.to_diagonal(point)
 
 
 class HollowMatricesPermutationInvariantMetric(MatricesEuclideanMetric):
@@ -728,7 +728,7 @@ class NullRowSumsPermutationInvariantMetric(MatricesEuclideanMetric):
         else:
             out_alpha = 0.0
         out_delta = (
-            self.delta * gs.sum(Matrices.diagonal(tangent_vec) ** 2, axis=-1)
+            self.delta * gs.sum(MatrixOperations.diagonal(tangent_vec) ** 2, axis=-1)
             if self.delta > gs.atol
             else 0.0
         )

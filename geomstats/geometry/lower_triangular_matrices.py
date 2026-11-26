@@ -5,7 +5,7 @@ Lead author: Saiteja Utpala.
 
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet, MatrixVectorSpace
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric, MatrixOperations
 
 
 class LowerTriangularMatrices(MatrixVectorSpace):
@@ -53,7 +53,7 @@ class LowerTriangularMatrices(MatrixVectorSpace):
         """
         belongs = super().belongs(point)
         if gs.any(belongs):
-            is_lower_triangular = Matrices.is_lower_triangular(point, atol)
+            is_lower_triangular = MatrixOperations.is_lower_triangular(point, atol)
             return gs.logical_and(belongs, is_lower_triangular)
         return belongs
 
@@ -137,7 +137,7 @@ class StrictlyLowerTriangularMatrices(LevelSet, MatrixVectorSpace):
         -------
         submersed_point : array-like, shape=[..., n]
         """
-        return Matrices.diagonal(point)
+        return MatrixOperations.diagonal(point)
 
     def tangent_submersion(self, vector, point):
         """Tangent submersion.
@@ -151,7 +151,7 @@ class StrictlyLowerTriangularMatrices(LevelSet, MatrixVectorSpace):
         -------
         submersed_vector : array-like, shape=[..., n]
         """
-        submersed_vector = Matrices.diagonal(vector)
+        submersed_vector = MatrixOperations.diagonal(vector)
         if point is not None and point.ndim > vector.ndim:
             return gs.broadcast_to(submersed_vector, point.shape[:-1])
 

@@ -22,8 +22,8 @@ from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.lower_triangular_matrices import StrictlyLowerTriangularMatrices
 from geomstats.geometry.manifold import register_quotient
 from geomstats.geometry.matrices import (
-    Matrices,
     MatricesMetric,
+    MatrixOperations,
     matrix_matrix_transpose,
     tangent_matrix_matrix_transpose,
 )
@@ -75,7 +75,7 @@ def corr_map(point):
     cor : array_like, shape=[..., n, n]
         Full-rank correlation matrix.
     """
-    diagonal = Matrices.diagonal(point) ** (-0.5)
+    diagonal = MatrixOperations.diagonal(point) ** (-0.5)
     return FullRankCorrelationMatrices.diag_action(diagonal, point)
 
 
@@ -100,8 +100,8 @@ def tangent_corr_map(tangent_vec, base_point):
     -------
     result : array-like, shape=[..., n, n]
     """
-    diagonal_bp = Matrices.diagonal(base_point)
-    diagonal_tv = Matrices.diagonal(tangent_vec)
+    diagonal_bp = MatrixOperations.diagonal(base_point)
+    diagonal_tv = MatrixOperations.diagonal(tangent_vec)
 
     diagonal = diagonal_tv / diagonal_bp
     aux = base_point * (diagonal[..., None, :] + diagonal[..., :, None])
@@ -144,7 +144,7 @@ class FullRankCorrelationMatrices(LevelSet):
         -------
         submersed_point : array-like, shape=[..., n]
         """
-        return Matrices.diagonal(point) - gs.ones(self.n)
+        return MatrixOperations.diagonal(point) - gs.ones(self.n)
 
     def tangent_submersion(self, vector, point):
         """Tangent submersion.
@@ -158,7 +158,7 @@ class FullRankCorrelationMatrices(LevelSet):
         -------
         submersed_vector : array-like, shape=[..., n]
         """
-        submersed_vector = Matrices.diagonal(vector)
+        submersed_vector = MatrixOperations.diagonal(vector)
         if point is not None and point.ndim > vector.ndim:
             return gs.broadcast_to(submersed_vector, point.shape[:-1])
 
@@ -206,7 +206,7 @@ class FullRankCorrelationMatrices(LevelSet):
             Correlation matrix obtained by dividing all elements by the
             diagonal entries.
         """
-        diag_vec = Matrices.diagonal(point) ** (-0.5)
+        diag_vec = MatrixOperations.diagonal(point) ** (-0.5)
         return cls.diag_action(diag_vec, point)
 
     def random_point(self, n_samples=1, bound=1.0):
@@ -394,7 +394,7 @@ class CorrelationMatricesBundle(FiberBundle):
         """
         if base_point is not None:
             return self.horizontal_projection(tangent_vec, base_point)
-        diagonal_point = Matrices.diagonal(fiber_point) ** 0.5
+        diagonal_point = MatrixOperations.diagonal(fiber_point) ** 0.5
         lift = self._total_space.group_action(diagonal_point, tangent_vec)
         return self.horizontal_projection(lift, base_point=fiber_point)
 
@@ -462,7 +462,7 @@ class PolyHyperbolicCholeskyMetric(PullbackDiffeoMetric):
 
 def off_map(matrix):
     """Subtract diagonal to a matrix."""
-    return matrix - Matrices.to_diagonal(matrix)
+    return matrix - MatrixOperations.to_diagonal(matrix)
 
 
 class EuclideanCholeskyDiffeo(Diffeo):
@@ -500,7 +500,7 @@ class EuclideanCholeskyDiffeo(Diffeo):
             Image point.
         """
         chol = gs.linalg.cholesky(base_point)
-        diag_inv = 1 / Matrices.diagonal(chol)
+        diag_inv = 1 / MatrixOperations.diagonal(chol)
         return rowwise_scaling(diag_inv, chol)
 
     def inverse(self, image_point):
@@ -556,12 +556,12 @@ class EuclideanCholeskyDiffeo(Diffeo):
 
         chol = gs.linalg.cholesky(base_point)
         chol_inv = gs.linalg.inv(chol)
-        aux = Matrices.mul(chol_inv, tangent_vec, gs.matrix_transpose(chol_inv))
+        aux = MatrixOperations.mul(chol_inv, tangent_vec, gs.matrix_transpose(chol_inv))
         term_1 = gs.matmul(
             image_point,
-            Matrices.to_lower_triangular_diagonal_scaled(aux),
+            MatrixOperations.to_lower_triangular_diagonal_scaled(aux),
         )
-        term_2 = 1 / 2 * rowwise_scaling(Matrices.diagonal(aux), image_point)
+        term_2 = 1 / 2 * rowwise_scaling(MatrixOperations.diagonal(aux), image_point)
 
         return term_1 - term_2
 
@@ -729,7 +729,7 @@ class UniqueDiagonalMatrixAlgorithm:
 
         for _ in range(self.max_iter):
             approx_cor_mat = expmh(diag_mat + sym_mat)
-            new_diag_mat = diag_mat - logmh(Matrices.to_diagonal(approx_cor_mat))
+            new_diag_mat = diag_mat - logmh(MatrixOperations.to_diagonal(approx_cor_mat))
 
             if self._check_convergence(new_diag_mat, diag_mat):
                 return diag_mat
@@ -971,7 +971,7 @@ class OffLogDiffeo(Diffeo):
         vec = gs.matvec(
             gs.linalg.inv(h0_mat),
             gs.matvec(
-                Matrices.to_diagonal(
+                MatrixOperations.to_diagonal(
                     SymMatrixLog.inverse_tangent(
                         image_point=mat, image_tangent_vec=image_tangent_vec
                     )
@@ -1272,7 +1272,7 @@ class LogScalingDiffeo(Diffeo):
         else:
             base_point_row_1 = expmh(image_point)
 
-        delta = Matrices.diagonal(base_point_row_1) ** 0.5
+        delta = MatrixOperations.diagonal(base_point_row_1) ** 0.5
         aux = FullRankCorrelationMatrices.diag_action(delta, tangent_vec)
         eye = gs.eye(base_point_row_1.shape[-1])
         tangent_vec_row_1_0 = -2 * gs.diag_embed(

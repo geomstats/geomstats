@@ -9,7 +9,7 @@ from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
 from geomstats.geometry.manifold import Manifold, register_quotient
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric, MatrixOperations
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDEuclideanMetric, SPDMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -111,7 +111,7 @@ class RankKPSDMatrices(Manifold):
             Linear Algebra and Its Applications 103 (May 1, 1988):
             103-118. https://doi.org/10.1016/0024-3795(88)90223-6
         """
-        sym = Matrices.to_symmetric(point)
+        sym = MatrixOperations.to_symmetric(point)
         _, s, v = gs.linalg.svd(sym)
         h = gs.matmul(gs.matrix_transpose(v), s[..., None] * v)
         sym_proj = (sym + h) / 2
@@ -147,7 +147,7 @@ class RankKPSDMatrices(Manifold):
         n = self.n
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
         mat = bound * (2 * gs.random.rand(*size) - 1)
-        spd_mat = GeneralLinear.exp(Matrices.to_symmetric(mat))
+        spd_mat = GeneralLinear.exp(MatrixOperations.to_symmetric(mat))
         return self.projection(spd_mat)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
@@ -172,13 +172,13 @@ class RankKPSDMatrices(Manifold):
             Boolean denoting if `vector` belongs to the tangent space
             at `base_point`.
         """
-        vector_sym = Matrices.to_symmetric(vector)
+        vector_sym = MatrixOperations.to_symmetric(vector)
 
         r, _, _ = gs.linalg.svd(base_point)
         r_ort = r[..., :, -(self.n - self.rank) :]
         r_ort_t = gs.matrix_transpose(r_ort)
         rr = gs.matmul(r_ort, r_ort_t)
-        candidates = Matrices.mul(rr, vector_sym, rr)
+        candidates = MatrixOperations.mul(rr, vector_sym, rr)
         return gs.all(gs.isclose(candidates, 0.0, atol=atol), axis=(-2, -1))
 
     def to_tangent(self, vector, base_point):
@@ -200,12 +200,12 @@ class RankKPSDMatrices(Manifold):
         tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
         """
-        vector_sym = Matrices.to_symmetric(vector)
+        vector_sym = MatrixOperations.to_symmetric(vector)
         r, _, _ = gs.linalg.svd(base_point)
         r_ort = r[..., :, self.rank :]
         r_ort_t = gs.matrix_transpose(r_ort)
         rr = gs.matmul(r_ort, r_ort_t)
-        return vector_sym - Matrices.mul(rr, vector_sym, rr)
+        return vector_sym - MatrixOperations.mul(rr, vector_sym, rr)
 
 
 PSDEuclideanMetric = SPDEuclideanMetric
@@ -339,11 +339,11 @@ class BuresWassersteinBundle(FiberBundle):
         transposed_point = gs.matrix_transpose(fiber_point)
         alignment = gs.matmul(transposed_point, fiber_point)
         projector = gs.matmul(fiber_point, GeneralLinear.inverse(alignment))
-        right_term = Matrices.mul(transposed_point, tangent_vec, fiber_point)
+        right_term = MatrixOperations.mul(transposed_point, tangent_vec, fiber_point)
         sylvester = gs.linalg.solve_sylvester(alignment, alignment, right_term)
         skew_term = gs.matmul(projector, sylvester)
         orth_proj = gs.eye(n) - gs.matmul(projector, transposed_point)
-        orth_part = Matrices.mul(orth_proj, tangent_vec, projector)
+        orth_part = MatrixOperations.mul(orth_proj, tangent_vec, projector)
         return skew_term + orth_part
 
     def vertical_projection(self, tangent_vec, base_point, return_skew=False):
@@ -404,7 +404,7 @@ class BuresWassersteinBundle(FiberBundle):
         aligned : array-like, shape=[..., n, k]
             Aligned point :math:`X R`.
         """
-        return Matrices.align_matrices(point, base_point, flip=False)
+        return MatrixOperations.align_matrices(point, base_point, flip=False)
 
 
 class PSDBuresWassersteinMetric(QuotientMetric):

@@ -17,7 +17,7 @@ from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
 from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric, MatrixOperations
 from geomstats.geometry.open_hemisphere import OpenHemisphere, OpenHemispheresProduct
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -123,7 +123,7 @@ class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
             Boolean denoting if mat belongs to cholesky space.
         """
         is_lower_triangular = self.embedding_space.belongs(point, atol)
-        diagonal = Matrices.diagonal(point)
+        diagonal = MatrixOperations.diagonal(point)
         is_positive = gs.all(diagonal > 0, axis=-1)
         return gs.logical_and(is_lower_triangular, is_positive)
 
@@ -138,7 +138,7 @@ class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
         -------
         projected: array-like, shape=[..., n, n]
         """
-        vec_diag = gs.abs(Matrices.diagonal(point))
+        vec_diag = gs.abs(MatrixOperations.diagonal(point))
         vec_diag = gs.where(vec_diag < gs.atol, gs.atol, vec_diag)
         diag = gs.diag_embed(vec_diag)
         strictly_lower_triangular = gs.tril(point, k=-1)
@@ -174,9 +174,9 @@ class CholeskyMetric(RiemannianMetric):
         ip_diagonal : array-like, shape=[...]
             Inner-product.
         """
-        inv_squared_diagonal = gs.power(Matrices.diagonal(base_point), -2)
-        tangent_vec_a_diagonal = Matrices.diagonal(tangent_vec_a)
-        tangent_vec_b_diagonal = Matrices.diagonal(tangent_vec_b)
+        inv_squared_diagonal = gs.power(MatrixOperations.diagonal(base_point), -2)
+        tangent_vec_a_diagonal = MatrixOperations.diagonal(tangent_vec_a)
+        tangent_vec_b_diagonal = MatrixOperations.diagonal(tangent_vec_b)
         prod = tangent_vec_a_diagonal * tangent_vec_b_diagonal * inv_squared_diagonal
         return gs.sum(prod, axis=-1)
 
@@ -249,10 +249,10 @@ class CholeskyMetric(RiemannianMetric):
         exp : array-like, shape=[..., n, n]
             Riemannian exponential.
         """
-        sl_base_point = Matrices.to_strictly_lower_triangular(base_point)
-        sl_tangent_vec = Matrices.to_strictly_lower_triangular(tangent_vec)
-        diag_base_point = Matrices.diagonal(base_point)
-        diag_tangent_vec = Matrices.diagonal(tangent_vec)
+        sl_base_point = MatrixOperations.to_strictly_lower_triangular(base_point)
+        sl_tangent_vec = MatrixOperations.to_strictly_lower_triangular(tangent_vec)
+        diag_base_point = MatrixOperations.diagonal(base_point)
+        diag_tangent_vec = MatrixOperations.diagonal(tangent_vec)
         diag_product_expm = gs.exp(gs.divide(diag_tangent_vec, diag_base_point))
 
         sl_exp = sl_base_point + sl_tangent_vec
@@ -278,10 +278,10 @@ class CholeskyMetric(RiemannianMetric):
         log : array-like, shape=[..., n, n]
             Riemannian logarithm.
         """
-        sl_base_point = Matrices.to_strictly_lower_triangular(base_point)
-        sl_point = Matrices.to_strictly_lower_triangular(point)
-        diag_base_point = Matrices.diagonal(base_point)
-        diag_point = Matrices.diagonal(point)
+        sl_base_point = MatrixOperations.to_strictly_lower_triangular(base_point)
+        sl_point = MatrixOperations.to_strictly_lower_triangular(point)
+        diag_base_point = MatrixOperations.diagonal(base_point)
+        diag_point = MatrixOperations.diagonal(point)
         diag_product_logm = gs.log(gs.divide(diag_point, diag_base_point))
 
         sl_log = sl_point - sl_base_point
@@ -326,9 +326,9 @@ class CholeskyMetric(RiemannianMetric):
         if end_point is None:
             end_point = self.exp(direction, base_point)
 
-        diag_ratio = Matrices.diagonal(end_point) / Matrices.diagonal(base_point)
-        sl_tangent_vec = Matrices.to_strictly_lower_triangular(tangent_vec)
-        diag_tangent_vec = Matrices.diagonal(tangent_vec)
+        diag_ratio = MatrixOperations.diagonal(end_point) / MatrixOperations.diagonal(base_point)
+        sl_tangent_vec = MatrixOperations.to_strictly_lower_triangular(tangent_vec)
+        diag_tangent_vec = MatrixOperations.diagonal(tangent_vec)
         return sl_tangent_vec + gs.diag_embed(diag_ratio * diag_tangent_vec)
 
     def injectivity_radius(self, base_point=None):
@@ -367,15 +367,15 @@ class CholeskyMetric(RiemannianMetric):
         _ : array-like, shape=[...]
             Riemannian squared distance.
         """
-        log_diag_a = gs.log(Matrices.diagonal(point_a))
-        log_diag_b = gs.log(Matrices.diagonal(point_b))
+        log_diag_a = gs.log(MatrixOperations.diagonal(point_a))
+        log_diag_b = gs.log(MatrixOperations.diagonal(point_b))
         diag_diff = log_diag_a - log_diag_b
         squared_dist_diag = gs.sum((diag_diff) ** 2, axis=-1)
 
-        sl_a = Matrices.to_strictly_lower_triangular(point_a)
-        sl_b = Matrices.to_strictly_lower_triangular(point_b)
+        sl_a = MatrixOperations.to_strictly_lower_triangular(point_a)
+        sl_b = MatrixOperations.to_strictly_lower_triangular(point_b)
         sl_diff = sl_a - sl_b
-        squared_dist_sl = Matrices.frobenius_product(sl_diff, sl_diff)
+        squared_dist_sl = MatrixOperations.frobenius_product(sl_diff, sl_diff)
         return squared_dist_sl + squared_dist_diag
 
 
@@ -397,7 +397,7 @@ class InvariantPositiveLowerTriangularMatricesMetric(_InvariantMetricMatrix):
         inner_prod : array-like, shape=[...]
             Inner-product of the two tangent vectors.
         """
-        if Matrices.is_diagonal(self.metric_mat_at_identity):
+        if MatrixOperations.is_diagonal(self.metric_mat_at_identity):
             return super().inner_product_at_identity(tangent_vec_a, tangent_vec_b)
 
         return gs.vecdot(
@@ -660,7 +660,7 @@ class PLTUnitDiagMatrices(LevelSet):
         -------
         submersed_point : array-like, shape=[..., n]
         """
-        return Matrices.diagonal(point) - gs.ones(self.n)
+        return MatrixOperations.diagonal(point) - gs.ones(self.n)
 
     def tangent_submersion(self, vector, point):
         """Tangent submersion.
@@ -674,7 +674,7 @@ class PLTUnitDiagMatrices(LevelSet):
         -------
         submersed_vector : array-like, shape=[..., n]
         """
-        submersed_vector = Matrices.diagonal(vector)
+        submersed_vector = MatrixOperations.diagonal(vector)
         if point is not None and point.ndim > vector.ndim:
             return gs.broadcast_to(submersed_vector, point.shape[:-1])
 

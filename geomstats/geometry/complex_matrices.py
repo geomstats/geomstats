@@ -9,9 +9,169 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.base import MatrixVectorSpace
 from geomstats.geometry.connection import FlatMixin
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import repeat_out
+
+
+class ComplexMatrixOperations:
+    """Operations on complex matrices."""
+
+    @staticmethod
+    def transconjugate(mat):
+        """Return the transconjugate of matrices.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        transconjugate : array-like, shape=[..., n, n]
+            Transconjugated matrix.
+        """
+        ndim = gs.ndim(mat)
+        axes = list(range(0, ndim))
+        axes[-1] = ndim - 2
+        axes[-2] = ndim - 1
+        return gs.matrix_transpose(gs.conj(mat))
+
+    @classmethod
+    def is_hermitian(cls, mat, atol=gs.atol):
+        """Check if a square matrix is Hermitian.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_herm : array-like, shape=[...,]
+            Boolean evaluating if the matrix is symmetric.
+        """
+        return MatrixOperations.equal(mat, cls.transconjugate(mat), atol)
+
+    @classmethod
+    def is_hpd(cls, mat, atol=gs.atol):
+        """Check if a square matrix is Hermitian positive definite.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_hpd : array-like, shape=[...,]
+            Boolean evaluating if the matrix is Hermitian positive definite.
+        """
+        return gs.logical_and(cls.is_hermitian(mat, atol), MatrixOperations.is_pd(mat))
+
+    @classmethod
+    def is_skew_hermitian(cls, mat, atol=gs.atol):
+        """Check if a matrix is skew-Hermitian.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_skew_herm : array-like, shape=[...,]
+            Boolean evaluating if the matrix is skew-Hermitian.
+        """
+        return MatrixOperations.equal(mat, -cls.transconjugate(mat), atol)
+
+    @classmethod
+    def to_hermitian(cls, mat):
+        """Make a matrix Hermitian.
+
+        Make a matrix Hermitian by averaging it
+        with its transconjugate.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        herm : array-like, shape=[..., n, n]
+            Hermitian matrix.
+        """
+        return 1 / 2 * (mat + cls.transconjugate(mat))
+
+    @classmethod
+    def to_skew_hermitian(cls, mat):
+        """Make a matrix skew-Hermitian.
+
+        Make matrix skew-Hermitian by averaging it
+        with minus its transconjugate.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        skew_sym : array-like, shape=[..., n, n]
+            Skew-Hermitian matrix.
+        """
+        return 1 / 2 * (mat - cls.transconjugate(mat))
+
+    @classmethod
+    def congruent(cls, mat_1, mat_2):
+        r"""Compute the congruent action of mat_2 on mat_1.
+
+        This is :math:`mat\_2 \ mat\_1 \ mat\_2^T`.
+
+        Parameters
+        ----------
+        mat_1 : array-like, shape=[..., n, n]
+            Matrix.
+        mat_2 : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        cong : array-like, shape=[..., n, n]
+            Result of the congruent action.
+        """
+        return MatrixOperations.mul(mat_2, mat_1, cls.transconjugate(mat_2))
+
+    @staticmethod
+    def frobenius_product(mat_1, mat_2):
+        """Compute Frobenius inner-product of two matrices.
+
+        The `einsum` function is used to avoid computing a matrix product. It
+        is also faster than using a sum an element-wise product.
+
+        Parameters
+        ----------
+        mat_1 : array-like, shape=[..., m, n]
+            Matrix.
+        mat_2 : array-like, shape=[..., m, n]
+            Matrix.
+
+        Returns
+        -------
+        product : array-like, shape=[...,]
+            Frobenius inner-product of mat_1 and mat_2
+        """
+        return gs.einsum("...ij,...ij->...", gs.conj(mat_1), mat_2)
 
 
 class ComplexMatrices(MatrixVectorSpace):
@@ -55,122 +215,27 @@ class ComplexMatrices(MatrixVectorSpace):
         basis_representation : array-like, shape=[..., m * n]
             Coefficients in the basis.
         """
-        return Matrices.flatten(matrix_representation)
+        return MatrixOperations.flatten(matrix_representation)
 
-    @staticmethod
-    def transconjugate(mat):
-        """Return the transconjugate of matrices.
+    def matrix_representation(self, basis_representation):
+        """Compute the matrix representation for the given basis coefficients.
 
-        Parameters
-        ----------
-        mat : array-like, shape=[..., n, n]
-            Matrix.
-
-        Returns
-        -------
-        transconjugate : array-like, shape=[..., n, n]
-            Transconjugated matrix.
-        """
-        ndim = gs.ndim(mat)
-        axes = list(range(0, ndim))
-        axes[-1] = ndim - 2
-        axes[-2] = ndim - 1
-        return gs.matrix_transpose(gs.conj(mat))
-
-    @classmethod
-    def is_hermitian(cls, mat, atol=gs.atol):
-        """Check if a square matrix is Hermitian.
+        The coefficients in the canonical basis are the flattened entries of
+        the matrix, so this reshapes them into a matrix.
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n, n]
-            Matrix.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
+        basis_representation : array-like, shape=[..., m * n]
+            Coefficients in the basis.
 
         Returns
         -------
-        is_herm : array-like, shape=[...,]
-            Boolean evaluating if the matrix is symmetric.
-        """
-        return Matrices.equal(mat, cls.transconjugate(mat), atol)
-
-    @classmethod
-    def is_hpd(cls, mat, atol=gs.atol):
-        """Check if a square matrix is Hermitian positive definite.
-
-        Parameters
-        ----------
-        mat : array-like, shape=[..., n, n]
+        matrix_representation : array-like, shape=[..., m, n]
             Matrix.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        is_hpd : array-like, shape=[...,]
-            Boolean evaluating if the matrix is Hermitian positive definite.
         """
-        return gs.logical_and(cls.is_hermitian(mat, atol), Matrices.is_pd(mat))
-
-    @classmethod
-    def is_skew_hermitian(cls, mat, atol=gs.atol):
-        """Check if a matrix is skew-Hermitian.
-
-        Parameters
-        ----------
-        mat : array-like, shape=[..., n, n]
-            Matrix.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        is_skew_herm : array-like, shape=[...,]
-            Boolean evaluating if the matrix is skew-Hermitian.
-        """
-        return Matrices.equal(mat, -cls.transconjugate(mat), atol)
-
-    @classmethod
-    def to_hermitian(cls, mat):
-        """Make a matrix Hermitian.
-
-        Make a matrix Hermitian by averaging it
-        with its transconjugate.
-
-        Parameters
-        ----------
-        mat : array-like, shape=[..., n, n]
-            Matrix.
-
-        Returns
-        -------
-        herm : array-like, shape=[..., n, n]
-            Hermitian matrix.
-        """
-        return 1 / 2 * (mat + cls.transconjugate(mat))
-
-    @classmethod
-    def to_skew_hermitian(cls, mat):
-        """Make a matrix skew-Hermitian.
-
-        Make matrix skew-Hermitian by averaging it
-        with minus its transconjugate.
-
-        Parameters
-        ----------
-        mat : array-like, shape=[..., n, n]
-            Matrix.
-
-        Returns
-        -------
-        skew_sym : array-like, shape=[..., n, n]
-            Skew-Hermitian matrix.
-        """
-        return 1 / 2 * (mat - cls.transconjugate(mat))
+        return gs.reshape(
+            basis_representation, basis_representation.shape[:-1] + (self.m, self.n)
+        )
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample from a uniform distribution in a complex cube.
@@ -195,47 +260,6 @@ class ComplexMatrices(MatrixVectorSpace):
         point = gs.cast(bound * (gs.random.rand(*size) - 0.5), dtype=cdtype)
         point += 1j * gs.cast(bound * (gs.random.rand(*size) - 0.5), dtype=cdtype)
         return point
-
-    @classmethod
-    def congruent(cls, mat_1, mat_2):
-        r"""Compute the congruent action of mat_2 on mat_1.
-
-        This is :math:`mat\_2 \ mat\_1 \ mat\_2^T`.
-
-        Parameters
-        ----------
-        mat_1 : array-like, shape=[..., n, n]
-            Matrix.
-        mat_2 : array-like, shape=[..., n, n]
-            Matrix.
-
-        Returns
-        -------
-        cong : array-like, shape=[..., n, n]
-            Result of the congruent action.
-        """
-        return Matrices.mul(mat_2, mat_1, cls.transconjugate(mat_2))
-
-    @staticmethod
-    def frobenius_product(mat_1, mat_2):
-        """Compute Frobenius inner-product of two matrices.
-
-        The `einsum` function is used to avoid computing a matrix product. It
-        is also faster than using a sum an element-wise product.
-
-        Parameters
-        ----------
-        mat_1 : array-like, shape=[..., m, n]
-            Matrix.
-        mat_2 : array-like, shape=[..., m, n]
-            Matrix.
-
-        Returns
-        -------
-        product : array-like, shape=[...,]
-            Frobenius inner-product of mat_1 and mat_2
-        """
-        return gs.einsum("...ij,...ij->...", gs.conj(mat_1), mat_2)
 
 
 class ComplexMatricesMetric(FlatMixin, RiemannianMetric):
@@ -271,7 +295,7 @@ class ComplexMatricesMetric(FlatMixin, RiemannianMetric):
             Frobenius inner-product of tangent_vec_a and tangent_vec_b.
         """
         inner_prod = gs.real(
-            ComplexMatrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+            ComplexMatrixOperations.frobenius_product(tangent_vec_a, tangent_vec_b)
         )
         return repeat_out(
             self._space.point_ndim, inner_prod, tangent_vec_a, tangent_vec_b, base_point

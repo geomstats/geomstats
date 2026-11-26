@@ -5,7 +5,7 @@ Lead author: Paul Chauchat.
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 
@@ -374,7 +374,7 @@ class Localization:
         """
         theta, _, _ = state
         rot = self.rotation_matrix(theta)
-        return Matrices.mul(gs.matrix_transpose(rot), observation_cov, rot)
+        return MatrixOperations.mul(gs.matrix_transpose(rot), observation_cov, rot)
 
     def observation_model(self, state):
         """Model used to create the measurements.
@@ -464,10 +464,10 @@ class KalmanFilter:
         prop_jac = self.model.propagation_jacobian(self.state, sensor_input)
         noise_jac = self.model.noise_jacobian(self.state, sensor_input)
 
-        prop_cov = Matrices.mul(
+        prop_cov = MatrixOperations.mul(
             prop_jac, self.covariance, gs.matrix_transpose(prop_jac)
         )
-        noise_cov = Matrices.mul(noise_jac, prop_noise, gs.matrix_transpose(noise_jac))
+        noise_cov = MatrixOperations.mul(noise_jac, prop_noise, gs.matrix_transpose(noise_jac))
         self.covariance = prop_cov + noise_cov
         self.state = self.model.propagate(self.state, sensor_input)
 
@@ -493,11 +493,11 @@ class KalmanFilter:
             self.state, self.measurement_noise
         )
         obs_jac = self.model.observation_jacobian(self.state, observation)
-        expected_cov = Matrices.mul(
+        expected_cov = MatrixOperations.mul(
             obs_jac, self.covariance, gs.matrix_transpose(obs_jac)
         )
         innovation_cov = expected_cov + obs_cov
-        return Matrices.mul(
+        return MatrixOperations.mul(
             self.covariance, gs.matrix_transpose(obs_jac), gs.linalg.inv(innovation_cov)
         )
 

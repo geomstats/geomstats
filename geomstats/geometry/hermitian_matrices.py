@@ -7,9 +7,12 @@ import logging
 
 import geomstats.backend as gs
 from geomstats.geometry.base import MatrixVectorSpace
-from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
+from geomstats.geometry.complex_matrices import (
+    ComplexMatricesMetric,
+    ComplexMatrixOperations,
+)
 from geomstats.geometry.manifold import _get_default_dtype
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +97,7 @@ def apply_func_to_eigvalsh(mat, function, check_positive=False):
     reconstruction = []
 
     if gs.is_complex(mat):
-        transp_eigvecs = ComplexMatrices.transconjugate(eigvecs)
+        transp_eigvecs = ComplexMatrixOperations.transconjugate(eigvecs)
     else:
         transp_eigvecs = gs.matrix_transpose(eigvecs)
 
@@ -183,7 +186,7 @@ class HermitianMatrices(MatrixVectorSpace):
         upper = matrix_representation[..., rows, cols]
         return gs.concatenate(
             [
-                gs.real(Matrices.diagonal(matrix_representation)),
+                gs.real(MatrixOperations.diagonal(matrix_representation)),
                 gs.real(upper),
                 gs.imag(upper),
             ],
@@ -207,7 +210,7 @@ class HermitianMatrices(MatrixVectorSpace):
         """
         belongs = super().belongs(point)
         if gs.any(belongs):
-            is_hermitian = ComplexMatrices.is_hermitian(point, atol)
+            is_hermitian = ComplexMatrixOperations.is_hermitian(point, atol)
             return gs.logical_and(belongs, is_hermitian)
         return belongs
 
@@ -225,7 +228,7 @@ class HermitianMatrices(MatrixVectorSpace):
         herm : array-like, shape=[..., n, n]
             Hermitian matrix.
         """
-        return ComplexMatrices.to_hermitian(point)
+        return ComplexMatrixOperations.to_hermitian(point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample a Hermitian matrix.
@@ -258,4 +261,4 @@ class HermitianMatrices(MatrixVectorSpace):
             bound * (gs.random.rand(*size) - 0.5) * 2**0.5,
             dtype=cdtype,
         )
-        return ComplexMatrices.to_hermitian(point)
+        return ComplexMatrixOperations.to_hermitian(point)

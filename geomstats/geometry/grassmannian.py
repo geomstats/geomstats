@@ -41,7 +41,7 @@ from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.manifold import register_quotient
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -115,11 +115,11 @@ class Grassmannian(LevelSet):
 
         _, eigvecs = gs.linalg.eigh(point)
         eigvecs = gs.flip(eigvecs, -1)
-        flipped_point = Matrices.mul(gs.matrix_transpose(eigvecs), point, eigvecs)
+        flipped_point = MatrixOperations.mul(gs.matrix_transpose(eigvecs), point, eigvecs)
         b = flipped_point[..., p:, :p]
         d = flipped_point[..., p:, p:]
         a = flipped_point[..., :p, :p] - gs.eye(p)
-        first = d - Matrices.mul(
+        first = d - MatrixOperations.mul(
             b, GeneralLinear.inverse(a + gs.eye(p)), gs.matrix_transpose(b)
         )
         second = a + gs.matmul(a, a) + gs.matmul(gs.matrix_transpose(b), b)
@@ -139,7 +139,7 @@ class Grassmannian(LevelSet):
         -------
         submersed_vector : array-like, shape=[..., n, n]
         """
-        return 2 * Matrices.to_symmetric(gs.matmul(point, vector)) - vector
+        return 2 * MatrixOperations.to_symmetric(gs.matmul(point, vector)) - vector
 
     def random_uniform(self, n_samples=1):
         r"""Sample random points from a uniform distribution.
@@ -167,7 +167,7 @@ class Grassmannian(LevelSet):
         """
         points = gs.random.normal(size=(n_samples, self.n, self.p))
         full_rank = gs.matmul(gs.matrix_transpose(points), points)
-        projector = Matrices.mul(
+        projector = MatrixOperations.mul(
             points, GeneralLinear.inverse(full_rank), gs.matrix_transpose(points)
         )
         return projector[0] if n_samples == 1 else projector
@@ -216,8 +216,8 @@ class Grassmannian(LevelSet):
         tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at base point.
         """
-        sym = Matrices.to_symmetric(vector)
-        return Matrices.bracket(base_point, Matrices.bracket(base_point, sym))
+        sym = MatrixOperations.to_symmetric(vector)
+        return MatrixOperations.bracket(base_point, MatrixOperations.bracket(base_point, sym))
 
     def projection(self, point):
         """Project a matrix to the Grassmann manifold.
@@ -234,7 +234,7 @@ class Grassmannian(LevelSet):
         projected : array-like, shape=[..., n, n]
             Projected point.
         """
-        mat = Matrices.to_symmetric(point)
+        mat = MatrixOperations.to_symmetric(point)
         _, eigvecs = gs.linalg.eigh(mat)
         diagonal = gs.array([0.0] * (self.n - self.p) + [1.0] * self.p)
         p_d = gs.einsum("...ij,...j->...ij", eigvecs, diagonal)
@@ -266,8 +266,8 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
             Riemannian exponential.
         """
         expm = gs.linalg.expm
-        mul = Matrices.mul
-        rot = Matrices.bracket(base_point, -tangent_vec)
+        mul = MatrixOperations.mul
+        rot = MatrixOperations.bracket(base_point, -tangent_vec)
         return mul(expm(rot), base_point, expm(-rot))
 
     def log(self, point, base_point):
@@ -305,7 +305,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         sym2 = 2 * point - id_n
         sym1 = 2 * base_point - id_n
         rot = self._general_linear.compose(sym2, sym1)
-        return Matrices.bracket(self._general_linear.log(rot) / 2, base_point)
+        return MatrixOperations.bracket(self._general_linear.log(rot) / 2, base_point)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
@@ -353,8 +353,8 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
                     " geodesic along which to transport."
                 )
         expm = gs.linalg.expm
-        mul = Matrices.mul
-        rot = -Matrices.bracket(base_point, direction)
+        mul = MatrixOperations.mul
+        rot = -MatrixOperations.bracket(base_point, direction)
         return mul(expm(rot), tangent_vec, expm(-rot))
 
     def squared_dist(self, point_a, point_b):
@@ -453,7 +453,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         inner_prod : array-like, shape=[...,]
             Frobenius inner-product of `tangent_vec_a` and `tangent_vec_b`.
         """
-        inner_prod = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        inner_prod = MatrixOperations.frobenius_product(tangent_vec_a, tangent_vec_b)
         return repeat_out(
             self._space.point_ndim, inner_prod, tangent_vec_a, tangent_vec_b, base_point
         )
@@ -603,7 +603,7 @@ class GrassmannianBundle(FiberBundle):
         aligned_point : array-like, shape=[...,  n, p]
             Aligned point.
         """
-        return Matrices.align_matrices(point, base_point, flip=False)
+        return MatrixOperations.align_matrices(point, base_point, flip=False)
 
 
 register_quotient(

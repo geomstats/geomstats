@@ -89,7 +89,7 @@ class FlattenDiffeo(LinearIsomorphism):
         """
         if base_point is None:
             return None
-        return Matrices.flatten(base_point)
+        return MatrixOperations.flatten(base_point)
 
     def inverse(self, image_point=None):
         r"""Inverse diffeomorphism at image point.
@@ -160,49 +160,8 @@ class BasisRepresentationDiffeo(LinearIsomorphism):
         return self._space.matrix_representation(image_point)
 
 
-class Matrices(MatrixVectorSpace):
-    """Class for the space of matrices (m, n).
-
-    Parameters
-    ----------
-    m, n : int
-        Integers representing the shapes of the matrices: m x n.
-    """
-
-    def __init__(self, m, n, equip=True):
-        geomstats.errors.check_integer(n, "n")
-        geomstats.errors.check_integer(m, "m")
-
-        super().__init__(shape=(m, n), equip=equip)
-        self.m = m
-        self.n = n
-
-    def _create_basis(self):
-        """Create the canonical basis."""
-        m, n = self.m, self.n
-        return gs.reshape(gs.eye(n * m), (n * m, m, n))
-
-    @staticmethod
-    def default_metric():
-        """Metric to equip the space with if equip is True."""
-        return MatricesMetric
-
-    def basis_representation(self, matrix_representation):
-        """Compute the coefficient in the usual matrix basis.
-
-        This simply flattens the input.
-
-        Parameters
-        ----------
-        matrix_representation : array-like, shape=[..., n, n]
-            Matrix.
-
-        Returns
-        -------
-        basis_representation : array-like, shape=[..., dim]
-            Representation in the basis.
-        """
-        return self.flatten(matrix_representation)
+class MatrixOperations:
+    """Operations on matrices."""
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
@@ -635,28 +594,6 @@ class Matrices(MatrixVectorSpace):
         diag = cls.to_diagonal(mat) / K
         return slt + diag
 
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample from a uniform distribution in a cube.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Bound of the interval in which to sample each entry.
-            Optional, default: 1.
-
-        Returns
-        -------
-        point : array-like, shape=[..., m, n]
-            Sample.
-        """
-        m, n = self.m, self.n
-        size = (n_samples, m, n) if n_samples != 1 else (m, n)
-        point = bound * (gs.random.rand(*size) - 0.5)
-        return point
-
     @classmethod
     def congruent(cls, mat_1, mat_2):
         r"""Compute the congruent action of mat_2 on mat_1.
@@ -724,11 +661,9 @@ class Matrices(MatrixVectorSpace):
         """Return a flattened form of the matrix.
 
         Flatten a matrix (compatible with vectorization on data axis 0).
-        The reverse operation is reshape. These operations are often called
-        matrix vectorization / matricization in mathematics
-        (https://en.wikipedia.org/wiki/Tensor_reshaping).
-        The names flatten / reshape were chosen to avoid  confusion with
-        vectorization on data axis 0.
+        The reverse operation is `Matrices.matrix_representation`. These
+        operations are often called matrix vectorization / matricization in
+        mathematics (https://en.wikipedia.org/wiki/Tensor_reshaping).
 
         Parameters
         ----------
@@ -743,41 +678,6 @@ class Matrices(MatrixVectorSpace):
         batch_shape = mat.shape[:-2]
         mat_shape = mat.shape[-2:]
         return gs.reshape(mat, batch_shape + (math.prod(mat_shape),))
-
-    def reshape(self, vec):
-        """Return a matricized form of the vector.
-
-        Matricize a vector (compatible with vectorization on data axis 0).
-        The reverse operation is matrices.flatten. These operations are often
-        called matrix vectorization / matricization in mathematics
-        (https://en.wikipedia.org/wiki/Tensor_reshaping).
-        The names flatten / reshape were chosen to avoid  confusion with
-        vectorization on data axis 0.
-
-        Parameters
-        ----------
-        vec : array-like, shape=[..., m * n]
-            Vector.
-
-        Returns
-        -------
-        mat : array-like, shape=[..., m, n]
-            Matricized copy of vec.
-        """
-        is_data_vectorized_on_axis_0 = gs.ndim(gs.array(vec)) == 2
-        if is_data_vectorized_on_axis_0:
-            vector_size = vec.shape[1]
-            shape = (vec.shape[0], self.m, self.n)
-        else:
-            vector_size = vec.shape[0]
-            shape = (
-                self.m,
-                self.n,
-            )
-
-        if vector_size != self.m * self.n:
-            raise ValueError("Incompatible vector and matrix sizes")
-        return gs.reshape(vec, shape)
 
     @classmethod
     def align_matrices(cls, point, base_point, flip=True):
@@ -818,7 +718,94 @@ class Matrices(MatrixVectorSpace):
             flipped = flip_determinant(gs.matrix_transpose(right), det)
         else:
             flipped = gs.matrix_transpose(right)
-        return Matrices.mul(point, left, gs.matrix_transpose(flipped))
+        return MatrixOperations.mul(point, left, gs.matrix_transpose(flipped))
+
+
+class Matrices(MatrixVectorSpace):
+    """Class for the space of matrices (m, n).
+
+    Parameters
+    ----------
+    m, n : int
+        Integers representing the shapes of the matrices: m x n.
+    """
+
+    def __init__(self, m, n, equip=True):
+        geomstats.errors.check_integer(n, "n")
+        geomstats.errors.check_integer(m, "m")
+
+        super().__init__(shape=(m, n), equip=equip)
+        self.m = m
+        self.n = n
+
+    def _create_basis(self):
+        """Create the canonical basis."""
+        m, n = self.m, self.n
+        return gs.reshape(gs.eye(n * m), (n * m, m, n))
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return MatricesMetric
+
+    def basis_representation(self, matrix_representation):
+        """Compute the coefficient in the usual matrix basis.
+
+        This simply flattens the input.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., dim]
+            Representation in the basis.
+        """
+        return MatrixOperations.flatten(matrix_representation)
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample from a uniform distribution in a cube.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample each entry.
+            Optional, default: 1.
+
+        Returns
+        -------
+        point : array-like, shape=[..., m, n]
+            Sample.
+        """
+        m, n = self.m, self.n
+        size = (n_samples, m, n) if n_samples != 1 else (m, n)
+        point = bound * (gs.random.rand(*size) - 0.5)
+        return point
+
+    def matrix_representation(self, basis_representation):
+        """Compute the matrix representation for the given basis coefficients.
+
+        The coefficients in the canonical basis are the flattened entries of
+        the matrix, so this reshapes them into a matrix.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., m * n]
+            Coefficients in the basis.
+
+        Returns
+        -------
+        matrix_representation : array-like, shape=[..., m, n]
+            Matrix.
+        """
+        return gs.reshape(
+            basis_representation, basis_representation.shape[:-1] + (self.m, self.n)
+        )
 
 
 class MatricesEuclideanMetric(FlatMixin, RiemannianMetric):
@@ -1014,7 +1001,7 @@ class MatricesMetric(MatricesEuclideanMetric):
         inner_prod : array-like, shape=[...,]
             Frobenius inner-product of tangent_vec_a and tangent_vec_b.
         """
-        inner_prod = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        inner_prod = MatrixOperations.frobenius_product(tangent_vec_a, tangent_vec_b)
         return repeat_out(
             self._space.point_ndim, inner_prod, tangent_vec_a, tangent_vec_b, base_point
         )
@@ -1174,7 +1161,7 @@ class MatricesDiagMetric(MatricesEuclideanMetric):
         we just need to multiply each element of the tangent vector by the corresponding
         diagonal coefficient. (Avoids unnecessary reshapings.)
         """
-        inner_prod = Matrices.frobenius_product(
+        inner_prod = MatrixOperations.frobenius_product(
             tangent_vec_a, self.metric_coeffs * tangent_vec_b
         )
         return repeat_out(2, inner_prod, tangent_vec_a, tangent_vec_b, base_point)

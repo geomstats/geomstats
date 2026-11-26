@@ -6,7 +6,7 @@ Lead author: Nicolas Guigui.
 from sklearn.base import BaseEstimator, TransformerMixin
 
 import geomstats.backend as gs
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.learning.exponential_barycenter import ExponentialBarycenter
@@ -112,10 +112,10 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
         if self.space.point_ndim == 1:
             return tangent_vecs
 
-        if gs.all(Matrices.is_symmetric(tangent_vecs)):
+        if gs.all(MatrixOperations.is_symmetric(tangent_vecs)):
             X = SymmetricMatrices.basis_representation(tangent_vecs)
 
-        elif gs.all(Matrices.is_skew_symmetric(tangent_vecs)):
+        elif gs.all(MatrixOperations.is_skew_symmetric(tangent_vecs)):
             X = SkewSymmetricMatrices(tangent_vecs.shape[-1]).basis_representation(
                 tangent_vecs
             )
@@ -149,7 +149,7 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
             dim_sym = int(n_base_point * (n_base_point + 1) / 2)
             dim_skew = int(n_base_point * (n_base_point - 1) / 2)
 
-            if gs.all(Matrices.is_symmetric(self.base_point_)) and dim_sym == n_vecs:
+            if gs.all(MatrixOperations.is_symmetric(self.base_point_)) and dim_sym == n_vecs:
                 tangent_vecs = SymmetricMatrices(
                     self.base_point_.shape[-1]
                 ).matrix_representation(X)
