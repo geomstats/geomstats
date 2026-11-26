@@ -82,11 +82,6 @@ class SpecialOrthogonalComposeAction(ComposeAction):
     ----------
     n : int
         Integer representing the shapes of the matrices : n x n.
-    lie_algebra_repr : bool
-        If True, group elements are represented by the vector
-        representation of Lie algebra elements.
-        This is amenable to perform gradient-based optimizations
-        on the Lie algebra.
     """
 
     def __init__(self, n):

@@ -1195,7 +1195,7 @@ class RelaxedPathStraightening(PathBasedLogSolver, AlignerAlgorithm):
 
     Parameters
     ----------
-    space : Manifold
+    total_space : Manifold
         Equipped manifold.
     n_nodes : int
         Number of path discretization points.
