@@ -225,8 +225,7 @@ class MatrixOperationsSmokeTestData(TestData):
 
 
 class MatricesTestData(MatrixVectorSpaceTestData):
-    def reshape_after_flatten_test_data(self):
-        return self.generate_random_data()
+    pass
 
 
 class MatricesMetricTestData(RiemannianMetricTestData):
