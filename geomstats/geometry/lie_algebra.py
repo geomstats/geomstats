@@ -14,7 +14,7 @@ import abc
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.base import MatrixVectorSpace
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 
 from ._bch_coefficients import BCH_COEFFICIENTS
 
@@ -36,7 +36,7 @@ class MatrixLieAlgebra(MatrixVectorSpace, abc.ABC):
         super().__init__(shape=(representation_dim, representation_dim), **kwargs)
         self.representation_dim = representation_dim
 
-    bracket = Matrices.bracket
+    bracket = MatrixOperations.bracket
 
     def baker_campbell_hausdorff(self, matrix_a, matrix_b, order=2):
         """Calculate the Baker-Campbell-Hausdorff approximation of given order.

@@ -17,8 +17,5 @@ class ProductRiemannianMetricTestData(RiemannianMetricTestData):
 
     skips = (
         # TODO: remove skip
-        "metric_matrix_is_spd",
         "inner_coproduct_vec",
-        "inner_product_derivative_matrix_vec",
-        "christoffels_vec",
     )

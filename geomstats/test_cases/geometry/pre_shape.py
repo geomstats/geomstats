@@ -1,7 +1,6 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.matrices import Matrices
 from geomstats.test.random import KendalShapeRandomDataGenerator, get_random_times
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import LevelSetTestCase
@@ -56,10 +55,10 @@ def integrability_tensor_alt(total_space, tangent_vec_a, tangent_vec_b, base_poi
     horizontal_b = tangent_vec_b - vertical_b
 
     # For the horizontal part of b
-    transposed_point = gs.transpose(base_point)
+    transposed_point = gs.matrix_transpose(base_point)
     sigma = gs.matmul(transposed_point, base_point)
-    alignment = gs.matmul(gs.transpose(horizontal_a), horizontal_b)
-    right_term = alignment - gs.transpose(alignment)
+    alignment = gs.matmul(gs.matrix_transpose(horizontal_a), horizontal_b)
+    right_term = alignment - gs.matrix_transpose(alignment)
     skew_hor = gs.linalg.solve_sylvester(sigma, sigma, right_term)
     vertical = -gs.matmul(base_point, skew_hor)
 
@@ -162,15 +161,15 @@ class PreShapeBundleTestCase(FiberBundleTestCase):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        transposed_point = gs.transpose(base_point)
+        transposed_point = gs.matrix_transpose(base_point)
         tmp_expected = gs.matmul(transposed_point, tangent_vec)
-        expected = gs.transpose(tmp_expected) - tmp_expected
+        expected = gs.matrix_transpose(tmp_expected) - tmp_expected
 
         vertical = self.total_space.fiber_bundle.vertical_projection(
             tangent_vec, base_point
         )
         tmp_result = gs.matmul(transposed_point, vertical)
-        result = gs.transpose(tmp_result) - tmp_result
+        result = gs.matrix_transpose(tmp_result) - tmp_result
 
         self.assertAllClose(result, expected, atol=atol)
 
@@ -183,8 +182,8 @@ class PreShapeBundleTestCase(FiberBundleTestCase):
             tangent_vec, base_point
         )
 
-        result = gs.matmul(gs.transpose(base_point), horizontal)
-        self.assertAllClose(result, gs.transpose(result), atol=atol)
+        result = gs.matmul(gs.matrix_transpose(base_point), horizontal)
+        self.assertAllClose(result, gs.matrix_transpose(result), atol=atol)
 
     @pytest.mark.random
     def test_horizontal_projection_is_tangent(self, n_points, atol):
@@ -204,8 +203,8 @@ class PreShapeBundleTestCase(FiberBundleTestCase):
         base_point = self.data_generator.random_point(n_points)
 
         aligned_point = self.total_space.fiber_bundle.align(point, base_point)
-        alignment = Matrices.mul(gs.transpose(aligned_point), base_point)
-        self.assertAllClose(alignment, gs.transpose(alignment), atol=atol)
+        alignment = gs.matmul(gs.matrix_transpose(aligned_point), base_point)
+        self.assertAllClose(alignment, gs.matrix_transpose(alignment), atol=atol)
 
     @pytest.mark.random
     def test_integrability_tensor_identity_1(self, n_points, atol):

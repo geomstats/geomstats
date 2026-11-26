@@ -25,11 +25,11 @@ def main():
     base_point = space.random_uniform(1)
     tangent_vec_b = space.random_uniform(1)
     tangent_vec_b = space.to_tangent(tangent_vec_b, base_point)
-    tangent_vec_b = tangent_vec_b / gs.linalg.norm(tangent_vec_b)
+    tangent_vec_b = tangent_vec_b / gs.linalg.vector_norm(tangent_vec_b)
 
     rotation_vector = gs.pi / 2 * base_point
     rotation_matrix = rotation.matrix_from_rotation_vector(rotation_vector)
-    tangent_vec_a = gs.dot(rotation_matrix, tangent_vec_b)
+    tangent_vec_a = gs.matvec(rotation_matrix, tangent_vec_b)
     tangent_vec_b *= 3.0 / 2.0
 
     ladder = space.metric.ladder_parallel_transport(
@@ -56,7 +56,7 @@ def main():
         gs.stack([tangent_vec_b, tangent_vec_a, pole_ladder], axis=0) / n_steps
     )
 
-    base_point = gs.to_ndarray(base_point, to_ndim=2)
+    base_point = gs.expand_dims_to(base_point, ndim=2)
     origin = gs.concatenate([base_point, base_point, final_geodesic(0.0)], axis=0)
     ax.quiver(
         origin[:, 0],

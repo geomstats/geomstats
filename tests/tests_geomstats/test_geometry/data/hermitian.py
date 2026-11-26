@@ -1,12 +1,12 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import ComplexVectorSpaceTestData
-from .complex_riemannian_metric import ComplexRiemannianMetricTestData
+from .base import VectorSpaceTestData
 from .mixins import GroupExpMixinsTestData
+from .riemannian_metric import RiemannianMetricTestData
 
 
-class HermitianTestData(GroupExpMixinsTestData, ComplexVectorSpaceTestData):
+class HermitianTestData(GroupExpMixinsTestData, VectorSpaceTestData):
     def exp_random_test_data(self):
         return self.generate_random_data()
 
@@ -14,11 +14,9 @@ class HermitianTestData(GroupExpMixinsTestData, ComplexVectorSpaceTestData):
         return self.generate_tests([dict()])
 
 
-class HermitianMetricTestData(ComplexRiemannianMetricTestData):
+class HermitianMetricTestData(RiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
-
-    skips = ("sectional_curvature_vec",)
 
 
 class Hermitian2MetricTestData(TestData):

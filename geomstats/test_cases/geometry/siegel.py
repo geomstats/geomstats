@@ -1,12 +1,10 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.test_cases.geometry.complex_riemannian_metric import (
-    ComplexRiemannianMetricTestCase,
-)
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
-class SiegelMetricTestCase(ComplexRiemannianMetricTestCase):
+class SiegelMetricTestCase(RiemannianMetricTestCase):
     def test_tangent_vec_from_base_point_to_zero(
         self, tangent_vec, base_point, expected, atol
     ):

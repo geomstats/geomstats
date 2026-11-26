@@ -1,7 +1,7 @@
 from geomstats.test.data import TestData
 
 
-class _ManifoldMixinsTestData:
+class ManifoldTestData(TestData):
     def belongs_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -34,7 +34,3 @@ class _ManifoldMixinsTestData:
 
     def random_tangent_vec_shape_test_data(self):
         return self.generate_shape_data()
-
-
-class ManifoldTestData(_ManifoldMixinsTestData, TestData):
-    pass

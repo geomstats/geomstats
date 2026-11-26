@@ -63,7 +63,7 @@ class PullbackMetricTestCase(RiemannianMetricTestCase):
 
     def test_mean_curvature_vector_norm(self, base_point, expected, atol):
         mean_curvature = self.space.metric.mean_curvature_vector(base_point)
-        res = gs.linalg.norm(mean_curvature)
+        res = gs.linalg.vector_norm(mean_curvature)
         self.assertAllClose(res, expected, atol=atol)
 
 

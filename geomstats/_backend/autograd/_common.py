@@ -1,9 +1,12 @@
 import autograd.numpy as _np
+from autograd.extend import primitive as _primitive
 from autograd.numpy import (
     array,
     eye,
     zeros,
 )
+
+from ..numpy import scatter_add as _numpy_scatter_add
 
 atol = 1e-8
 rtol = 1e-5
@@ -13,31 +16,40 @@ def is_array(x):
     return type(x) is _np.ndarray
 
 
-def to_ndarray(x, to_ndim, axis=0, dtype=None):
-    x = _np.asarray(x, dtype=dtype)
+def expand_dims_to(x, ndim, axis=0):
+    """Insert axes at ``axis`` until an array has ``ndim`` axes.
 
-    if x.ndim > to_ndim:
-        raise ValueError("The ndim cannot be adapted properly.")
+    Parameters
+    ----------
+    x : array-like
+        Array, with at most ``ndim`` axes.
+    ndim : int
+        Number of axes of the output.
+    axis : int
+        Position of the inserted axes.
 
-    while x.ndim < to_ndim:
+    Returns
+    -------
+    x : array-like
+        Array with ``ndim`` axes.
+    """
+    if x.ndim > ndim:
+        raise ValueError(f"Cannot expand an array with {x.ndim} axes to {ndim}.")
+
+    while x.ndim < ndim:
         x = _np.expand_dims(x, axis=axis)
 
     return x
 
 
-def _is_boolean(x):
-    if isinstance(x, bool):
-        return True
-    if isinstance(x, (tuple, list)):
-        return _is_boolean(x[0])
-    if isinstance(x, _np.ndarray):
-        return x.dtype == bool
-    return False
+_scatter_add = _primitive(_numpy_scatter_add)
 
 
-def _is_iterable(x):
-    if isinstance(x, (list, tuple)):
-        return True
-    if isinstance(x, _np.ndarray):
-        return x.ndim > 0
-    return False
+def scatter_add(input, dim, index, src):
+    """Add values of src into input, at the indices of index along an axis.
+
+    Same as the numpy backend's, as an autograd primitive, whose VJP is
+    registered in ``_vjps``. The arguments are passed positionally, as
+    autograd only differentiates positional arguments.
+    """
+    return _scatter_add(input, dim, index, src)

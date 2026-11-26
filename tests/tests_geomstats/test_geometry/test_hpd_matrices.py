@@ -13,14 +13,12 @@ from geomstats.geometry.hpd_matrices import (
 from geomstats.geometry.spd_matrices import MatrixPower, SymMatrixLog
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test_cases.geometry.base import ComplexVectorSpaceOpenSetTestCase
-from geomstats.test_cases.geometry.complex_riemannian_metric import (
-    ComplexRiemannianMetricTestCase,
-)
+from geomstats.test_cases.geometry.base import VectorSpaceOpenSetTestCase
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
-from .data.base import ComplexVectorSpaceOpenSetTestData
+from .data.base import VectorSpaceOpenSetTestData
 from .data.diffeo import DiffeoTestData
 from .data.hpd_matrices import (
     HPDAffineMetricTestData,
@@ -58,24 +56,18 @@ def spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestHPDMatrices(
-    ComplexVectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = ComplexVectorSpaceOpenSetTestData()
+class TestHPDMatrices(VectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer):
+    testing_data = VectorSpaceOpenSetTestData()
 
 
 @pytest.mark.smoke
-class TestHPDMatrices2(
-    ComplexVectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer
-):
+class TestHPDMatrices2(VectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer):
     space = HPDMatrices(n=2, equip=False)
     testing_data = HPDMatrices2TestData()
 
 
 @pytest.mark.smoke
-class TestHPDMatrices3(
-    ComplexVectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer
-):
+class TestHPDMatrices3(VectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer):
     space = HPDMatrices(n=3, equip=False)
     testing_data = HPDMatrices3TestData()
 
@@ -92,9 +84,7 @@ def spaces_with_affine_metric(request):
 
 
 @pytest.mark.usefixtures("spaces_with_affine_metric")
-class TestHPDAffineMetric(
-    ComplexRiemannianMetricTestCase, metaclass=DataBasedParametrizer
-):
+class TestHPDAffineMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = HPDAffineMetricTestData()
 
 
@@ -113,7 +103,7 @@ def spaces_with_bw_metric(request):
 
 @pytest.mark.usefixtures("spaces_with_bw_metric")
 class TestHPDBuresWassersteinMetric(
-    ComplexRiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = HPDBuresWassersteinMetricTestData()
 
@@ -134,9 +124,7 @@ def hpd_with_euclidean_metric(request):
 
 
 @pytest.mark.usefixtures("hpd_with_euclidean_metric")
-class TestHPDEuclideanMetric(
-    ComplexRiemannianMetricTestCase, metaclass=DataBasedParametrizer
-):
+class TestHPDEuclideanMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = HPDEuclideanMetricTestData()
 
     def test_exp_domain(self, tangent_vec, base_point, expected, atol):

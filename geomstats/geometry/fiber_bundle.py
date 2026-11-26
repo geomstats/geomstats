@@ -8,8 +8,11 @@ import math
 from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
+from geomstats._logging import warn_max_iterations
 from geomstats.numerics.optimization import ScipyMinimize
 from geomstats.vectorization import check_is_batch, get_batch_shape
+
+logger = logging.getLogger(__name__)
 
 
 def _from_base(method):
@@ -49,57 +52,108 @@ class AlignerAlgorithm(ABC):
 
 
 class DistanceMinimizingAligner(AlignerAlgorithm):
-    """Aligment based on minimization of squared distance.
+    r"""Align points by minimizing squared distance.
+
+    Solve
+
+    .. math::
+
+        g^\star \in \arg\min_{g \in G}
+        d(g \cdot p, q)^2,
+
+    where :math:`G` acts on the total space by isometries. For batched
+    inputs, minimize the sum of these objectives over the batch.
 
     Parameters
     ----------
     total_space : Manifold
         Space equipped with a group action and a group-invariant metric.
     optimizer : Minimizer
-        Optimizer to solve minimization problem.
+        Optimizer to solve the minimization problem.
     group_elem_shape : tuple
         Shape of the group element representation.
+    use_log_gradient : bool
+        Whether to register a custom squared-distance derivative using
+
+        .. math::
+
+            d_p\bigl(d(\cdot, q)^2\bigr)[h]
+            = -2 g_p(\mathrm{Log}_p(q), h).
+
+        Requires an autodiff backend and a metric whose `flat` method
+        returns an autodiff-compatible covector representation.
     """
 
-    def __init__(self, total_space, optimizer=None, group_elem_shape=None):
+    def __init__(
+        self,
+        total_space,
+        optimizer=None,
+        group_elem_shape=None,
+        use_log_gradient=False,
+    ):
+        if group_elem_shape is None:
+            group_elem_shape = total_space.group_action.group_elem_shape
+
+        if use_log_gradient and not hasattr(total_space.metric, "flat"):
+            raise ValueError(
+                "use_log_gradient=True requires a metric with a callable flat method."
+            )
+
         super().__init__(total_space)
         if optimizer is None:
             optimizer = ScipyMinimize(
                 method="L-BFGS-B",
-                autodiff_jac=True,
+                autodiff_jac=gs.has_autodiff(),
             )
         self.optimizer = optimizer
 
-        if group_elem_shape is None:
-            group_elem_shape = self._total_space.group_action.group_elem_shape
         self.group_elem_shape = group_elem_shape
+        self.use_log_gradient = use_log_gradient
 
     def _objective(self, point, base_point, batch_shape):
-        """Objective function.
+        """Create the alignment objective.
 
         Parameters
         ----------
         point : array-like, shape=[..., *total_space.shape]
-            Point to align to base point.
+            Point to align.
         base_point : array-like, shape=[..., *total_space.shape]
-            Point wrt alignment is performed.
+            Point to which alignment is performed.
         batch_shape : tuple
-            Batch shape.
+            Broadcast batch shape of the input points.
+
+        Returns
+        -------
+        objective : callable
+            Sum of squared distances as a function of flat group parameters.
         """
+        metric = self._total_space.metric
+        squared_dist = metric.squared_dist
+
+        if self.use_log_gradient:
+
+            def grad_point_a(a, b):
+                """Compute the array gradient with respect to the first point."""
+                return -2 * metric.flat(metric.log(b, a), a)
+
+            squared_dist = gs.autodiff.custom_gradient(grad_point_a, None)(squared_dist)
 
         def sum_squared_dist(param):
-            """Objective function.
+            """Evaluate the alignment objective.
 
             Parameters
             ----------
-            param : array-like
-                Flat representation of group element.
+            param : array-like, shape=[prod(batch_shape + group_elem_shape)]
+                Flat representation of the group elements.
+
+            Returns
+            -------
+            value : array-like, shape=[]
+                Sum of squared distances between aligned and base points.
             """
             group_elem = gs.reshape(param, batch_shape + self.group_elem_shape)
             aligned_point = self._total_space.group_action(group_elem, point)
-            return gs.sum(
-                self._total_space.metric.squared_dist(aligned_point, base_point)
-            )
+            return gs.sum(squared_dist(aligned_point, base_point))
 
         return sum_squared_dist
 
@@ -205,17 +259,14 @@ class AlternatingAligner(AlignerAlgorithm):
 
             if gap < self.threshold:
                 if self.verbose > 0:
-                    logging.info(
-                        f"Convergence of alignment reached after {index + 1} "
-                        "iterations."
+                    logger.info(
+                        "Convergence of alignment reached after %d iterations.",
+                        index + 1,
                     )
 
                 break
         else:
-            logging.warning(
-                f"Maximum number of iterations {self.max_iter} reached during "
-                "alignment. The result may be inaccurate."
-            )
+            warn_max_iterations(logger, self.max_iter)
         return aligned_point
 
     def align(self, point, base_point):
@@ -522,21 +573,21 @@ class FiberBundle:
 
         return self.horizontal_projection(tangent_vec, fiber_point)
 
-    def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):
+    def integrability_tensor(self, tangent_vec_x, tangent_vec_e, base_point):
         r"""Compute the fundamental tensor A of the submersion.
 
         The fundamental integrability tensor A is defined for tangent vectors
-        :math:`X = tangent\_vec\_a` and :math:`Y = tangent\_vec\_b` of the
+        :math:`X = tangent\_vec\_x` and :math:`E = tangent\_vec\_e` of the
         total space by [ONeill]_ as
-        :math:`A_X Y = ver\nabla_{hor X} (hor Y) + hor \nabla_{hor X}( ver Y)`
+        :math:`A_X E = ver\nabla_{hor X} (hor E) + hor \nabla_{hor X}( ver E)`
         where :math:`hor, ver` are the horizontal and vertical projections
         and :math:`\nabla` is the connection of the total space.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., {total_space.dim, [n, m]}]
+        tangent_vec_x : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., {total_space.dim, [n, m]}]
+        tangent_vec_e : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point of the total space.
@@ -545,7 +596,7 @@ class FiberBundle:
         -------
         vector : array-like, shape=[..., {total_space.dim, [n, m]}]
             Tangent vector at `base_point`, result of the A tensor applied to
-            `tangent_vec_a` and `tangent_vec_b`.
+            `tangent_vec_x` and `tangent_vec_e`.
 
         References
         ----------

@@ -3,7 +3,7 @@ from geomstats.test.data import TestData
 
 from .base import VectorSpaceTestData
 from .mixins import GroupExpMixinsTestData
-from .riemannian_metric import RiemannianMetricTestData
+from .riemannian_metric import CoordinateRiemannianMetricTestData
 
 
 class EuclideanTestData(GroupExpMixinsTestData, VectorSpaceTestData):
@@ -14,7 +14,7 @@ class EuclideanTestData(GroupExpMixinsTestData, VectorSpaceTestData):
         return self.generate_tests([dict()])
 
 
-class EuclideanMetricTestData(RiemannianMetricTestData):
+class EuclideanMetricTestData(CoordinateRiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 

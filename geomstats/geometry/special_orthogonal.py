@@ -5,12 +5,12 @@ Lead authors: Nicolas Guigui and Nina Miolane.
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul, scalarvecmul
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.hermitian_matrices import powermh
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 
 ATOL = 1e-5
@@ -24,6 +24,28 @@ TAYLOR_COEFFS_1_AT_PI = [
     -gs.pi / 480.0,
     -1.0 / 480.0,
 ]
+
+
+def _project_on_rotation_matrices(mat):
+    r"""Project a matrix on SO(n) by minimizing the Frobenius norm.
+
+    If :math:`M = U \Sigma V^T` is a singular value decomposition, the closest
+    rotation is :math:`U D V^T`, where :math:`D = diag(1, ..., 1, det(U V^T))`.
+
+    Parameters
+    ----------
+    mat : array-like, shape=[..., n, n]
+        Matrix.
+
+    Returns
+    -------
+    rot_mat : array-like, shape=[..., n, n]
+        Rotation matrix.
+    """
+    mat_u, _, mat_vt = gs.linalg.svd(mat)
+    det = gs.linalg.det(gs.matmul(mat_u, mat_vt))
+    mat_u = utils.flip_determinant(mat_u, det)
+    return gs.matmul(mat_u, mat_vt)
 
 
 class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
@@ -56,7 +78,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         return GeneralLinear(self.n, positive_det=True, equip=False)
 
     def _aux_submersion(self, point):
-        return Matrices.mul(gs.transpose(point), point)
+        return gs.matmul(gs.matrix_transpose(point), point)
 
     def submersion(self, point):
         """Submersion that defines the manifold.
@@ -83,7 +105,9 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         -------
         submersed_vector : array-like, shape=[..., n, n]
         """
-        return 2 * Matrices.to_symmetric(Matrices.mul(gs.transpose(point), vector))
+        return 2 * MatrixOperations.to_symmetric(
+            gs.matmul(gs.matrix_transpose(point), vector)
+        )
 
     @classmethod
     def inverse(cls, point):
@@ -99,7 +123,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         inverse : array-like, shape=[..., n, n]
             Inverse.
         """
-        return gs.transpose(point)
+        return gs.matrix_transpose(point)
 
     def projection(self, point):
         """Project a matrix on SO(n) by minimizing the Frobenius norm.
@@ -114,14 +138,10 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         rot_mat : array-like, shape=[..., n, n]
             Rotation matrix.
         """
-        aux_mat = self._aux_submersion(point)
-        inv_sqrt_mat = powermh(aux_mat, -1 / 2)
-        rotation_mat = Matrices.mul(point, inv_sqrt_mat)
-        det = gs.linalg.det(rotation_mat)
-        return utils.flip_determinant(rotation_mat, det)
+        return _project_on_rotation_matrices(point)
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample in SO(n) using a normal distribution (not the Haar measure).
+        """Sample in SO(n) from the Haar measure.
 
         Parameters
         ----------
@@ -139,7 +159,10 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         return self.random_uniform(n_samples)
 
     def random_uniform(self, n_samples=1):
-        """Sample in SO(n) using a normal distribution (not the Haar measure).
+        """Sample in SO(n) from the Haar measure.
+
+        Q from the QR decomposition of a Gaussian matrix is Haar distributed
+        on O(n) once the diagonal of R is made positive [Mezzadri2007]_.
 
         Parameters
         ----------
@@ -152,13 +175,21 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         -------
         samples : array-like, shape=[..., n, n]
             Points sampled on the SO(n).
+
+        References
+        ----------
+        .. [Mezzadri2007] F. Mezzadri, "How to generate random matrices from
+            the classical compact groups", Notices of the AMS, 54(5), 2007.
         """
         if n_samples == 1:
             size = (self.n, self.n)
         else:
             size = (n_samples, self.n, self.n)
         random_mat = gs.random.normal(size=size)
-        rotation_mat, _ = gs.linalg.qr(random_mat)
+        rotation_mat, upper = gs.linalg.qr(random_mat)
+        diag = MatrixOperations.diagonal(upper)
+        signs = 1.0 - 2.0 * gs.cast(diag < 0, rotation_mat.dtype)
+        rotation_mat = rotation_mat * signs[..., None, :]
         det = gs.linalg.det(rotation_mat)
         return utils.flip_determinant(rotation_mat, det)
 
@@ -216,7 +247,16 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
 
     @staticmethod
     def are_antipodals(rotation_mat1, rotation_mat2):
-        """Determine if two rotation matrices are antipodals.
+        r"""Determine if two rotation matrices are antipodals.
+
+        Two rotations :math:`R_1` and :math:`R_2` are antipodal when
+        :math:`R_2` belongs to the cut locus of :math:`R_1` for the canonical
+        metric, i.e. when the relative rotation :math:`R_1^T R_2` has
+        :math:`-1` as an eigenvalue, or equivalently
+
+        .. math::
+
+            \det(I + R_1^T R_2) = 0
 
         Parameters
         ----------
@@ -227,18 +267,21 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
 
         Returns
         -------
-        _ : array-like, shape=[...,]
+        are_antipodals : array-like, shape=[...,]
             Boolean determining if each pair of rotation
             matrices corresponds to a pair of antipodal rotation
             matrices.
-        """
-        sq_rot_mat1 = gs.matmul(rotation_mat1, rotation_mat1)
-        sq_rot_mat2 = gs.matmul(rotation_mat2, rotation_mat2)
-        are_different = ~gs.all(gs.isclose(rotation_mat1, rotation_mat2), axis=(-2, -1))
 
-        return are_different & gs.all(
-            gs.isclose(sq_rot_mat1, sq_rot_mat2), axis=(-2, -1)
-        )
+        Notes
+        -----
+        Geometrically, :math:`R_1^T R_2` rotates by an angle :math:`\pi` on at
+        least one invariant two-dimensional subspace. Distinct minimizing
+        geodesics then join :math:`R_1` to :math:`R_2`, so the logarithm is
+        not uniquely defined.
+        """
+        relative_rot = gs.matmul(gs.matrix_transpose(rotation_mat1), rotation_mat2)
+        n = relative_rot.shape[-1]
+        return gs.isclose(gs.linalg.det(gs.eye(n) + relative_rot), 0.0)
 
     def log(self, point, base_point=None):
         r"""
@@ -351,24 +394,10 @@ class _SpecialOrthogonalVectors(LieGroup):
 
         Returns
         -------
-        rot_mat : array-like, shape=[..., n, n]
-            Rotation matrix.
+        rot_vec : array-like, shape=[..., dim]
+            Rotation vector of the closest rotation matrix.
         """
-        mat = point
-
-        mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
-        rot_mat = Matrices.mul(mat_unitary_u, mat_unitary_v)
-        mask = gs.less(gs.linalg.det(rot_mat), 0.0)
-        mask_float = gs.cast(mask, mat.dtype) + self.epsilon
-
-        diag = gs.concatenate((gs.ones(self.n - 1), -gs.ones(1)), axis=0)
-        diag = utils.from_vector_to_diagonal_matrix(diag) + self.epsilon
-
-        aux_mat = Matrices.mul(mat_unitary_u, diag)
-        rot_mat = rot_mat + gs.einsum(
-            "...,...jk->...jk", mask_float, Matrices.mul(aux_mat, mat_unitary_v)
-        )
-        return rot_mat
+        return self.rotation_vector_from_matrix(_project_on_rotation_matrices(point))
 
     def inverse(self, point):
         """Compute the group inverse in SO(2) or SO(3).
@@ -666,6 +695,8 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         point : array-like, shape=[..., 1]
             Group exponential.
         """
+        if base_point is None:
+            return self.exp_from_identity(tangent_vec)
         return self.regularize(tangent_vec + base_point)
 
     def log(self, point, base_point=None):
@@ -673,7 +704,7 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
 
         Parameters
         ----------
-        point : array-like, shape=[..., 3]
+        point : array-like, shape=[..., 1]
             Point.
         base_point : array-like, shape=[..., 1]
             Point from which the log is computed.
@@ -683,11 +714,80 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         tangent_vec : array-like, shape=[..., 1]
             Group logarithm.
         """
+        if base_point is None:
+            return self.log_from_identity(point)
         return self.regularize(point - base_point)
 
+    def jacobian_translation(self, point, left=True):
+        """Compute the Jacobian of left/right translation by a point.
+
+        SO(2) is abelian and one-dimensional, so translations act on tangent
+        vectors as the identity.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 1]
+            Point.
+        left : bool
+            Whether to compute the Jacobian of the left or right translation.
+
+        Returns
+        -------
+        jacobian : array-like, shape=[..., 1, 1]
+            Jacobian of the left/right translation by point.
+        """
+        return gs.ones(point.shape[:-1] + (1, 1))
+
+    def exp_from_identity(self, tangent_vec):
+        """Compute the group exponential of a tangent vector from the identity.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at the identity.
+
+        Returns
+        -------
+        point : array-like, shape=[..., 1]
+            Group exponential.
+        """
+        return self.regularize(tangent_vec)
+
+    def log_from_identity(self, point):
+        """Compute the group logarithm of a point from the identity.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 1]
+            Point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., 1]
+            Group logarithm.
+        """
+        return self.regularize(point)
+
     def lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the lie bracket of two tangent vectors."""
-        raise NotImplementedError("The lie bracket is not implemented.")
+        """Compute the lie bracket of two tangent vectors.
+
+        SO(2) is abelian, so the lie bracket vanishes.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., 1]
+            Tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., 1]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        bracket : array-like, shape=[..., 1]
+            Lie bracket.
+        """
+        return gs.zeros_like(tangent_vec_a + tangent_vec_b)
 
 
 class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
@@ -734,7 +834,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         regularized_point : array-like, shape=[..., 3]
             Regularized point.
         """
-        theta = gs.linalg.norm(point, axis=-1)
+        theta = gs.linalg.vector_norm(point, axis=-1)
         k = gs.floor(theta / 2.0 / gs.pi)
 
         # angle in [0;2pi)
@@ -749,7 +849,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         # reverse sign if angle was greater than pi
         norm_ratio = gs.where(angle > gs.pi, -norm_ratio, norm_ratio)
-        return gs.einsum("...,...i->...i", norm_ratio, point)
+        return scalarvecmul(norm_ratio, point)
 
     def regularize_tangent_vec_at_identity(self, tangent_vec):
         """Regularize a tangent vector at the identity.
@@ -771,7 +871,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             return self.regularize(tangent_vec)
 
         tangent_vec_metric_norm = self.metric.norm(tangent_vec)
-        tangent_vec_canonical_norm = gs.linalg.norm(tangent_vec, axis=-1)
+        tangent_vec_canonical_norm = gs.linalg.vector_norm(tangent_vec, axis=-1)
 
         # This avoids dividing by 0
         norm_eps = gs.where(
@@ -780,10 +880,10 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         coef = gs.where(
             tangent_vec_canonical_norm == 0.0, 1.0, tangent_vec_metric_norm / norm_eps
         )
-        coef_tangent_vec = gs.einsum("...,...i->...i", coef, tangent_vec)
+        coef_tangent_vec = scalarvecmul(coef, tangent_vec)
 
         regularized_vec = self.regularize(coef_tangent_vec)
-        return gs.einsum("...,...i->...i", 1.0 / coef, regularized_vec)
+        return scalarvecmul(1.0 / coef, regularized_vec)
 
     def regularize_tangent_vec(self, tangent_vec, base_point):
         """Regularize tangent vector at a base point.
@@ -850,11 +950,11 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         is_vec = gs.ndim(rot_mat) > 2
 
         trace = gs.trace(rot_mat)
-        trace_num = gs.clip(trace, -1, 3)
-        angle = gs.arccos(0.5 * (trace_num - 1))
+        cos_angle = gs.clip(0.5 * (trace - 1), -1.0, 1.0)
+        angle = gs.arccos(cos_angle)
 
-        rot_mat_transpose = gs.transpose(rot_mat)
-        rot_vec_not_pi = self.skew.basis_representation(rot_mat - rot_mat_transpose)
+        rot_mat_transpose = gs.matrix_transpose(rot_mat)
+        skew_vec = self.skew.basis_representation(rot_mat - rot_mat_transpose)
 
         mask_0 = gs.cast(gs.isclose(angle, 0.0), angle.dtype)
         mask_pi = gs.cast(gs.isclose(angle, gs.pi, atol=1e-2), angle.dtype)
@@ -864,17 +964,18 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         denominator = (
             (1 - angle**2 / 6) * mask_0 + 2 * gs.sin(angle) * mask_else + mask_pi
         )
-        rot_vec_not_pi = gs.einsum(
-            "...,...i->...i", numerator / denominator, rot_vec_not_pi
-        )
+        rot_vec_not_pi = scalarvecmul(numerator / denominator, skew_vec)
 
-        vector_outer = 0.5 * (gs.eye(3) + rot_mat)
-        vector_outer = gs.set_diag(
-            vector_outer, gs.maximum(0.0, gs.diagonal(vector_outer, axis1=-2, axis2=-1))
+        sym_part = 0.5 * (rot_mat + rot_mat_transpose)
+        safe_denominator = gs.where(mask_pi > 0, 1.0 - cos_angle, 1.0)
+        vector_outer = scalarmatmul(
+            1.0 / safe_denominator, sym_part - scalarmatmul(cos_angle, gs.eye(3))
         )
-        squared_diag_comp = gs.diagonal(vector_outer, axis1=-2, axis2=-1)
+        diag = gs.diagonal(vector_outer)
+        squared_diag_comp = gs.maximum(0.0, diag)
+        vector_outer = vector_outer + gs.diag_embed(squared_diag_comp - diag)
         diag_comp = gs.sqrt(squared_diag_comp)
-        norm_line = gs.linalg.norm(vector_outer, axis=-1)
+        norm_line = gs.linalg.vector_norm(vector_outer, axis=-1)
         max_line_index = gs.argmax(norm_line, axis=-1)
 
         if is_vec:
@@ -882,9 +983,11 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         else:
             selected_line = vector_outer[..., max_line_index]
         signs = gs.sign(selected_line)
-        rot_vec_pi = gs.einsum("...,...i,...i->...i", angle, signs, diag_comp)
+        axis = signs * diag_comp
+        axis_sign = gs.where(gs.sum(skew_vec * axis, axis=-1) < 0.0, -1.0, 1.0)
+        rot_vec_pi = scalarvecmul(angle * axis_sign, axis)
 
-        rot_vec = rot_vec_not_pi + gs.einsum("...,...i->...i", mask_pi, rot_vec_pi)
+        rot_vec = rot_vec_not_pi + scalarvecmul(mask_pi, rot_vec_pi)
 
         return self.regularize(rot_vec)
 
@@ -909,11 +1012,11 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         coef_1 = utils.taylor_exp_even_func(squared_angle, utils.sinc_close_0)
         coef_2 = utils.taylor_exp_even_func(squared_angle, utils.cosc_close_0)
 
-        term_1 = gs.eye(self.dim) + gs.einsum("...,...jk->...jk", coef_1, skew_rot_vec)
+        term_1 = gs.eye(self.dim) + scalarmatmul(coef_1, skew_rot_vec)
 
-        squared_skew_rot_vec = Matrices.mul(skew_rot_vec, skew_rot_vec)
+        squared_skew_rot_vec = gs.matmul(skew_rot_vec, skew_rot_vec)
 
-        term_2 = gs.einsum("...,...jk->...jk", coef_2, squared_skew_rot_vec)
+        term_2 = scalarmatmul(coef_2, squared_skew_rot_vec)
 
         return term_1 + term_2
 
@@ -956,7 +1059,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         )
 
         quaternion = gs.concatenate(
-            (coef_cos[..., None], gs.einsum("...,...i->...i", coef_sinc, rot_vec)),
+            (coef_cos[..., None], scalarvecmul(coef_sinc, rot_vec)),
             axis=-1,
         )
 
@@ -983,7 +1086,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             half_angle**2, utils.inv_sinc_close_0
         )
 
-        rot_vec = gs.einsum("...,...i->...i", coef_isinc, quaternion[..., 1:])
+        rot_vec = scalarvecmul(coef_isinc, quaternion[..., 1:])
 
         return self.regularize(rot_vec)
 
@@ -1491,8 +1594,8 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         sign = 1.0 if left else -1.0
 
         return (
-            gs.einsum("...,...ij->...ij", coef_1, gs.eye(self.dim))
-            + gs.einsum("...,...ij->...ij", coef_2, outer_)
+            scalarmatmul(coef_1, gs.eye(self.dim))
+            + scalarmatmul(coef_2, outer_)
             + sign * self.skew.matrix_representation(point) / 2.0
         )
 

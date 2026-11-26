@@ -2,8 +2,8 @@ import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from .complex_matrices import ComplexMatricesMetricTestData
-from .complex_riemannian_metric import ComplexRiemannianMetricTestData
 from .pullback_metric import PullbackDiffeoMetricTestData
+from .riemannian_metric import RiemannianMetricTestData
 
 
 class HPDMatrices2TestData(TestData):
@@ -54,12 +54,12 @@ class HPDMatrices3TestData(TestData):
         return self.generate_tests(smoke_data)
 
 
-class HPDAffineMetricTestData(ComplexRiemannianMetricTestData):
+class HPDAffineMetricTestData(RiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 
 
-class HPDBuresWassersteinMetricTestData(ComplexRiemannianMetricTestData):
+class HPDBuresWassersteinMetricTestData(RiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 

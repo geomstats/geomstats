@@ -29,6 +29,8 @@ from geomstats._mesh import Surface
 from ._device import gpu_is_available, to_cpu, to_device
 from .kernel import GaussianBinetPairing
 
+logger = logging.getLogger("geomstats.varifold")
+
 
 class KernelInducedMetric(abc.ABC):
     """Metric induced by a kernel pairing.
@@ -174,7 +176,7 @@ class VarifoldMetric(KernelInducedMetric):
             self._gpu = True
 
         if backend.endswith("_gpu") and not gpu_is_available():
-            logging.info("No GPU available, computing on CPU.")
+            logger.info("No GPU available, computing on CPU.")
 
     def transform(self, point):
         """Extract geometric features used by the varifold representation.

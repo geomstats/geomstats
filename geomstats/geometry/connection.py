@@ -7,6 +7,7 @@ from abc import ABC
 
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.vectorization import check_is_batch, get_batch_shape, repeat_out
 
 
 def _check_log_solver(connection, raise_=True):
@@ -43,48 +44,20 @@ class Connection(ABC):
     def __init__(self, space):
         self._space = space
 
-    def christoffels(self, base_point=None):
-        """Christoffel symbols associated with the connection.
-
-        The contravariant index is on the first dimension.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-
-        Returns
-        -------
-        gamma : array-like, shape=[..., dim, dim, dim]
-            Christoffel symbols, with the contravariant index on
-            the first dimension.
-        """
-        raise NotImplementedError("The Christoffel symbols are not implemented.")
-
     def geodesic_equation(self, state):
         """Compute the geodesic ODE associated with the connection.
 
         Parameters
         ----------
-        state : array-like, shape=[..., 2, dim]
-            Tangent vector at the position.
+        state : array-like, shape=[..., 2, *shape]
+            Position and velocity, stacked along the state axis.
 
         Returns
         -------
-        geodesic_ode : array-like, shape=[..., 2, dim]
+        geodesic_ode : array-like, shape=[..., 2, *shape]
             Value of the vector field to be integrated at position.
         """
-        if self._space.point_ndim != 1:
-            raise NotImplementedError(
-                "The geodesic equation is only implemented for points "
-                "represented by a vector."
-            )
-        position = state[..., 0, :]
-        velocity = state[..., 1, :]
-        gamma = self.christoffels(position)
-        equation = gs.einsum("...kij,...i->...kj", gamma, velocity)
-        equation = -gs.einsum("...kj,...j->...k", equation, velocity)
-        return gs.stack([velocity, equation], axis=-2)
+        raise NotImplementedError("The geodesic equation is not implemented.")
 
     def exp(self, tangent_vec, base_point):
         """Exponential map associated to the affine connection.
@@ -116,15 +89,6 @@ class Connection(ABC):
             Point on the manifold.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
-        n_steps : int
-            Number of discrete time steps to take in the integration.
-            Optional, default: N_STEPS.
-        step : str, {'euler', 'rk4'}
-            Numerical scheme to use for integration.
-            Optional, default: 'euler'.
-        max_iter
-        verbose
-        tol
 
         Returns
         -------
@@ -357,54 +321,6 @@ class Connection(ABC):
             "trajectory": trajectory,
         }
 
-    def riemann_tensor(self, base_point=None):
-        r"""Compute Riemannian tensor at base_point.
-
-        In the literature the Riemannian curvature tensor is noted :math:`R_{ijk}^l`.
-
-        Following tensor index convention (ref. Wikipedia), we have:
-        :math:`R_{ijk}^l = dx^l(R(X_j, X_k)X_i)`
-
-        which gives :math:`R_{ijk}^l` as a sum of four terms:
-
-        .. math::
-            \partial_j \Gamma^l_{ki} - \partial_k \Gamma^l_{ji}
-            + \Gamma^l_{jm} \Gamma^m_{ki} - \Gamma^l_{km} \Gamma^m_{ji}
-
-        Note that geomstats puts the contravariant index on
-        the first dimension of the Christoffel symbols.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-
-        Returns
-        -------
-        riemann_curvature : array-like, shape=[..., dim, dim, dim, dim]
-            riemann_tensor[...,i,j,k,l] = R_{ijk}^l
-            Riemannian tensor curvature,
-            with the contravariant index on the last dimension.
-        """
-        if len(self._space.shape) > 1:
-            raise NotImplementedError(
-                "Riemann tensor not implemented for manifolds with points of ndim > 1."
-            )
-        christoffels = self.christoffels(base_point)
-        jacobian_christoffels = gs.autodiff.jacobian_vec(self.christoffels)(base_point)
-
-        prod_christoffels = gs.einsum(
-            "...ijk,...klm->...ijlm", christoffels, christoffels
-        )
-        riemann_curvature = (
-            gs.einsum("...ijlm->...lmji", jacobian_christoffels)
-            - gs.einsum("...ijlm->...ljmi", jacobian_christoffels)
-            + gs.einsum("...ijlm->...mjli", prod_christoffels)
-            - gs.einsum("...ijlm->...lmji", prod_christoffels)
-        )
-
-        return riemann_curvature
-
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point=None):
         r"""Compute the Riemann curvature map R.
 
@@ -438,37 +354,7 @@ class Connection(ABC):
             curvature(X, Y, Z, P)[..., l] = dx^l(R(X, Y)Z)
             Tangent vector at ``base_point``.
         """
-        riemann = self.riemann_tensor(base_point)
-        curvature = gs.einsum(
-            "...ijkl, ...j, ...k, ...i -> ...l",
-            riemann,
-            tangent_vec_a,
-            tangent_vec_b,
-            tangent_vec_c,
-        )
-        return curvature
-
-    def ricci_tensor(self, base_point=None):
-        r"""Compute Ricci curvature tensor at base_point.
-
-        The Ricci curvature tensor :math:`\mathrm{Ric}_{ij}` is defined as:
-        :math:`\mathrm{Ric}_{ij} = R_{ikj}^k`
-        with Einstein notation.
-
-        Parameters
-        ----------
-        base_point :  array-like, shape=[..., dim]
-            Point on the manifold.
-
-        Returns
-        -------
-        ricci_tensor : array-like, shape=[..., dim, dim]
-            ricci_tensor[...,i,j] = Ric_{ij}
-            Ricci tensor curvature.
-        """
-        riemann_tensor = self.riemann_tensor(base_point)
-        ricci_tensor = gs.einsum("...ijkj -> ...ik", riemann_tensor)
-        return ricci_tensor
+        raise NotImplementedError("The curvature is not implemented.")
 
     def directional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the directional curvature (tidal force operator).
@@ -605,7 +491,7 @@ class Connection(ABC):
             t : array-like, shape=[n_points,]
                 Times at which to compute points of the geodesics.
             """
-            t = gs.to_ndarray(t, to_ndim=1, dtype=initial_tangent_vec.dtype)
+            t = gs.expand_dims_to(gs.array(t, dtype=initial_tangent_vec.dtype), ndim=1)
 
             tangent_vecs = gs.einsum(f"n,...{ijk}->...n{ijk}", t, initial_tangent_vec)
             if is_batch:
@@ -758,6 +644,534 @@ class Connection(ABC):
             "The closed-form solution of parallel transport is not known, "
             "use the ladder_parallel_transport instead."
         )
+
+
+class CoordinateConnection(Connection, ABC):
+    r"""Class for affine connections given by Christoffel symbols.
+
+    The connection is described in a chart: points are represented by their
+    ``dim`` coordinates, and the Christoffel symbols are computed in these
+    coordinates.
+
+    Parameters
+    ----------
+    space : Manifold object
+        M in the tuple (M, g).
+    """
+
+    def christoffels(self, base_point=None):
+        r"""Christoffel symbols associated with the connection.
+
+        The contravariant index is on the first dimension, and the first
+        covariant index is the direction of differentiation:
+        :math:`\nabla_{\partial_i} \partial_j = \Gamma^k_{ij} \partial_k`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        gamma : array-like, shape=[..., dim, dim, dim]
+            Christoffel symbols, with the contravariant index on
+            the first dimension.
+        """
+        raise NotImplementedError("The Christoffel symbols are not implemented.")
+
+    def jacobian_christoffels(self, base_point):
+        r"""Compute the Jacobian of the Christoffel symbols.
+
+        Computed with automatic differentiation, unless overridden.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        jac : array-like, shape=[..., dim, dim, dim, dim]
+            Jacobian of the Christoffel symbols.
+            :math:`jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l`
+        """
+        return gs.autodiff.jacobian(self.christoffels)(base_point)
+
+    def geodesic_equation(self, state):
+        """Compute the geodesic ODE associated with the connection.
+
+        Parameters
+        ----------
+        state : array-like, shape=[..., 2, dim]
+            Tangent vector at the position.
+
+        Returns
+        -------
+        geodesic_ode : array-like, shape=[..., 2, dim]
+            Value of the vector field to be integrated at position.
+        """
+        position = state[..., 0, :]
+        velocity = state[..., 1, :]
+        gamma = self.christoffels(position)
+        equation = gs.einsum("...kij,...i->...kj", gamma, velocity)
+        equation = -gs.einsum("...kj,...j->...k", equation, velocity)
+        return gs.stack([velocity, equation], axis=-2)
+
+    def riemann_tensor(self, base_point=None):
+        r"""Compute Riemannian tensor at base_point.
+
+        In the literature the Riemannian curvature tensor is noted :math:`R_{ijk}^l`.
+
+        Following tensor index convention (ref. Wikipedia), we have:
+        :math:`R_{ijk}^l = dx^l(R(X_j, X_k)X_i)`
+
+        which gives :math:`R_{ijk}^l` as a sum of four terms:
+
+        .. math::
+            \partial_j \Gamma^l_{ki} - \partial_k \Gamma^l_{ji}
+            + \Gamma^l_{jm} \Gamma^m_{ki} - \Gamma^l_{km} \Gamma^m_{ji}
+
+        Note that geomstats puts the contravariant index on
+        the first dimension of the Christoffel symbols.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        riemann_curvature : array-like, shape=[..., dim, dim, dim, dim]
+            riemann_tensor[...,i,j,k,l] = R_{ijk}^l
+            Riemannian tensor curvature,
+            with the contravariant index on the last dimension.
+        """
+        christoffels = self.christoffels(base_point)
+        jacobian_christoffels = self.jacobian_christoffels(base_point)
+
+        prod_christoffels = gs.einsum(
+            "...ijk,...klm->...ijlm", christoffels, christoffels
+        )
+        riemann_curvature = (
+            gs.einsum("...ijlm->...lmji", jacobian_christoffels)
+            - gs.einsum("...ijlm->...ljmi", jacobian_christoffels)
+            + gs.einsum("...ijlm->...mjli", prod_christoffels)
+            - gs.einsum("...ijlm->...mlji", prod_christoffels)
+        )
+
+        return riemann_curvature
+
+    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point=None):
+        r"""Compute the Riemann curvature map R.
+
+        For three tangent vectors at base point :math:`P`:
+
+        - :math:`X|_P = tangent\_vec\_a`,
+        - :math:`Y|_P = tangent\_vec\_b`,
+        - :math:`Z|_P = tangent\_vec\_c`,
+
+        the curvature :math:`(X, Y, Z, P)` is defined by
+        :math:`R(X,Y)Z = \nabla_X \nabla_Y Z - \nabla_Y \nabla_X Z - \nabla_{[X, Y]}Z`.
+
+        The output is the tangent vector:
+        :math:`dx^l(R(X, Y)Z) = R_{ijk}^l X_j Y_k Z_i`
+        written with Einstein notation.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at ``base_point``.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at ``base_point``.
+        tangent_vec_c : array-like, shape=[..., dim]
+            Tangent vector at ``base_point``.
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        curvature : array-like, shape=[..., dim]
+            curvature(X, Y, Z, P)[..., l] = dx^l(R(X, Y)Z)
+            Tangent vector at ``base_point``.
+        """
+        riemann = self.riemann_tensor(base_point)
+        curvature = gs.einsum(
+            "...ijkl, ...j, ...k, ...i -> ...l",
+            riemann,
+            tangent_vec_a,
+            tangent_vec_b,
+            tangent_vec_c,
+        )
+        return curvature
+
+    def ricci_tensor(self, base_point=None):
+        r"""Compute Ricci curvature tensor at base_point.
+
+        The Ricci curvature tensor :math:`\mathrm{Ric}_{ij}` is defined as:
+        :math:`\mathrm{Ric}_{ij} = R_{ikj}^k`
+        with Einstein notation.
+
+        Parameters
+        ----------
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        ricci_tensor : array-like, shape=[..., dim, dim]
+            ricci_tensor[...,i,j] = Ric_{ij}
+            Ricci tensor curvature.
+        """
+        riemann_tensor = self.riemann_tensor(base_point)
+        ricci_tensor = gs.einsum("...ijkj -> ...ik", riemann_tensor)
+        return ricci_tensor
+
+
+class FlatMixin:
+    r"""Mixin for flat connections.
+
+    The curvature and its covariant derivative vanish. This does not depend
+    on the representation of the points.
+
+    To be placed before the connection class in the bases.
+    """
+
+    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point=None):
+        r"""Compute the Riemann curvature map R.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        tangent_vec_b : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        tangent_vec_c : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        base_point : array-like, shape=[..., *shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        curvature : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        """
+        batch_shape = get_batch_shape(
+            self._space.point_ndim,
+            tangent_vec_a,
+            tangent_vec_b,
+            tangent_vec_c,
+            base_point,
+        )
+        return gs.zeros(batch_shape + self._space.shape)
+
+    def curvature_derivative(
+        self,
+        tangent_vec_a,
+        tangent_vec_b,
+        tangent_vec_c,
+        tangent_vec_d,
+        base_point=None,
+    ):
+        r"""Compute the covariant derivative of the curvature.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        tangent_vec_b : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        tangent_vec_c : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        tangent_vec_d : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        base_point : array-like, shape=[..., *shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        curvature_derivative : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        """
+        batch_shape = get_batch_shape(
+            self._space.point_ndim,
+            tangent_vec_a,
+            tangent_vec_b,
+            tangent_vec_c,
+            tangent_vec_d,
+            base_point,
+        )
+        return gs.zeros(batch_shape + self._space.shape)
+
+    def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute the sectional curvature.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        tangent_vec_b : array-like, shape=[..., *shape]
+            Tangent vector at ``base_point``.
+        base_point : array-like, shape=[..., *shape]
+            Point in the manifold.
+
+        Returns
+        -------
+        sectional_curvature : array-like, shape=[...,]
+            Sectional curvature at ``base_point``.
+        """
+        if self._space.dim == 1:
+            raise ValueError(
+                "Sectional curvature is not defined for 1-dimensional manifolds."
+            )
+
+        return repeat_out(
+            self._space.point_ndim,
+            gs.zeros(()),
+            tangent_vec_a,
+            tangent_vec_b,
+            base_point,
+        )
+
+    def scalar_curvature(self, base_point=None):
+        r"""Compute scalar curvature at base_point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        curvature : array-like, shape=[...,]
+            Scalar curvature.
+        """
+        return repeat_out(self._space.point_ndim, gs.zeros(()), base_point)
+
+
+class FlatCoordinateMixin(FlatMixin):
+    r"""Mixin for flat connections given in a chart.
+
+    All the curvature tensors vanish.
+
+    To be placed before a coordinate connection or metric class in the bases.
+    """
+
+    def riemann_tensor(self, base_point=None):
+        r"""Compute Riemannian tensor at base_point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        riemann_curvature : array-like, shape=[..., dim, dim, dim, dim]
+            riemann_tensor[...,i,j,k,l] = R_{ijk}^l
+            Riemannian tensor curvature,
+            with the contravariant index on the last dimension.
+        """
+        dim = self._space.dim
+        shape = (dim, dim, dim, dim)
+        return repeat_out(
+            self._space.point_ndim, gs.zeros(shape), base_point, out_shape=shape
+        )
+
+    def ricci_tensor(self, base_point=None):
+        r"""Compute Ricci curvature tensor at base_point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        ricci_tensor : array-like, shape=[..., dim, dim]
+            ricci_tensor[...,i,j] = Ric_{ij}
+            Ricci tensor curvature.
+        """
+        dim = self._space.dim
+        shape = (dim, dim)
+        return repeat_out(
+            self._space.point_ndim, gs.zeros(shape), base_point, out_shape=shape
+        )
+
+    def covariant_riemann_tensor(self, base_point=None):
+        r"""Compute purely covariant version of Riemannian tensor at base_point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        covariant_tensor : array-like, shape=[..., dim, dim, dim, dim]
+            covariant_riemann_tensor[..., i, j, k, l] = R_{ijkl}
+            Covariant version of Riemannian curvature tensor.
+        """
+        dim = self._space.dim
+        shape = (dim, dim, dim, dim)
+        return repeat_out(
+            self._space.point_ndim, gs.zeros(shape), base_point, out_shape=shape
+        )
+
+
+class ZeroChristoffelsMixin(FlatCoordinateMixin):
+    r"""Mixin for connections whose Christoffel symbols vanish in the chart.
+
+    The coordinates are affine for the connection: geodesics are straight
+    lines in the chart, and the connection is flat.
+
+    To be placed before a coordinate connection or metric class in the bases.
+    """
+
+    def christoffels(self, base_point=None):
+        """Christoffel symbols associated with the connection.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        gamma : array-like, shape=[..., dim, dim, dim]
+            Christoffel symbols, with the contravariant index on
+            the first dimension.
+        """
+        dim = self._space.dim
+        shape = (dim, dim, dim)
+        return repeat_out(
+            self._space.point_ndim, gs.zeros(shape), base_point, out_shape=shape
+        )
+
+    def jacobian_christoffels(self, base_point):
+        r"""Compute the Jacobian of the Christoffel symbols.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        jac : array-like, shape=[..., dim, dim, dim, dim]
+            Jacobian of the Christoffel symbols.
+            :math:`jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l`
+        """
+        dim = self._space.dim
+        shape = (dim, dim, dim, dim)
+        return repeat_out(
+            self._space.point_ndim, gs.zeros(shape), base_point, out_shape=shape
+        )
+
+    def geodesic_equation(self, state):
+        """Compute the geodesic ODE associated with the connection.
+
+        The Christoffel symbols vanish, so the acceleration is zero.
+
+        Parameters
+        ----------
+        state : array-like, shape=[..., 2, dim]
+            Position and velocity, stacked along the state axis.
+
+        Returns
+        -------
+        geodesic_ode : array-like, shape=[..., 2, dim]
+            Value of the vector field to be integrated at position.
+        """
+        velocity = state[..., 1, :]
+        return gs.stack([velocity, gs.zeros_like(velocity)], axis=-2)
+
+    def exp(self, tangent_vec, base_point):
+        """Compute the exponential map.
+
+        Geodesics are straight lines in the chart. The end point is
+        regularized, which accounts for identifications of the chart.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at the base point.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., dim]
+            Point on the manifold.
+        """
+        return self._space.regularize(base_point + tangent_vec)
+
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
+        """Generate parameterized function for the geodesic curve.
+
+        Geodesics are straight lines in the chart. Points along them are
+        regularized, which accounts for identifications of the chart.
+
+        Geodesic curve defined by either:
+
+        - an initial point and an initial tangent vector,
+        - an initial point and an end point.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Point on the manifold, initial point of the geodesic.
+        end_point : array-like, shape=[..., dim], optional
+            Point on the manifold, end point of the geodesic. If None,
+            an initial tangent vector must be given.
+        initial_tangent_vec : array-like, shape=[..., dim], optional
+            Tangent vector at base point, the initial speed of the geodesics.
+            Optional, default: None.
+            If None, an end point must be given and a logarithm is computed.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve. If a batch of initial
+            conditions is passed, the output array's first dimension
+            represents the different initial conditions, and the second
+            corresponds to time.
+        """
+        if end_point is None and initial_tangent_vec is None:
+            raise ValueError(
+                "Specify an end point or an initial tangent "
+                "vector to define the geodesic."
+            )
+        if end_point is not None:
+            if initial_tangent_vec is not None:
+                raise ValueError(
+                    "Cannot specify both an end point and an initial tangent vector."
+                )
+
+            initial_tangent_vec = self.log(end_point, initial_point)
+
+        is_batch = check_is_batch(
+            self._space.point_ndim, initial_point, initial_tangent_vec
+        )
+        if is_batch:
+            initial_point = gs.expand_dims(
+                initial_point, axis=-(self._space.point_ndim + 1)
+            )
+
+        ijk = "ijk"[: self._space.point_ndim]
+
+        def path(t):
+            """Generate parameterized function for geodesic curve.
+
+            Parameters
+            ----------
+            t : array-like, shape=[n_points,]
+                Times at which to compute points of the geodesics.
+            """
+            t = gs.expand_dims_to(gs.array(t, dtype=initial_tangent_vec.dtype), ndim=1)
+            tangent_vecs = gs.einsum(f"n,...{ijk}->...n{ijk}", t, initial_tangent_vec)
+            return self._space.regularize(initial_point + tangent_vecs)
+
+        return path
 
 
 _CONNECTION_METHODS = {

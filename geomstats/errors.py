@@ -77,6 +77,17 @@ def check_parameter_accepted_values(param, param_name, accepted_values):
         )
 
 
+def check_field(field):
+    """Raise an error if field is neither real nor complex.
+
+    Parameters
+    ----------
+    field : str
+        Field over which a vector space is defined.
+    """
+    check_parameter_accepted_values(field, "field", ["real", "complex"])
+
+
 def check_point_shape(point, manifold, suppress_error=False):
     """Check if the shape of point does not match the shape of a manifold or metric.
 

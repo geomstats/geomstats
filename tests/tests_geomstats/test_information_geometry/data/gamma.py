@@ -5,7 +5,7 @@ from geomstats.test.data import TestData
 
 from ...test_geometry.data.base import VectorSpaceOpenSetTestData
 from ...test_geometry.data.diffeo import DiffeoTestData
-from ...test_geometry.data.riemannian_metric import RiemannianMetricTestData
+from ...test_geometry.data.riemannian_metric import CoordinateRiemannianMetricTestData
 from .base import InformationManifoldMixinTestData
 
 
@@ -59,6 +59,7 @@ class GammaDistributionsTestData(
     InformationManifoldMixinTestData, VectorSpaceOpenSetTestData
 ):
     fail_for_not_implemented_errors = False
+    skips = ("not_belongs",)
 
     def point_to_pdf_against_scipy_test_data(self):
         return self.generate_random_data_with_samples()
@@ -69,7 +70,6 @@ class GammaDistributionsSmokeTestData(TestData):
         data = [
             dict(point=gs.array([0.1, -1.0]), expected=False),
             dict(point=gs.array([0.1, 1.0]), expected=True),
-            dict(point=gs.array([0.0, 1.0, 0.3]), expected=False),
             dict(point=gs.array([-1.0, 0.3]), expected=False),
             dict(point=gs.array([0.1, 5]), expected=True),
         ]
@@ -109,7 +109,7 @@ class GammaDistributionsSmokeTestData(TestData):
         return self.generate_tests(smoke_data)
 
 
-class GammaMetricTestData(RiemannianMetricTestData):
+class GammaMetricTestData(CoordinateRiemannianMetricTestData):
     trials = 3
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False

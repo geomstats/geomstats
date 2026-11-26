@@ -5,15 +5,13 @@ Lead author: Alice Le Brigant.
 
 import math
 
-import numpy as np
-from scipy.optimize import minimize
 from scipy.stats import dirichlet
 
 import geomstats.backend as gs
+from geomstats._einsum import scalarmatmul
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.base import VectorSpaceOpenSet
-from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.positive_orthant import PositiveOrthant
+from geomstats.geometry.riemannian_metric import CoordinateRiemannianMetric
 from geomstats.information_geometry.base import (
     InformationManifoldMixin,
     ScipyMultivariateRandomVariable,
@@ -24,98 +22,28 @@ from geomstats.numerics.ivp import ScipySolveIVP
 from geomstats.vectorization import repeat_out
 
 
-class DirichletDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
+class DirichletDistributions(InformationManifoldMixin, PositiveOrthant):
     r"""Class for the manifold of Dirichlet distributions.
 
     This is Dirichlet = :math:`(R_+^*)^dim`, the positive quadrant of the
     dim-dimensional Euclidean space.
 
-    Attributes
+    Parameters
     ----------
     dim : int
         Dimension of the manifold of Dirichlet distributions.
+    equip : bool
+        If True, equip space with default metric.
     """
 
     def __init__(self, dim, equip=True):
-        super().__init__(
-            dim=dim,
-            support_shape=(dim,),
-            embedding_space=Euclidean(dim=dim, equip=False),
-            equip=equip,
-        )
+        super().__init__(dim=dim, support_shape=(dim,), equip=equip)
         self._scp_rv = DirichletRandomVariable(self)
 
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return DirichletMetric
-
-    def belongs(self, point, atol=gs.atol):
-        """Evaluate if a point belongs to the manifold of Dirichlet distributions.
-
-        Check that point defines parameters for a Dirichlet distributions,
-        i.e. belongs to the positive quadrant of the Euclidean space.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point to be checked.
-        atol : float
-            Tolerance to evaluate positivity.
-            Optional, default: gs.atol
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean indicating whether point represents a Dirichlet
-            distribution.
-        """
-        belongs = point.shape[-1] == self.dim
-        if not belongs:
-            return gs.zeros(point.shape[:-1], dtype=bool)
-
-        return gs.all(point >= -atol, axis=-1)
-
-    def random_point(self, n_samples=1, bound=5.0):
-        """Sample parameters of Dirichlet distributions.
-
-        The uniform distribution on [0, bound]^dim is used.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Side of the square where the Dirichlet parameters are sampled.
-            Optional, default: 5.
-
-        Returns
-        -------
-        samples : array-like, shape=[..., dim]
-            Sample of points representing Dirichlet distributions.
-        """
-        size = (self.dim,) if n_samples == 1 else (n_samples, self.dim)
-        return bound * gs.random.rand(*size)
-
-    def projection(self, point, atol=gs.atol):
-        """Project a point in ambient space to the open set.
-
-        The last coordinate is floored to `gs.atol` if it is negative.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point in ambient space.
-        atol : float
-            Tolerance to evaluate positivity.
-
-        Returns
-        -------
-        projected : array-like, shape=[..., dim]
-            Projected point.
-        """
-        return gs.where(point < atol, atol, point)
 
     def sample(self, point, n_samples=1):
         """Sample from the Dirichlet distribution.
@@ -129,7 +57,6 @@ class DirichletDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
             Point representing a Dirichlet distribution.
         n_samples : int
             Number of points to sample for each set of parameters in point.
-            Optional, default: 1.
 
         Returns
         -------
@@ -158,14 +85,14 @@ class DirichletDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         return lambda x: self._scp_rv.pdf(x, point=point)
 
 
-class DirichletMetric(RiemannianMetric):
+class DirichletMetric(CoordinateRiemannianMetric):
     """Class for the Fisher information metric on Dirichlet distributions."""
 
     def __init__(self, space):
         super().__init__(space=space)
 
         self.log_solver = LogODESolver(
-            space, n_nodes=1000, integrator=ScipySolveBVP(max_nodes=1000)
+            space, n_nodes=10, integrator=ScipySolveBVP(max_nodes=1000)
         )
         self.exp_solver = ExpODESolver(space, integrator=ScipySolveIVP(method="LSODA"))
 
@@ -191,7 +118,40 @@ class DirichletMetric(RiemannianMetric):
         poly_sum = gs.polygamma(1, gs.sum(base_point, axis=-1))
         mat_diag = from_vector_to_diagonal_matrix(gs.polygamma(1, base_point))
 
-        return mat_diag - gs.einsum("...,...jk->...jk", poly_sum, mat_ones)
+        return mat_diag - scalarmatmul(poly_sum, mat_ones)
+
+    def inner_product_derivative_matrix(self, base_point):
+        r"""Compute derivative of the inner prod matrix at base point.
+
+        .. math::
+
+            \partial_k g_{ij} = \psi''(\alpha_i) \delta_{ij} \delta_{ik}
+            - \psi''\left(\sum_l \alpha_l\right)
+
+        where :math:`\psi` is the digamma function.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        metric_derivative : array-like, shape=[..., dim, dim, dim]
+            Derivative of the inner-product matrix, where the index
+            k of the derivation is last: :math:`mat_{ijk} = \partial_k g_{ij}`.
+        """
+        dim = self._space.dim
+        eye = gs.eye(dim, dtype=base_point.dtype)
+        diagonal_part = gs.einsum(
+            "...i,ij,ik->...ijk", gs.polygamma(2, base_point), eye, eye
+        )
+        sum_part = gs.einsum(
+            "...,ijk->...ijk",
+            gs.polygamma(2, gs.sum(base_point, axis=-1)),
+            gs.ones((dim, dim, dim), dtype=base_point.dtype),
+        )
+        return diagonal_part - sum_part
 
     def christoffels(self, base_point):
         r"""Compute the Christoffel symbols.
@@ -402,7 +362,7 @@ class DirichletMetric(RiemannianMetric):
     def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
 
-        This is is the supremum of radii r for which the exponential map is a
+        This is the supremum of radii r for which the exponential map is a
         diffeomorphism from the open ball of radius r centered at the base point onto
         its image.
         In the case of the hyperbolic space, it does not depend on the base point and
@@ -421,159 +381,10 @@ class DirichletMetric(RiemannianMetric):
         radius = gs.array(math.inf)
         return repeat_out(self._space.point_ndim, radius, base_point)
 
-    def _approx_geodesic_bvp(
-        self,
-        initial_point,
-        end_point,
-        degree=5,
-        method="BFGS",
-        n_times=200,
-        jac_on=True,
-    ):
-        """Solve approximation of the geodesic boundary value problem.
-
-        The space of solutions is restricted to curves whose coordinates are
-        polynomial functions of time. The boundary value problem is solved by
-        minimizing the energy among all such curves starting from initial_point
-        and ending at end_point, i.e. curves t -> (x_1(t),...,x_n(t)) where x_i
-        are polynomial functions of time t, such that (x_1(0),..., x_n(0)) is
-        initial_point and (x_1(1),..., x_n(1)) is end_point. The parameterized
-        curve is computed at n_times discrete times.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=(dim,)
-            Starting point of the geodesic.
-        end_point : array-like, shape=(dim,)
-            End point of the geodesic.
-        degree : int
-            Degree of the coordinates' polynomial functions of time.
-        method : str
-            Minimization method to use in scipy.optimize.minimize.
-        n_times : int
-            Number of sample times.
-        jac_on : bool
-            If jac_on=True, use the Jacobian of the energy cost function in
-            scipy.optimize.minimize.
-
-        Returns
-        -------
-        dist : float
-            Length of the polynomial approximation of the geodesic.
-        curve : array-like, shape=(n_times, dim)
-            Polynomial approximation of the geodesic.
-        velocity : array-like, shape=(n_times, dim)
-            Velocity of the polynomial approximation of the geodesic.
-        """
-
-        def cost_fun(param):
-            """Compute the energy of the polynomial curve defined by param.
-
-            Parameters
-            ----------
-            param : array-like, shape=(degree - 1, dim)
-                Parameters of the curve coordinates' polynomial functions of time.
-
-            Returns
-            -------
-            energy : float
-                Energy of the polynomial approximation of the geodesic.
-            length : float
-                Length of the polynomial approximation of the geodesic.
-            curve : array-like, shape=(n_times, dim)
-                Polynomial approximation of the geodesic.
-            velocity : array-like, shape=(n_times, dim)
-                Velocity of the polynomial approximation of the geodesic.
-            """
-            last_coef = end_point - initial_point - gs.sum(param, axis=0)
-            coef = gs.vstack((initial_point, param, last_coef))
-
-            t = gs.linspace(0.0, 1.0, n_times)
-            t_curve = [t**i for i in range(degree + 1)]
-            t_curve = gs.stack(t_curve)
-            curve = gs.einsum("ij,ik->kj", coef, t_curve)
-
-            t_velocity = [i * t ** (i - 1) for i in range(1, degree + 1)]
-            t_velocity = gs.stack(t_velocity)
-            velocity = gs.einsum("ij,ik->kj", coef[1:], t_velocity)
-
-            if curve.min() < 0:
-                return np.inf, np.inf, curve, np.nan
-
-            velocity_sqnorm = self.squared_norm(vector=velocity, base_point=curve)
-            length = gs.sum(velocity_sqnorm ** (1 / 2)) / n_times
-            energy = gs.sum(velocity_sqnorm) / n_times
-            return energy, length, curve, velocity
-
-        def cost_jacobian(param):
-            """Compute the jacobian of the cost function at polynomial curve.
-
-            Parameters
-            ----------
-            param : array-like, shape=(degree - 1, dim)
-                Parameters of the curve coordinates' polynomial functions of time.
-
-            Returns
-            -------
-            jac : array-like, shape=(dim * (degree - 1),)
-                Jacobian of the cost function at polynomial curve.
-            """
-            last_coef = end_point - initial_point - gs.sum(param, 0)
-            coef = gs.vstack((initial_point, param, last_coef))
-
-            t = gs.linspace(0.0, 1.0, n_times)
-            t_position = [t**i for i in range(degree + 1)]
-            t_position = gs.stack(t_position)
-            position = gs.einsum("ij,ik->kj", coef, t_position)
-
-            t_velocity = [i * t ** (i - 1) for i in range(1, degree + 1)]
-            t_velocity = gs.stack(t_velocity)
-            velocity = gs.einsum("ij,ik->kj", coef[1:], t_velocity)
-
-            fac1 = gs.stack(
-                [
-                    k * t ** (k - 1) - degree * t ** (degree - 1)
-                    for k in range(1, degree)
-                ]
-            )
-            fac2 = gs.stack([t**k - t**degree for k in range(1, degree)])
-            fac3 = (velocity * gs.polygamma(1, position)).T - gs.sum(
-                velocity, 1
-            ) * gs.polygamma(1, gs.sum(position, 1))
-            fac4 = (velocity**2 * gs.polygamma(2, position)).T - gs.sum(
-                velocity, 1
-            ) ** 2 * gs.polygamma(2, gs.sum(position, 1))
-
-            cost_jac = (
-                2 * gs.einsum("ij,kj->ik", fac1, fac3)
-                + gs.einsum("ij,kj->ik", fac2, fac4)
-            ) / n_times
-            return cost_jac.T.reshape(dim * (degree - 1))
-
-        def f2minimize(x):
-            """Compute function to minimize."""
-            param = gs.transpose(x.reshape((dim, degree - 1)))
-            res = cost_fun(param)
-            return res[0]
-
-        def jacobian(x):
-            """Compute jacobian of the function to minimize."""
-            param = gs.transpose(x.reshape((dim, degree - 1)))
-            return cost_jacobian(param)
-
-        dim = initial_point.shape[0]
-        x0 = gs.ones(dim * (degree - 1))
-        jac = jacobian if jac_on else None
-        sol = minimize(f2minimize, x0, method=method, jac=jac)
-        opt_param = sol.x.reshape((dim, degree - 1)).T
-        _, dist, curve, velocity = cost_fun(opt_param)
-
-        return dist, curve, velocity
-
 
 class DirichletRandomVariable(ScipyMultivariateRandomVariable):
     """A Dirichlet random variable."""
 
     def __init__(self, space):
-        pdf = lambda x, point: dirichlet.pdf(gs.transpose(x), point)
+        pdf = lambda x, point: dirichlet.pdf(gs.matrix_transpose(x), point)
         super().__init__(space, dirichlet.rvs, pdf)

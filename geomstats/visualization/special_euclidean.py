@@ -8,6 +8,8 @@ from mpl_toolkits.mplot3d import Axes3D  # NOQA
 import geomstats.backend as gs
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
+logger = logging.getLogger(__name__)
+
 SE2_GROUP = SpecialEuclidean(n=2, point_type="matrix")
 SE2_VECT = SpecialEuclidean(n=2, point_type="vector")
 
@@ -35,7 +37,7 @@ class SpecialEuclidean2:
         if self.point_type == "vector":
             points = SE2_VECT.matrix_from_vector(points)
         if not gs.all(SE2_GROUP.belongs(points)):
-            logging.warning("Some points do not belong to SE2.")
+            logger.warning("Some points do not belong to SE2.")
         if not isinstance(points, list):
             points = list(points)
         self.points.extend(points)

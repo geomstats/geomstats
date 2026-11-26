@@ -9,8 +9,12 @@ import joblib
 
 import geomstats.backend as gs
 import geomstats.geometry as geometry
-from geomstats.geometry.connection import Connection
-from geomstats.vectorization import check_is_batch
+from geomstats.geometry.connection import (
+    Connection,
+    CoordinateConnection,
+    ZeroChristoffelsMixin,
+)
+from geomstats.vectorization import check_is_batch, repeat_out
 
 EPSILON = 1e-4
 
@@ -24,7 +28,8 @@ class RiemannianMetric(Connection, ABC):
     def __init__(self, space, signature=None):
         super().__init__(space=space)
         if signature is None:
-            signature = (space.dim, 0)
+            real_dim = 2 * space.dim if space.field == "complex" else space.dim
+            signature = (real_dim, 0)
         self.signature = signature
 
     def __mul__(self, scalar):
@@ -76,6 +81,11 @@ class RiemannianMetric(Connection, ABC):
     def metric_matrix(self, base_point=None):
         """Metric matrix at the tangent space at a base point.
 
+        Matrix of the inner product in the representation of tangent vectors.
+        If points are not represented in a chart (e.g. they live in an
+        ambient space), only its action on tangent vectors is meaningful:
+        it is not unique, and its derivatives do not describe the metric.
+
         Parameters
         ----------
         base_point : array-like, shape=[..., dim]
@@ -109,66 +119,6 @@ class RiemannianMetric(Connection, ABC):
         metric_matrix = self.metric_matrix(base_point)
         return gs.linalg.inv(metric_matrix)
 
-    def inner_product_derivative_matrix(self, base_point=None):
-        r"""Compute derivative of the inner prod matrix at base point.
-
-        Writing :math:`g_{ij}` the inner-product matrix at base point,
-        this computes :math:`mat_{ijk} = \partial_k g_{ij}`, where the
-        index k of the derivation is put last.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., dim]
-            Base point.
-
-        Returns
-        -------
-        metric_derivative : array-like, shape=[..., dim, dim, dim]
-            Derivative of the inner-product matrix, where the index
-            k of the derivation is last: :math:`mat_{ijk} = \partial_k g_{ij}`.
-        """
-        return gs.autodiff.jacobian_vec(self.metric_matrix)(base_point)
-
-    def christoffels(self, base_point=None):
-        r"""Compute Christoffel symbols of the Levi-Civita connection.
-
-        The Koszul formula defining the Levi-Civita connection gives the
-        expression of the Christoffel symbols with respect to the metric:
-        :math:`\Gamma^k_{ij}(p) = \frac{1}{2} g^{lk}(
-        \partial_i g_{jl} + \partial_j g_{li} - \partial_l g_{ij})`,
-        where:
-
-        - :math:`p` represents the base point, and
-        - :math:`g` represents the Riemannian metric tensor.
-
-        Note that the function computing the derivative of the metric matrix
-        puts the index of the derivation last.
-
-        Parameters
-        ----------
-        base_point: array-like, shape=[..., dim]
-            Base point.
-
-        Returns
-        -------
-        christoffels: array-like, shape=[..., dim, dim, dim]
-            Christoffel symbols, where the contravariant index is first.
-        """
-        cometric_mat_at_point = self.cometric_matrix(base_point)
-        metric_derivative_at_point = self.inner_product_derivative_matrix(base_point)
-
-        term_1 = gs.einsum(
-            "...lk,...jli->...kij", cometric_mat_at_point, metric_derivative_at_point
-        )
-        term_2 = gs.einsum(
-            "...lk,...lij->...kij", cometric_mat_at_point, metric_derivative_at_point
-        )
-        term_3 = -gs.einsum(
-            "...lk,...ijl->...kij", cometric_mat_at_point, metric_derivative_at_point
-        )
-
-        return 0.5 * (term_1 + term_2 + term_3)
-
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
 
@@ -187,8 +137,9 @@ class RiemannianMetric(Connection, ABC):
             Inner-product.
         """
         inner_prod_mat = self.metric_matrix(base_point)
-        aux = gs.einsum("...j,...jk->...k", tangent_vec_a, inner_prod_mat)
-        return gs.dot(aux, tangent_vec_b)
+        return gs.real(
+            gs.vecdot(tangent_vec_a, gs.matvec(inner_prod_mat, tangent_vec_b))
+        )
 
     def inner_coproduct(self, cotangent_vec_a, cotangent_vec_b, base_point=None):
         """Compute inner coproduct between two cotangent vectors at base point.
@@ -209,10 +160,10 @@ class RiemannianMetric(Connection, ABC):
         inner_coproduct : float
             Inner coproduct between the two cotangent vectors.
         """
-        vector_2 = gs.einsum(
-            "...ij,...j->...i", self.cometric_matrix(base_point), cotangent_vec_b
+        cometric_mat = self.cometric_matrix(base_point)
+        return gs.real(
+            gs.vecdot(cotangent_vec_a, gs.matvec(cometric_mat, cotangent_vec_b))
         )
-        return gs.dot(cotangent_vec_a, vector_2)
 
     def hamiltonian(self, state):
         r"""Compute the hamiltonian energy associated to the cometric.
@@ -324,9 +275,9 @@ class RiemannianMetric(Connection, ABC):
             raise ValueError(
                 "Several tangent vectors is only applicable to a single base point."
             )
-        point_shape = self._space.shape
-        vec_shape = (n_vectors, *point_shape) if n_vectors > 1 else point_shape
-        random_vector = gs.random.rand(*vec_shape)
+        random_vector = self._space.random_tangent_vec(
+            base_point=base_point, n_samples=n_vectors
+        )
         return self.normalize(random_vector, base_point)
 
     def squared_dist(self, point_a, point_b):
@@ -506,7 +457,7 @@ class RiemannianMetric(Connection, ABC):
             point = gs.concatenate([point for _ in range(n_neighbors)])
 
         closest_neighbor_index = gs.argmin(
-            gs.transpose(
+            gs.matrix_transpose(
                 gs.reshape(self.dist(point, neighbors), (n_neighbors, n_points)),
             ),
             axis=1,
@@ -537,33 +488,6 @@ class RiemannianMetric(Connection, ABC):
         norms = self.squared_norm(basis, base_point)
 
         return gs.einsum("i, ikl->ikl", 1.0 / gs.sqrt(norms), basis)
-
-    def covariant_riemann_tensor(self, base_point=None):
-        r"""Compute purely covariant version of Riemannian tensor at base_point.
-
-        In the literature the covariant riemannian tensor is noted :math:`R_{ijkl}`.
-
-        Convention used in the literature (tensor index notation, ref. Wikipedia) is:
-        :math:`R_{ijkl} = <R(x_k, x_l)x_j, x_i>`
-        where :math:`x_i` is the i-th basis vector of the tangent space at base point.
-
-        In other words:
-        [cov_riemann_tensor]_{ijkl} = [metric_matrix]_{im} [riemann_tensor]_{jkl}^m
-
-        Parameters
-        ----------
-        base_point :  array-like, shape=[..., dim]
-            Point on the manifold.
-
-        Returns
-        -------
-        covariant_tensor : array-like, shape=[..., dim, dim, dim, dim]
-            covariant_riemann_tensor[..., i, j, k, l] = R_{ijkl}
-            Covariant version of Riemannian curvature tensor.
-        """
-        riemann_tensor = self.riemann_tensor(base_point)
-        metric = self.metric_matrix(base_point)
-        return gs.einsum("...ij, ...klmj->...iklm", metric, riemann_tensor)
 
     def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the sectional curvature.
@@ -596,6 +520,11 @@ class RiemannianMetric(Connection, ABC):
         sectional_curvature : array-like, shape=[...,]
             Sectional curvature at ``base_point``.
         """
+        if self._space.dim == 1:
+            raise ValueError(
+                "Sectional curvature is not defined for 1-dimensional manifolds."
+            )
+
         curvature = self.curvature(
             tangent_vec_a, tangent_vec_b, tangent_vec_b, base_point
         )
@@ -624,9 +553,7 @@ class RiemannianMetric(Connection, ABC):
         curvature : array-like, shape=[...,]
             Scalar curvature.
         """
-        ricci_tensor = self.ricci_tensor(base_point)
-        cometric_matrix = self.cometric_matrix(base_point)
-        return gs.einsum("...ij, ...ij -> ...", cometric_matrix, ricci_tensor)
+        raise NotImplementedError("The scalar curvature is not implemented.")
 
     def injectivity_radius(self, base_point=None):
         """Compute the radius of the injectivity domain.
@@ -646,3 +573,353 @@ class RiemannianMetric(Connection, ABC):
             Injectivity radius.
         """
         raise NotImplementedError("The injectivity range is not implemented yet.")
+
+    def flat(self, tangent_vec, base_point=None):
+        """Map a tangent vector to a covector.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *shape]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+
+        Returns
+        -------
+        cotangent_vec : array-like, shape=[..., *shape]
+            Covector at base point.
+        """
+        raise NotImplementedError("The flat map is not implemented.")
+
+    def sharp(self, cotangent_vec, base_point=None):
+        """Map a covector to a tangent vector.
+
+        Inverse of :meth:`flat`.
+
+        Parameters
+        ----------
+        cotangent_vec : array-like, shape=[..., *shape]
+            Covector at base point.
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *shape]
+            Tangent vector at base point.
+        """
+        raise NotImplementedError("The sharp map is not implemented.")
+
+
+class CoordinateRiemannianMetric(RiemannianMetric, CoordinateConnection, ABC):
+    """Class for Riemannian and pseudo-Riemannian metrics given in a chart.
+
+    Points are represented by their ``dim`` coordinates, and the metric matrix
+    is computed in these coordinates. The Christoffel symbols of the
+    Levi-Civita connection follow from the derivatives of the metric matrix.
+    """
+
+    def inner_product_derivative_matrix(self, base_point=None):
+        r"""Compute derivative of the inner prod matrix at base point.
+
+        Writing :math:`g_{ij}` the inner-product matrix at base point,
+        this computes :math:`mat_{ijk} = \partial_k g_{ij}`, where the
+        index k of the derivation is put last.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        metric_derivative : array-like, shape=[..., dim, dim, dim]
+            Derivative of the inner-product matrix, where the index
+            k of the derivation is last: :math:`mat_{ijk} = \partial_k g_{ij}`.
+        """
+        return gs.autodiff.jacobian(self.metric_matrix)(base_point)
+
+    def christoffels(self, base_point=None):
+        r"""Compute Christoffel symbols of the Levi-Civita connection.
+
+        The Koszul formula defining the Levi-Civita connection gives the
+        expression of the Christoffel symbols with respect to the metric:
+        :math:`\Gamma^k_{ij}(p) = \frac{1}{2} g^{lk}(
+        \partial_i g_{jl} + \partial_j g_{li} - \partial_l g_{ij})`,
+        where:
+
+        - :math:`p` represents the base point, and
+        - :math:`g` represents the Riemannian metric tensor.
+
+        Note that the function computing the derivative of the metric matrix
+        puts the index of the derivation last.
+
+        Parameters
+        ----------
+        base_point: array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        christoffels: array-like, shape=[..., dim, dim, dim]
+            Christoffel symbols, where the contravariant index is first.
+        """
+        cometric_mat_at_point = self.cometric_matrix(base_point)
+        metric_derivative_at_point = self.inner_product_derivative_matrix(base_point)
+
+        term_1 = gs.einsum(
+            "...lk,...jli->...kij", cometric_mat_at_point, metric_derivative_at_point
+        )
+        term_2 = gs.einsum(
+            "...lk,...lij->...kij", cometric_mat_at_point, metric_derivative_at_point
+        )
+        term_3 = -gs.einsum(
+            "...lk,...ijl->...kij", cometric_mat_at_point, metric_derivative_at_point
+        )
+
+        return 0.5 * (term_1 + term_2 + term_3)
+
+    def covariant_riemann_tensor(self, base_point=None):
+        r"""Compute purely covariant version of Riemannian tensor at base_point.
+
+        In the literature the covariant riemannian tensor is noted :math:`R_{ijkl}`.
+
+        Convention used in the literature (tensor index notation, ref. Wikipedia) is:
+        :math:`R_{ijkl} = <R(x_k, x_l)x_j, x_i>`
+        where :math:`x_i` is the i-th basis vector of the tangent space at base point.
+
+        In other words:
+        [cov_riemann_tensor]_{ijkl} = [metric_matrix]_{im} [riemann_tensor]_{jkl}^m
+
+        Parameters
+        ----------
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        covariant_tensor : array-like, shape=[..., dim, dim, dim, dim]
+            covariant_riemann_tensor[..., i, j, k, l] = R_{ijkl}
+            Covariant version of Riemannian curvature tensor.
+        """
+        riemann_tensor = self.riemann_tensor(base_point)
+        metric = self.metric_matrix(base_point)
+        return gs.einsum("...ij, ...klmj->...iklm", metric, riemann_tensor)
+
+    def scalar_curvature(self, base_point=None):
+        r"""Compute scalar curvature at base_point.
+
+        In the literature scalar_curvature is noted S and writes:
+        :math:`S = g^{ij} Ric_{ij}`,
+        with Einstein notation, where we recognize the trace of the Ricci
+        tensor according to the Riemannian metric :math:`g`.
+
+        Parameters
+        ----------
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        curvature : array-like, shape=[...,]
+            Scalar curvature.
+        """
+        ricci_tensor = self.ricci_tensor(base_point)
+        cometric_matrix = self.cometric_matrix(base_point)
+        return gs.einsum("...ij, ...ij -> ...", cometric_matrix, ricci_tensor)
+
+    def flat(self, tangent_vec, base_point=None):
+        """Map a tangent vector to a covector.
+
+        This is the multiplication by the metric matrix.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        cotangent_vec : array-like, shape=[..., dim]
+            Covector at base point.
+        """
+        return gs.einsum(
+            "...ij,...j->...i", self.metric_matrix(base_point), tangent_vec
+        )
+
+    def sharp(self, cotangent_vec, base_point=None):
+        """Map a covector to a tangent vector.
+
+        This is the multiplication by the cometric matrix. Inverse of
+        :meth:`flat`.
+
+        Parameters
+        ----------
+        cotangent_vec : array-like, shape=[..., dim]
+            Covector at base point.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
+        return gs.einsum(
+            "...ij,...j->...i", self.cometric_matrix(base_point), cotangent_vec
+        )
+
+
+class ConstantMetricMatrixRiemannianMetric(
+    ZeroChristoffelsMixin, CoordinateRiemannianMetric
+):
+    """Class for metrics whose matrix is constant in the chart.
+
+    The Christoffel symbols of the Levi-Civita connection vanish, and the
+    metric is flat.
+
+    Parameters
+    ----------
+    space : Manifold object
+        M in the tuple (M, g).
+    metric_matrix : array-like, shape=[dim, dim]
+        Metric matrix.
+        Optional, default: identity.
+    signature : tuple
+        Signature of the metric.
+        Optional, default: (dim, 0).
+    """
+
+    def __init__(self, space, metric_matrix=None, signature=None):
+        super().__init__(space, signature=signature)
+        if metric_matrix is None:
+            metric_matrix = gs.eye(space.dim)
+
+        expected_shape = (space.dim, space.dim)
+        if metric_matrix.shape != expected_shape:
+            raise ValueError(
+                f"metric_matrix shape is {metric_matrix.shape};"
+                f"expected: {expected_shape}"
+            )
+        self.metric_matrix_ = metric_matrix
+
+    def metric_matrix(self, base_point=None):
+        """Metric matrix at the tangent space at a base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., dim, dim]
+            Inner-product matrix.
+        """
+        dim = self._space.dim
+        return repeat_out(
+            self._space.point_ndim,
+            gs.copy(self.metric_matrix_),
+            base_point,
+            out_shape=(dim, dim),
+        )
+
+    def cometric_matrix(self, base_point=None):
+        """Inner co-product matrix at the cotangent space at a base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        cometric_matrix : array-like, shape=[..., dim, dim]
+            Inverse of inner-product matrix.
+        """
+        dim = self._space.dim
+        return repeat_out(
+            self._space.point_ndim,
+            gs.linalg.inv(self.metric_matrix_),
+            base_point,
+            out_shape=(dim, dim),
+        )
+
+    def inner_product_derivative_matrix(self, base_point=None):
+        r"""Compute derivative of the inner prod matrix at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        metric_derivative : array-like, shape=[..., dim, dim, dim]
+            Derivative of the inner-product matrix, where the index
+            k of the derivation is last: :math:`mat_{ijk} = \partial_k g_{ij}`.
+        """
+        dim = self._space.dim
+        shape = (dim, dim, dim)
+        return repeat_out(
+            self._space.point_ndim, gs.zeros(shape), base_point, out_shape=shape
+        )
+
+    def flat(self, tangent_vec, base_point=None):
+        """Map a tangent vector to a covector.
+
+        The metric matrix is independent of the base point, so it is not
+        repeated along the batch.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        cotangent_vec : array-like, shape=[..., dim]
+            Covector at base point.
+        """
+        cotangent_vec = gs.matvec(self.metric_matrix_, tangent_vec)
+
+        return repeat_out(
+            self._space.point_ndim,
+            cotangent_vec,
+            tangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )
+
+    def sharp(self, cotangent_vec, base_point=None):
+        """Map a covector to a tangent vector.
+
+        Inverse of :meth:`flat`.
+
+        Parameters
+        ----------
+        cotangent_vec : array-like, shape=[..., dim]
+            Covector at base point.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
+        tangent_vec = gs.matvec(gs.linalg.inv(self.metric_matrix_), cotangent_vec)
+
+        return repeat_out(
+            self._space.point_ndim,
+            tangent_vec,
+            cotangent_vec,
+            base_point,
+            out_shape=self._space.shape,
+        )

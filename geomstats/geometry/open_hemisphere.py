@@ -12,6 +12,7 @@ References
 """
 
 import geomstats.backend as gs
+from geomstats._einsum import scalarvecmul
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.diffeo import InvolutionDiffeomorphism
 from geomstats.geometry.hyperboloid import Hyperboloid
@@ -28,7 +29,7 @@ class OpenHemisphereToHyperboloidDiffeo(InvolutionDiffeomorphism):
         return_point = gs.copy(base_point)
         return_point[..., 0] = 1.0
         first_term = base_point[..., 0]
-        return gs.einsum("...,...i->...i", 1 / first_term, return_point)
+        return scalarvecmul(1 / first_term, return_point)
 
     def tangent(self, tangent_vec, base_point=None, image_point=None):
         """Tangent diffeomorphism at base point."""
@@ -37,15 +38,15 @@ class OpenHemisphereToHyperboloidDiffeo(InvolutionDiffeomorphism):
 
         coeffs = tangent_vec[..., 0] / base_point[..., 0]
         image_tangent_vec_0 = gs.array(-tangent_vec[..., 0] / base_point[..., 0])
-        image_tangent_vec_other = tangent_vec[..., 1:] - gs.einsum(
-            "...,...i->...i", coeffs, base_point[..., 1:]
+        image_tangent_vec_other = tangent_vec[..., 1:] - scalarvecmul(
+            coeffs, base_point[..., 1:]
         )
 
         image_tangent_vec = gs.concatenate(
             [gs.expand_dims(image_tangent_vec_0, axis=-1), image_tangent_vec_other],
             axis=-1,
         )
-        return gs.einsum("...,...i->...i", 1 / base_point[..., 0], image_tangent_vec)
+        return scalarvecmul(1 / base_point[..., 0], image_tangent_vec)
 
 
 class OpenHemisphere(OpenSet):
