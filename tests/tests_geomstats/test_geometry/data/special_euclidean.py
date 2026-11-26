@@ -168,6 +168,65 @@ class SpecialEuclidean2VectorsTestData(TestData):
         return self.generate_tests(data)
 
 
+class SpecialEuclideanMatrices1TestData(TestData):
+    def belongs_test_data(self):
+        valid = gs.array([[1.0, 2.0], [0.0, 1.0]])
+        invalid_rot = gs.array([[-1.0, 2.0], [0.0, 1.0]])
+        invalid_row = gs.array([[1.0, 2.0], [0.0, 0.0]])
+        data = [
+            dict(point=valid, expected=True),
+            dict(point=invalid_rot, expected=False),
+            dict(point=invalid_row, expected=False),
+            dict(point=gs.stack([valid, invalid_rot]), expected=[True, False]),
+        ]
+        return self.generate_tests(data)
+
+    def identity_test_data(self):
+        return self.generate_tests([dict(expected=gs.eye(2))])
+
+    def is_tangent_test_data(self):
+        vec_1 = gs.array([[0.0, 2.0], [0.0, 0.0]])
+        vec_2 = gs.array([[1.0, 2.0], [0.0, 0.0]])
+        point = gs.array([[1.0, 3.0], [0.0, 1.0]])
+        data = [
+            dict(vector=point @ vec_1, base_point=point, expected=True),
+            dict(vector=point @ vec_2, base_point=point, expected=False),
+            dict(
+                vector=gs.stack([point @ vec_1, point @ vec_2]),
+                base_point=point,
+                expected=[True, False],
+            ),
+        ]
+        return self.generate_tests(data)
+
+    def projection_test_data(self):
+        point = gs.array([[-2.0, 3.0], [1.0, 4.0]])
+        expected = gs.array([[1.0, 3.0], [0.0, 1.0]])
+        return self.generate_tests([dict(point=point, expected=expected)])
+
+
+class SpecialEuclideanMatricesLieAlgebra1TestData(TestData):
+    def belongs_test_data(self):
+        valid = gs.array([[0.0, 2.0], [0.0, 0.0]])
+        invalid_rot = gs.array([[1.0, 2.0], [0.0, 0.0]])
+        invalid_row = gs.array([[0.0, 2.0], [0.0, 1.0]])
+        data = [
+            dict(point=valid, expected=gs.array(True)),
+            dict(point=invalid_rot, expected=gs.array(False)),
+            dict(point=invalid_row, expected=gs.array(False)),
+            dict(
+                point=gs.stack([valid, invalid_rot, invalid_row]),
+                expected=gs.array([True, False, False]),
+            ),
+        ]
+        return self.generate_tests(data)
+
+    def basis_representation_test_data(self):
+        mat = gs.array([[0.0, 2.5], [0.0, 0.0]])
+        expected = gs.array([2.5])
+        return self.generate_tests([dict(matrix_representation=mat, expected=expected)])
+
+
 class SpecialEuclideanMatricesLieAlgebra2TestData(TestData):
     def belongs_test_data(self):
         theta = gs.pi / 3
