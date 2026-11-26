@@ -23,11 +23,163 @@ References
 import math
 
 import geomstats.backend as gs
-from geomstats._einsum import scalarvecmul
+from geomstats import algebra_utils as utils
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.hermitian import Hermitian
-from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.vectorization import repeat_out
+from geomstats.geometry.homogeneous_metric import RiemannianSymmetricMetric
+from geomstats.geometry.isometry import PointedIsometry
+from geomstats.geometry.manifold import _get_default_dtype
+
+
+class MobiusTransvection(PointedIsometry):
+    r"""Transvection of the complex Poincaré disk sending an anchor to zero.
+
+    Denoting the anchor by :math:`a`, the transvection is the Möbius map
+
+    .. math::
+
+        \phi_a(z) = \frac{z - a}{1 - \bar{a} z}
+
+    along the geodesic from :math:`a` to zero. Its inverse is
+    :math:`\phi_{-a}`. It is holomorphic, so its differential is the
+    multiplication by its complex derivative.
+
+    Parameters
+    ----------
+    anchor : array-like, shape=[..., 1]
+        Point on the complex Poincaré disk sent to zero.
+    """
+
+    def __init__(self, anchor):
+        super().__init__(anchor, gs.zeros(anchor.shape[-1:], dtype=anchor.dtype))
+        self._anchor_conj = gs.conj(anchor)
+        self._conformal_factor = 1 - gs.abs(anchor) ** 2
+
+    def _map(self, point, sign):
+        """Apply the transvection of anchor `sign * anchor`."""
+        return (point - sign * self.anchor) / (1 - sign * self._anchor_conj * point)
+
+    def _tangent(self, tangent_vec, point, sign):
+        r"""Apply the differential at `point` of the transvection of `sign * anchor`.
+
+        .. math::
+
+            d\phi_a(z)[v] = \frac{1 - |a|^2}{(1 - \bar{a} z)^2} v
+        """
+        denominator = 1 - sign * self._anchor_conj * point
+        return self._conformal_factor / denominator**2 * tangent_vec
+
+    def __call__(self, base_point):
+        """Send a point by the transvection.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Point on the complex Poincaré disk.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., 1]
+            Image of the point.
+        """
+        return self._map(base_point, 1.0)
+
+    def inverse(self, image_point):
+        """Send a point by the inverse transvection.
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., 1]
+            Point on the complex Poincaré disk.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., 1]
+            Preimage of the point.
+        """
+        return self._map(image_point, -1.0)
+
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
+        """Send a tangent vector by the differential of the transvection.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., 1]
+            Base point.
+        image_point : array-like, shape=[..., 1]
+            Image of the base point. Used if `base_point` is not given.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at the image of the base point.
+        """
+        if base_point is None:
+            if image_point is None:
+                raise ValueError("Either a base point or an image point is needed.")
+            base_point = self.inverse(image_point)
+        return self._tangent(tangent_vec, base_point, 1.0)
+
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
+        """Send a tangent vector by the differential of the inverse transvection.
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at image point.
+        image_point : array-like, shape=[..., 1]
+            Image point.
+        base_point : array-like, shape=[..., 1]
+            Preimage of the image point. Used if `image_point` is not given.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at the preimage of the image point.
+        """
+        if image_point is None:
+            if base_point is None:
+                raise ValueError("Either a base point or an image point is needed.")
+            image_point = self(base_point)
+        return self._tangent(image_tangent_vec, image_point, -1.0)
+
+    def tangent_at_anchor(self, tangent_vec):
+        r"""Send a tangent vector at the anchor by the differential.
+
+        At the anchor, the differential reduces to
+        :math:`d\phi_a(a)[v] = v / (1 - |a|^2)`.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at the anchor.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at zero.
+        """
+        return tangent_vec / self._conformal_factor
+
+    def inverse_tangent_at_reference(self, image_tangent_vec):
+        r"""Send a tangent vector at zero by the differential of the inverse.
+
+        At zero, the differential of the inverse reduces to
+        :math:`d\phi_{-a}(0)[v] = (1 - |a|^2) v`.
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at zero.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at the anchor.
+        """
+        return self._conformal_factor * image_tangent_vec
 
 
 class ComplexPoincareDisk(VectorSpaceOpenSet):
@@ -141,8 +293,162 @@ class ComplexPoincareDisk(VectorSpaceOpenSet):
         return (1 - gs.abs(base_point) ** 2) * tangent_vec
 
 
-class ComplexPoincareDiskMetric(RiemannianMetric):
-    """Class for the complex Poincaré metric."""
+class ComplexPoincareDiskMetric(RiemannianSymmetricMetric):
+    """Class for the complex Poincaré metric.
+
+    The geometry is only written at zero and is moved to any other base point
+    by the Möbius transvection sending that base point to zero. The parallel
+    transport has a closed form.
+    """
+
+    @property
+    def reference_point(self):
+        """Reference point, zero.
+
+        Returns
+        -------
+        reference_point : array-like, shape=[1]
+            Zero.
+        """
+        return gs.zeros(
+            self._space.shape, dtype=_get_default_dtype(self._space.complex_repr)
+        )
+
+    def isometry_to_reference(self, base_point):
+        """Get the isometry sending a base point to zero.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        isometry : MobiusTransvection
+            Transvection sending the base point to zero.
+        """
+        return MobiusTransvection(base_point)
+
+    def inner_product_at_reference(self, tangent_vec_a, tangent_vec_b):
+        """Compute the inner product at zero.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., 1]
+            Tangent vector at zero.
+        tangent_vec_b : array-like, shape=[..., 1]
+            Tangent vector at zero.
+
+        Returns
+        -------
+        inner_product : array-like, shape=[...,]
+            Inner product.
+        """
+        return gs.real(gs.vecdot(tangent_vec_a, tangent_vec_b))
+
+    def exp_at_reference(self, tangent_vec):
+        r"""Compute the exponential map at zero.
+
+        .. math::
+
+            \exp_0(v) = \frac{\tanh(|v|)}{|v|} v
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at zero.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., 1]
+            Point on the complex Poincaré disk.
+        """
+        inv_coef = utils.taylor_exp_even_func(
+            gs.abs(tangent_vec) ** 2, utils.inv_tanh_close_0
+        )
+        return tangent_vec / inv_coef
+
+    def log_at_reference(self, point):
+        r"""Compute the logarithm map at zero.
+
+        .. math::
+
+            \log_0(z) = \frac{\operatorname{artanh}(|z|)}{|z|} z
+
+        The modulus of the point is clipped below one.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 1]
+            Point on the complex Poincaré disk.
+
+        Returns
+        -------
+        log : array-like, shape=[..., 1]
+            Tangent vector at zero.
+        """
+        modulus = gs.abs(point)
+        point = (1 - gs.atol) / gs.maximum(modulus, 1 - gs.atol) * point
+        coef = utils.taylor_exp_even_func(
+            gs.abs(point) ** 2, utils.arctanh_card_close_0
+        )
+        return coef * point
+
+    def squared_dist_at_reference(self, point):
+        r"""Compute the squared distance from zero.
+
+        .. math::
+
+            d(0, z)^2 = \operatorname{artanh}(|z|)^2
+
+        The modulus of the point is clipped below one.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 1]
+            Point on the complex Poincaré disk.
+
+        Returns
+        -------
+        sq_dist : array-like, shape=[...,]
+            Squared distance between zero and the point.
+        """
+        modulus = gs.minimum(gs.abs(point), 1 - gs.atol)
+        return gs.sum(gs.arctanh(modulus) ** 2, axis=-1)
+
+    def sectional_curvature_at_reference(self, tangent_vec_a, tangent_vec_b):
+        """Compute the sectional curvature at zero.
+
+        The complex Poincaré disk has constant curvature -4.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., 1]
+            Tangent vector at zero.
+        tangent_vec_b : array-like, shape=[..., 1]
+            Tangent vector at zero.
+
+        Returns
+        -------
+        sectional_curvature : array-like, shape=[...,]
+            Sectional curvature at zero.
+        """
+        return -4.0 * gs.ones_like(
+            self.inner_product_at_reference(tangent_vec_a, tangent_vec_b)
+        )
+
+    def injectivity_radius_at_reference(self):
+        """Compute the injectivity radius at zero.
+
+        The complex Poincaré disk is a Hadamard manifold, so the radius is
+        infinite.
+
+        Returns
+        -------
+        radius : array-like, shape=[]
+            Injectivity radius.
+        """
+        return gs.array(math.inf)
 
     def metric_matrix(self, base_point):
         """Compute the metric matrix at base point.
@@ -159,131 +465,6 @@ class ComplexPoincareDiskMetric(RiemannianMetric):
         """
         inner_prod_mat = 1 / (1 - gs.abs(base_point) ** 2) ** 2
         return gs.cast(gs.expand_dims(inner_prod_mat, axis=-1), base_point.dtype)
-
-    @staticmethod
-    def exp(tangent_vec, base_point):
-        """Compute the complex Poincaré disk exponential map.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., 1]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., 1]
-            Base point.
-
-        Returns
-        -------
-        exp : array-like, shape=[..., 1]
-            Riemannian exponential.
-        """
-        base_point, tangent_vec = gs.broadcast_arrays(base_point, tangent_vec)
-
-        theta = gs.angle(tangent_vec)
-        s = 2 * gs.abs(tangent_vec) / (1 - gs.abs(base_point) ** 2)
-
-        exp_i_theta = gs.exp(1j * theta)
-        exp_minus_s = gs.exp(-s)
-
-        num = base_point + exp_i_theta + (base_point - exp_i_theta) * exp_minus_s
-        den = (
-            1
-            + gs.conj(base_point) * exp_i_theta
-            + (1 - gs.conj(base_point) * exp_i_theta) * exp_minus_s
-        )
-        return num / den
-
-    @staticmethod
-    def _tau(point_a, point_b, atol=gs.atol):
-        """Compute the coefficient tau.
-
-        The coefficient tau is used to compute the distance
-        between point_a and point_b; it is also used to
-        compute the logarithm map between point_a and point_b.
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[..., 1]
-            Point.
-        point_b : array-like, shape=[..., 1]
-            Point.
-        atol : float
-            Tolerance.
-
-        Returns
-        -------
-        tau : array-like, shape=[...]
-            Coefficient tau.
-        """
-        num = gs.abs(point_a - point_b)
-        den = gs.maximum(gs.abs(1 - point_a * gs.conj(point_b)), atol)
-        delta = gs.squeeze(gs.minimum(num / den, 1 - atol), axis=-1)
-        return (1 / 2) * gs.log((1 + delta) / (1 - delta))
-
-    def log(self, point, base_point):
-        """Compute the complex Poincaré disk logarithm map.
-
-        Compute the Riemannian logarithm at point base_point,
-        of point wrt the positive reals metric.
-        This gives a tangent vector at point base_point.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., 1]
-            Point.
-        base_point : array-like, shape=[..., 1]
-            Base point.
-
-        Returns
-        -------
-        log : array-like, shape=[..., 1]
-            Riemannian logarithm.
-        """
-        angle = gs.angle(point - base_point) - gs.angle(1 - gs.conj(base_point) * point)
-        return gs.exp(1j * angle) * scalarvecmul(
-            self._tau(base_point, point),
-            (1 - gs.abs(base_point) ** 2),
-        )
-
-    def squared_dist(self, point_a, point_b, atol=gs.atol):
-        """Compute the complex Poincaré disk squared distance.
-
-        Compute the Riemannian squared distance between point_a and point_b.
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[..., 1]
-            Point.
-        point_b : array-like, shape=[..., 1]
-            Point.
-
-        Returns
-        -------
-        squared_dist : array-like, shape=[...]
-            Riemannian squared distance.
-        """
-        dist = self._tau(point_a, point_b, atol=atol)
-        return gs.power(dist, 2)
-
-    def dist(self, point_a, point_b, atol=gs.atol):
-        """Compute the complex Poincaré disk distance.
-
-        Compute the Riemannian distance between point_a and point_b.
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[..., 1]
-            Point.
-        point_b : array-like, shape=[..., 1]
-            Point.
-        atol : float
-            Tolerance.
-
-        Returns
-        -------
-        dist : array-like, shape=[...]
-            Riemannian distance.
-        """
-        return self._tau(point_a, point_b, atol=atol)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
@@ -331,21 +512,3 @@ class ComplexPoincareDiskMetric(RiemannianMetric):
             1 - gs.conj(end_point) * base_point
         )
         return conformal_ratio * gyration * tangent_vec
-
-    def injectivity_radius(self, base_point=None):
-        """Compute the radius of the injectivity domain.
-
-        In the complex Poincare disk, it is infinite everywhere.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., 1]
-            Point on the manifold.
-
-        Returns
-        -------
-        radius : array-like, shape=[...,]
-            Injectivity radius.
-        """
-        radius = gs.array(math.inf)
-        return repeat_out(self._space.point_ndim, radius, base_point)

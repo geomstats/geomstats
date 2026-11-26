@@ -29,6 +29,7 @@ References
     https://epubs.siam.org/doi/pdf/10.1137/15M102112X
 """
 
+import functools
 import math
 
 import geomstats.backend as gs
@@ -36,11 +37,247 @@ from geomstats import algebra_utils as utils
 from geomstats._einsum import scalarmatmul
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatrixOperations
-from geomstats.geometry.hermitian_matrices import apply_func_to_eigvalsh, powermh
+from geomstats.geometry.hermitian_matrices import apply_func_to_eigvalsh
+from geomstats.geometry.homogeneous_metric import RiemannianSymmetricMetric
+from geomstats.geometry.isometry import PointedIsometry
+from geomstats.geometry.manifold import _get_default_dtype
 from geomstats.geometry.matrices import MatrixOperations
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from geomstats.vectorization import repeat_out
+
+
+def _tanh_card(eigvals):
+    """Evaluate tanh(sqrt(x)) / sqrt(x), including its limit at zero."""
+    values = utils.taylor_exp_even_func(
+        gs.maximum(eigvals, 0.0), utils.inv_tanh_close_0
+    )
+    return gs.cast(1 / values, eigvals.dtype)
+
+
+def _arctanh_card(eigvals):
+    """Evaluate arctanh(sqrt(x)) / sqrt(x), including its limit at zero."""
+    values = utils.taylor_exp_even_func(
+        gs.maximum(eigvals, 0.0), utils.arctanh_card_close_0
+    )
+    return gs.cast(values, eigvals.dtype)
+
+
+class SiegelTransvection(PointedIsometry):
+    r"""Transvection of the Siegel space sending an anchor to zero.
+
+    Denoting the anchor by :math:`A`, the transvection is the isometry
+
+    .. math::
+
+        \phi_A(Z) = (I - AA^*)^{-1/2} (Z - A) (I - A^* Z)^{-1}
+        (I - A^* A)^{1/2}
+
+    along the geodesic from :math:`A` to the null matrix. Its inverse is
+    :math:`\phi_{-A}`.
+
+    Parameters
+    ----------
+    anchor : array-like, shape=[..., n, n]
+        Point on the Siegel space sent to zero.
+    """
+
+    def __init__(self, anchor):
+        super().__init__(anchor, gs.zeros(anchor.shape[-2:], dtype=anchor.dtype))
+        self._anchor_transconj = ComplexMatrixOperations.transconjugate(anchor)
+        self._identity = gs.eye(anchor.shape[-1], dtype=anchor.dtype)
+
+    @functools.cached_property
+    def _left_eigh(self):
+        """Eigendecomposition of :math:`I - AA^*`."""
+        return gs.linalg.eigh(
+            self._identity - gs.matmul(self.anchor, self._anchor_transconj)
+        )
+
+    @functools.cached_property
+    def _right_eigh(self):
+        """Eigendecomposition of :math:`I - A^* A`."""
+        return gs.linalg.eigh(
+            self._identity - gs.matmul(self._anchor_transconj, self.anchor)
+        )
+
+    @staticmethod
+    def _power(eigh, power):
+        """Compute a power of a Hermitian matrix from its eigendecomposition."""
+        eigvals, eigvecs = eigh
+        return gs.matmul(
+            eigvecs * gs.power(eigvals, power)[..., None, :],
+            ComplexMatrixOperations.transconjugate(eigvecs),
+        )
+
+    @functools.cached_property
+    def _left_factor(self):
+        """Compute :math:`(I - AA^*)^{-1/2}`."""
+        return self._power(self._left_eigh, -1 / 2)
+
+    @functools.cached_property
+    def _inv_left_factor(self):
+        """Compute :math:`(I - AA^*)^{1/2}`."""
+        return self._power(self._left_eigh, 1 / 2)
+
+    @functools.cached_property
+    def _right_factor(self):
+        """Compute :math:`(I - A^* A)^{1/2}`."""
+        return self._power(self._right_eigh, 1 / 2)
+
+    @functools.cached_property
+    def _inv_right_factor(self):
+        """Compute :math:`(I - A^* A)^{-1/2}`."""
+        return self._power(self._right_eigh, -1 / 2)
+
+    def _map(self, point, sign):
+        """Apply the transvection of anchor `sign * anchor`."""
+        anchor = sign * self.anchor
+        anchor_transconj = sign * self._anchor_transconj
+        inv_aux = gs.linalg.inv(self._identity - gs.matmul(anchor_transconj, point))
+        return MatrixOperations.mul(
+            self._left_factor, point - anchor, inv_aux, self._right_factor
+        )
+
+    def _tangent(self, tangent_vec, point, sign):
+        r"""Apply the differential at `point` of the transvection of `sign * anchor`.
+
+        With :math:`M = I - A^* Z`, the differential is
+
+        .. math::
+
+            d\phi_A(Z)[W] = (I - AA^*)^{-1/2} (I + (Z - A) M^{-1} A^*)
+            W M^{-1} (I - A^* A)^{1/2}
+        """
+        anchor = sign * self.anchor
+        anchor_transconj = sign * self._anchor_transconj
+        inv_aux = gs.linalg.inv(self._identity - gs.matmul(anchor_transconj, point))
+        aux = self._identity + MatrixOperations.mul(
+            point - anchor, inv_aux, anchor_transconj
+        )
+        return MatrixOperations.mul(
+            self._left_factor, aux, tangent_vec, inv_aux, self._right_factor
+        )
+
+    def __call__(self, base_point):
+        """Send a point by the transvection.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Point on the Siegel space.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., n, n]
+            Image of the point.
+        """
+        return self._map(base_point, 1.0)
+
+    def inverse(self, image_point):
+        """Send a point by the inverse transvection.
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., n, n]
+            Point on the Siegel space.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., n, n]
+            Preimage of the point.
+        """
+        return self._map(image_point, -1.0)
+
+    def tangent(self, tangent_vec, base_point=None, image_point=None):
+        """Send a tangent vector by the differential of the transvection.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+        image_point : array-like, shape=[..., n, n]
+            Image of the base point. Used if `base_point` is not given.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at the image of the base point.
+        """
+        if base_point is None:
+            if image_point is None:
+                raise ValueError("Either a base point or an image point is needed.")
+            base_point = self.inverse(image_point)
+        return self._tangent(tangent_vec, base_point, 1.0)
+
+    def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
+        """Send a tangent vector by the differential of the inverse transvection.
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at image point.
+        image_point : array-like, shape=[..., n, n]
+            Image point.
+        base_point : array-like, shape=[..., n, n]
+            Preimage of the image point. Used if `image_point` is not given.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at the preimage of the image point.
+        """
+        if image_point is None:
+            if base_point is None:
+                raise ValueError("Either a base point or an image point is needed.")
+            image_point = self(base_point)
+        return self._tangent(image_tangent_vec, image_point, -1.0)
+
+    def tangent_at_anchor(self, tangent_vec):
+        r"""Send a tangent vector at the anchor by the differential.
+
+        At the anchor, the differential of the transvection reduces to
+
+        .. math::
+
+            d\phi_A(A)[W] = (I - AA^*)^{-1/2} W (I - A^* A)^{-1/2}
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at the anchor.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at zero.
+        """
+        return MatrixOperations.mul(
+            self._left_factor, tangent_vec, self._inv_right_factor
+        )
+
+    def inverse_tangent_at_reference(self, image_tangent_vec):
+        r"""Send a tangent vector at zero by the differential of the inverse.
+
+        At zero, the differential of the inverse transvection reduces to
+
+        .. math::
+
+            d\phi_{-A}(0)[V] = (I - AA^*)^{1/2} V (I - A^* A)^{1/2}
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at zero.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at the anchor.
+        """
+        return MatrixOperations.mul(
+            self._inv_left_factor, image_tangent_vec, self._right_factor
+        )
 
 
 class Siegel(VectorSpaceOpenSet):
@@ -178,20 +415,214 @@ class Siegel(VectorSpaceOpenSet):
         return self.to_tangent(samples, base_point)
 
 
-class SiegelMetric(RiemannianMetric):
-    """Class for the Siegel metric."""
+class SiegelMetric(RiemannianSymmetricMetric):
+    """Class for the Siegel metric.
+
+    The Siegel metric is the metric of a Riemannian symmetric space.
+
+    The geometry is only written at the reference point, the null matrix,
+    and is moved to any other base point by the transvection sending that
+    base point to the reference point. The inner product and the squared
+    distance have closed forms that do not build the transvections.
+
+    Parameters
+    ----------
+    space : Siegel
+        Manifold.
+    """
+
+    @property
+    def reference_point(self):
+        """Reference point, the null matrix.
+
+        Returns
+        -------
+        reference_point : array-like, shape=[n, n]
+            Null matrix.
+        """
+        return gs.zeros(
+            self._space.shape, dtype=_get_default_dtype(self._space.complex_repr)
+        )
+
+    def isometry_to_reference(self, base_point):
+        """Get the isometry sending a base point to the reference point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        isometry : SiegelTransvection
+            Transvection sending the base point to the null matrix.
+        """
+        return SiegelTransvection(base_point)
+
+    def inner_product_at_reference(self, tangent_vec_a, tangent_vec_b):
+        """Compute the inner product at the reference point.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            Tangent vector at the reference point.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Tangent vector at the reference point.
+
+        Returns
+        -------
+        inner_product : array-like, shape=[...,]
+            Inner product.
+        """
+        return gs.real(
+            ComplexMatrixOperations.frobenius_product(tangent_vec_a, tangent_vec_b)
+        )
+
+    def exp_at_reference(self, tangent_vec):
+        r"""Compute the exponential map at the reference point.
+
+        Denoting by :math:`V` the tangent vector and :math:`S = (VV^*)^{1/2}`,
+
+        .. math::
+
+            \exp_0(V) = \tanh(S) S^{-1} V
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at the reference point.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., n, n]
+            Point on the manifold.
+        """
+        tangent_vec_transconj = ComplexMatrixOperations.transconjugate(tangent_vec)
+        squared_radius = gs.matmul(tangent_vec, tangent_vec_transconj)
+        factor = apply_func_to_eigvalsh(squared_radius, _tanh_card)
+        return gs.matmul(factor, tangent_vec)
+
+    def log_at_reference(self, point):
+        r"""Compute the logarithm map at the reference point.
+
+        Denoting by :math:`P` the point and :math:`R = (PP^*)^{1/2}`,
+
+        .. math::
+
+            \log_0(P) = \operatorname{artanh}(R) R^{-1} P
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        log : array-like, shape=[..., n, n]
+            Tangent vector at the reference point.
+        """
+        point_transconj = ComplexMatrixOperations.transconjugate(point)
+        squared_radius = gs.matmul(point, point_transconj)
+        factor = apply_func_to_eigvalsh(squared_radius, _arctanh_card)
+        return gs.matmul(factor, point)
+
+    def squared_dist_at_reference(self, point):
+        r"""Compute the squared distance from the reference point.
+
+        Denoting by :math:`\sigma_i` the singular values of the point,
+
+        .. math::
+
+            d(0, Z)^2 = \sum_i \operatorname{artanh}(\sigma_i)^2
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        sq_dist : array-like, shape=[...,]
+            Squared distance between the null matrix and the point.
+        """
+        point_transconj = ComplexMatrixOperations.transconjugate(point)
+        eigvals = gs.linalg.eigvalsh(gs.matmul(point, point_transconj))
+        singular_values = gs.sqrt(gs.maximum(eigvals, 0.0))
+        return gs.sum(gs.arctanh(singular_values) ** 2, axis=-1)
+
+    def sectional_curvature_at_reference(
+        self, tangent_vec_a, tangent_vec_b, atol=gs.atol
+    ):
+        r"""Compute the sectional curvature at the reference point.
+
+        The tangent vectors are first orthonormalized. For orthonormal
+        :math:`X, Y`, the sectional curvature is
+
+        .. math::
+
+            K(X, Y) = -\frac{1}{2} \left(\|XY^* - YX^*\|^2
+            + \|X^*Y - Y^*X\|^2\right)
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            Tangent vector at the reference point.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Tangent vector at the reference point.
+        atol : float
+            Tolerance under which a vector is considered to be zero.
+
+        Returns
+        -------
+        sectional_curvature : array-like, shape=[...,]
+            Sectional curvature at the reference point.
+        """
+        dtype = tangent_vec_a.dtype
+
+        def _normalize(tangent_vec):
+            norm = gs.sqrt(self.inner_product_at_reference(tangent_vec, tangent_vec))
+            scalars = gs.where(norm < atol, 0.0, 1 / norm)
+            return scalarmatmul(gs.cast(scalars, dtype), tangent_vec)
+
+        tangent_vec_a = _normalize(tangent_vec_a)
+        inner_prod = self.inner_product_at_reference(tangent_vec_a, tangent_vec_b)
+        tangent_vec_b = _normalize(
+            tangent_vec_b - scalarmatmul(gs.cast(inner_prod, dtype), tangent_vec_a)
+        )
+
+        tangent_vec_a_transconj = ComplexMatrixOperations.transconjugate(tangent_vec_a)
+        tangent_vec_b_transconj = ComplexMatrixOperations.transconjugate(tangent_vec_b)
+        term_1 = gs.matmul(tangent_vec_a, tangent_vec_b_transconj) - gs.matmul(
+            tangent_vec_b, tangent_vec_a_transconj
+        )
+        term_2 = gs.matmul(tangent_vec_a_transconj, tangent_vec_b) - gs.matmul(
+            tangent_vec_b_transconj, tangent_vec_a
+        )
+        return -0.5 * (
+            gs.linalg.matrix_norm(term_1) ** 2 + gs.linalg.matrix_norm(term_2) ** 2
+        )
+
+    def injectivity_radius_at_reference(self):
+        """Compute the injectivity radius at the reference point.
+
+        The Siegel space is a Hadamard manifold, so the radius is infinite.
+
+        Returns
+        -------
+        radius : array-like, shape=[]
+            Injectivity radius.
+        """
+        return gs.array(math.inf)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        r"""Compute the Siegel inner-product.
+        r"""Compute the inner product at a base point.
 
-        Compute the inner-product of tangent_vec_a and tangent_vec_b
-        at point base_point using the Siegel Riemannian metric.
-        The expression of the inner product between the vectors ``v`` and ``w``
-        at point ``O`` is :math:`<v, w>_{O}
-        = 1/2 * trace((I - O O^{H})^{-1} v (I - O^{H} O)^{-1} w^{H})
-        + 1/2 * trace((I - O O^{H})^{-1} w (I - O^{H} O)^{-1} v^{H})
-        = Re(trace((I - O O^{H})^{-1} v (I - O^{H} O)^{-1} w^{H}))`
-        where H denotes the conjugate transpose operator.
+        Denoting the base point by :math:`B`,
+
+        .. math::
+
+            \langle V, W \rangle_B = \operatorname{Re} \operatorname{tr}
+            \left((I - BB^*)^{-1} V (I - B^* B)^{-1} W^*\right)
 
         Parameters
         ----------
@@ -205,489 +636,58 @@ class SiegelMetric(RiemannianMetric):
         Returns
         -------
         inner_product : array-like, shape=[...,]
-            Inner-product.
-        """
-        identity = gs.eye(base_point.shape[-1], dtype=base_point.dtype)
-
-        base_point_transconj = ComplexMatrixOperations.transconjugate(base_point)
-        tangent_vec_b_transconj = ComplexMatrixOperations.transconjugate(tangent_vec_b)
-
-        aux_1 = gs.matmul(base_point, base_point_transconj)
-
-        aux_2 = gs.matmul(base_point_transconj, base_point)
-
-        aux_3 = identity - aux_1
-
-        aux_4 = identity - aux_2
-
-        inv_aux_3 = powermh(aux_3, -1)
-
-        inv_aux_4 = powermh(aux_4, -1)
-
-        aux_a = gs.matmul(inv_aux_3, tangent_vec_a)
-        aux_b = gs.matmul(inv_aux_4, tangent_vec_b_transconj)
-        trace = MatrixOperations.trace_product(aux_a, aux_b)
-
-        return gs.real(trace)
-
-    @staticmethod
-    def tangent_vec_from_base_point_to_zero(tangent_vec, base_point):
-        """Transport a tangent vector from a base point to zero.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., n, n]
-            Point on the Siegel space.
-
-        Returns
-        -------
-        tangent_vec_at_zero : array-like, shape=[..., n, n]
-            Tangent vector at zero (null matrix).
+            Inner product.
         """
         identity = gs.eye(base_point.shape[-1], dtype=base_point.dtype)
         base_point_transconj = ComplexMatrixOperations.transconjugate(base_point)
-        aux_1 = gs.matmul(base_point, base_point_transconj)
-        aux_2 = gs.matmul(base_point_transconj, base_point)
-        aux_3 = identity - aux_1
-        aux_4 = identity - aux_2
-        factor_1 = powermh(aux_3, -1 / 2)
-        factor_3 = powermh(aux_4, -1 / 2)
-        prod_1 = gs.matmul(factor_1, tangent_vec)
-        return gs.matmul(prod_1, factor_3)
-
-    @staticmethod
-    def exp_at_zero(tangent_vec):
-        """Compute the Siegel exponential map at zero.
-
-        Compute the exponential map at zero (null matrix) of tangent_vec.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at zero (null matrix).
-
-        Returns
-        -------
-        exp : array-like, shape=[..., n, n]
-            Point on the manifold.
-        """
-        tangent_vec_transconj = ComplexMatrixOperations.transconjugate(tangent_vec)
-        squared_radius = gs.matmul(tangent_vec, tangent_vec_transconj)
-
-        def tanh_card(eigvals):
-            """Evaluate tanh(sqrt(x)) / sqrt(x), including its limit at zero."""
-            values = utils.taylor_exp_even_func(
-                gs.maximum(eigvals, 0.0), utils.inv_tanh_close_0
-            )
-            return gs.cast(1 / values, eigvals.dtype)
-
-        factor = apply_func_to_eigvalsh(squared_radius, tanh_card)
-        return gs.matmul(factor, tangent_vec)
-
-    @staticmethod
-    def isometry(point, point_to_zero):
-        """Define an isometry for the Siegel metric.
-
-        Isometry for the Siegel metric sending point_to_zero
-        (parameter of the isometry) to zero.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Point on the Siegel space.
-        point_to_zero : array-like, shape=[..., n, n]
-            Point sent to zero (null matrix) by the isometry.
-
-        Returns
-        -------
-        point_image : array-like, shape=[..., n, n]
-            Image of point by the isometry.
-        """
-        identity = gs.eye(point.shape[-1], dtype=point.dtype)
-        point_to_zero_transconj = ComplexMatrixOperations.transconjugate(point_to_zero)
-        aux_1 = gs.matmul(point_to_zero, point_to_zero_transconj)
-        aux_2 = gs.matmul(point_to_zero_transconj, point_to_zero)
-        aux_3 = identity - aux_1
-        aux_4 = identity - aux_2
-        factor_1 = powermh(aux_3, -1 / 2)
-        factor_4 = powermh(aux_4, 1 / 2)
-        factor_2 = point - point_to_zero
-        aux_5 = gs.matmul(point_to_zero_transconj, point)
-        aux_6 = identity - aux_5
-        factor_3 = gs.linalg.inv(aux_6)
-        prod_1 = gs.matmul(factor_1, factor_2)
-        prod_2 = gs.matmul(prod_1, factor_3)
-        return gs.matmul(prod_2, factor_4)
-
-    def exp(self, tangent_vec, base_point):
-        """Compute the Siegel exponential map.
-
-        Compute the exponential map at base_point of tangent_vec.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., n, n]
-            Point on the manifold.
-
-        Returns
-        -------
-        exp : array-like, shape=[..., n, n]
-            Point on the manifold.
-        """
-        tangent_vec_at_zero = self.tangent_vec_from_base_point_to_zero(
-            tangent_vec=tangent_vec, base_point=base_point
+        aux_a = gs.matmul(
+            gs.linalg.inv(identity - gs.matmul(base_point, base_point_transconj)),
+            tangent_vec_a,
         )
-
-        exp_zero = self.exp_at_zero(tangent_vec_at_zero)
-
-        return self.isometry(point=exp_zero, point_to_zero=-base_point)
-
-    @staticmethod
-    def log_at_zero(point):
-        """Compute the Siegel logarithm map at zero.
-
-        Compute the logarithm map at zero (null matrix) of point.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Point on the Siegel space.
-
-        Returns
-        -------
-        log_at_zero : array-like, shape=[..., n, n]
-            Riemannian logarithm at zero (null matrix).
-        """
-        point_transconj = ComplexMatrixOperations.transconjugate(point)
-        squared_radius = gs.matmul(point, point_transconj)
-
-        def arctanh_card(eigvals):
-            """Evaluate arctanh(sqrt(x)) / sqrt(x), including its limit at zero."""
-            values = utils.taylor_exp_even_func(
-                gs.maximum(eigvals, 0.0), utils.arctanh_card_close_0
-            )
-            return gs.cast(values, eigvals.dtype)
-
-        factor = apply_func_to_eigvalsh(squared_radius, arctanh_card)
-        return gs.matmul(factor, point)
-
-    @staticmethod
-    def tangent_vec_from_zero_to_base_point(tangent_vec, base_point):
-        """Transport a tangent vector from zero to a base point.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at zero.
-        base_point : array-like, shape=[..., n, n]
-            Point on the Siegel space.
-
-        Returns
-        -------
-        tangent_vec_at_base_point : array-like, shape=[..., n, n]
-            Tangent vector at the base point.
-        """
-        identity = gs.eye(base_point.shape[-1], dtype=base_point.dtype)
-        base_point_transconj = ComplexMatrixOperations.transconjugate(base_point)
-        aux_1 = gs.matmul(base_point, base_point_transconj)
-        aux_2 = gs.matmul(base_point_transconj, base_point)
-        aux_3 = identity - aux_1
-        aux_4 = identity - aux_2
-        factor_1 = powermh(aux_3, 1 / 2)
-        factor_3 = powermh(aux_4, 1 / 2)
-        prod_1 = gs.matmul(factor_1, tangent_vec)
-        return gs.matmul(prod_1, factor_3)
-
-    def log(self, point, base_point):
-        """Compute the Siegel logarithm map.
-
-        Compute the Riemannian logarithm at point base_point
-        of point with respect to the metric defined in inner_product.
-        Return a tangent vector at point base_point.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Point on the Siegel space.
-        base_point : array-like, shape=[..., n, n]
-            Point on the Siegel space.
-
-        Returns
-        -------
-        log : array-like, shape=[..., n, n]
-            Riemannian logarithm at the base point.
-        """
-        point_at_zero = self.isometry(point=point, point_to_zero=base_point)
-
-        logarithm_at_zero = self.log_at_zero(point_at_zero)
-
-        return self.tangent_vec_from_zero_to_base_point(
-            tangent_vec=logarithm_at_zero, base_point=base_point
+        aux_b = gs.matmul(
+            gs.linalg.inv(identity - gs.matmul(base_point_transconj, base_point)),
+            ComplexMatrixOperations.transconjugate(tangent_vec_b),
         )
-
-    @staticmethod
-    def tangent_isometry(tangent_vec, point, point_to_zero):
-        r"""Compute the differential of the isometry at a point.
-
-        Denoting `point_to_zero` by :math:`A` and `point` by :math:`Z`,
-        the isometry is
-
-        .. math::
-
-            \phi_A(Z) = (I - AA^*)^{-1/2} (Z - A) (I - A^* Z)^{-1}
-            (I - A^* A)^{1/2}
-
-        and its differential at :math:`Z` is
-
-        .. math::
-
-            d\phi_A(Z)[W] = (I - AA^*)^{-1/2} (I + (Z - A) M^{-1} A^*)
-            W M^{-1} (I - A^* A)^{1/2}
-
-        with :math:`M = I - A^* Z`.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at point.
-        point : array-like, shape=[..., n, n]
-            Point on the Siegel space.
-        point_to_zero : array-like, shape=[..., n, n]
-            Point sent to zero (null matrix) by the isometry.
-
-        Returns
-        -------
-        image_tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at the image of point by the isometry.
-        """
-        identity = gs.eye(point.shape[-1], dtype=point.dtype)
-        point_to_zero_transconj = ComplexMatrixOperations.transconjugate(point_to_zero)
-        aux_1 = gs.matmul(point_to_zero, point_to_zero_transconj)
-        aux_2 = gs.matmul(point_to_zero_transconj, point_to_zero)
-        factor_1 = powermh(identity - aux_1, -1 / 2)
-        factor_4 = powermh(identity - aux_2, 1 / 2)
-        inv_aux_3 = gs.linalg.inv(identity - gs.matmul(point_to_zero_transconj, point))
-        aux_4 = gs.matmul(point - point_to_zero, inv_aux_3)
-        factor_2 = identity + gs.matmul(aux_4, point_to_zero_transconj)
-        prod_1 = gs.matmul(factor_1, factor_2)
-        prod_2 = gs.matmul(prod_1, tangent_vec)
-        prod_3 = gs.matmul(prod_2, inv_aux_3)
-        return gs.matmul(prod_3, factor_4)
-
-    def parallel_transport(
-        self, tangent_vec, base_point, direction=None, end_point=None
-    ):
-        r"""Compute the parallel transport of a tangent vector.
-
-        The Siegel space is a symmetric space, so the parallel transport along
-        a geodesic is the differential of the transvection along it. Denoting
-        `base_point` by :math:`B`, `end_point` by :math:`C` and the isometry
-        by :math:`\phi`, the transvection from :math:`B` to :math:`C` is
-        :math:`\phi_{-B} \circ \phi_{-Y} \circ \phi_B` with
-        :math:`Y = \phi_B(C)`.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point to be transported.
-        base_point : array-like, shape=[..., n, n]
-            Point on the Siegel space.
-        direction : array-like, shape=[..., n, n]
-            Tangent vector at base point, along which the parallel transport
-            is computed.
-        end_point : array-like, shape=[..., n, n]
-            Point on the Siegel space to transport to. Unused if `direction`
-            is given.
-
-        Returns
-        -------
-        transported_tangent_vec : array-like, shape=[..., n, n]
-            Transported tangent vector at `exp_(base_point)(direction)`.
-        """
-        if direction is not None:
-            end_point = self.exp(direction, base_point)
-        elif end_point is None:
-            raise ValueError(
-                "Either an end_point or a direction must be given to define the"
-                " geodesic along which to transport."
-            )
-
-        tangent_vec_at_zero = self.tangent_vec_from_base_point_to_zero(
-            tangent_vec, base_point
-        )
-        end_point_at_zero = self.isometry(point=end_point, point_to_zero=base_point)
-        transported_at_zero = self.tangent_vec_from_zero_to_base_point(
-            tangent_vec_at_zero, end_point_at_zero
-        )
-        return self.tangent_isometry(
-            transported_at_zero, end_point_at_zero, -base_point
-        )
+        return gs.real(MatrixOperations.trace_product(aux_a, aux_b))
 
     def squared_dist(self, point_a, point_b):
-        """Compute the Siegel squared distance.
+        r"""Compute the squared distance between two points.
 
-        Compute the Riemannian squared distance between point_a and point_b.
+        Denoting the points by :math:`A` and :math:`B`, the squared distance is
+        :math:`\sum_i \operatorname{artanh}(\sigma_i)^2`, where the
+        :math:`\sigma_i` are the singular values of the image of :math:`B` by
+        the transvection sending :math:`A` to zero. They are the singular
+        values of :math:`C^{-1} (B - A) (I - A^* B)^{-1} D`, where :math:`C`
+        and :math:`D` are the Cholesky factors of :math:`I - AA^*` and
+        :math:`I - A^* A`.
 
         Parameters
         ----------
         point_a : array-like, shape=[..., n, n]
-            Point.
+            Point on the manifold.
         point_b : array-like, shape=[..., n, n]
-            Point.
-
-        Returns
-        -------
-        squared_dist : array-like, shape=[...]
-            Riemannian squared distance.
-        """
-        if gs.ndim(point_a) > gs.ndim(point_b):
-            point_a, point_b = point_b, point_a
-
-        identity = gs.eye(point_a.shape[-1], dtype=point_a.dtype)
-
-        point_a_transconj = ComplexMatrixOperations.transconjugate(point_a)
-        point_b_transconj = ComplexMatrixOperations.transconjugate(point_b)
-
-        factor_1 = point_b - point_a
-
-        factor_3 = ComplexMatrixOperations.transconjugate(factor_1)
-
-        aux_2 = gs.matmul(point_a_transconj, point_b)
-
-        aux_3 = gs.matmul(point_a, point_b_transconj)
-
-        aux_4 = identity - aux_2
-
-        aux_5 = identity - aux_3
-
-        factor_2 = gs.linalg.inv(aux_4)
-
-        factor_4 = gs.linalg.inv(aux_5)
-
-        prod = gs.einsum(
-            "...ij,...jk,...kl,...lm->...im", factor_1, factor_2, factor_3, factor_4
-        )
-
-        prod_power_one_half = gs.linalg.fractional_matrix_power(prod, 0.5)
-
-        num = identity + prod_power_one_half
-        den = identity - prod_power_one_half
-
-        inv_den = gs.linalg.inv(den)
-
-        frac = gs.matmul(num, inv_den)
-
-        logarithm = gs.linalg.logm(frac)
-
-        sq_dist = MatrixOperations.trace_product(logarithm, logarithm) * 0.25
-        sq_dist = gs.real(sq_dist)
-        return gs.maximum(sq_dist, 0)
-
-    def sectional_curvature_at_zero(self, tangent_vec_a, tangent_vec_b, atol=gs.atol):
-        """Compute the sectional curvature at zero.
-
-        Non-orthonormal vectors can be given.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
-            Tangent vector at zero.
-        tangent_vec_b : array-like, shape=[..., n, n]
-            Tangent vector at zero.
-        atol : float
-            Tolerance.
-
-        Returns
-        -------
-        sectional_curvature : array-like, shape=[...,]
-            Sectional curvature at zero.
-        """
-
-        def _scale_by_norm(tangent_vec):
-            norm_tangent_vec = self.norm(tangent_vec, base_point=zero)
-            scalars = gs.where(norm_tangent_vec < atol, 0.0, 1 / norm_tangent_vec)
-            return _scale(scalars, tangent_vec)
-
-        def _scale(scalars, tangent_vec):
-            return scalarmatmul(scalars, tangent_vec)
-
-        zero = gs.zeros([self._space.n, self._space.n], dtype=tangent_vec_a.dtype)
-
-        tangent_vec_a = _scale_by_norm(tangent_vec_a)
-
-        inner_prod = gs.cast(
-            self.inner_product(tangent_vec_a, tangent_vec_b, base_point=zero),
-            dtype=tangent_vec_a.dtype,
-        )
-
-        tangent_vec_b = tangent_vec_b - _scale(inner_prod, tangent_vec_a)
-        tangent_vec_b = _scale_by_norm(tangent_vec_b)
-
-        tangent_vec_a_transconj = ComplexMatrixOperations.transconjugate(tangent_vec_a)
-        tangent_vec_b_transconj = ComplexMatrixOperations.transconjugate(tangent_vec_b)
-
-        term1 = gs.matmul(tangent_vec_a, tangent_vec_b_transconj)
-        term1 -= gs.matmul(tangent_vec_b, tangent_vec_a_transconj)
-        norm_term1 = gs.linalg.matrix_norm(term1) ** 2
-
-        term2 = gs.matmul(tangent_vec_a_transconj, tangent_vec_b)
-        term2 -= gs.matmul(tangent_vec_b_transconj, tangent_vec_a)
-        norm_term2 = gs.linalg.matrix_norm(term2) ** 2
-        return -0.5 * (norm_term1 + norm_term2)
-
-    def sectional_curvature(
-        self, tangent_vec_a, tangent_vec_b, base_point=None, atol=gs.atol
-    ):
-        r"""Compute the sectional curvature.
-
-        For two orthonormal tangent vectors at a base point :math:`x,y`,
-        the sectional curvature is defined by :math:`<R(x, y)x,
-        y>`. Non-orthonormal vectors can be given.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
-        atol : float
-            Tolerance.
-
-        Returns
-        -------
-        sectional_curvature : array-like, shape=[...,]
-            Sectional curvature at `base_point`.
-        """
-        if base_point is not None:
-            tangent_vec_a = self.tangent_vec_from_base_point_to_zero(
-                tangent_vec_a, base_point
-            )
-            tangent_vec_b = self.tangent_vec_from_base_point_to_zero(
-                tangent_vec_b, base_point
-            )
-        return self.sectional_curvature_at_zero(tangent_vec_a, tangent_vec_b, atol=atol)
-
-    def injectivity_radius(self, base_point=None):
-        """Compute the radius of the injectivity domain.
-
-        The Siegel disk is a Hadamard manifold, so the injectivity radius is
-        infinite everywhere.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., n, n]
             Point on the manifold.
 
         Returns
         -------
-        radius : array-like, shape=[...,]
-            Injectivity radius.
+        sq_dist : array-like, shape=[...,]
+            Squared distance.
         """
-        radius = gs.array(math.inf)
-        return repeat_out(self._space.point_ndim, radius, base_point)
+        identity = gs.eye(point_a.shape[-1], dtype=point_a.dtype)
+        point_a_transconj = ComplexMatrixOperations.transconjugate(point_a)
+        left_chol = gs.linalg.cholesky(
+            identity - gs.matmul(point_a, point_a_transconj)
+        )
+        right_chol = gs.linalg.cholesky(
+            identity - gs.matmul(point_a_transconj, point_a)
+        )
+        aux = gs.matmul(
+            gs.linalg.inv(identity - gs.matmul(point_a_transconj, point_b)),
+            right_chol,
+        )
+        aux = MatrixOperations.mul(gs.linalg.inv(left_chol), point_b - point_a, aux)
+        eigvals = gs.linalg.eigvalsh(
+            gs.matmul(aux, ComplexMatrixOperations.transconjugate(aux))
+        )
+        singular_values = gs.sqrt(gs.maximum(eigvals, 0.0))
+        return gs.sum(gs.arctanh(singular_values) ** 2, axis=-1)
