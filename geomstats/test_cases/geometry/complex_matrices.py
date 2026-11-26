@@ -1,7 +1,7 @@
-from geomstats.test_cases.geometry.base import ComplexMatrixVectorSpaceTestCase
+from geomstats.test_cases.geometry.base import MatrixVectorSpaceTestCase
 
 
-class ComplexMatricesTestCase(ComplexMatrixVectorSpaceTestCase):
+class ComplexMatricesTestCase(MatrixVectorSpaceTestCase):
     def test_transconjugate(self, mat, expected, atol):
         res = self.space.transconjugate(mat)
         self.assertAllClose(res, expected, atol=atol)

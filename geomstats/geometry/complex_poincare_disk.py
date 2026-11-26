@@ -24,13 +24,13 @@ import math
 
 import geomstats.backend as gs
 from geomstats._einsum import scalarvecmul
-from geomstats.geometry.base import ComplexVectorSpaceOpenSet
-from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.hermitian import Hermitian
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import repeat_out
 
 
-class ComplexPoincareDisk(ComplexVectorSpaceOpenSet):
+class ComplexPoincareDisk(VectorSpaceOpenSet):
     """Class for the complex Poincaré disk.
 
     The Poincaré disk is a representation of the Hyperbolic
@@ -141,7 +141,7 @@ class ComplexPoincareDisk(ComplexVectorSpaceOpenSet):
         return (1 - gs.abs(base_point) ** 2) * tangent_vec
 
 
-class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
+class ComplexPoincareDiskMetric(RiemannianMetric):
     """Class for the complex Poincaré metric."""
 
     def metric_matrix(self, base_point):

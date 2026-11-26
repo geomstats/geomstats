@@ -9,7 +9,9 @@ from geomstats.geometry.base import (
     LevelSet,
     MatrixVectorSpace,
 )
+from geomstats.geometry.complex_matrices import ComplexMatricesMetric
 from geomstats.geometry.diffeo import Diffeo
+from geomstats.geometry.manifold import _get_default_dtype
 from geomstats.geometry.matrices import (
     Matrices,
     MatricesEuclideanMetric,
@@ -25,15 +27,25 @@ class SymmetricMatrices(MatrixVectorSpace):
     ----------
     n : int
         Integer representing the shapes of the matrices: n x n.
+    equip : bool
+        Whether to equip space with default metric.
+    field : str, {"real", "complex"}
+        Field over which the vector space is defined.
     """
 
-    def __init__(self, n, equip=True):
+    def __init__(self, n, equip=True, field="real"):
         self.n = n
-        super().__init__(dim=int(n * (n + 1) / 2), shape=(n, n), equip=equip)
+        super().__init__(
+            dim=int(n * (n + 1) / 2),
+            shape=(n, n),
+            equip=equip,
+            field=field,
+        )
 
-    @staticmethod
-    def default_metric():
+    def default_metric(self):
         """Metric to equip the space with if equip is True."""
+        if self.field == "complex":
+            return ComplexMatricesMetric
         return MatricesMetric
 
     def _create_basis(self):
@@ -50,7 +62,8 @@ class SymmetricMatrices(MatrixVectorSpace):
                     indices.extend([(k, row, col), (k, col, row)])
                     values.extend([1.0, 1.0])
 
-        return gs.array_from_sparse(indices, values, (k + 1, self.n, self.n))
+        basis = gs.array_from_sparse(indices, values, (k + 1, self.n, self.n))
+        return gs.cast(basis, _get_default_dtype(self.complex_repr))
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a matrix is symmetric.

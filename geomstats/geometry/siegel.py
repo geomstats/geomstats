@@ -33,15 +33,16 @@ import math
 
 import geomstats.backend as gs
 from geomstats._einsum import scalarmatmul
-from geomstats.geometry.base import ComplexVectorSpaceOpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
-from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian_matrices import expmh, powermh
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.vectorization import repeat_out
 
 
-class Siegel(ComplexVectorSpaceOpenSet):
+class Siegel(VectorSpaceOpenSet):
     """Class for the Siegel space.
 
     Parameters
@@ -54,9 +55,14 @@ class Siegel(ComplexVectorSpaceOpenSet):
     """
 
     def __init__(self, n, symmetric=False, equip=True):
+        embedding_space = (
+            SymmetricMatrices(n, field="complex")
+            if symmetric
+            else ComplexMatrices(m=n, n=n)
+        )
         super().__init__(
-            dim=n**2,
-            embedding_space=ComplexMatrices(m=n, n=n),
+            dim=embedding_space.dim,
+            embedding_space=embedding_space,
             equip=equip,
         )
         self.n = n
@@ -86,11 +92,7 @@ class Siegel(ComplexVectorSpaceOpenSet):
         aux = gs.matmul(point, point_transconj)
 
         belongs = gs.all(gs.linalg.eigvalsh(aux) <= 1 + atol, axis=-1)
-
-        if self.symmetric:
-            return gs.logical_and(belongs, Matrices.is_symmetric(point))
-
-        return belongs
+        return gs.logical_and(belongs, self.embedding_space.belongs(point, atol))
 
     def projection(self, point, atol=gs.atol):
         """Project a matrix to the Siegel space.
@@ -107,8 +109,7 @@ class Siegel(ComplexVectorSpaceOpenSet):
         projected : array-like, shape=[..., n, n]
             Matrix in the Siegel space.
         """
-        if self.symmetric:
-            point = Matrices.to_symmetric(point)
+        point = self.embedding_space.projection(point)
 
         point_transconj = ComplexMatrices.transconjugate(point)
         aux = gs.matmul(point, point_transconj)
@@ -149,7 +150,7 @@ class Siegel(ComplexVectorSpaceOpenSet):
         samples = gs.random.rand(*size, dtype=gs.get_default_cdtype())
         samples -= 0.5 + 0.5j
         samples *= bound * (1 - gs.atol) * 2**0.5 / n
-        return samples
+        return self.embedding_space.projection(samples)
 
     def random_tangent_vec(self, base_point, n_samples=1):
         """Sample on the tangent space of Siegel space from the uniform distribution.
@@ -176,7 +177,7 @@ class Siegel(ComplexVectorSpaceOpenSet):
         return self.to_tangent(samples, base_point)
 
 
-class SiegelMetric(ComplexRiemannianMetric):
+class SiegelMetric(RiemannianMetric):
     """Class for the Siegel metric."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -427,6 +428,104 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         return self.tangent_vec_from_zero_to_base_point(
             tangent_vec=logarithm_at_zero, base_point=base_point
+        )
+
+    @staticmethod
+    def tangent_isometry(tangent_vec, point, point_to_zero):
+        r"""Compute the differential of the isometry at a point.
+
+        Denoting `point_to_zero` by :math:`A` and `point` by :math:`Z`,
+        the isometry is
+
+        .. math::
+
+            \phi_A(Z) = (I - AA^*)^{-1/2} (Z - A) (I - A^* Z)^{-1}
+            (I - A^* A)^{1/2}
+
+        and its differential at :math:`Z` is
+
+        .. math::
+
+            d\phi_A(Z)[W] = (I - AA^*)^{-1/2} (I + (Z - A) M^{-1} A^*)
+            W M^{-1} (I - A^* A)^{1/2}
+
+        with :math:`M = I - A^* Z`.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at point.
+        point : array-like, shape=[..., n, n]
+            Point on the Siegel space.
+        point_to_zero : array-like, shape=[..., n, n]
+            Point sent to zero (null matrix) by the isometry.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at the image of point by the isometry.
+        """
+        identity = gs.eye(point.shape[-1], dtype=point.dtype)
+        point_to_zero_transconj = ComplexMatrices.transconjugate(point_to_zero)
+        aux_1 = gs.matmul(point_to_zero, point_to_zero_transconj)
+        aux_2 = gs.matmul(point_to_zero_transconj, point_to_zero)
+        factor_1 = powermh(identity - aux_1, -1 / 2)
+        factor_4 = powermh(identity - aux_2, 1 / 2)
+        inv_aux_3 = gs.linalg.inv(identity - gs.matmul(point_to_zero_transconj, point))
+        aux_4 = gs.matmul(point - point_to_zero, inv_aux_3)
+        factor_2 = identity + gs.matmul(aux_4, point_to_zero_transconj)
+        prod_1 = gs.matmul(factor_1, factor_2)
+        prod_2 = gs.matmul(prod_1, tangent_vec)
+        prod_3 = gs.matmul(prod_2, inv_aux_3)
+        return gs.matmul(prod_3, factor_4)
+
+    def parallel_transport(
+        self, tangent_vec, base_point, direction=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
+
+        The Siegel space is a symmetric space, so the parallel transport along
+        a geodesic is the differential of the transvection along it. Denoting
+        `base_point` by :math:`B`, `end_point` by :math:`C` and the isometry
+        by :math:`\phi`, the transvection from :math:`B` to :math:`C` is
+        :math:`\phi_{-B} \circ \phi_{-Y} \circ \phi_B` with
+        :math:`Y = \phi_B(C)`.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., n, n]
+            Point on the Siegel space.
+        direction : array-like, shape=[..., n, n]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        end_point : array-like, shape=[..., n, n]
+            Point on the Siegel space to transport to. Unused if `direction`
+            is given.
+
+        Returns
+        -------
+        transported_tangent_vec : array-like, shape=[..., n, n]
+            Transported tangent vector at `exp_(base_point)(direction)`.
+        """
+        if direction is not None:
+            end_point = self.exp(direction, base_point)
+        elif end_point is None:
+            raise ValueError(
+                "Either an end_point or a direction must be given to define the"
+                " geodesic along which to transport."
+            )
+
+        tangent_vec_at_zero = self.tangent_vec_from_base_point_to_zero(
+            tangent_vec, base_point
+        )
+        end_point_at_zero = self.isometry(point=end_point, point_to_zero=base_point)
+        transported_at_zero = self.tangent_vec_from_zero_to_base_point(
+            tangent_vec_at_zero, end_point_at_zero
+        )
+        return self.tangent_isometry(
+            transported_at_zero, end_point_at_zero, -base_point
         )
 
     def squared_dist(self, point_a, point_b):

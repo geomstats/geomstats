@@ -3,53 +3,59 @@
 Lead author: Yann Cabanes.
 """
 
+import math
+
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.base import ComplexMatrixVectorSpace
-from geomstats.geometry.hermitian import HermitianMetric
+from geomstats.geometry.base import MatrixVectorSpace
+from geomstats.geometry.connection import FlatMixin
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import repeat_out
 
 
-class ComplexMatrices(ComplexMatrixVectorSpace):
+class ComplexMatrices(MatrixVectorSpace):
     """Class for the space of complex matrices (m, n).
 
     Parameters
     ----------
     m, n : int
         Integers representing the shapes of the matrices: m x n.
+    equip : bool
+        Whether to equip space with default metric.
     """
 
     def __init__(self, m, n, equip=True):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
-        super().__init__(dim=m * n * 2, shape=(m, n), equip=equip)
+        super().__init__(shape=(m, n), equip=equip, field="complex")
         self.m = m
         self.n = n
+
+    def _create_basis(self):
+        """Create the canonical basis."""
+        m, n = self.m, self.n
+        return gs.reshape(gs.eye(n * m, dtype=gs.get_default_cdtype()), (n * m, m, n))
 
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return ComplexMatricesMetric
 
-    def belongs(self, point, atol=gs.atol):
-        """Check if point belongs to the Matrices space.
+    def basis_representation(self, matrix_representation):
+        """Compute the coefficients of matrices in the given basis.
 
         Parameters
         ----------
-        point : array-like, shape=[..., m, n]
-            Point to be checked.
-        atol : float
-            Unused here.
+        matrix_representation : array-like, shape=[..., m, n]
+            Matrix.
 
         Returns
         -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the Matrices space.
+        basis_representation : array-like, shape=[..., m * n]
+            Coefficients in the basis.
         """
-        is_matrix = super().belongs(point, atol=atol)
-        belongs = gs.logical_and(is_matrix, gs.is_complex(point))
-        return belongs
+        return Matrices.flatten(matrix_representation)
 
     @staticmethod
     def transconjugate(mat):
@@ -232,12 +238,23 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
         return gs.einsum("...ij,...ij->...", gs.conj(mat_1), mat_2)
 
 
-class ComplexMatricesMetric(HermitianMetric):
-    """Hermitian metric on complex matrices given by Frobenius inner-product."""
+class ComplexMatricesMetric(FlatMixin, RiemannianMetric):
+    """Metric on complex matrices given by the Frobenius inner-product.
 
-    @staticmethod
-    def inner_product(tangent_vec_a, tangent_vec_b, base_point=None):
+    The inner product is the real part of the Hermitian Frobenius product,
+    and it is independent of the base point. The metric is flat, and
+    geodesics are straight lines.
+
+    Parameters
+    ----------
+    space : ComplexMatrices
+        Manifold.
+    """
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner-product of two tangent vectors.
+
+        It is the real part of the Hermitian Frobenius product.
 
         Parameters
         ----------
@@ -247,50 +264,46 @@ class ComplexMatricesMetric(HermitianMetric):
             Tangent vector.
         base_point : array-like, shape=[..., m, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
         inner_prod : array-like, shape=[...,]
             Frobenius inner-product of tangent_vec_a and tangent_vec_b.
         """
-        return ComplexMatrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        inner_prod = gs.real(
+            ComplexMatrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        )
+        return repeat_out(
+            self._space.point_ndim, inner_prod, tangent_vec_a, tangent_vec_b, base_point
+        )
 
     def squared_norm(self, vector, base_point=None):
         """Compute the square of the norm of a vector.
 
-        Squared norm of a vector associated to the inner product
-        at the tangent space at a base point.
-
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., m, n]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., m, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
         sq_norm : array-like, shape=[...,]
             Squared norm.
         """
-        sq_norm = self.inner_product(vector, vector, base_point)
-        sq_norm = gs.real(sq_norm)
-        return sq_norm
+        sq_norm = gs.linalg.matrix_norm(vector) ** 2
+        return repeat_out(self._space.point_ndim, sq_norm, vector, base_point)
 
     def norm(self, vector, base_point=None):
-        """Compute norm of a complex matrix.
-
-        Norm of a matrix associated to the Frobenius inner product.
+        """Compute the norm of a vector.
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., m, n]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., m, n]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
@@ -299,3 +312,94 @@ class ComplexMatricesMetric(HermitianMetric):
         """
         norm = gs.linalg.matrix_norm(vector)
         return repeat_out(self._space.point_ndim, norm, vector, base_point)
+
+    def exp(self, tangent_vec, base_point):
+        """Compute exp map of a base point in tangent vector direction.
+
+        The Riemannian exponential is the addition.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., m, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., m, n]
+            Riemannian exponential.
+        """
+        return base_point + tangent_vec
+
+    def log(self, point, base_point):
+        """Compute log map using a base point and other point.
+
+        The Riemannian logarithm is the subtraction.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., m, n]
+            Point.
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+
+        Returns
+        -------
+        log : array-like, shape=[..., m, n]
+            Riemannian logarithm.
+        """
+        return point - base_point
+
+    def parallel_transport(
+        self, tangent_vec, base_point=None, direction=None, end_point=None
+    ):
+        """Compute the parallel transport of a tangent vector.
+
+        The parallel transport of a tangent vector is the vector itself.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., m, n]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., m, n]
+            Point on the manifold. Point to transport from.
+        direction : array-like, shape=[..., m, n]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+        end_point : array-like, shape=[..., m, n]
+            Point on the manifold. Point to transport to.
+
+        Returns
+        -------
+        transported_tangent_vec : array-like, shape=[..., m, n]
+            Transported tangent vector.
+        """
+        transported_tangent_vec = gs.copy(tangent_vec)
+        return repeat_out(
+            self._space.point_ndim,
+            transported_tangent_vec,
+            tangent_vec,
+            base_point,
+            direction,
+            end_point,
+            out_shape=self._space.shape,
+        )
+
+    def injectivity_radius(self, base_point=None):
+        """Compute the radius of the injectivity domain.
+
+        It is infinite everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., m, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+        """
+        radius = gs.array(math.inf)
+        return repeat_out(self._space.point_ndim, radius, base_point)
