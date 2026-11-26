@@ -16,7 +16,7 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import InvariantMetric, _InvariantMetricMatrix
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric, MatrixOperations
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.vectorization import repeat_out
@@ -176,7 +176,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         skew = vector[..., :n, :n]
         vec = vector[..., n, :n]
         scalar = vector[..., n, n]
-        submersed_rot = Matrices.to_symmetric(
+        submersed_rot = MatrixOperations.to_symmetric(
             gs.matmul(gs.matrix_transpose(skew), rot)
         )
         return homogeneous_representation(submersed_rot, vec, constant=scalar)
@@ -909,7 +909,7 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        inner_prod = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        inner_prod = MatrixOperations.frobenius_product(tangent_vec_a, tangent_vec_b)
         return repeat_out(
             self._space.point_ndim, inner_prod, base_point, tangent_vec_a, tangent_vec_b
         )

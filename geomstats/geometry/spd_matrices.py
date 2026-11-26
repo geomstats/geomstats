@@ -8,11 +8,11 @@ import math
 import geomstats.backend as gs
 from geomstats.algebra_utils import columnwise_scaling
 from geomstats.geometry.base import VectorSpaceOpenSet
-from geomstats.geometry.complex_matrices import ComplexMatrices
+from geomstats.geometry.complex_matrices import ComplexMatrixOperations
 from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import apply_func_to_eigvalsh, expmh, powermh
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric, MatrixOperations
 from geomstats.geometry.positive_lower_triangular_matrices import (
     InvariantPositiveLowerTriangularMatricesMetric,
     PositiveLowerTriangularMatrices,
@@ -84,11 +84,11 @@ def _aux_differential_power(power, tangent_vec, base_point):
         denominator = gs.where(null_denominator, eigvalues[..., :, None], denominator)
 
     if gs.is_complex(base_point):
-        transp_eigvectors = ComplexMatrices.transconjugate(eigvectors)
+        transp_eigvectors = ComplexMatrixOperations.transconjugate(eigvectors)
     else:
         transp_eigvectors = gs.matrix_transpose(eigvectors)
 
-    temp_result = Matrices.mul(transp_eigvectors, tangent_vec, eigvectors)
+    temp_result = MatrixOperations.mul(transp_eigvectors, tangent_vec, eigvectors)
 
     if gs.is_complex(base_point):
         numerator = gs.cast(numerator, dtype=temp_result.dtype)
@@ -128,7 +128,7 @@ def generalized_eigenvalues(point_a, point_b):
     inv_sqrt_eigvals_b = gs.sqrt(1.0 / eigvals_b)
     scaled_b_eigvecs = columnwise_scaling(inv_sqrt_eigvals_b, eigvecs_b)
 
-    point_a_scaled = Matrices.mul(
+    point_a_scaled = MatrixOperations.mul(
         gs.matrix_transpose(scaled_b_eigvecs), point_a, scaled_b_eigvecs
     )
     return gs.linalg.eigvalsh(point_a_scaled)
@@ -214,7 +214,7 @@ class SymMatrixLog(Diffeo):
             power_operator = denominator / numerator
 
         result = power_operator * temp_result
-        return Matrices.mul(eigvectors, result, transp_eigvectors)
+        return MatrixOperations.mul(eigvectors, result, transp_eigvectors)
 
     @classmethod
     def inverse_tangent(cls, image_tangent_vec, image_point=None, base_point=None):
@@ -257,7 +257,7 @@ class SymMatrixLog(Diffeo):
             power_operator = denominator / numerator
 
         result = power_operator * temp_result
-        return Matrices.mul(eigvectors, result, transp_eigvectors)
+        return MatrixOperations.mul(eigvectors, result, transp_eigvectors)
 
 
 class MatrixPower(Diffeo):
@@ -332,7 +332,7 @@ class MatrixPower(Diffeo):
 
         power_operator = numerator / denominator
         result = power_operator * temp_result
-        return Matrices.mul(eigvectors, result, transp_eigvectors)
+        return MatrixOperations.mul(eigvectors, result, transp_eigvectors)
 
     def inverse_tangent(self, image_tangent_vec, image_point=None, base_point=None):
         r"""Compute the inverse of the differential of the matrix power.
@@ -366,7 +366,7 @@ class MatrixPower(Diffeo):
         ) = _aux_differential_power(self.power, image_tangent_vec, base_point)
         power_operator = denominator / numerator
         result = power_operator * temp_result
-        return Matrices.mul(eigvectors, result, transp_eigvectors)
+        return MatrixOperations.mul(eigvectors, result, transp_eigvectors)
 
 
 class CholeskyMap(Diffeo):
@@ -437,8 +437,8 @@ class CholeskyMap(Diffeo):
 
         inv_base_point = gs.linalg.inv(image_point)
         inv_transpose_base_point = gs.matrix_transpose(inv_base_point)
-        aux = Matrices.to_lower_triangular_diagonal_scaled(
-            Matrices.mul(inv_base_point, tangent_vec, inv_transpose_base_point)
+        aux = MatrixOperations.to_lower_triangular_diagonal_scaled(
+            MatrixOperations.mul(inv_base_point, tangent_vec, inv_transpose_base_point)
         )
         return gs.matmul(image_point, aux)
 
@@ -509,7 +509,7 @@ class SPDMatrices(VectorSpaceOpenSet):
             Boolean denoting if mat is an SPD matrix.
         """
         is_sym = self.embedding_space.belongs(point, atol)
-        is_pd = Matrices.is_pd(point)
+        is_pd = MatrixOperations.is_pd(point)
         return gs.logical_and(is_sym, is_pd)
 
     def projection(self, point):
@@ -528,7 +528,7 @@ class SPDMatrices(VectorSpaceOpenSet):
         projected: array-like, shape=[..., n, n]
             SPD matrix.
         """
-        sym = Matrices.to_symmetric(point)
+        sym = MatrixOperations.to_symmetric(point)
         eigvals, eigvecs = gs.linalg.eigh(sym)
         regularized = gs.where(eigvals < gs.atol, gs.atol, eigvals)
         reconstruction = gs.einsum("...ij,...j->...ij", eigvecs, regularized)
@@ -555,7 +555,7 @@ class SPDMatrices(VectorSpaceOpenSet):
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
         mat = bound * (2 * gs.random.rand(*size) - 1)
-        return GeneralLinear.exp(Matrices.to_symmetric(mat))
+        return GeneralLinear.exp(MatrixOperations.to_symmetric(mat))
 
     def random_tangent_vec(self, base_point, n_samples=1):
         """Sample on the tangent space of SPD(n) from the uniform distribution.
@@ -583,7 +583,7 @@ class SPDMatrices(VectorSpaceOpenSet):
             tangent_vec_at_id_aux
         )
 
-        return Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
+        return MatrixOperations.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
 
 class SPDAffineMetric(RiemannianMetric):
@@ -626,7 +626,7 @@ class SPDAffineMetric(RiemannianMetric):
         aux_a = gs.matmul(inv_base_point, tangent_vec_a)
         aux_b = gs.matmul(inv_base_point, tangent_vec_b)
 
-        return Matrices.trace_product(aux_a, aux_b)
+        return MatrixOperations.trace_product(aux_a, aux_b)
 
     def exp(self, tangent_vec, base_point):
         """Compute the affine-invariant exponential map.
@@ -649,14 +649,14 @@ class SPDAffineMetric(RiemannianMetric):
         """
         sqrt_base_point, inv_sqrt_base_point = powermh(base_point, [1.0 / 2, -1.0 / 2])
 
-        tangent_vec_at_id = Matrices.mul(
+        tangent_vec_at_id = MatrixOperations.mul(
             inv_sqrt_base_point, tangent_vec, inv_sqrt_base_point
         )
 
-        tangent_vec_at_id = Matrices.to_symmetric(tangent_vec_at_id)
+        tangent_vec_at_id = MatrixOperations.to_symmetric(tangent_vec_at_id)
         exp_from_id = expmh(tangent_vec_at_id)
 
-        return Matrices.mul(sqrt_base_point, exp_from_id, sqrt_base_point)
+        return MatrixOperations.mul(sqrt_base_point, exp_from_id, sqrt_base_point)
 
     def log(self, point, base_point):
         """Compute the affine-invariant logarithm map.
@@ -678,11 +678,11 @@ class SPDAffineMetric(RiemannianMetric):
             Riemannian logarithm of point at `base_point`.
         """
         sqrt_base_point, inv_sqrt_base_point = powermh(base_point, [1.0 / 2, -1.0 / 2])
-        point_near_id = Matrices.mul(inv_sqrt_base_point, point, inv_sqrt_base_point)
-        point_near_id = Matrices.to_symmetric(point_near_id)
+        point_near_id = MatrixOperations.mul(inv_sqrt_base_point, point, inv_sqrt_base_point)
+        point_near_id = MatrixOperations.to_symmetric(point_near_id)
 
         log_at_id = logmh(point_near_id)
-        return Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
+        return MatrixOperations.mul(sqrt_base_point, log_at_id, sqrt_base_point)
 
     def squared_dist(self, point_a, point_b):
         """Compute the Affine Invariant squared distance.
@@ -743,9 +743,9 @@ class SPDAffineMetric(RiemannianMetric):
             end_point = self.exp(direction, base_point)
         # compute B^1/2(B^-1/2 A B^-1/2)B^-1/2 instead of sqrtm(AB^-1)
         sqrt_bp, inv_sqrt_bp = powermh(base_point, [1.0 / 2, -1.0 / 2])
-        pdt = powermh(Matrices.mul(inv_sqrt_bp, end_point, inv_sqrt_bp), 1.0 / 2)
-        congruence_mat = Matrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
-        return Matrices.congruent(tangent_vec, congruence_mat)
+        pdt = powermh(MatrixOperations.mul(inv_sqrt_bp, end_point, inv_sqrt_bp), 1.0 / 2)
+        congruence_mat = MatrixOperations.mul(sqrt_bp, pdt, inv_sqrt_bp)
+        return MatrixOperations.congruent(tangent_vec, congruence_mat)
 
     def injectivity_radius(self, base_point=None):
         """Radius of the largest ball where the exponential is injective.
@@ -841,12 +841,12 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         """
         eigvals, eigvecs = gs.linalg.eigh(base_point)
         transp_eigvecs = gs.matrix_transpose(eigvecs)
-        rotated_tangent_vec_a = Matrices.mul(transp_eigvecs, tangent_vec_a, eigvecs)
-        rotated_tangent_vec_b = Matrices.mul(transp_eigvecs, tangent_vec_b, eigvecs)
+        rotated_tangent_vec_a = MatrixOperations.mul(transp_eigvecs, tangent_vec_a, eigvecs)
+        rotated_tangent_vec_b = MatrixOperations.mul(transp_eigvecs, tangent_vec_b, eigvecs)
 
         coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
         result = (
-            Matrices.frobenius_product(
+            MatrixOperations.frobenius_product(
                 coefficients * rotated_tangent_vec_a, rotated_tangent_vec_b
             )
             / 2
@@ -871,12 +871,12 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         """
         eigvals, eigvecs = gs.linalg.eigh(base_point)
         transp_eigvecs = gs.matrix_transpose(eigvecs)
-        rotated_tangent_vec = Matrices.mul(transp_eigvecs, tangent_vec, eigvecs)
+        rotated_tangent_vec = MatrixOperations.mul(transp_eigvecs, tangent_vec, eigvecs)
         coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
         rotated_sylvester = rotated_tangent_vec * coefficients
         rotated_hessian = gs.einsum("...ij,...j->...ij", rotated_sylvester, eigvals)
         rotated_hessian = gs.matmul(rotated_hessian, rotated_sylvester)
-        hessian = Matrices.mul(eigvecs, rotated_hessian, transp_eigvecs)
+        hessian = MatrixOperations.mul(eigvecs, rotated_hessian, transp_eigvecs)
 
         return base_point + tangent_vec + hessian
 
@@ -901,8 +901,8 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         """
         # compute B^1/2(B^-1/2 A B^-1/2)B^-1/2 instead of sqrtm(AB^-1)
         sqrt_bp, inv_sqrt_bp = powermh(base_point, [0.5, -0.5])
-        pdt = powermh(Matrices.mul(sqrt_bp, point, sqrt_bp), 0.5)
-        sqrt_product = Matrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
+        pdt = powermh(MatrixOperations.mul(sqrt_bp, point, sqrt_bp), 0.5)
+        sqrt_product = MatrixOperations.mul(sqrt_bp, pdt, inv_sqrt_bp)
         transp_sqrt_product = gs.matrix_transpose(sqrt_product)
         return sqrt_product + transp_sqrt_product - 2 * base_point
 
@@ -999,7 +999,7 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         )
 
         square_root_bp, inverse_square_root_bp = powermh(base_point, [0.5, -0.5])
-        end_point_lift = Matrices.mul(square_root_bp, end_point, square_root_bp)
+        end_point_lift = MatrixOperations.mul(square_root_bp, end_point, square_root_bp)
         square_root_lift = powermh(end_point_lift, 0.5)
 
         horizontal_velocity = gs.matmul(inverse_square_root_bp, square_root_lift)
@@ -1018,7 +1018,7 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
                 + time**2 * end_point
             )
 
-            align = Matrices.mul(
+            align = MatrixOperations.mul(
                 horizontal_geodesic_t,
                 gs.matrix_transpose(horizontal_velocity - square_root_bp),
                 state,

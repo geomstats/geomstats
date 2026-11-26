@@ -3,7 +3,7 @@
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import CanonicalEuclideanMetric, Euclidean
 from geomstats.geometry.hermitian_matrices import expmh, powermh
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric, MatrixOperations
 from geomstats.geometry.spd_matrices import (
     SPDAffineMetric,
     SPDLogEuclideanMetric,
@@ -58,7 +58,7 @@ class LogNormalSPD:
                 gs.zeros(self.space.dim), self.cov, n_samples
             )
             mean_half = powermh(self.mean, 0.5)
-            _samples = Matrices.mul(mean_half, samples_sym, mean_half)
+            _samples = MatrixOperations.mul(mean_half, samples_sym, mean_half)
 
         return expmh(_samples)
 

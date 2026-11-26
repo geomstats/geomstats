@@ -6,7 +6,7 @@ from geomstats._einsum import scalarmatmul
 from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import MatrixLieGroup
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import Matrices, MatricesMetric, MatrixOperations
 
 
 class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
@@ -243,7 +243,7 @@ class SquareMatrices(MatrixLieAlgebra):
         basis_representation : array-like, shape=[..., dim]
             Representation in the basis.
         """
-        return self._mat_space.flatten(matrix_representation)
+        return MatrixOperations.flatten(matrix_representation)
 
     def matrix_representation(self, basis_representation):
         """Compute the matrix representation for the given basis coefficients.
@@ -260,4 +260,4 @@ class SquareMatrices(MatrixLieAlgebra):
         matrix_representation : array-like, shape=[..., n, n]
             Matrix.
         """
-        return self._mat_space.reshape(basis_representation)
+        return self._mat_space.matrix_representation(basis_representation)

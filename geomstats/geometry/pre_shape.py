@@ -9,7 +9,7 @@ from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.manifold import register_quotient
-from geomstats.geometry.matrices import FlattenDiffeo, Matrices
+from geomstats.geometry.matrices import FlattenDiffeo, Matrices, MatrixOperations
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.integrator import integrate
@@ -232,7 +232,7 @@ class PreShapeSpace(LevelSet):
         total_space_metric = self._get_total_space_metric()
 
         vector = self.center(vector)
-        sq_norm = Matrices.frobenius_product(base_point, base_point)
+        sq_norm = MatrixOperations.frobenius_product(base_point, base_point)
         inner_prod = total_space_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
         return vector - scalarmatmul(coef, base_point)
@@ -259,7 +259,7 @@ class PreShapeBundle(FiberBundle):
         aligned : array-like, shape=[..., k_landmarks, ambient_dim]
             R.point.
         """
-        return Matrices.align_matrices(point, base_point)
+        return MatrixOperations.align_matrices(point, base_point)
 
     def vertical_projection(self, tangent_vec, base_point, return_skew=False):
         r"""Project to vertical subspace.
@@ -320,7 +320,7 @@ class PreShapeBundle(FiberBundle):
         """
         product = gs.matmul(gs.matrix_transpose(tangent_vec), base_point)
         is_tangent = self._total_space.is_tangent(tangent_vec, base_point, atol)
-        is_symmetric = Matrices.is_symmetric(product, atol)
+        is_symmetric = MatrixOperations.is_symmetric(product, atol)
         return gs.logical_and(is_tangent, is_symmetric)
 
     def integrability_tensor(self, tangent_vec_x, tangent_vec_e, base_point):
@@ -670,7 +670,7 @@ class PreShapeBundle(FiberBundle):
         omega_xv_y = gs.matmul(horizontal_vec_y, omega_xv)
         omega_yv_x = gs.matmul(horizontal_vec_x, omega_yv)
         omega_xy_v = gs.matmul(vertical_vec_v, omega_xy)
-        norms = Matrices.frobenius_product(vertical_vec_v, vertical_vec_v)
+        norms = MatrixOperations.frobenius_product(vertical_vec_v, vertical_vec_v)
         sq_norm_v_p = scalarmatmul(norms, base_point)
 
         tmp_mat = gs.matmul(p_top, 3.0 * omega_xv_y + 2.0 * omega_yv_x) + gs.matmul(

@@ -1,7 +1,7 @@
 import math
 
 import geomstats.backend as gs
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -16,12 +16,12 @@ class BackendTestData(TestData):
             dict(
                 func_name_1="linalg.logm",
                 func_name_2="linalg.expm",
-                a=Matrices.to_diagonal(rand(3, 3)),
+                a=MatrixOperations.to_diagonal(rand(3, 3)),
             ),
             dict(
                 func_name_1="linalg.expm",
                 func_name_2="linalg.logm",
-                a=Matrices.to_diagonal(rand(3, 3)),
+                a=MatrixOperations.to_diagonal(rand(3, 3)),
             ),
             dict(
                 func_name_1="linalg.logm",
@@ -51,7 +51,7 @@ class BackendTestData(TestData):
 
     def _logm_expm_data(self, func_name="linalg.logm"):
         arrays = [
-            Matrices.to_diagonal(rand(3, 3)),
+            MatrixOperations.to_diagonal(rand(3, 3)),
         ]
         return [dict(func_name=func_name, a=array) for array in arrays]
 

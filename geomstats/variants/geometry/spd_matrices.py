@@ -11,7 +11,7 @@ from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import PositiveGeneralLinear
 from geomstats.geometry.group_action import SpecialOrthogonalComposeAction
 from geomstats.geometry.manifold import register_quotient
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric, MatrixOperations
 from geomstats.geometry.quotient_metric import QuotientMetric
 
 
@@ -78,7 +78,7 @@ class PositiveGeneralLinearGramBundle(FiberBundle):
             of `base_point`.
         """
         product = gs.matmul(base_point, gs.matrix_transpose(tangent_vec))
-        return 2 * Matrices.to_symmetric(product)
+        return 2 * MatrixOperations.to_symmetric(product)
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
         r"""Lift a tangent vector to a horizontal vector in the total space.
@@ -170,7 +170,7 @@ class PositiveGeneralLinearGramBundle(FiberBundle):
         aligned_point : array-like, shape=[..., n, n]
             Point of the fiber of `point` closest to `base_point`.
         """
-        return Matrices.align_matrices(point, base_point)
+        return MatrixOperations.align_matrices(point, base_point)
 
 
 class QuotientSPDBuresWassersteinMetric(QuotientMetric):

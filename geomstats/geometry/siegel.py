@@ -34,9 +34,9 @@ import math
 import geomstats.backend as gs
 from geomstats._einsum import scalarmatmul
 from geomstats.geometry.base import VectorSpaceOpenSet
-from geomstats.geometry.complex_matrices import ComplexMatrices
+from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatrixOperations
 from geomstats.geometry.hermitian_matrices import expmh, powermh
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.vectorization import repeat_out
@@ -88,7 +88,7 @@ class Siegel(VectorSpaceOpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if point belongs to the Siegel space.
         """
-        point_transconj = ComplexMatrices.transconjugate(point)
+        point_transconj = ComplexMatrixOperations.transconjugate(point)
         aux = gs.matmul(point, point_transconj)
 
         belongs = gs.all(gs.linalg.eigvalsh(aux) <= 1 + atol, axis=-1)
@@ -111,7 +111,7 @@ class Siegel(VectorSpaceOpenSet):
         """
         point = self.embedding_space.projection(point)
 
-        point_transconj = ComplexMatrices.transconjugate(point)
+        point_transconj = ComplexMatrixOperations.transconjugate(point)
         aux = gs.matmul(point, point_transconj)
 
         eigenvalues = gs.linalg.eigvalsh(aux)
@@ -208,8 +208,8 @@ class SiegelMetric(RiemannianMetric):
         """
         identity = gs.eye(base_point.shape[-1], dtype=base_point.dtype)
 
-        base_point_transconj = ComplexMatrices.transconjugate(base_point)
-        tangent_vec_b_transconj = ComplexMatrices.transconjugate(tangent_vec_b)
+        base_point_transconj = ComplexMatrixOperations.transconjugate(base_point)
+        tangent_vec_b_transconj = ComplexMatrixOperations.transconjugate(tangent_vec_b)
 
         aux_1 = gs.matmul(base_point, base_point_transconj)
 
@@ -225,7 +225,7 @@ class SiegelMetric(RiemannianMetric):
 
         aux_a = gs.matmul(inv_aux_3, tangent_vec_a)
         aux_b = gs.matmul(inv_aux_4, tangent_vec_b_transconj)
-        trace = Matrices.trace_product(aux_a, aux_b)
+        trace = MatrixOperations.trace_product(aux_a, aux_b)
 
         return gs.real(trace)
 
@@ -246,7 +246,7 @@ class SiegelMetric(RiemannianMetric):
             Tangent vector at zero (null matrix).
         """
         identity = gs.eye(base_point.shape[-1], dtype=base_point.dtype)
-        base_point_transconj = ComplexMatrices.transconjugate(base_point)
+        base_point_transconj = ComplexMatrixOperations.transconjugate(base_point)
         aux_1 = gs.matmul(base_point, base_point_transconj)
         aux_2 = gs.matmul(base_point_transconj, base_point)
         aux_3 = identity - aux_1
@@ -273,7 +273,7 @@ class SiegelMetric(RiemannianMetric):
             Point on the manifold.
         """
         identity = gs.eye(tangent_vec.shape[-1], dtype=tangent_vec.dtype)
-        tangent_vec_transconj = ComplexMatrices.transconjugate(tangent_vec)
+        tangent_vec_transconj = ComplexMatrixOperations.transconjugate(tangent_vec)
         aux_1 = gs.matmul(tangent_vec, tangent_vec_transconj)
         aux_2 = powermh(aux_1, 1 / 2)
         aux_3 = expmh(2 * aux_2)
@@ -306,7 +306,7 @@ class SiegelMetric(RiemannianMetric):
             Image of point by the isometry.
         """
         identity = gs.eye(point.shape[-1], dtype=point.dtype)
-        point_to_zero_transconj = ComplexMatrices.transconjugate(point_to_zero)
+        point_to_zero_transconj = ComplexMatrixOperations.transconjugate(point_to_zero)
         aux_1 = gs.matmul(point_to_zero, point_to_zero_transconj)
         aux_2 = gs.matmul(point_to_zero_transconj, point_to_zero)
         aux_3 = identity - aux_1
@@ -363,7 +363,7 @@ class SiegelMetric(RiemannianMetric):
             Riemannian logarithm at zero (null matrix).
         """
         identity = gs.eye(point.shape[-1], dtype=point.dtype)
-        point_transconj = ComplexMatrices.transconjugate(point)
+        point_transconj = ComplexMatrixOperations.transconjugate(point)
         aux_1 = gs.matmul(point, point_transconj)
         aux_2 = powermh(aux_1, 1 / 2)
         num = identity + aux_2
@@ -393,7 +393,7 @@ class SiegelMetric(RiemannianMetric):
             Tangent vector at the base point.
         """
         identity = gs.eye(base_point.shape[-1], dtype=base_point.dtype)
-        base_point_transconj = ComplexMatrices.transconjugate(base_point)
+        base_point_transconj = ComplexMatrixOperations.transconjugate(base_point)
         aux_1 = gs.matmul(base_point, base_point_transconj)
         aux_2 = gs.matmul(base_point_transconj, base_point)
         aux_3 = identity - aux_1
@@ -466,7 +466,7 @@ class SiegelMetric(RiemannianMetric):
             Tangent vector at the image of point by the isometry.
         """
         identity = gs.eye(point.shape[-1], dtype=point.dtype)
-        point_to_zero_transconj = ComplexMatrices.transconjugate(point_to_zero)
+        point_to_zero_transconj = ComplexMatrixOperations.transconjugate(point_to_zero)
         aux_1 = gs.matmul(point_to_zero, point_to_zero_transconj)
         aux_2 = gs.matmul(point_to_zero_transconj, point_to_zero)
         factor_1 = powermh(identity - aux_1, -1 / 2)
@@ -550,12 +550,12 @@ class SiegelMetric(RiemannianMetric):
 
         identity = gs.eye(point_a.shape[-1], dtype=point_a.dtype)
 
-        point_a_transconj = ComplexMatrices.transconjugate(point_a)
-        point_b_transconj = ComplexMatrices.transconjugate(point_b)
+        point_a_transconj = ComplexMatrixOperations.transconjugate(point_a)
+        point_b_transconj = ComplexMatrixOperations.transconjugate(point_b)
 
         factor_1 = point_b - point_a
 
-        factor_3 = ComplexMatrices.transconjugate(factor_1)
+        factor_3 = ComplexMatrixOperations.transconjugate(factor_1)
 
         aux_2 = gs.matmul(point_a_transconj, point_b)
 
@@ -584,7 +584,7 @@ class SiegelMetric(RiemannianMetric):
 
         logarithm = gs.linalg.logm(frac)
 
-        sq_dist = Matrices.trace_product(logarithm, logarithm) * 0.25
+        sq_dist = MatrixOperations.trace_product(logarithm, logarithm) * 0.25
         sq_dist = gs.real(sq_dist)
         return gs.maximum(sq_dist, 0)
 
@@ -628,8 +628,8 @@ class SiegelMetric(RiemannianMetric):
         tangent_vec_b = tangent_vec_b - _scale(inner_prod, tangent_vec_a)
         tangent_vec_b = _scale_by_norm(tangent_vec_b)
 
-        tangent_vec_a_transconj = ComplexMatrices.transconjugate(tangent_vec_a)
-        tangent_vec_b_transconj = ComplexMatrices.transconjugate(tangent_vec_b)
+        tangent_vec_a_transconj = ComplexMatrixOperations.transconjugate(tangent_vec_a)
+        tangent_vec_b_transconj = ComplexMatrixOperations.transconjugate(tangent_vec_b)
 
         term1 = gs.matmul(tangent_vec_a, tangent_vec_b_transconj)
         term1 -= gs.matmul(tangent_vec_b, tangent_vec_a_transconj)
