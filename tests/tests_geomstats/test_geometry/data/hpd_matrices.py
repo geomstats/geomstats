@@ -1,12 +1,12 @@
-import geomstats.backend as gs
-from geomstats.test.data import TestData
+from polpo.testing.data import CaseData
 
-from .complex_matrices import ComplexMatricesMetricTestData
-from .pullback_metric import PullbackDiffeoMetricTestData
+import geomstats.backend as gs
+
+from .mixins import ExpDomainMixinsTestData
 from .riemannian_metric import RiemannianMetricTestData
 
 
-class HPDMatrices2TestData(TestData):
+class HPDMatrices2TestData(CaseData):
     def belongs_test_data(self):
         smoke_data = [
             dict(point=gs.array([[3.0, -1.0], [-1.0, 3.0]]), expected=True),
@@ -17,7 +17,7 @@ class HPDMatrices2TestData(TestData):
                 expected=[True, False],
             ),
         ]
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
     def projection_test_data(self):
         smoke_data = [
@@ -34,10 +34,10 @@ class HPDMatrices2TestData(TestData):
                 expected=gs.array([[gs.atol + 0.0j, 0.0], [0.0, gs.atol]]),
             ),
         ]
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
 
-class HPDMatrices3TestData(TestData):
+class HPDMatrices3TestData(CaseData):
     def belongs_test_data(self):
         smoke_data = [
             dict(
@@ -51,32 +51,8 @@ class HPDMatrices3TestData(TestData):
                 expected=False,
             ),
         ]
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
 
-class HPDAffineMetricTestData(RiemannianMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
-
-
-class HPDBuresWassersteinMetricTestData(RiemannianMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
-
-    tolerances = {
-        "dist_is_log_norm": {"atol": 1e-5},
-        "dist_point_to_itself_is_zero": {"atol": 1e-3},
-    }
-
-
-class HPDEuclideanMetricTestData(ComplexMatricesMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
-
-    def exp_domain_vec_test_data(self):
-        return self.generate_vec_data()
-
-
-class HPDLogEuclideanMetricTestData(PullbackDiffeoMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
+class HPDEuclideanMetricTestData(ExpDomainMixinsTestData, RiemannianMetricTestData):
+    pass

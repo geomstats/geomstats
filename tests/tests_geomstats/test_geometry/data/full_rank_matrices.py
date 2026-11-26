@@ -1,10 +1,11 @@
+from polpo.testing.data import CaseData
+
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 
-class FullRankMatrices32TestData(TestData):
+class FullRankMatrices32TestData(CaseData):
     def belongs_test_data(self):
-        smoke_data = [
+        data = [
             dict(
                 point=gs.array(
                     [
@@ -20,4 +21,4 @@ class FullRankMatrices32TestData(TestData):
                 expected=False,
             ),
         ]
-        return self.generate_tests(smoke_data)
+        return data

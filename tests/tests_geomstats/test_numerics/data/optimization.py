@@ -1,7 +1,8 @@
 import random
 
+from polpo.testing.data import CaseData
+
 import geomstats.backend as gs
-from geomstats.test.data import TestData
 
 
 def _sum_squares(x):
@@ -20,11 +21,7 @@ def _hessian_sum_squares(x):
     return 2 * gs.eye(x.shape[0])
 
 
-class OptimizationSmokeTestData(TestData):
-    trials = 1
-
-    tolerances = {"minimize": {"atol": 1e-4}}
-
+class OptimizationSmokeTestData(CaseData):
     def minimize_test_data(self):
         dim = random.randint(1, 10)
 
@@ -36,12 +33,10 @@ class OptimizationSmokeTestData(TestData):
             )
         ]
 
-        return self.generate_tests(data)
+        return data
 
 
-class OptimizationJacSmokeTestData(TestData):
-    trials = 1
-
+class OptimizationJacSmokeTestData(CaseData):
     def minimize_test_data(self):
         dim = random.randint(1, 10)
 
@@ -60,12 +55,10 @@ class OptimizationJacSmokeTestData(TestData):
             ),
         ]
 
-        return self.generate_tests(data)
+        return data
 
 
-class OptimizationHessSmokeTestData(TestData):
-    trials = 1
-
+class OptimizationHessSmokeTestData(CaseData):
     def minimize_test_data(self):
         dim = random.randint(1, 10)
 
@@ -79,12 +72,10 @@ class OptimizationHessSmokeTestData(TestData):
             )
         ]
 
-        return self.generate_tests(data)
+        return data
 
 
-class RootFindingSmokeTestData(TestData):
-    trials = 1
-
+class RootFindingSmokeTestData(CaseData):
     def root_test_data(self):
         dim = random.randint(1, 10)
 
@@ -96,12 +87,10 @@ class RootFindingSmokeTestData(TestData):
             )
         ]
 
-        return self.generate_tests(data)
+        return data
 
 
-class RootFindingJacSmokeTestData(TestData):
-    trials = 1
-
+class RootFindingJacSmokeTestData(CaseData):
     def root_test_data(self):
         dim = random.randint(1, 10)
 
@@ -114,4 +103,4 @@ class RootFindingJacSmokeTestData(TestData):
             )
         ]
 
-        return self.generate_tests(data)
+        return data

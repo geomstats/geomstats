@@ -1,9 +1,12 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 from geomstats.geometry.siegel import Siegel, SiegelMetric
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.base import VectorSpaceOpenSetTestCase
 from geomstats.test_cases.geometry.siegel import SiegelMetricTestCase
 
@@ -16,19 +19,18 @@ from .data.siegel import (
 )
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
+@pytest.fixture(scope="class", params=[False, True])
 def spaces(request):
-    request.cls.space = Siegel(request.param, equip=False)
+    space = request.cls.space = Siegel(
+        random.randint(2, 5), symmetric=request.param, equip=request.cls._equip
+    )
+
+    request.cls.testing_data.space = space
 
 
 @pytest.mark.usefixtures("spaces")
-class TestSiegel(VectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer):
+class TestSiegel(VectorSpaceOpenSetTestCase, metaclass=GeometricDataBasedParametrizer):
+    _equip = False
     testing_data = VectorSpaceOpenSetTestData()
 
 
@@ -38,19 +40,9 @@ class TestSiegel2(VectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer):
     testing_data = Siegel2TestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def equipped_spaces(request):
-    request.cls.space = Siegel(request.param)
-
-
-@pytest.mark.usefixtures("equipped_spaces")
-class TestSiegelMetric(SiegelMetricTestCase, metaclass=DataBasedParametrizer):
+@pytest.mark.usefixtures("spaces")
+class TestSiegelMetric(SiegelMetricTestCase, metaclass=GeometricDataBasedParametrizer):
+    _equip = True
     testing_data = SiegelMetricTestData()
 
 

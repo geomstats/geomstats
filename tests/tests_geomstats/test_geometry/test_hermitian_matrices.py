@@ -1,36 +1,25 @@
 import random
 
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 from geomstats.geometry.hermitian_matrices import HermitianMatrices
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.base import MatrixVectorSpaceTestCase
-from geomstats.test_cases.geometry.hermitian import HermitianMetricTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
-from .data.complex_matrices import ComplexMatricesMetricTestData
-from .data.hermitian_matrices import (
-    HermitianMatrices2TestData,
-    HermitianMatricesTestData,
-)
+from .data.base import MatrixVectorSpaceTestData
+from .data.hermitian_matrices import HermitianMatrices2TestData
+from .data.riemannian_metric import RiemannianMetricTestData
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def spaces(request):
-    request.cls.space = HermitianMatrices(n=request.param, equip=False)
-
-
-@pytest.mark.usefixtures("spaces")
 class TestHermitianMatrices(
-    MatrixVectorSpaceTestCase,
-    metaclass=DataBasedParametrizer,
+    MatrixVectorSpaceTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = HermitianMatricesTestData()
+    space = HermitianMatrices(n=random.randint(2, 5), equip=False)
+    testing_data = MatrixVectorSpaceTestData(space)
 
 
 @pytest.mark.smoke
@@ -43,8 +32,7 @@ class TestHermitianMatrices2(
 
 @pytest.mark.redundant
 class TestComplexMatricesMetric(
-    HermitianMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    n = random.randint(2, 5)
-    space = HermitianMatrices(n)
-    testing_data = ComplexMatricesMetricTestData()
+    space = HermitianMatrices(n=random.randint(2, 5))
+    testing_data = RiemannianMetricTestData(space)

@@ -1,11 +1,14 @@
 import pytest
+from polpo.testing.parametrizers import (
+    DataBasedParametrizer,
+    GeometricDataBasedParametrizer,
+)
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.nfold_manifold import (
     NFoldManifoldTestCase,
     NFoldMetricScalesTestCase,
@@ -20,7 +23,9 @@ class TestNFoldManifoldSO(NFoldManifoldTestCase, metaclass=DataBasedParametrizer
     testing_data = NFoldManifoldSOTestData()
 
 
-class TestNFoldMetricScales(NFoldMetricScalesTestCase, metaclass=DataBasedParametrizer):
+class TestNFoldMetricScales(
+    NFoldMetricScalesTestCase, metaclass=GeometricDataBasedParametrizer
+):
     scale = 2.0
     space = NFoldManifold(Euclidean(dim=3), n_copies=1, equip=False)
     space.equip_with_metric(NFoldMetric, scales=gs.array([scale]))
@@ -28,4 +33,4 @@ class TestNFoldMetricScales(NFoldMetricScalesTestCase, metaclass=DataBasedParame
     other_space = Euclidean(dim=3)
     other_space.equip_with_metric(ScalarProductMetric(other_space, scale))
 
-    testing_data = NFoldMetricScalesTestData()
+    testing_data = NFoldMetricScalesTestData(other_space)

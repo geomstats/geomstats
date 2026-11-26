@@ -1,12 +1,8 @@
 import itertools
 import random
 
-import pytest
-
 import geomstats.backend as gs
-from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
-from geomstats.test.vectorization import generate_vectorization_data
 
 
 class PermutationGroup:
@@ -78,46 +74,51 @@ class PermutationGroup:
 class GroupActionTestCase(TestCase):
     """Group action test case.
 
-    Requires: ``group_action``, ``space``, ``group``.
+    Requires: ``group_action``, ``group``.
     """
 
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = RandomDataGenerator(self.space)
-            self.group_data_generator = RandomDataGenerator(self.group)
+    def test_action(self, group_elem, point, expected, atol=gs.atol):
+        """Check group action.
 
-    @pytest.mark.random
-    def test_identity_action(self, n_points, atol):
-        point = self.data_generator.random_point(n_points)
-        orbit_point = self.group_action(self.group.identity, point)
-        self.assertAllClose(point, orbit_point)
-
-    def test_action(self, group_elem, point, expected, atol):
+        Parameters
+        ----------
+        group_elem : array-like, shape=[..., *group.shape]
+            Group element.
+        point : array-like, shape=[..., *space.shape]
+            Point on the space.
+        expected : array-like, shape=[..., *space.shape]
+            Expected point in the orbit of `point`.
+        atol : float
+            Absolute tolerance.
+        """
         orbit_point = self.group_action(group_elem, point)
         self.assertAllClose(orbit_point, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_action_vec(self, n_reps, atol):
-        group_elem = self.group_data_generator.random_point()
-        point = self.data_generator.random_point()
+    def test_identity_action(self, point, atol=gs.atol):
+        """Check the identity acts trivially.
 
-        expected = self.group_action(group_elem, point)
+        Parameters
+        ----------
+        point : array-like, shape=[..., *space.shape]
+            Point on the space.
+        atol : float
+            Absolute tolerance.
+        """
+        orbit_point = self.group_action(self.group.identity, point)
+        self.assertAllClose(orbit_point, point, atol=atol)
 
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(group_elem=group_elem, point=point, expected=expected, atol=atol)
-            ],
-            arg_names=["group_elem", "point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
+    def test_inverse_action(self, group_elem, point, atol=gs.atol):
+        """Check acting with the inverse undoes the action.
 
-    @pytest.mark.random
-    def test_inverse_action(self, n_points, atol):
-        group_elem = self.group_data_generator.random_point(n_points)
-        point = self.data_generator.random_point(n_points)
-
+        Parameters
+        ----------
+        group_elem : array-like, shape=[..., *group.shape]
+            Group element.
+        point : array-like, shape=[..., *space.shape]
+            Point on the space.
+        atol : float
+            Absolute tolerance.
+        """
         orbit_point = self.group_action(group_elem, point)
         point_ = self.group_action(self.group.inverse(group_elem), orbit_point)
-        self.assertAllClose(point_, point, atol)
+        self.assertAllClose(point_, point, atol=atol)

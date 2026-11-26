@@ -1,79 +1,68 @@
-from geomstats.test.data import TestData
+from polpo.testing.geometric import GeometricMapCaseData
 
 from .base import LevelSetTestData
 from .fiber_bundle import FiberBundleTestData
-from .pullback_metric import PullbackDiffeoMetricTestData
-from .quotient_metric import QuotientMetricTestData
 
 
 class FullRankCorrelationMatricesTestData(LevelSetTestData):
+    def tangent_submersion_vec_test_data(self):
+        return self.generate_vectorization_data(
+            arg_names=("point", "vector"),
+            vectorization_type="sym",
+        )
+
     def from_covariance_belongs_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(
+            arg_names="point", samplers={"point": "point_to_project"}
+        )
 
     def from_covariance_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names="point", samplers={"point": "point_to_project"}
+        )
 
     def diag_action_vec_test_data(self):
-        return self.generate_vec_data()
+        return self.generate_vectorization_data(
+            arg_names=("diagonal_vec", "point"),
+            samplers={
+                "diagonal_vec": "random_diagonal_vec",
+                "point": "point_to_project",
+            },
+            vectorization_type="sym",
+        )
 
 
 class CorrelationMatricesBundleTestData(FiberBundleTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-    tolerances = {
-        "log_after_align_is_horizontal": {"atol": 1e-2},
-        "align_vec": {"atol": 1e-2},
-    }
-
     def horizontal_projection_is_horizontal_v2_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(arg_names=("base_point", "tangent_vec"))
 
 
-class FullRankCorrelationAffineQuotientMetricTestData(QuotientMetricTestData):
-    trials = 3
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
+class UniqueDiagonalMatrixAlgorithmTestData(GeometricMapCaseData):
+    def map_belongs_to_image_test_data(self):
+        return self.generate_random_data(
+            arg_names="point",
+        )
 
-    tolerances = {
-        "dist_point_to_itself_is_zero": {"atol": 1e-4},
-        "geodesic_bvp_vec": {"atol": 1e-4},
-        "geodesic_bvp_reverse": {"atol": 1e-4},
-        "geodesic_boundary_points": {"atol": 1e-4},
-        "log_after_exp": {"atol": 1e-3},
-        "exp_after_log": {"atol": 1e-4},
-        "log_vec": {"atol": 1e-4},
-    }
+    def map_vec_test_data(self):
+        return self.generate_vectorization_data(
+            arg_names="point",
+            op_name="__call__",
+        )
 
 
-class UniqueDiagonalMatrixAlgorithmTestData(TestData):
-    def belongs_to_full_rank_cor_test_data(self):
-        return self.generate_random_data()
-
-
-class PolyHyperbolicCholeskyMetricTestData(PullbackDiffeoMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-
-class EuclideanCholeskyMetricTestData(PullbackDiffeoMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-
-class OffLogMetricTestData(PullbackDiffeoMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-
-class SPDScalingFinderTestData(TestData):
+class SPDScalingFinderTestData(GeometricMapCaseData):
     def rows_sum_to_one_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(
+            arg_names="point",
+        )
 
     def values_are_positive_test_data(self):
-        return self.generate_random_data()
+        return self.generate_random_data(
+            arg_names="point",
+        )
 
-
-class LogScaledMetricTestData(PullbackDiffeoMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
+    def map_vec_test_data(self):
+        return self.generate_vectorization_data(
+            arg_names="point",
+            op_name="__call__",
+        )

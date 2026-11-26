@@ -1,38 +1,31 @@
 import random
 
-import pytest
+from polpo.testing.parametrizers import GeometricDataBasedParametrizer
 
 from geomstats.geometry.spd_matrices import SPDBuresWassersteinMetric, SPDMatrices
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.riemannian_metric import (
     RiemannianMetricComparisonTestCase,
 )
 from geomstats.variants.geometry.spd_matrices import QuotientSPDBuresWassersteinMetric
 
-from .data.quotient_metric import SPDBuresWassersteinQuotientMetricCmpTestData
+from .data.riemannian_metric import RiemannianMetricComparisonTestData
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def spd_with_quotient_metric(request):
-    n = request.param
-    request.cls.space = space = SPDMatrices(n=n, equip=False)
-    space.equip_with_metric(SPDBuresWassersteinMetric)
-
-    request.cls.other_space = other_space = SPDMatrices(n=n, equip=False)
-    other_space.equip_with_metric(QuotientSPDBuresWassersteinMetric)
-
-    request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
-
-
-@pytest.mark.usefixtures("spd_with_quotient_metric")
 class TestSPDBuresWassersteinQuotientMetricCmp(
-    RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricComparisonTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    testing_data = SPDBuresWassersteinQuotientMetricCmpTestData()
+    _n = random.randint(2, 5)
+
+    space = SPDMatrices(n=_n, equip=False).equip_with_metric(SPDBuresWassersteinMetric)
+    other_space = SPDMatrices(n=_n, equip=False).equip_with_metric(
+        QuotientSPDBuresWassersteinMetric
+    )
+
+    testing_data = RiemannianMetricComparisonTestData(
+        space,
+        excluded_methods=(
+            "injectivity_radius",
+            "parallel_transport_ivp",
+            "parallel_transport_bvp",
+        ),
+    )

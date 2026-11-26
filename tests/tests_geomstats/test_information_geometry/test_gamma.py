@@ -1,55 +1,135 @@
 import pytest
+from polpo.testing.parametrizers import GeometricDataBasedParametrizer
 
-from geomstats.geometry.positive_orthant import ScaledReciprocalDiffeo
 from geomstats.information_geometry.gamma import (
     GammaDistributions,
     GammaDistributionsRandomVariable,
+    ShapeRateGammaDistributions,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import GammaRandomDataGenerator, RandomDataGenerator
-from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
-from geomstats.test_cases.information_geometry.gamma import (
-    GammaDistributionsTestCase,
-    GammaMetricTestCase,
-    StandardGammaDistributions,
+from geomstats.test.test_case import autodiff_only
+from geomstats.test_cases.geometry.riemannian_metric import (
+    CoordinateRiemannianMetricComparisonTestCase,
+    CoordinateRiemannianMetricTestCase,
+)
+from geomstats.test_cases.information_geometry.gamma import GammaDistributionsTestCase
+from geomstats.variants.information_geometry.gamma import (
+    GammaMetric as MetricMatrixGammaMetric,
 )
 
+from ..test_geometry.data.pullback_metric import (
+    get_coordinate_pullback_excluded_methods,
+)
+from ..test_geometry.data.riemannian_metric import (
+    CoordinateRiemannianMetricComparisonTestData,
+    CoordinateRiemannianMetricTestData,
+)
 from .data.gamma import (
-    GammaDistributionsSmokeTestData,
     GammaDistributionsTestData,
-    GammaMetricTestData,
-    NaturalToStandardDiffeoTestData,
+    ShapeRateGammaMetricTestData,
 )
-
-
-class TestNaturalToStandardDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
-    space = GammaDistributions(equip=False)
-    image_space = StandardGammaDistributions()
-    diffeo = ScaledReciprocalDiffeo()
-    testing_data = NaturalToStandardDiffeoTestData()
 
 
 class TestGammaDistributions(
-    GammaDistributionsTestCase, metaclass=DataBasedParametrizer
+    GammaDistributionsTestCase, metaclass=GeometricDataBasedParametrizer
 ):
     space = GammaDistributions(equip=False)
-    data_generator = GammaRandomDataGenerator(space)
     random_variable = GammaDistributionsRandomVariable(space)
+    testing_data = GammaDistributionsTestData(space)
 
-    testing_data = GammaDistributionsTestData()
 
-
-@pytest.mark.smoke
-class TestGammaDistributionsSmoke(
-    GammaDistributionsTestCase, metaclass=DataBasedParametrizer
+class TestGammaMetric(
+    CoordinateRiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
 ):
-    space = GammaDistributions(equip=False)
-    testing_data = GammaDistributionsSmokeTestData()
-
-
-class TestGammaMetric(GammaMetricTestCase, metaclass=DataBasedParametrizer):
     space = GammaDistributions()
-    data_generator = RandomDataGenerator(
-        space, amplitude=20.0, random_point_kwargs={"low": 0.5, "bound": 4.5}
+    testing_data = CoordinateRiemannianMetricTestData(
+        space,
+        excluded_methods=(
+            "parallel_transport_ivp",
+            "parallel_transport_bvp",
+            "parallel_transport_ivp_transported_is_tangent",
+            "parallel_transport_bvp_transported_is_tangent",
+            "parallel_transport_ivp_norm",
+            "parallel_transport_bvp_norm",
+            "curvature_derivative",
+            "directional_curvature_derivative",
+        ),
+        method_marks={
+            "xfail": (
+                "squared_dist_is_symmetric",
+                "log_after_exp",
+                "exp_after_log",
+            )
+        },
+        method_defaults={
+            "exp_after_log": {"atol": 1e-3},
+            "log_after_exp": {"atol": 1e-3},
+            "squared_dist_is_symmetric": {"atol": 1e-2},
+        },
+        generator_kwargs={
+            "amplitude": 10.0,
+            "random_point_kwargs": {"low": 0.5, "bound": 4.5},
+        },
+        sample_locally=True,
     )
-    testing_data = GammaMetricTestData()
+
+
+@autodiff_only
+@pytest.mark.redundant
+class TestGammaMetricCmp(
+    CoordinateRiemannianMetricComparisonTestCase,
+    metaclass=GeometricDataBasedParametrizer,
+):
+    space = GammaDistributions()
+    other_space = GammaDistributions(equip=False).equip_with_metric(
+        MetricMatrixGammaMetric
+    )
+    testing_data = CoordinateRiemannianMetricComparisonTestData(
+        space,
+        included_methods=(
+            "christoffels",
+            "inner_product_derivative_matrix",
+            "jacobian_christoffels",
+            "riemann_tensor",
+            "scalar_curvature",
+            "sectional_curvature",
+        ),
+        generator_kwargs={"random_point_kwargs": {"low": 0.5, "bound": 4.5}},
+    )
+
+
+@pytest.mark.redundant
+class TestShapeRateGammaMetric(
+    CoordinateRiemannianMetricTestCase, metaclass=GeometricDataBasedParametrizer
+):
+    space = ShapeRateGammaDistributions()
+    testing_data = ShapeRateGammaMetricTestData(
+        space,
+        excluded_methods=get_coordinate_pullback_excluded_methods()
+        + (
+            "parallel_transport_ivp",
+            "parallel_transport_bvp",
+            "parallel_transport_ivp_transported_is_tangent",
+            "parallel_transport_bvp_transported_is_tangent",
+            "parallel_transport_ivp_norm",
+            "parallel_transport_bvp_norm",
+            "curvature_derivative",
+            "directional_curvature_derivative",
+        ),
+        method_marks={
+            "xfail": (
+                "squared_dist_is_symmetric",
+                "log_after_exp",
+                "exp_after_log",
+            )
+        },
+        method_defaults={
+            "exp_after_log": {"atol": 1e-3},
+            "log_after_exp": {"atol": 1e-3},
+            "squared_dist_is_symmetric": {"atol": 1e-2},
+        },
+        generator_kwargs={
+            "amplitude": 10.0,
+            "random_point_kwargs": {"low": 0.5, "bound": 4.5},
+        },
+        sample_locally=True,
+    )

@@ -1,7 +1,8 @@
 import random
 
+from polpo.testing.parametrizers import DataBasedParametrizer
+
 from geomstats.metric_geometry.spider import Spider
-from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.metric_geometry.point_set import (
     PointSetMetricTestCase,
     PointSetTestCase,
@@ -12,18 +13,15 @@ from .data.point_set import PointSetMetricTestData, PointSetTestData, PointTestD
 
 
 class TestSpiderPoint(PointTestCase, metaclass=DataBasedParametrizer):
-    _n_rays = random.randint(2, 4)
-    space = Spider(_n_rays, equip=False)
-    testing_data = PointTestData()
+    space = Spider(random.randint(2, 4), equip=False)
+    testing_data = PointTestData(space)
 
 
 class TestSpider(PointSetTestCase, metaclass=DataBasedParametrizer):
-    _n_rays = random.randint(2, 4)
-    space = Spider(_n_rays, equip=False)
-    testing_data = PointSetTestData()
+    space = Spider(random.randint(2, 4), equip=False)
+    testing_data = PointSetTestData(space)
 
 
 class TestSpiderMetric(PointSetMetricTestCase, metaclass=DataBasedParametrizer):
-    _n_rays = random.randint(2, 4)
-    space = Spider(_n_rays, equip=True)
-    testing_data = PointSetMetricTestData()
+    space = Spider(random.randint(2, 4))
+    testing_data = PointSetMetricTestData(space)

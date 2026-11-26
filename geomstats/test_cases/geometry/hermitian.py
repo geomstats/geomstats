@@ -1,25 +1,15 @@
-import pytest
-
 import geomstats.backend as gs
 from geomstats.test_cases.geometry.base import VectorSpaceTestCase
 from geomstats.test_cases.geometry.mixins import GroupExpTestCaseMixins
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
 class HermitianTestCase(GroupExpTestCaseMixins, VectorSpaceTestCase):
-    @pytest.mark.random
-    def test_exp_random(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+    def test_identity_belongs(self, atol=gs.atol):
+        """Check identity belongs to the space.
 
-        expected = tangent_vec + base_point
-
-        self.test_exp(tangent_vec, base_point, expected, atol)
-
-    @pytest.mark.random
-    def test_identity_belongs(self, atol):
-        self.test_belongs(self.space.identity, gs.array(True), atol)
-
-
-class HermitianMetricTestCase(RiemannianMetricTestCase):
-    pass
+        Parameters
+        ----------
+        atol : float
+            Absolute tolerance.
+        """
+        self.test_belongs(self.space.identity, gs.array(True), atol=atol)
