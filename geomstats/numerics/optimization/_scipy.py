@@ -58,12 +58,16 @@ class ScipyMinimize(Minimizer):
                 fun_ = lambda x: gs.to_numpy(fun(gs.from_numpy(x)))
                 fun_jac_ = lambda x: fun_jac(gs.from_numpy(x))
 
-            else:
+            elif fun_jac is True:
 
                 def fun_(x):
                     val, grad = fun(gs.from_numpy(x))
                     return gs.to_numpy(val), grad
 
+                fun_jac_ = fun_jac
+
+            else:
+                fun_ = lambda x: gs.to_numpy(fun(gs.from_numpy(x)))
                 fun_jac_ = fun_jac
 
             return fun_, fun_jac_
@@ -100,8 +104,10 @@ class ScipyMinimize(Minimizer):
             The objective function to be minimized.
         x0 : array-like
             Initial guess.
-        fun_jac : callable
-            Jacobian of fun.
+        fun_jac : callable, bool or {"2-point", "3-point", "cs"}
+            Jacobian of fun. If True, fun returns its value and gradient.
+            If False or a finite-difference scheme, fun returns only its value
+            and SciPy estimates the gradient.
         fun_hess : callable
             Hessian of fun.
         hessp : callable
@@ -109,7 +115,7 @@ class ScipyMinimize(Minimizer):
         fun_, jac = self._handle_jac(fun, fun_jac)
 
         fun_for_hess = fun
-        if fun_jac is not None and not callable(fun_jac):
+        if fun_jac is True:
             fun_for_hess = lambda x: fun(x)[0]
 
         hess = self._handle_hess(fun_for_hess, fun_hess)
