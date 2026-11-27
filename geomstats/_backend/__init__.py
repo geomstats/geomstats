@@ -43,6 +43,7 @@ BACKEND_ATTRIBUTES = {
         "arccos",
         "arccosh",
         "arcsin",
+        "arcsinh",
         "arctan2",
         "arctanh",
         "argmax",

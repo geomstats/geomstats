@@ -13,6 +13,7 @@ from numpy import (
     arccos,
     arccosh,
     arcsin,
+    arcsinh,
     arctan2,
     arctanh,
     argmax,
