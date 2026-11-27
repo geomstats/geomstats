@@ -63,7 +63,7 @@ class TorchClosuredBasedMinimizer(TorchMinimizer):
         hessp : callable
             Ignored.
         """
-        x0 = gs.copy(x0)
+        x0 = gs.copy(x0).detach()
         x0.requires_grad = True
 
         self.toptim_ = self._instantiate_toptim(x0)
@@ -144,7 +144,7 @@ class TorchStepwiseMinimizer(TorchMinimizer):
         hessp : callable
             Ignored.
         """
-        x0 = gs.copy(x0)
+        x0 = gs.copy(x0).detach()
         x0.requires_grad = True
 
         self.toptim_ = self._instantiate_toptim(x0)
