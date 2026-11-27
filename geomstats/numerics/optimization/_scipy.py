@@ -105,6 +105,8 @@ class ScipyMinimize(Minimizer):
         fun_hess : callable
             Hessian of fun.
         hessp : callable
+            Hessian-vector product evaluated at a point and a vector in the
+            selected backend.
         """
         fun_, jac = self._handle_jac(fun, fun_jac)
 
@@ -113,6 +115,9 @@ class ScipyMinimize(Minimizer):
             fun_for_hess = lambda x: fun(x)[0]
 
         hess = self._handle_hess(fun_for_hess, fun_hess)
+        hessp_ = hessp
+        if callable(hessp):
+            hessp_ = lambda x, p: gs.to_numpy(hessp(gs.from_numpy(x), gs.from_numpy(p)))
 
         result = scipy.optimize.minimize(
             fun_,
@@ -120,7 +125,7 @@ class ScipyMinimize(Minimizer):
             method=self.method,
             jac=jac,
             hess=hess,
-            hessp=hessp,
+            hessp=hessp_,
             bounds=self.bounds,
             tol=self.tol,
             constraints=self.constraints,
