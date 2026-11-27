@@ -61,10 +61,13 @@ class NFoldManifold(Manifold):
 
         Returns
         -------
-        belongs : array-like, shape=[..., n_copies, *base_shape]
+        belongs : array-like, shape=[...,]
             Boolean evaluating if the point belongs to the manifold.
         """
         batch_shape = get_batch_shape(self.point_ndim, point)
+        if point.shape[-self.point_ndim :] != self.shape:
+            return gs.zeros(batch_shape, dtype=bool)
+
         point_ = gs.reshape(point, (-1, *self.base_manifold.shape))
 
         each_belongs = self.base_manifold.belongs(point_, atol=atol)
