@@ -11,9 +11,3 @@ class PoincarePolydiskTestData(NFoldManifoldTestData):
 class PoincarePolydiskMetricTestData(NFoldMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
-
-    skips = (
-        "christoffels_vec",
-        "inner_product_derivative_matrix_vec",
-        "metric_matrix_is_spd",
-    )

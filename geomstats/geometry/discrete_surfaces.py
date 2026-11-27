@@ -21,7 +21,7 @@ from geomstats._mesh import Surface
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.fiber_bundle import AlignerAlgorithm, FiberBundle
 from geomstats.geometry.manifold import Manifold, register_quotient
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 from geomstats.geometry.nfold_manifold import NFoldMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -238,17 +238,18 @@ class DiscreteSurfaces(Manifold):
             Triangle area of each face.
         """
         vertex_0, vertex_1, vertex_2 = self._vertices(point)
-        len_edge_12 = gs.linalg.norm((vertex_1 - vertex_2), axis=-1)
-        len_edge_02 = gs.linalg.norm((vertex_0 - vertex_2), axis=-1)
-        len_edge_01 = gs.linalg.norm((vertex_0 - vertex_1), axis=-1)
+        len_edge_12 = gs.linalg.vector_norm((vertex_1 - vertex_2), axis=-1)
+        len_edge_02 = gs.linalg.vector_norm((vertex_0 - vertex_2), axis=-1)
+        len_edge_01 = gs.linalg.vector_norm((vertex_0 - vertex_1), axis=-1)
         half_perimeter = 0.5 * (len_edge_12 + len_edge_02 + len_edge_01)
         return gs.sqrt(
-            (
+            gs.clip(
                 half_perimeter
                 * (half_perimeter - len_edge_12)
                 * (half_perimeter - len_edge_02)
-                * (half_perimeter - len_edge_01)
-            ).clip(min=1e-6)
+                * (half_perimeter - len_edge_01),
+                min=1e-6,
+            )
         )
 
     def vertex_areas(self, point):
@@ -368,7 +369,7 @@ class DiscreteSurfaces(Manifold):
             Surface metric matrices evaluated at each face of
             the triangulated surface.
         """
-        return gs.matmul(one_forms, gs.transpose(one_forms))
+        return gs.matmul(one_forms, gs.matrix_transpose(one_forms))
 
     def surface_metric_matrices(self, point):
         """Compute the surface metric matrices.
@@ -416,18 +417,19 @@ class DiscreteSurfaces(Manifold):
         """
         n_vertices, n_faces = point.shape[-2], self.faces.shape[0]
         vertex_0, vertex_1, vertex_2 = self._vertices(point)
-        len_edge_12 = gs.linalg.norm((vertex_1 - vertex_2), axis=-1)
-        len_edge_02 = gs.linalg.norm((vertex_0 - vertex_2), axis=-1)
-        len_edge_01 = gs.linalg.norm((vertex_0 - vertex_1), axis=-1)
+        len_edge_12 = gs.linalg.vector_norm((vertex_1 - vertex_2), axis=-1)
+        len_edge_02 = gs.linalg.vector_norm((vertex_0 - vertex_2), axis=-1)
+        len_edge_01 = gs.linalg.vector_norm((vertex_0 - vertex_1), axis=-1)
 
         half_perimeter = 0.5 * (len_edge_12 + len_edge_02 + len_edge_01)
         area = gs.sqrt(
-            (
+            gs.clip(
                 half_perimeter
                 * (half_perimeter - len_edge_12)
                 * (half_perimeter - len_edge_02)
-                * (half_perimeter - len_edge_01)
-            ).clip(min=1e-6)
+                * (half_perimeter - len_edge_01),
+                min=1e-6,
+            )
         )
         sq_len_edge_12, sq_len_edge_02, sq_len_edge_01 = (
             len_edge_12 * len_edge_12,
@@ -487,27 +489,15 @@ class DiscreteSurfaces(Manifold):
                 tangent_vec_diff,
             )
 
-            laplacian_at_tangent_vec = gs.zeros(
-                batch_shape + (n_vertices, 3), dtype=values.dtype
+            index = gs.broadcast_to(
+                gs.expand_dims(id_vertices[1], axis=-1), batch_shape + (n_faces * 3, 3)
             )
-
-            id_vertices_201 = id_vertices[1, :]
-            id_vertices_201 = gs.broadcast_to(
-                id_vertices_201, batch_shape + id_vertices_201.shape
+            return gs.scatter_add(
+                gs.zeros(batch_shape + (n_vertices, 3), dtype=values.dtype),
+                dim=-2,
+                index=index,
+                src=values,
             )
-
-            for i_dim in range(3):
-                laplacian_at_tangent_vec[batch_slc + (slice(None), i_dim)] = (
-                    gs.scatter_add(
-                        input=laplacian_at_tangent_vec[
-                            batch_slc + (slice(None), i_dim)
-                        ],
-                        dim=-1,
-                        index=id_vertices_201,
-                        src=values[batch_slc + (slice(None), i_dim)],
-                    )
-                )
-            return laplacian_at_tangent_vec
 
         return _laplacian
 
@@ -602,7 +592,7 @@ class ElasticMetric(RiemannianMetric):
             Term of order 0, and coefficient a0, of the inner-product.
         """
         return self.a0 * gs.sum(
-            gs.dot(tangent_vec_a, tangent_vec_b) * vertex_areas_bp,
+            gs.vecdot(tangent_vec_a, tangent_vec_b) * vertex_areas_bp,
             axis=-1,
         )
 
@@ -707,7 +697,7 @@ class ElasticMetric(RiemannianMetric):
         dna = self._space.normals(point_a) - normals_bp
         dnb = self._space.normals(point_b) - normals_bp
 
-        return self.c1 * gs.sum(gs.dot(dna, dnb) * areas_bp, axis=-1)
+        return self.c1 * gs.sum(gs.vecdot(dna, dnb) * areas_bp, axis=-1)
 
     def _inner_product_d1(
         self, one_forms_a, one_forms_b, one_forms_bp, areas_bp, ginv_bp
@@ -744,28 +734,30 @@ class ElasticMetric(RiemannianMetric):
         inner_prod_d1 : array-like, shape=[...,]
             Term of order 1, and coefficient d1, of the inner-product.
         """
-        one_forms_bp_t = gs.transpose(one_forms_bp)
+        one_forms_bp_t = gs.matrix_transpose(one_forms_bp)
 
         aux = gs.matmul(one_forms_bp_t, ginv_bp)
 
         xa = one_forms_a - one_forms_bp
         xa_0 = gs.matmul(
             aux,
-            gs.matmul(xa, one_forms_bp_t) - gs.matmul(one_forms_bp, gs.transpose(xa)),
+            gs.matmul(xa, one_forms_bp_t)
+            - gs.matmul(one_forms_bp, gs.matrix_transpose(xa)),
         )
 
         xb = one_forms_b - one_forms_bp
         xb_0 = gs.matmul(
             aux,
-            gs.matmul(xb, one_forms_bp_t) - gs.matmul(one_forms_bp, gs.transpose(xb)),
+            gs.matmul(xb, one_forms_bp_t)
+            - gs.matmul(one_forms_bp, gs.matrix_transpose(xb)),
         )
 
         return self.d1 * gs.sum(
             gs.trace(
-                Matrices.mul(
+                MatrixOperations.mul(
                     xa_0,
                     ginv_bp,
-                    gs.transpose(xb_0),
+                    gs.matrix_transpose(xb_0),
                 ),
             )
             * areas_bp,
@@ -806,7 +798,7 @@ class ElasticMetric(RiemannianMetric):
         """
         laplacian_at_base_point = self._space.laplacian(base_point)
         return self.a2 * gs.sum(
-            gs.dot(
+            gs.vecdot(
                 laplacian_at_base_point(tangent_vec_a),
                 laplacian_at_base_point(tangent_vec_b),
             )

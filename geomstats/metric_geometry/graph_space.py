@@ -97,25 +97,23 @@ class FAQAligner(GraphSpaceAlignerAlgorithm):
         PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
     """
 
-    def _get_opt_perm_single(self, point, base_point):
+    def _get_opt_perm(self, point, base_point):
         """Get optimal element of the group.
 
         Parameters
         ----------
-        point : array-like, shape=[n_nodes, n_nodes]
+        point : array-like, shape=[..., n_nodes, n_nodes]
             Graph to align.
-        base_point : array-like, shape=[n_nodes, n_nodes]
+        base_point : array-like, shape=[..., n_nodes, n_nodes]
             Base graph.
 
         Returns
         -------
-        perm : array-like, shape=[n_nodes]
+        perm : array-like, shape=[..., n_nodes]
             Optimal permutation group element.
         """
-        return gs.array(
-            gs.linalg.quadratic_assignment(
-                base_point, point, options={"maximize": True}
-            )
+        return gs.linalg.quadratic_assignment(
+            base_point, point, options={"maximize": True}
         )
 
 
@@ -610,11 +608,11 @@ class GraphSpaceAligner(Aligner):
                 align_algo, "align_algo", list(self.MAP_ALIGNER.keys())
             )
 
-            aligner_algorithm = self.MAP_ALIGNER.get(align_algo)(
+            align_algo = self.MAP_ALIGNER.get(align_algo)(
                 self._total_space, **kwargs
             )
 
-        self.align_algo = aligner_algorithm
+        self.align_algo = align_algo
         return self.align_algo
 
     def set_point_to_geodesic_aligner(self, aligner="default", **kwargs):

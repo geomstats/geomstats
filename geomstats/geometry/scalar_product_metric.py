@@ -67,6 +67,7 @@ class _ScaledMethodsRegistry:
         "squared_norm",
         "squared_dist",
         "covariant_riemann_tensor",
+        "flat",
     ]
     _QUADRATIC_LIST = []
     _INVERSE_LIST = [
@@ -75,6 +76,7 @@ class _ScaledMethodsRegistry:
         "hamiltonian",
         "sectional_curvature",
         "scalar_curvature",
+        "sharp",
     ]
     _INVERSE_SQRT_LIST = ["normalize", "random_unit_tangent_vec", "normal_basis"]
     _RESERVED_NAMES = ("underlying_metric", "scale")
@@ -164,7 +166,7 @@ class ScalarProductMetric:
 
     Parameters
     ----------
-    space : Manifold or ComplexManifold
+    space : Manifold
         A manifold equipped with a metric which is being scaled.
     scale : float
         The value by which to scale the metric. Note that this rescales the

@@ -8,11 +8,7 @@ from .quotient_metric import QuotientMetricTestData
 
 
 class RankKPSDMatricesTestData(ProjectionMixinsTestData, ManifoldTestData):
-    xfails = (
-        "to_tangent_is_tangent",
-        "random_tangent_vec_is_tangent",
-        "projection_belongs",
-    )
+    xfails = ("projection_belongs",)
 
 
 class RankKPSDMatrices32TestData(TestData):
@@ -50,11 +46,6 @@ class BuresWassersteinBundleTestData(FiberBundleTestData):
 class PSDBuresWassersteinMetricTestData(QuotientMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
-
-    skips = (
-        "curvature_derivative_vec",
-        "directional_curvature_derivative_vec",
-    )
 
     xfails = ("log_after_exp",)
 

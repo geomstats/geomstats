@@ -11,6 +11,8 @@ import types
 
 import geomstats._backend._common as common
 
+logger = logging.getLogger("geomstats")
+
 
 def get_backend_name():
     return os.environ.get("GEOMSTATS_BACKEND", "numpy")
@@ -58,17 +60,15 @@ BACKEND_ATTRIBUTES = {
         "comb",
         "concatenate",
         "conj",
-        "convert_to_wider_dtype",
         "copy",
         "cos",
         "cosh",
         "cross",
         "cumprod",
         "cumsum",
-        "diag_indices",
+        "diag_embed",
         "diagonal",
         "divide",
-        "dot",
         "einsum",
         "empty",
         "empty_like",
@@ -76,6 +76,7 @@ BACKEND_ATTRIBUTES = {
         "erf",
         "exp",
         "expand_dims",
+        "expand_dims_to",
         "eye",
         "flatten",
         "flip",
@@ -96,19 +97,17 @@ BACKEND_ATTRIBUTES = {
         "is_complex",
         "is_floating",
         "is_bool",
-        "kron",
         "less",
         "less_equal",
         "linspace",
         "log",
         "logical_and",
         "logical_or",
-        "mat_from_diag_triu_tril",
         "matmul",
+        "matrix_transpose",
         "matvec",
         "maximum",
         "mean",
-        "median",
         "meshgrid",
         "minimum",
         "mod",
@@ -117,14 +116,11 @@ BACKEND_ATTRIBUTES = {
         "ones",
         "ones_like",
         "outer",
-        "pad",
         "permute_dims",
         "pi",
         "polygamma",
         "power",
         "prod",
-        "quantile",
-        "ravel_multi_index",
         "real",
         "repeat",
         "reshape",
@@ -132,7 +128,6 @@ BACKEND_ATTRIBUTES = {
         "scatter_add",
         "searchsorted",
         "set_default_dtype",
-        "set_diag",
         "shape",
         "sign",
         "sin",
@@ -149,18 +144,17 @@ BACKEND_ATTRIBUTES = {
         "tanh",
         "tile",
         "to_numpy",
-        "to_ndarray",
         "trace",
-        "transpose",
         "tril",
         "triu",
         "tril_indices",
         "triu_indices",
         "tril_to_vec",
         "triu_to_vec",
-        "vec_to_diag",
+        "tril_embed",
+        "triu_embed",
         "unique",
-        "vectorize",
+        "vecdot",
         "vstack",
         "where",
         "zeros",
@@ -170,9 +164,7 @@ BACKEND_ATTRIBUTES = {
     "autodiff": [
         "custom_gradient",
         "hessian",
-        "hessian_vec",
         "jacobian",
-        "jacobian_vec",
         "jacobian_and_hessian",
         "value_and_grad",
         "value_and_jacobian",
@@ -187,13 +179,12 @@ BACKEND_ATTRIBUTES = {
         "expm",
         "fractional_matrix_power",
         "inv",
-        "is_single_matrix_pd",
         "logm",
         "matrix_power",
-        "norm",
+        "matrix_norm",
+        "vector_norm",
         "qr",
         "quadratic_assignment",
-        "polar",
         "solve",
         "solve_sylvester",
         "sqrtm",
@@ -292,7 +283,7 @@ class BackendImporter:
 
         module.set_default_dtype("float64")
 
-        logging.debug(f"geomstats is using {BACKEND_NAME} backend")
+        logger.debug("Using %s backend", BACKEND_NAME)
         return module
 
     def find_spec(self, fullname, path=None, target=None):

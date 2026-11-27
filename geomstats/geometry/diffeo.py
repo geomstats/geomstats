@@ -141,7 +141,7 @@ class AutodiffDiffeo(Diffeo):
         mat : array-like, shape=[..., *image_shape, *space_shape]
             Jacobian of the diffeomorphism.
         """
-        return gs.autodiff.jacobian_vec(
+        return gs.autodiff.jacobian(
             self.__call__, point_ndim=self._space_point_ndim
         )(base_point)
 
@@ -194,7 +194,7 @@ class AutodiffDiffeo(Diffeo):
         mat : array-like, shape=[..., *shape, *image_shape]
             Jacobian of the inverse diffeomorphism.
         """
-        return gs.autodiff.jacobian_vec(
+        return gs.autodiff.jacobian(
             self.inverse, point_ndim=self._image_space_point_ndim
         )(image_point)
 
@@ -329,8 +329,11 @@ class ComposedDiffeo(Diffeo):
         return tangent_vec
 
 
-class VectorSpaceDiffeo(Diffeo):
-    """A diffeo between vector spaces."""
+class LinearIsomorphism(Diffeo):
+    """A linear isomorphism between vector spaces.
+
+    Its differential at any point is the map itself.
+    """
 
     def __init__(self, space_ndim, image_space_ndim=None):
         super().__init__()

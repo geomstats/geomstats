@@ -7,6 +7,8 @@ from scipy.optimize import OptimizeResult
 
 import geomstats.backend as gs
 
+logger = logging.getLogger("geomstats.numerics.optimization")
+
 
 class Minimizer(ABC):
     """Minimizer.
@@ -104,12 +106,12 @@ class NewtonMethod(RootFinder):
         status = 1
         for it in range(self.max_iter):
             fun_xk = fun(xk)
-            if gs.linalg.norm(fun_xk) <= self.atol:
+            if gs.linalg.vector_norm(fun_xk) <= self.atol:
                 break
 
             y = gs.linalg.solve(fun_jac(xk), fun_xk)
             if self.damped:
-                lambda_xk = gs.sqrt(gs.dot(fun_xk, y))
+                lambda_xk = gs.sqrt(gs.vecdot(fun_xk, y))
             else:
                 lambda_xk = 0.0
             xk = xk - (1 / (1 + lambda_xk)) * y
@@ -128,6 +130,6 @@ class NewtonMethod(RootFinder):
         )
 
         if not result.success:
-            logging.warning(result.message)
+            logger.warning(result.message)
 
         return result

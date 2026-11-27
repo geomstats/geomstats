@@ -7,105 +7,104 @@ from scipy import stats
 from scipy.special import ive
 
 import geomstats.backend as gs
-from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
+from geomstats.geometry.hypersphere import (
+    AngleToExtrinsicDiffeo,
+    CircleAngles,
+    Hypersphere,
+    HypersphereMetric,
+    HypersphereRiemannianNormal,
+    HypersphereUniform,
+    SphereSphericalCoordinates,
+    SphericalToExtrinsicDiffeo,
+    VonMisesFisher,
+)
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import HypersphereIntrinsicRandomDataGenerator
+from geomstats.test_cases.geometry.base import (
+    DiffeomorphicManifoldTestCase,
+    LevelSetTestCase,
+)
+from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.hypersphere import (
-    HypersphereCoordsTransformTestCase,
-    HypersphereExtrinsicTestCase,
-    HypersphereIntrinsicTestCase,
+    DistributionTestCase,
+    HypersphereRiemannianNormalTestCase,
+    VonMisesFisherTestCase,
 )
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+from geomstats.test_cases.geometry.manifold import ManifoldTestCase
+from geomstats.test_cases.geometry.riemannian_metric import (
+    RiemannianMetricComparisonTestCase,
+    RiemannianMetricTestCase,
+)
 
+from .data.base import LevelSetTestData
+from .data.diffeo import DiffeoTestData
 from .data.hypersphere import (
-    Hypersphere2ExtrinsicMetricTestData,
-    Hypersphere2IntrinsicMetricTestData,
-    Hypersphere4ExtrinsicMetricTestData,
-    HypersphereCoordsTransformTestData,
-    HypersphereExtrinsicMetricTestData,
-    HypersphereExtrinsicTestData,
-    HypersphereIntrinsicTestData,
+    CircleAnglesMetricCmpTestData,
+    CircleAnglesMetricTestData,
+    DistributionTestData,
+    Hypersphere2MetricTestData,
+    Hypersphere4MetricTestData,
+    HypersphereMetricTestData,
+    HypersphereRiemannianNormalFrechetMeanTestData,
+    SphereSphericalCoordinatesMetricCmpTestData,
+    SphereSphericalCoordinatesMetricTestData,
+    SphereSphericalCoordinatesTestData,
+    VonMisesFisherKappaTestData,
+    VonMisesFisherTestData,
 )
+from .data.manifold import ManifoldTestData
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        1,
-        2,
-        3,
-    ],
-)
-def coords_transform_spaces(request):
-    dim = request.param
-    request.cls.space_intrinsic = Hypersphere(dim, intrinsic=True)
-    request.cls.space = request.cls.space_extrinsic = Hypersphere(dim, intrinsic=False)
+class TestAngleToExtrinsicDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    space = CircleAngles(equip=False)
+    image_space = Hypersphere(1, equip=False)
+    diffeo = AngleToExtrinsicDiffeo()
+    testing_data = DiffeoTestData()
 
 
-@pytest.mark.usefixtures("coords_transform_spaces")
-class TestHypersphereCoordsTransform(
-    HypersphereCoordsTransformTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = HypersphereCoordsTransformTestData()
+class TestSphericalToExtrinsicDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    space = SphereSphericalCoordinates(equip=False)
+    image_space = Hypersphere(2, equip=False)
+    diffeo = SphericalToExtrinsicDiffeo()
+    testing_data = DiffeoTestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        1,
-        2,
-        random.randint(3, 5),
-    ],
-)
-def extrinsic_spaces(request):
-    dim = request.param
-    request.cls.space = Hypersphere(dim, intrinsic=False, equip=True)
+class TestHypersphere(LevelSetTestCase, metaclass=DataBasedParametrizer):
+    space = Hypersphere(random.randint(1, 5), equip=False)
+    testing_data = LevelSetTestData()
 
 
-@pytest.mark.usefixtures("extrinsic_spaces")
-class TestHypersphereExtrinsic(
-    HypersphereExtrinsicTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = HypersphereExtrinsicTestData()
+@pytest.mark.smoke
+class TestHypersphere2Metric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+    space = space = Hypersphere(2, equip=False)
+    space.equip_with_metric(HypersphereMetric)
+
+    testing_data = Hypersphere2MetricTestData()
+
+    def test_log_antipodal_raises(self):
+        """Log of antipodal points is not well-defined."""
+        x = gs.array([1.0, 0.0, 0.0])
+        with pytest.raises(ValueError, match="antipodal"):
+            self.space.metric.log(-x, x)
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        1,
-        2,
-    ],
-)
-def intrinsic_spaces(request):
-    dim = request.param
-    request.cls.space = Hypersphere(dim, intrinsic=True)
+@pytest.mark.smoke
+class TestHypersphere4Metric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+    space = space = Hypersphere(4, equip=False)
+    space.equip_with_metric(HypersphereMetric)
+
+    testing_data = Hypersphere4MetricTestData()
+
+    def test_exp_and_dist_and_projection_to_tangent_space(self, vector, base_point):
+        tangent_vec = self.space.to_tangent(vector=vector, base_point=base_point)
+        exp = self.space.metric.exp(tangent_vec=tangent_vec, base_point=base_point)
+        result = self.space.metric.dist(base_point, exp)
+        expected = gs.linalg.vector_norm(tangent_vec) % (2 * gs.pi)
+        self.assertAllClose(result, expected)
 
 
-@pytest.mark.usefixtures("intrinsic_spaces")
-class TestHypersphereIntrinsic(
-    HypersphereIntrinsicTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = HypersphereIntrinsicTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        1,
-        2,
-        random.randint(3, 5),
-    ],
-)
-def equipped_extrinsic_spaces(request):
-    dim = request.param
-    request.cls.space = Hypersphere(dim, intrinsic=False)
-
-
-@pytest.mark.usefixtures("equipped_extrinsic_spaces")
-class TestHypersphereExtrinsicMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = HypersphereExtrinsicMetricTestData()
+class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+    space = Hypersphere(random.randint(2, 5))
+    testing_data = HypersphereMetricTestData()
 
     @pytest.mark.random
     def test_sectional_curvature_is_one(self, n_points, atol):
@@ -122,14 +121,38 @@ class TestHypersphereExtrinsicMetric(
         self.assertAllClose(res, expected, atol=atol)
 
 
-class TestHypersphere2IntrinsicMetric(
+class TestCircleAngles(ManifoldTestCase, metaclass=DataBasedParametrizer):
+    space = CircleAngles(equip=False)
+    testing_data = ManifoldTestData()
+
+
+class TestCircleAnglesMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+    space = CircleAngles()
+    testing_data = CircleAnglesMetricTestData()
+
+
+@pytest.mark.redundant
+class TestCircleAnglesMetricCmp(
+    RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
+):
+    space = CircleAngles()
+    other_space = Hypersphere(1)
+    diffeo = AngleToExtrinsicDiffeo()
+    testing_data = CircleAnglesMetricCmpTestData()
+
+
+class TestSphereSphericalCoordinates(
+    DiffeomorphicManifoldTestCase, metaclass=DataBasedParametrizer
+):
+    space = SphereSphericalCoordinates(equip=False)
+    testing_data = SphereSphericalCoordinatesTestData()
+
+
+class TestSphereSphericalCoordinatesMetric(
     RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
-    space = space = Hypersphere(2, intrinsic=True, equip=False)
-    space.equip_with_metric(HypersphereMetric)
-
-    data_generator = HypersphereIntrinsicRandomDataGenerator(space)
-    testing_data = Hypersphere2IntrinsicMetricTestData()
+    space = SphereSphericalCoordinates()
+    testing_data = SphereSphericalCoordinatesMetricTestData()
 
     def test_riemann_tensor_spherical_coords(self, base_point):
         """Test the Riemann tensor on the sphere.
@@ -161,37 +184,126 @@ class TestHypersphere2IntrinsicMetric(
         self.assertAllClose(expected_112_2, result_112_2)
 
 
-@pytest.mark.smoke
-class TestHypersphere2ExtrinsicMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+@pytest.mark.redundant
+class TestSphereSphericalCoordinatesMetricCmp(
+    RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
 ):
-    space = space = Hypersphere(2, intrinsic=False, equip=False)
-    space.equip_with_metric(HypersphereMetric)
-
-    testing_data = Hypersphere2ExtrinsicMetricTestData()
-
-    def test_log_antipodal_raises(self):
-        """Log of antipodal points is not well-defined."""
-        x = gs.array([1.0, 0.0, 0.0])
-        with pytest.raises(ValueError, match="antipodal"):
-            self.space.metric.log(-x, x)
+    space = SphereSphericalCoordinates()
+    other_space = Hypersphere(2)
+    diffeo = SphericalToExtrinsicDiffeo()
+    testing_data = SphereSphericalCoordinatesMetricCmpTestData()
 
 
-@pytest.mark.smoke
-class TestHypersphere4ExtrinsicMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+class TestHypersphereUniform(DistributionTestCase, metaclass=DataBasedParametrizer):
+    distribution = HypersphereUniform(Hypersphere(random.randint(1, 5), equip=False))
+    testing_data = DistributionTestData()
+
+
+def _random_kappa():
+    return gs.random.uniform(low=1.0, high=10000.0, size=(1,))[0]
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (1, True),
+        (1, False),
+        (2, True),
+        (2, False),
+        (random.randint(3, 5), True),
+        (random.randint(3, 5), False),
+    ],
+)
+def von_mises_fisher_distributions(request):
+    dim, random_mu = request.param
+    space = Hypersphere(dim, equip=False)
+    mu = space.random_point() if random_mu else None
+    request.cls.distribution = VonMisesFisher(space, mu=mu, kappa=_random_kappa())
+
+
+@pytest.mark.usefixtures("von_mises_fisher_distributions")
+class TestVonMisesFisher(VonMisesFisherTestCase, metaclass=DataBasedParametrizer):
+    testing_data = VonMisesFisherTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        1,
+        2,
+        random.randint(3, 5),
+    ],
+)
+def von_mises_fisher_kappa_distributions(request):
+    dim = request.param
+    request.cls.distribution = VonMisesFisher(Hypersphere(dim, equip=False), kappa=1.0)
+
+
+@pytest.mark.usefixtures("von_mises_fisher_kappa_distributions")
+class TestVonMisesFisherKappa(VonMisesFisherTestCase, metaclass=DataBasedParametrizer):
+    testing_data = VonMisesFisherKappaTestData()
+
+
+def _random_precision(dim, precision_type):
+    if precision_type is None:
+        return None
+
+    precision = gs.random.uniform(low=1.0, high=10.0, size=(1,))[0]
+    if precision_type is float:
+        return precision
+
+    return precision * gs.eye(dim)
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (dim, random_mean, precision_type)
+        for dim in [1, 2, random.randint(3, 5)]
+        for random_mean, precision_type in zip(
+            [True, False, False],
+            [None, float, "array"],
+        )
+    ],
+)
+def riemannian_normal_distributions(request):
+    dim, random_mean, precision_type = request.param
+    space = Hypersphere(dim)
+    mean = space.random_point() if random_mean else None
+    request.cls.distribution = HypersphereRiemannianNormal(
+        space, mean=mean, precision=_random_precision(dim, precision_type)
+    )
+
+
+@pytest.mark.usefixtures("riemannian_normal_distributions")
+class TestHypersphereRiemannianNormal(
+    HypersphereRiemannianNormalTestCase, metaclass=DataBasedParametrizer
 ):
-    space = space = Hypersphere(4, intrinsic=False, equip=False)
-    space.equip_with_metric(HypersphereMetric)
+    testing_data = DistributionTestData()
 
-    testing_data = Hypersphere4ExtrinsicMetricTestData()
 
-    def test_exp_and_dist_and_projection_to_tangent_space(self, vector, base_point):
-        tangent_vec = self.space.to_tangent(vector=vector, base_point=base_point)
-        exp = self.space.metric.exp(tangent_vec=tangent_vec, base_point=base_point)
-        result = self.space.metric.dist(base_point, exp)
-        expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
-        self.assertAllClose(result, expected)
+@pytest.fixture(
+    scope="class",
+    params=[
+        (dim, random_mean)
+        for dim in [1, 2, random.randint(3, 5)]
+        for random_mean in [True, False]
+    ],
+)
+def riemannian_normal_frechet_mean_distributions(request):
+    dim, random_mean = request.param
+    space = Hypersphere(dim)
+    mean = space.random_point() if random_mean else None
+    request.cls.distribution = HypersphereRiemannianNormal(
+        space, mean=mean, precision=_random_precision(dim, "array")
+    )
+
+
+@pytest.mark.usefixtures("riemannian_normal_frechet_mean_distributions")
+class TestHypersphereRiemannianNormalFrechetMean(
+    HypersphereRiemannianNormalTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = HypersphereRiemannianNormalFrechetMeanTestData()
 
 
 def _circle_angles(point):
@@ -206,28 +318,25 @@ def _von_mises_ratio(order, kappa):
 
 
 class TestVonMisesFisherCircle:
-    """Regression tests for von Mises-Fisher sampling on the circle.
-
-    On S^1 the von Mises-Fisher distribution is the von Mises distribution,
-    whose density with respect to the angle is
-
-        p(theta) = exp(kappa * cos(theta)) / (2 * pi * I_0(kappa)),
-
-    and the generic rejection sampler of the higher-dimensional case does not
-    apply. The tolerances below are derived from the theoretical variance of
-    each statistic instead of being chosen by hand: the moment and mean
-    direction checks use a 5-sigma bound (~6e-7 false-positive rate each), and
-    the uniformity check uses a Kolmogorov-Smirnov critical value whose tail
-    probability is ~7e-6.
-    """
+    """Regression tests for von Mises-Fisher sampling on the circle."""
 
     space = Hypersphere(1)
     n_samples = 20_000
 
     @pytest.mark.smoke
+    def test_distribution_factory_supports_circle(self):
+        distribution = VonMisesFisher(self.space, kappa=1.0)
+        point = gs.to_numpy(distribution.sample())
+
+        assert point.shape == (2,)
+        assert np.isfinite(point).all()
+        assert np.isclose(np.linalg.norm(point), 1.0, atol=1e-10)
+
+    @pytest.mark.smoke
     @pytest.mark.shape
     @pytest.mark.parametrize("n_samples", [1, 2, 17, 1000])
     def test_shapes_and_unit_norm(self, n_samples):
+        gs.random.seed(0)
         point = gs.to_numpy(
             self.space.random_von_mises_fisher(n_samples=n_samples, kappa=10.0)
         )
@@ -240,11 +349,7 @@ class TestVonMisesFisherCircle:
     @pytest.mark.random
     @pytest.mark.parametrize("kappa", [0.0, 1e-12, 1e-8])
     def test_vanishing_concentration_is_uniform(self, kappa):
-        """kappa == 0 must yield the uniform distribution on the circle.
-
-        This is the exact limit of the von Mises distribution, and it is also
-        the regime where the rejection parameters of [BF79]_ degenerate.
-        """
+        gs.random.seed(0)
         point = gs.to_numpy(
             self.space.random_von_mises_fisher(
                 n_samples=self.n_samples, kappa=kappa, mu=gs.array([1.0, 0.0])
@@ -255,20 +360,12 @@ class TestVonMisesFisherCircle:
 
         angles = _circle_angles(point)
         result = stats.kstest(angles, "uniform", args=(-np.pi, 2 * np.pi))
-        # 2.5 / sqrt(n) is the Kolmogorov critical value at a tail probability
-        # of ~7e-6, i.e. the test is essentially never flaky, while a wrong
-        # acceptance criterion produces a statistic an order of magnitude
-        # larger (D ~ 6 / sqrt(n) for a sign error in the log branch).
         assert result.statistic < 2.5 / np.sqrt(self.n_samples)
 
     @pytest.mark.random
     @pytest.mark.parametrize("kappa", [1e-8, 1e-3, 0.1, 1.0, 10.0, 100.0, 1e4])
     def test_moments_match_theory(self, kappa):
-        """Check the first and second circular moments against I_k / I_0.
-
-        The variances of cos(theta) and cos(2 * theta) are known in closed
-        form, which gives a principled tolerance instead of an arbitrary one.
-        """
+        gs.random.seed(0)
         point = gs.to_numpy(
             self.space.random_von_mises_fisher(
                 n_samples=self.n_samples, kappa=kappa, mu=gs.array([1.0, 0.0])
@@ -284,7 +381,6 @@ class TestVonMisesFisherCircle:
 
         assert abs(cos_1.mean() - expected_1) < 5.0 * np.sqrt(var_1 / len(angles))
         assert abs(cos_2.mean() - expected_2) < 5.0 * np.sqrt(var_2 / len(angles))
-        # E[sin(theta)] = E[sin(2 * theta)] = 0, with variance 1 / 2.
         assert abs(np.sin(angles).mean()) < 5.0 / np.sqrt(2.0 * len(angles))
         assert abs(np.sin(2 * angles).mean()) < 5.0 / np.sqrt(2.0 * len(angles))
 
@@ -293,7 +389,7 @@ class TestVonMisesFisherCircle:
         "mu", [[1.0, 0.0], [0.0, 1.0], [-1.0, 0.0], [-1.0, -1.0], [0.6, 0.8]]
     )
     def test_mean_direction(self, mu):
-        """The sample mean direction must match `mu`, including after rotation."""
+        gs.random.seed(0)
         mu = np.asarray(mu, dtype=np.float64)
         mu = mu / np.linalg.norm(mu)
         kappa = 5.0
@@ -306,8 +402,6 @@ class TestVonMisesFisherCircle:
         mean_direction = point.mean(axis=0)
         mean_direction = mean_direction / np.linalg.norm(mean_direction)
 
-        # Asymptotic standard error of the mean direction of a von Mises
-        # sample is 1 / sqrt(n * kappa * A_1(kappa)).
         standard_error = 1.0 / np.sqrt(
             self.n_samples * kappa * _von_mises_ratio(1, kappa)
         )
@@ -316,13 +410,6 @@ class TestVonMisesFisherCircle:
     @pytest.mark.smoke
     @pytest.mark.validation
     def test_issue_1334_reproduction(self):
-        """The snippet from issue #1334 must now return a point on the circle.
-
-        The report passed an integer NumPy array as `mu`, which only works on
-        the numpy and autograd backends: `rotate_points` needs a floating
-        point backend array, a pre-existing limitation that also affects
-        `dim >= 2`. A float `mu` is used here so the test covers every backend.
-        """
         sphere = Hypersphere(dim=1)
         point = gs.to_numpy(sphere.random_von_mises_fisher(mu=gs.array([1.0, 0.0])))
 
@@ -335,26 +422,43 @@ class TestVonMisesFisherCircle:
         with pytest.raises(ValueError, match="non-negative"):
             self.space.random_von_mises_fisher(n_samples=5, kappa=-1.0)
 
-    @pytest.mark.parametrize("kappa", [0.0, 10.0])
     @pytest.mark.validation
-    def test_non_positive_n_samples_raises(self, kappa):
-        """n_samples=0 must fail on its own terms, not via max_iter."""
-        with pytest.raises(ValueError, match="n_samples"):
-            self.space.random_von_mises_fisher(n_samples=0, kappa=kappa)
+    @pytest.mark.parametrize("kappa", [np.nan, np.inf, -np.inf])
+    def test_non_finite_kappa_raises(self, kappa):
+        with pytest.raises(ValueError, match="finite"):
+            self.space.random_von_mises_fisher(n_samples=5, kappa=kappa)
+
+    @pytest.mark.parametrize("n_samples", [0, -1, 1.5, True])
+    @pytest.mark.validation
+    def test_invalid_n_samples_raises(self, n_samples):
+        with pytest.raises(ValueError, match="positive integer"):
+            self.space.random_von_mises_fisher(n_samples=n_samples, kappa=1.0)
 
     @pytest.mark.validation
     def test_max_iter_zero_raises_informative_error(self):
-        """A zero budget cannot accept any candidate: fail explicitly."""
         with pytest.raises(ValueError, match="max_iter"):
             self.space.random_von_mises_fisher(n_samples=1, kappa=10.0, max_iter=0)
 
+    @pytest.mark.parametrize("max_iter", [-1, 1.5, True])
+    @pytest.mark.validation
+    def test_invalid_max_iter_raises(self, max_iter):
+        with pytest.raises(ValueError, match="max_iter"):
+            self.space.random_von_mises_fisher(
+                n_samples=1, kappa=1.0, max_iter=max_iter
+            )
+
+    @pytest.mark.smoke
+    def test_uniform_sampling_does_not_use_max_iter(self):
+        point = gs.to_numpy(
+            self.space.random_von_mises_fisher(n_samples=5, kappa=0.0, max_iter=0)
+        )
+
+        assert point.shape == (5, 2)
+        assert np.allclose(np.linalg.norm(point, axis=-1), 1.0, atol=1e-10)
+
     @pytest.mark.random
     def test_partial_acceptance_returns_fewer_samples_and_warns(self, caplog):
-        """A short batch is returned with a warning, as documented.
-
-        With `max_iter=1` and 1000 candidates, the probability of accepting
-        every single one is ~0.66**1000, so the branch is exercised reliably.
-        """
+        gs.random.seed(0)
         with caplog.at_level(logging.WARNING):
             point = gs.to_numpy(
                 self.space.random_von_mises_fisher(
@@ -369,11 +473,6 @@ class TestVonMisesFisherCircle:
 
     @pytest.mark.validation
     def test_exhausted_max_iter_is_never_a_concatenation_error(self):
-        """`max_iter=1` may legitimately reject every candidate.
-
-        Whatever the outcome, the caller must either receive a valid point or
-        an error that names `max_iter`; an empty `gs.concatenate` is a bug.
-        """
         for seed in range(50):
             gs.random.seed(seed)
             try:
@@ -398,9 +497,32 @@ class TestVonMisesFisherCircle:
         assert np.array_equal(first, second)
 
     @pytest.mark.smoke
+    def test_smallest_positive_concentration_is_finite(self):
+        kappa = np.nextafter(0.0, 1.0)
+        point = gs.to_numpy(
+            self.space.random_von_mises_fisher(n_samples=100, kappa=kappa)
+        )
+
+        assert point.shape == (100, 2)
+        assert np.isfinite(point).all()
+        assert np.allclose(np.linalg.norm(point, axis=-1), 1.0, atol=1e-10)
+
+    @pytest.mark.smoke
+    @pytest.mark.parametrize("kappa", [1e4, 1e12, 1e16, 1e100, 1e200, 1e308])
+    def test_large_concentration_is_finite(self, kappa):
+        gs.random.seed(0)
+        point = gs.to_numpy(
+            self.space.random_von_mises_fisher(n_samples=100, kappa=kappa)
+        )
+
+        assert point.shape == (100, 2)
+        assert np.isfinite(point).all()
+        assert np.allclose(np.linalg.norm(point, axis=-1), 1.0, atol=1e-10)
+        assert np.all(point[:, 0] > 0.0)
+
+    @pytest.mark.smoke
     @pytest.mark.shape
     def test_other_dimensions_are_unchanged(self):
-        """dim >= 2 must keep sampling valid points of the right shape."""
         for dim in [2, 3, 4]:
             space = Hypersphere(dim)
             point = gs.to_numpy(space.random_von_mises_fisher(n_samples=50, kappa=5.0))

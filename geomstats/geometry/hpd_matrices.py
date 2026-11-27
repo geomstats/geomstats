@@ -17,19 +17,22 @@ References
 import math
 
 import geomstats.backend as gs
-from geomstats.geometry.base import ComplexVectorSpaceOpenSet
-from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
-from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
+from geomstats.geometry.base import VectorSpaceOpenSet
+from geomstats.geometry.complex_matrices import (
+    ComplexMatricesMetric,
+    ComplexMatrixOperations,
+)
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import HermitianMatrices, expmh, powermh
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import MatrixOperations
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.spd_matrices import SymMatrixLog, logmh
 from geomstats.integrator import integrate
 from geomstats.vectorization import repeat_out
 
 
-class HPDMatrices(ComplexVectorSpaceOpenSet):
+class HPDMatrices(VectorSpaceOpenSet):
     """Class for the manifold of Hermitian positive definite (HPD) matrices.
 
     Parameters
@@ -39,8 +42,9 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
     """
 
     def __init__(self, n, equip=True):
+        embedding_space = HermitianMatrices(n)
         super().__init__(
-            dim=n**2, shape=(n, n), embedding_space=HermitianMatrices(n), equip=equip
+            dim=embedding_space.dim, embedding_space=embedding_space, equip=equip
         )
         self.n = n
 
@@ -66,7 +70,7 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an HPD matrix.
         """
-        return ComplexMatrices.is_hpd(point, atol)
+        return ComplexMatrixOperations.is_hpd(point, atol)
 
     def projection(self, point, atol=gs.atol):
         """Project a matrix to the space of HPD matrices.
@@ -87,11 +91,11 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
         projected: array-like, shape=[..., n, n]
             HPD matrix.
         """
-        herm = ComplexMatrices.to_hermitian(point)
+        herm = ComplexMatrixOperations.to_hermitian(point)
         eigvals, eigvecs = gs.linalg.eigh(herm)
         regularized = gs.where(eigvals < atol, atol, eigvals)
         reconstruction = gs.einsum("...ij,...j->...ij", eigvecs, regularized)
-        return Matrices.mul(reconstruction, ComplexMatrices.transconjugate(eigvecs))
+        return gs.matmul(reconstruction, ComplexMatrixOperations.transconjugate(eigvecs))
 
     def random_point(self, n_samples=1, bound=0.1):
         """Sample in HPD(n) from the log-uniform distribution.
@@ -146,14 +150,14 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
         tangent_vec_at_id_aux = gs.random.rand(*size, dtype=gs.get_default_cdtype())
         tangent_vec_at_id_aux *= 2
         tangent_vec_at_id_aux -= 1 + 1j
-        tangent_vec_at_id = tangent_vec_at_id_aux + ComplexMatrices.transconjugate(
+        tangent_vec_at_id = tangent_vec_at_id_aux + ComplexMatrixOperations.transconjugate(
             tangent_vec_at_id_aux
         )
 
-        return Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
+        return MatrixOperations.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
 
-class HPDAffineMetric(ComplexRiemannianMetric):
+class HPDAffineMetric(RiemannianMetric):
     """Class for the affine-invariant metric on the HPD manifold."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -177,10 +181,10 @@ class HPDAffineMetric(ComplexRiemannianMetric):
             Inner-product.
         """
         inv_base_point = GeneralLinear.inverse(base_point)
-        aux_a = Matrices.mul(inv_base_point, tangent_vec_a)
-        aux_b = Matrices.mul(inv_base_point, tangent_vec_b)
+        aux_a = gs.matmul(inv_base_point, tangent_vec_a)
+        aux_b = gs.matmul(inv_base_point, tangent_vec_b)
 
-        return Matrices.trace_product(aux_a, aux_b)
+        return gs.real(MatrixOperations.trace_product(aux_a, aux_b))
 
     def exp(self, tangent_vec, base_point):
         """Compute the affine-invariant exponential map.
@@ -203,14 +207,14 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         """
         sqrt_base_point, inv_sqrt_base_point = powermh(base_point, [1.0 / 2, -1.0 / 2])
 
-        tangent_vec_at_id = Matrices.mul(
+        tangent_vec_at_id = MatrixOperations.mul(
             inv_sqrt_base_point, tangent_vec, inv_sqrt_base_point
         )
 
-        tangent_vec_at_id = ComplexMatrices.to_hermitian(tangent_vec_at_id)
+        tangent_vec_at_id = ComplexMatrixOperations.to_hermitian(tangent_vec_at_id)
         exp_from_id = expmh(tangent_vec_at_id)
 
-        return Matrices.mul(sqrt_base_point, exp_from_id, sqrt_base_point)
+        return MatrixOperations.mul(sqrt_base_point, exp_from_id, sqrt_base_point)
 
     def log(self, point, base_point):
         """Compute the affine-invariant logarithm map.
@@ -232,13 +236,13 @@ class HPDAffineMetric(ComplexRiemannianMetric):
             Riemannian logarithm of point at base_point.
         """
         sqrt_base_point, inv_sqrt_base_point = powermh(base_point, [1.0 / 2, -1.0 / 2])
-        point_near_id = Matrices.mul(inv_sqrt_base_point, point, inv_sqrt_base_point)
+        point_near_id = MatrixOperations.mul(inv_sqrt_base_point, point, inv_sqrt_base_point)
 
         # TODO: only this differs
-        point_near_id = ComplexMatrices.to_hermitian(point_near_id)
+        point_near_id = ComplexMatrixOperations.to_hermitian(point_near_id)
 
         log_at_id = logmh(point_near_id)
-        return Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
+        return MatrixOperations.mul(sqrt_base_point, log_at_id, sqrt_base_point)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
@@ -278,9 +282,9 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         if end_point is None:
             end_point = self.exp(direction, base_point)
         sqrt_bp, inv_sqrt_bp = powermh(base_point, [1.0 / 2, -1.0 / 2])
-        pdt = powermh(Matrices.mul(inv_sqrt_bp, end_point, inv_sqrt_bp), 1.0 / 2)
-        congruence_mat = Matrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
-        return ComplexMatrices.congruent(tangent_vec, congruence_mat)
+        pdt = powermh(MatrixOperations.mul(inv_sqrt_bp, end_point, inv_sqrt_bp), 1.0 / 2)
+        congruence_mat = MatrixOperations.mul(sqrt_bp, pdt, inv_sqrt_bp)
+        return ComplexMatrixOperations.congruent(tangent_vec, congruence_mat)
 
     def injectivity_radius(self, base_point=None):
         """Radius of the largest ball where the exponential is injective.
@@ -302,7 +306,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         return repeat_out(self._space.point_ndim, radius, base_point)
 
 
-class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
+class HPDBuresWassersteinMetric(RiemannianMetric):
     """Class for the Bures-Wasserstein metric on the HPD manifold."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -330,13 +334,13 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
             Inner-product.
         """
         eigvals, eigvecs = gs.linalg.eigh(base_point)
-        transconj_eigvecs = ComplexMatrices.transconjugate(eigvecs)
-        rotated_tangent_vec_a = Matrices.mul(transconj_eigvecs, tangent_vec_a, eigvecs)
-        rotated_tangent_vec_b = Matrices.mul(transconj_eigvecs, tangent_vec_b, eigvecs)
+        transconj_eigvecs = ComplexMatrixOperations.transconjugate(eigvecs)
+        rotated_tangent_vec_a = MatrixOperations.mul(transconj_eigvecs, tangent_vec_a, eigvecs)
+        rotated_tangent_vec_b = MatrixOperations.mul(transconj_eigvecs, tangent_vec_b, eigvecs)
 
         coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
-        result = (
-            ComplexMatrices.frobenius_product(
+        result = gs.real(
+            ComplexMatrixOperations.frobenius_product(
                 gs.cast(coefficients, dtype=rotated_tangent_vec_a.dtype)
                 * rotated_tangent_vec_a,
                 rotated_tangent_vec_b,
@@ -362,15 +366,15 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
             Riemannian exponential.
         """
         eigvals, eigvecs = gs.linalg.eigh(base_point)
-        transconj_eigvecs = ComplexMatrices.transconjugate(eigvecs)
-        rotated_tangent_vec = Matrices.mul(transconj_eigvecs, tangent_vec, eigvecs)
+        transconj_eigvecs = ComplexMatrixOperations.transconjugate(eigvecs)
+        rotated_tangent_vec = MatrixOperations.mul(transconj_eigvecs, tangent_vec, eigvecs)
         coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
         rotated_sylvester = rotated_tangent_vec * gs.cast(
             coefficients, dtype=rotated_tangent_vec.dtype
         )
         rotated_hessian = gs.einsum("...ij,...j->...ij", rotated_sylvester, eigvals)
-        rotated_hessian = Matrices.mul(rotated_hessian, rotated_sylvester)
-        hessian = Matrices.mul(eigvecs, rotated_hessian, transconj_eigvecs)
+        rotated_hessian = gs.matmul(rotated_hessian, rotated_sylvester)
+        hessian = MatrixOperations.mul(eigvecs, rotated_hessian, transconj_eigvecs)
 
         return base_point + tangent_vec + hessian
 
@@ -394,9 +398,9 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
             Riemannian logarithm.
         """
         sqrt_bp, inv_sqrt_bp = powermh(base_point, [0.5, -0.5])
-        pdt = powermh(Matrices.mul(sqrt_bp, point, sqrt_bp), 0.5)
-        sqrt_product = Matrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
-        transconj_sqrt_product = ComplexMatrices.transconjugate(sqrt_product)
+        pdt = powermh(MatrixOperations.mul(sqrt_bp, point, sqrt_bp), 0.5)
+        sqrt_product = MatrixOperations.mul(sqrt_bp, pdt, inv_sqrt_bp)
+        transconj_sqrt_product = ComplexMatrixOperations.transconjugate(sqrt_product)
         return sqrt_product + transconj_sqrt_product - 2 * base_point
 
     def squared_dist(self, point_a, point_b):
@@ -416,15 +420,12 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         squared_dist : array-like, shape=[...]
             Riemannian squared distance.
         """
-        product = gs.matmul(point_a, point_b)
-        sqrt_product = gs.linalg.sqrtm(product)
-        trace_a = gs.trace(point_a)
-        trace_b = gs.trace(point_b)
-        trace_prod = gs.trace(sqrt_product)
-
-        squared_dist = gs.real(trace_a + trace_b - 2.0 * trace_prod)
-
-        return gs.where(squared_dist < 0.0, 0.0, squared_dist)
+        trace_a = gs.real(gs.trace(point_a))
+        trace_b = gs.real(gs.trace(point_b))
+        sqrt_a = powermh(point_a, 0.5)
+        cross_eigvals = gs.linalg.eigvalsh(MatrixOperations.mul(sqrt_a, point_b, sqrt_a))
+        cross_term = gs.sum(gs.sqrt(cross_eigvals), axis=-1)
+        return gs.abs(trace_a + trace_b - 2 * cross_term)
 
     def parallel_transport(
         self,
@@ -479,12 +480,12 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         )
 
         square_root_bp, inverse_square_root_bp = powermh(base_point, [0.5, -0.5])
-        end_point_lift = Matrices.mul(square_root_bp, end_point, square_root_bp)
+        end_point_lift = MatrixOperations.mul(square_root_bp, end_point, square_root_bp)
         square_root_lift = powermh(end_point_lift, 0.5)
 
         horizontal_velocity = gs.matmul(inverse_square_root_bp, square_root_lift)
-        partial_horizontal_velocity = Matrices.mul(horizontal_velocity, square_root_bp)
-        partial_horizontal_velocity += ComplexMatrices.transconjugate(
+        partial_horizontal_velocity = gs.matmul(horizontal_velocity, square_root_bp)
+        partial_horizontal_velocity += ComplexMatrixOperations.transconjugate(
             partial_horizontal_velocity
         )
 
@@ -498,17 +499,17 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
                 + time**2 * end_point
             )
 
-            align = Matrices.mul(
+            align = MatrixOperations.mul(
                 horizontal_geodesic_t,
-                ComplexMatrices.transconjugate(horizontal_velocity - square_root_bp),
+                ComplexMatrixOperations.transconjugate(horizontal_velocity - square_root_bp),
                 state,
             )
-            right = align + ComplexMatrices.transconjugate(align)
+            right = align + ComplexMatrixOperations.transconjugate(align)
             return gs.linalg.solve_sylvester(geodesic_t, geodesic_t, -right)
 
         flow = integrate(force, horizontal_lift_a, n_steps=n_steps, step=step)
-        final_align = Matrices.mul(end_point, flow[-1])
-        return final_align + ComplexMatrices.transconjugate(final_align)
+        final_align = gs.matmul(end_point, flow[-1])
+        return final_align + ComplexMatrixOperations.transconjugate(final_align)
 
     def injectivity_radius(self, base_point):
         """Compute the upper bound of the injectivity domain.

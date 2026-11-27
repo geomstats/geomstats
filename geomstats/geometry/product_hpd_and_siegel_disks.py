@@ -55,7 +55,7 @@ class ProductHPDMatricesAndSiegelDisks(ProductManifold):
         factors = [HPDMatrices(n=n)] + [Siegel(n=n) for _ in range((n_manifolds - 1))]
 
         scales = [float(n_manifolds - i_manifold) for i_manifold in range(n_manifolds)]
-        for factor, scale in zip(factors[1:], scales[1:]):
+        for factor, scale in zip(factors, scales):
             factor.equip_with_metric(ScalarProductMetric(factor, scale))
 
         super().__init__(
@@ -71,11 +71,18 @@ class ProductHPDMatricesAndSiegelDisks(ProductManifold):
 
 
 class ProductHPDMatricesAndSiegelDisksMetric(ProductRiemannianMetric):
-    """Class defining the ProductHPDMatricesAndSiegelDisks metric.
+    r"""Class defining the ProductHPDMatricesAndSiegelDisks metric.
 
     The HPD Siegel disks product metric is a product of the HPD metric
     and (n-1) Siegel metrics, each of them being multiplied by a specific
-    constant factor (see [Cabanes2022]_, [Cabanes2021]_ and [JV2016]_).
+    constant factor (see [Cabanes2022]_, [Cabanes2021]_ and [JV2016]_):
+
+    .. math::
+
+        g = m g_{HPD} + \sum_{k=1}^{m-1} (m - k) g_{Siegel, k}
+
+    where :math:`m` is the number of manifolds of the product.
+
     This metric comes from a model used to represent multidimensional complex
     stationary centered Gaussian autoregressive times series.
     A multidimensional times series can be seen as a realization of

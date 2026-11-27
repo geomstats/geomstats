@@ -6,7 +6,7 @@ from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
 
 
-class _ManifoldTestCaseMixins:
+class ManifoldTestCase(TestCase):
     # TODO: check default_coords_type correcteness if intrinsic by comparing
     # with point shape?
     tangent_to_multiple = False
@@ -160,7 +160,3 @@ class _ManifoldTestCaseMixins:
 
         if n_points > 1:
             self.assertEqual(gs.shape(tangent_vec)[0], n_points)
-
-
-class ManifoldTestCase(_ManifoldTestCaseMixins, TestCase):
-    pass

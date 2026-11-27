@@ -17,7 +17,7 @@ import pandas as pd
 import geomstats.backend as gs
 from geomstats.datasets._base import FigshareMetadata, download_figshare_zip
 from geomstats.datasets.prepare_graph_data import Graph
-from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.hypersphere import SphericalToExtrinsicDiffeo
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
@@ -91,8 +91,7 @@ def load_cities():
     lng = gs.expand_dims(data[:, 1] + gs.pi, axis=1)
 
     data = gs.concatenate([colat, lng], axis=1)
-    sphere = Hypersphere(dim=2)
-    data = sphere.spherical_to_extrinsic(data)
+    data = SphericalToExtrinsicDiffeo()(data)
     return data, names
 
 
@@ -184,8 +183,8 @@ def load_connectomes(as_vectors=False):
     if as_vectors:
         return data, patient_id, target
     mat = SkewSymmetricMatrices(28).matrix_representation(data)
-    mat = gs.eye(28) - gs.transpose(gs.tril(mat))
-    mat = 1.0 / 2.0 * (mat + gs.transpose(mat))
+    mat = gs.eye(28) - gs.matrix_transpose(gs.tril(mat))
+    mat = 1.0 / 2.0 * (mat + gs.matrix_transpose(mat))
 
     return mat, patient_id, target
 

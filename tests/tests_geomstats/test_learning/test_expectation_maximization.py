@@ -73,3 +73,17 @@ class TestGaussianMixtureModel(
     )
 
     testing_data = GaussianMixtureModelTestData()
+
+
+def test_riemannian_em_warns_when_max_iter_reached(caplog):
+    """Check that RiemannianEM logs a warning when max_iter is reached."""
+    space = PoincareBall(dim=2)
+    X = space.random_point(10)
+    estimator = RiemannianEM(space, n_gaussians=2, max_iter=1)
+
+    with caplog.at_level("INFO", logger="geomstats.learning"):
+        estimator.fit(X)
+
+    record = caplog.records[-1]
+    assert record.levelname == "WARNING"
+    assert "Maximum number of iterations 1 reached" in record.getMessage()

@@ -9,7 +9,10 @@ the tests are already defined).
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .riemannian_metric import RiemannianMetricTestData
+from .riemannian_metric import (
+    CoordinateRiemannianMetricTestData,
+    RiemannianMetricTestData,
+)
 
 
 class _InvariantMetricAtIdentityMixinsTestData(TestData):
@@ -174,7 +177,9 @@ class InvariantMetricVectorAtIdentityTestData(_InvariantMetricAtIdentityMixinsTe
         return self.generate_random_data()
 
 
-class InvariantMetricVectorTestData(_InvariantMetricMixinsTestData):
+class InvariantMetricVectorTestData(
+    _InvariantMetricMixinsTestData, CoordinateRiemannianMetricTestData
+):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
     skip_vec = True

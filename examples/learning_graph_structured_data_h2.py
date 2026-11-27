@@ -100,7 +100,7 @@ def loss(example_embedding, context_embedding, negative_embedding, manifold):
         reshaped_example_embedding, negative_embedding
     )
 
-    negative_distance = gs.to_ndarray(negative_distance, to_ndim=2, axis=-1)
+    negative_distance = gs.expand_dims(negative_distance, axis=-1)
     negative_log_sigmoid_grad = grad_log_sigmoid(negative_distance)
 
     negative_grad = negative_log_sigmoid_grad * negative_distance_grad
@@ -197,4 +197,5 @@ def main():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     main()

@@ -10,7 +10,7 @@ Lead author: Nicolas Guigui.
 
 import geomstats.backend as gs
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import Matrices, MatricesMetric, MatrixOperations
 
 
 class SkewSymmetricMatrices(MatrixLieAlgebra):
@@ -74,7 +74,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         """
         has_right_shape = self.embedding_space.belongs(point)
         if gs.all(has_right_shape):
-            return Matrices.is_skew_symmetric(mat=point, atol=atol)
+            return MatrixOperations.is_skew_symmetric(mat=point, atol=atol)
         return has_right_shape
 
     def random_point(self, n_samples=1, bound=1.0):
@@ -97,7 +97,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         return self.projection(super().random_point(n_samples, bound))
 
     @classmethod
-    def projection(cls, mat):
+    def projection(cls, point):
         r"""Compute the skew-symmetric component of a matrix.
 
         The skew-symmetric part of a matrix :math:`X` is defined by
@@ -107,7 +107,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
             Matrix.
 
         Returns
@@ -115,7 +115,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         skew_sym : array-like, shape=[..., n, n]
             Skew-symmetric matrix.
         """
-        return Matrices.to_skew_symmetric(mat)
+        return MatrixOperations.to_skew_symmetric(point)
 
     def basis_representation(self, matrix_representation):
         """Calculate the coefficients of given matrix in the basis.

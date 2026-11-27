@@ -28,10 +28,10 @@ from geomstats.test_cases.geometry.lie_group import MatrixLieGroupTestCase
 from geomstats.test_cases.geometry.positive_lower_triangular_matrices import (
     CholeskyMetricTestCase,
 )
-from geomstats.test_cases.geometry.positive_lower_triangular_matrices import (
+from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
+from geomstats.variants.geometry.positive_lower_triangular_matrices import (
     LowerMatrixLog as OtherLowerMatrixLog,
 )
-from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
 
 from .data.base import DiffeomorphicManifoldTestData
 from .data.diffeo import DiffeoTestData
@@ -143,6 +143,6 @@ class TestLowerMatrixLogCmp(DiffeoComparisonTestCase, metaclass=DataBasedParamet
     image_space = StrictlyLowerTriangularMatrices(n=_n, equip=False)
 
     diffeo = LowerMatrixLog()
-    other_diffeo = OtherLowerMatrixLog(space.shape)
+    other_diffeo = OtherLowerMatrixLog()
 
     testing_data = LowerMatrixLogCmpTestData()

@@ -3,7 +3,7 @@ import math
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .complex_riemannian_metric import ComplexRiemannianMetricTestData
+from .riemannian_metric import RiemannianMetricTestData
 
 LN_3 = math.log(3.0)
 EXP_4 = math.exp(4.0)
@@ -52,7 +52,7 @@ class Siegel2TestData(TestData):
         return self.generate_tests(data)
 
 
-class SiegelMetricTestData(ComplexRiemannianMetricTestData):
+class SiegelMetricTestData(RiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 

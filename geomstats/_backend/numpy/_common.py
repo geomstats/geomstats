@@ -13,31 +13,27 @@ def is_array(x):
     return type(x) is _np.ndarray
 
 
-def to_ndarray(x, to_ndim, axis=0, dtype=None):
-    x = _np.asarray(x, dtype=dtype)
+def expand_dims_to(x, ndim, axis=0):
+    """Insert axes at ``axis`` until an array has ``ndim`` axes.
 
-    if x.ndim > to_ndim:
-        raise ValueError("The ndim cannot be adapted properly.")
+    Parameters
+    ----------
+    x : array-like
+        Array, with at most ``ndim`` axes.
+    ndim : int
+        Number of axes of the output.
+    axis : int
+        Position of the inserted axes.
 
-    while x.ndim < to_ndim:
+    Returns
+    -------
+    x : array-like
+        Array with ``ndim`` axes.
+    """
+    if x.ndim > ndim:
+        raise ValueError(f"Cannot expand an array with {x.ndim} axes to {ndim}.")
+
+    while x.ndim < ndim:
         x = _np.expand_dims(x, axis=axis)
 
     return x
-
-
-def _is_boolean(x):
-    if isinstance(x, bool):
-        return True
-    if isinstance(x, (tuple, list)):
-        return _is_boolean(x[0])
-    if isinstance(x, _np.ndarray):
-        return x.dtype == bool
-    return False
-
-
-def _is_iterable(x):
-    if isinstance(x, (list, tuple)):
-        return True
-    if isinstance(x, _np.ndarray):
-        return x.ndim > 0
-    return False

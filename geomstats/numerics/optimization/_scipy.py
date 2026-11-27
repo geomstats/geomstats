@@ -8,6 +8,8 @@ from geomstats.numerics._common import result_to_backend_type
 
 from ._optimization import Minimizer, RootFinder
 
+logger = logging.getLogger("geomstats.numerics.optimization")
+
 
 class ScipyMinimize(Minimizer):
     """Wrapper for scipy.optimize.minimize.
@@ -129,7 +131,7 @@ class ScipyMinimize(Minimizer):
         result = result_to_backend_type(result)
 
         if not result.success:
-            logging.warning(result.message)
+            logger.warning(result.message)
 
         if self.save_result:
             self.result_ = result
@@ -217,7 +219,7 @@ class ScipyRoot(RootFinder):
         result = result_to_backend_type(result)
 
         if not result.success:
-            logging.warning(result.message)
+            logger.warning(result.message)
 
         if self.save_result:
             self.result_ = result

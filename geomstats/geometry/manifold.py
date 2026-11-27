@@ -17,20 +17,42 @@ from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.quotient_metric import QuotientMetric
 
 
+def _get_default_dtype(complex_repr):
+    """Get the default dtype of a representation.
+
+    Parameters
+    ----------
+    complex_repr : bool
+        Whether the representation is complex.
+
+    Returns
+    -------
+    dtype : dtype
+        Default complex dtype if `complex_repr`, default real dtype otherwise.
+    """
+    if complex_repr:
+        return gs.get_default_cdtype()
+    return gs.get_default_dtype()
+
+
 class Manifold(abc.ABC):
     r"""Class for manifolds.
 
     Parameters
     ----------
     dim : int
-        Dimension of the manifold.
+        Dimension of the manifold, over its field.
     shape : tuple of int
         Shape of one element of the manifold.
-        Optional, default : None.
     intrinsic : bool
         Coordinate type.
     equip : bool
-        If True, equip space with default metric.
+        Whether to equip space with default metric.
+    field : str, {"real", "complex"}
+        Field over which the manifold is defined.
+    complex_repr : bool
+        Whether points are represented by complex arrays. If None, points
+        are complex if and only if the field is complex.
 
     Attributes
     ----------
@@ -44,8 +66,11 @@ class Manifold(abc.ABC):
         shape,
         intrinsic=True,
         equip=True,
+        field="real",
+        complex_repr=None,
     ):
         geomstats.errors.check_integer(dim, "dim")
+        geomstats.errors.check_field(field)
 
         if not isinstance(shape, tuple):
             raise ValueError("Expected a tuple for the shape argument.")
@@ -53,9 +78,14 @@ class Manifold(abc.ABC):
         if not isinstance(equip, bool):
             raise TypeError("Expected a boolean value for 'equip' argument.")
 
+        if complex_repr is None:
+            complex_repr = field == "complex"
+
         self.dim = dim
         self.shape = shape
         self.intrinsic = intrinsic
+        self.field = field
+        self.complex_repr = complex_repr
 
         self.point_ndim = len(self.shape)
 
@@ -259,7 +289,6 @@ class Manifold(abc.ABC):
         ----------
         n_samples : int
             Number of samples.
-            Optional, default: 1.
         base_point :  array-like, shape={[n_samples, *point_shape], [*point_shape,]}
             Point.
 
@@ -280,7 +309,11 @@ class Manifold(abc.ABC):
             )
         batch_size = () if n_samples == 1 else (n_samples,)
         return self.to_tangent(
-            gs.random.normal(size=batch_size + self.shape), base_point
+            gs.random.normal(
+                size=batch_size + self.shape,
+                dtype=_get_default_dtype(self.complex_repr),
+            ),
+            base_point,
         )
 
     def projection(self, point):

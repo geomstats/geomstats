@@ -195,7 +195,12 @@ class KleinBottleMetricTestData(RiemannianMetricTestData):
                 expected=gs.array(
                     [[0.6, 0.7], [0.6, 0.3], [0.6, 0.3], [0.6, 0.5], [0.5, 0.4]]
                 ),
-            )
+            ),
+            dict(
+                base_point=gs.array([1.2, 0.3]),
+                tangent_vec=gs.array([0.0, 0.1]),
+                expected=gs.array([0.2, 0.6]),
+            ),
         ]
         return self.generate_tests(data, marks=(pytest.mark.smoke,))
 
@@ -210,6 +215,34 @@ class KleinBottleMetricTestData(RiemannianMetricTestData):
                 base_point=gs.array([0.1, 0.12]),
                 point=gs.array([0.9, 0.8]),
                 expected=gs.array([-0.1 - 0.1, 0.2 - 0.12]),
+            ),
+            dict(
+                base_point=gs.array([1.2, 0.3]),
+                point=gs.array([0.2, 0.6]),
+                expected=gs.array([0.0, 0.1]),
+            ),
+        ]
+        return self.generate_tests(data, marks=(pytest.mark.smoke,))
+
+    def parallel_transport_test_data(self):
+        data = [
+            dict(
+                tangent_vec=gs.array([0.1, 0.2]),
+                base_point=gs.array([0.6, 0.3]),
+                direction=gs.array([0.2, 0.0]),
+                expected=gs.array([0.1, 0.2]),
+            ),
+            dict(
+                tangent_vec=gs.array([0.1, 0.2]),
+                base_point=gs.array([0.6, 0.3]),
+                direction=gs.array([0.6, 0.0]),
+                expected=gs.array([0.1, -0.2]),
+            ),
+            dict(
+                tangent_vec=gs.array([0.1, 0.2]),
+                base_point=gs.array([0.9, 0.5]),
+                end_point=gs.array([0.1, 0.5]),
+                expected=gs.array([0.1, -0.2]),
             ),
         ]
         return self.generate_tests(data, marks=(pytest.mark.smoke,))
