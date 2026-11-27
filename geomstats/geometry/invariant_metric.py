@@ -469,7 +469,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         )
         num = self.inner_product(tangent_vec_b, curvature)
         denom = (
-            self.squared_norm(tangent_vec_a) * self.squared_norm(tangent_vec_a)
+            self.squared_norm(tangent_vec_a) * self.squared_norm(tangent_vec_b)
             - self.inner_product(tangent_vec_a, tangent_vec_b) ** 2
         )
         condition = gs.isclose(denom, 0.0)

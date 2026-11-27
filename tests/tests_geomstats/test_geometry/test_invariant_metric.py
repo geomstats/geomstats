@@ -99,6 +99,11 @@ class TestInvariantMetricMatrixSO3(
             gs.array([1.0 / 8, 1.0 / 8]),
             atol,
         )
+        # Non-unit and non-orthogonal pairs spanning the same 2-plane
+        self.test_sectional_curvature(x, 2.0 * y, base_point, 1.0 / 8, atol)
+        self.test_sectional_curvature(x, x + y, base_point, 1.0 / 8, atol)
+        self.test_sectional_curvature(x, 2.0 * x + y, base_point, 1.0 / 8, atol)
+        self.test_sectional_curvature(3.0 * x, 2.0 * y, base_point, 1.0 / 8, atol)
 
     def test_curvature_smoke(self, atol):
         base_point = self.space.identity
