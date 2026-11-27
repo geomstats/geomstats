@@ -475,19 +475,21 @@ class RiemannianMetric(Connection, ABC):
 
         Parameters
         ----------
-        basis : array-like, shape=[dim, dim]
-            Matrix of a metric.
-        base_point : array-like, shape=[dim]
-            Base point.
+        basis : array-like, shape=[..., n_vectors, *point_shape]
+            Basis of tangent vectors to normalize.
+        base_point : array-like, shape=[..., *point_shape]
+            Base point. Its leading axes must broadcast with those of basis.
 
         Returns
         -------
-        basis : array-like, shape=[dim, n, n]
-            Normal basis.
+        basis : array-like, shape=[..., n_vectors, *point_shape]
+            Basis with each vector normalized using the metric at base_point.
         """
         norms = self.squared_norm(basis, base_point)
-
-        return gs.einsum("i, ikl->ikl", 1.0 / gs.sqrt(norms), basis)
+        scales = gs.reshape(
+            1.0 / gs.sqrt(norms), norms.shape + (1,) * self._space.point_ndim
+        )
+        return scales * basis
 
     def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the sectional curvature.
