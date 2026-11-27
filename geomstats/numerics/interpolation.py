@@ -106,8 +106,8 @@ class _LinearInterpolator1D(Interpolator, ABC):
         ratio = self._get_ratio(t, interval_index, end_index)
 
         diff = end_point - initial_point
-        ijk = "ijk"[: self.point_ndim]
-        return initial_point + gs.einsum(f"t,...t{ijk}->...t{ijk}", ratio, diff)
+        ratio = gs.reshape(ratio, ratio.shape + (1,) * self.point_ndim)
+        return initial_point + ratio * diff
 
 
 class UniformUnitIntervalLinearInterpolator(_LinearInterpolator1D):
@@ -118,9 +118,9 @@ class UniformUnitIntervalLinearInterpolator(_LinearInterpolator1D):
 
     Parameters
     ----------
-    data : array-like, [..., *point_shape]
+    data : array-like, [..., n_times, *point_shape]
     point_ndim : int
-        Dimension of point.
+        Number of trailing array axes that represent one point.
     """
 
     def __init__(self, data, point_ndim=1):
@@ -173,9 +173,9 @@ class LinearInterpolator1D(_LinearInterpolator1D):
     ----------
     times : array-like, [n_times]
         Times. Must be sorted.
-    data : array-like, [..., *point_shape]
+    data : array-like, [..., n_times, *point_shape]
     point_ndim : int
-        Dimension of point.
+        Number of trailing array axes that represent one point.
     """
 
     def __init__(self, times, data, point_ndim=1):
