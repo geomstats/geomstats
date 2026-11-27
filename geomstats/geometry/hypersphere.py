@@ -9,6 +9,7 @@ Lead author: Nina Miolane.
 import abc
 import logging
 import math
+import operator
 
 from scipy.stats import beta
 
@@ -409,12 +410,15 @@ class Hypersphere(LevelSet):
         mu : array-like, shape=[dim + 1]
             Mean parameter of the distribution.
         kappa : float
-            Kappa parameter of the von Mises distribution.
+            Concentration parameter. Must be finite and non-negative on the
+            circle, where ``kappa == 0`` gives the uniform distribution and
+            ``mu`` is not identifiable.
         n_samples : int
             Number of samples.
         max_iter : int
-            Maximum number of trials in the rejection algorithm.
-            Only used if dim > 2.
+            Maximum number of trials in the rejection algorithm. In case it
+            is reached, fewer samples than requested are returned. Only used
+            on the circle and in dimensions larger than 2.
 
         Returns
         -------
@@ -1400,31 +1404,33 @@ class VonMisesFisher:
     maximum entropy distribution on the hypersphere for a given mean.
 
     Instantiating this class returns the sampler that corresponds to the
-    dimension of the space: a closed form on the 2-sphere, and rejection
-    sampling [W1994]_ in larger dimensions.
+    dimension of the space: rejection sampling [BF79]_ on the circle, a closed
+    form on the 2-sphere, and rejection sampling [W1994]_ in larger dimensions.
 
     Parameters
     ----------
     space : Hypersphere
-        Hypersphere of dimension at least 2.
+        Hypersphere of dimension at least 1.
     mu : array-like, shape=[dim + 1]
         Mean direction, a unit vector. If None, the first vector of the
         canonical basis is used.
     kappa : float
-        Concentration parameter.
+        Concentration parameter. Must be finite and non-negative on the
+        circle, where ``kappa == 0`` gives the uniform distribution.
     max_iter : int
         Maximum number of trials in the rejection algorithm. In case it is
-        reached, fewer samples than requested are returned. Only used if
-        dim > 2.
-
-    Raises
-    ------
-    NotImplementedError
-        If the space is the circle.
+        reached, fewer samples than requested are returned. Only used on the
+        circle and in dimensions larger than 2.
 
     References
     ----------
     https://en.wikipedia.org/wiki/Von_Mises-Fisher_distribution
+
+    .. [BF79]   Best, D. J. and Fisher, N. I. "Efficient Simulation of
+                the von Mises Distribution." Journal of the Royal
+                Statistical Society. Series C (Applied Statistics),
+                vol. 28, no. 2, pp. 152--157, 1979.
+                https://doi.org/10.2307/2346732.
 
     .. [W1994]   Wood, Andrew T. A. “Simulation of the von Mises Fisher
                   Distribution.” Communications in Statistics - Simulation
@@ -1435,7 +1441,7 @@ class VonMisesFisher:
     def __new__(cls, space, mu=None, kappa=10, max_iter=100):
         """Return the sampler that corresponds to the dimension of the space."""
         if space.dim == 1:
-            raise NotImplementedError("Not implemented for dim == 1")
+            return _CircleVonMisesFisher(space, mu=mu, kappa=kappa, max_iter=max_iter)
 
         if space.dim == 2:
             return _SphereVonMisesFisher(space, mu=mu, kappa=kappa)
@@ -1499,6 +1505,144 @@ class _VonMisesFisherBase(Distribution):
             sample = utils.rotate_points(sample, self.mu)
 
         return sample if (n_samples > 1) else sample[0]
+
+
+class _CircleVonMisesFisher(_VonMisesFisherBase):
+    r"""Von Mises distribution on the circle, sampled by rejection.
+
+    The rationalized Best--Fisher parameter avoids the catastrophic
+    cancellation of the equivalent subtractive expression at small
+    concentrations.
+
+    Parameters
+    ----------
+    space : Hypersphere
+        Hypersphere of dimension 1.
+    mu : array-like, shape=[2]
+        Mean direction, a unit vector. If None, the first vector of the
+        canonical basis is used.
+    kappa : float
+        Finite, non-negative concentration parameter.
+    max_iter : int
+        Maximum number of rejection rounds.
+    """
+
+    def __init__(self, space, mu=None, kappa=10, max_iter=100):
+        super().__init__(space, mu=mu, kappa=kappa)
+        if not math.isfinite(kappa):
+            raise ValueError(f"kappa must be finite, got {kappa}.")
+        if kappa < 0.0:
+            raise ValueError(f"kappa must be non-negative, got {kappa}.")
+        if isinstance(max_iter, bool):
+            raise ValueError(f"max_iter must be an integer, got {max_iter}.")
+        try:
+            self.max_iter = operator.index(max_iter)
+        except TypeError as error:
+            raise ValueError(f"max_iter must be an integer, got {max_iter}.") from error
+        if self.max_iter < 0:
+            raise ValueError(f"max_iter must be non-negative, got {max_iter}.")
+
+    def _sample_at_first_axis(self, n_samples):
+        """Sample with mean direction the first vector of the canonical basis.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples. Must be positive.
+
+        Returns
+        -------
+        sample : array-like, shape=[n_accepted, 2]
+            Points on the circle. Fewer than `n_samples` if the maximum
+            number of iterations is reached.
+
+        Raises
+        ------
+        ValueError
+            If `n_samples` is not a positive integer or no candidate is
+            accepted within `max_iter` rounds.
+        """
+        if isinstance(n_samples, bool):
+            raise ValueError(f"n_samples must be a positive integer, got {n_samples}.")
+        try:
+            n_samples = operator.index(n_samples)
+        except TypeError as error:
+            raise ValueError(
+                f"n_samples must be a positive integer, got {n_samples}."
+            ) from error
+        if n_samples < 1:
+            raise ValueError(f"n_samples must be a positive integer, got {n_samples}.")
+
+        kappa = self.kappa
+        if kappa == 0.0:
+            theta = 2.0 * gs.pi * gs.random.rand(n_samples)
+            return gs.stack((gs.cos(theta), gs.sin(theta)), axis=-1)
+
+        if kappa <= 1.0:
+            tau = 1.0 + gs.sqrt(1.0 + 4.0 * kappa**2)
+            sqrt_2tau = gs.sqrt(2.0 * tau)
+            denominator = tau + sqrt_2tau
+            rho = 2.0 * kappa / denominator
+            one_minus_rho = (denominator - 2.0 * kappa) / denominator
+        else:
+            inv_kappa = 1.0 / kappa
+            root = gs.sqrt(inv_kappa**2 + 4.0)
+            scaled_tau = inv_kappa + root
+            sqrt_term = gs.sqrt(2.0 * inv_kappa * scaled_tau)
+            denominator = scaled_tau + sqrt_term
+            rho = 2.0 / denominator
+            scaled_tau_minus_2 = inv_kappa + inv_kappa**2 / (root + 2.0)
+            one_minus_rho = (scaled_tau_minus_2 + sqrt_term) / denominator
+
+        if rho == 0.0:
+            theta = 2.0 * gs.pi * gs.random.rand(n_samples)
+            return gs.stack((gs.cos(theta), gs.sin(theta)), axis=-1)
+
+        one_minus_rho_squared = one_minus_rho**2
+        n_accepted, n_iter = 0, 0
+        result = []
+        while (n_accepted < n_samples) and (n_iter < self.max_iter):
+            n_candidates = n_samples - n_accepted
+            half_angles = 0.5 * gs.pi * gs.random.rand(n_candidates)
+            one_minus_z = 2.0 * gs.sin(half_angles) ** 2
+            one_plus_z = 2.0 * gs.cos(half_angles) ** 2
+            denominator = 2.0 * rho * one_plus_z + one_minus_rho_squared
+            c_samples = (
+                kappa
+                * one_minus_rho_squared
+                * (4.0 * rho + one_minus_rho_squared)
+                / (2.0 * rho * denominator)
+            )
+            u_2 = gs.random.rand(n_candidates)
+            accept = gs.logical_or(
+                c_samples * (2.0 - c_samples) > u_2,
+                gs.log(u_2) <= 1.0 - c_samples + gs.log(c_samples),
+            )
+            half_angle_squared = gs.clip(
+                one_minus_rho_squared * one_minus_z / (2.0 * denominator),
+                0.0,
+                1.0,
+            )
+            theta = (
+                gs.sign(gs.random.rand(n_candidates) - 0.5)
+                * 2.0
+                * gs.arcsin(gs.sqrt(half_angle_squared))
+            )
+            sample = gs.stack((gs.cos(theta), gs.sin(theta)), axis=-1)
+            result.append(sample[accept])
+            n_accepted += int(gs.sum(accept))
+            n_iter += 1
+
+        if n_accepted == 0:
+            raise ValueError(
+                "No sample was accepted within max_iter trials. Increase max_iter."
+            )
+        if n_accepted < n_samples:
+            logger.warning(
+                "Maximum number of iteration reached in rejection "
+                "sampling before n_samples were accepted."
+            )
+        return gs.concatenate(result)
 
 
 class _SphereVonMisesFisher(_VonMisesFisherBase):

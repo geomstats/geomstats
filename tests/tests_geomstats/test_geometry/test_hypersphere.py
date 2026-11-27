@@ -1,6 +1,10 @@
+import logging
 import random
 
+import numpy as np
 import pytest
+from scipy import stats
+from scipy.special import ive
 
 import geomstats.backend as gs
 from geomstats.geometry.hypersphere import (
@@ -57,9 +61,7 @@ class TestAngleToExtrinsicDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer
     testing_data = DiffeoTestData()
 
 
-class TestSphericalToExtrinsicDiffeo(
-    DiffeoTestCase, metaclass=DataBasedParametrizer
-):
+class TestSphericalToExtrinsicDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
     space = SphereSphericalCoordinates(equip=False)
     image_space = Hypersphere(2, equip=False)
     diffeo = SphericalToExtrinsicDiffeo()
@@ -72,9 +74,7 @@ class TestHypersphere(LevelSetTestCase, metaclass=DataBasedParametrizer):
 
 
 @pytest.mark.smoke
-class TestHypersphere2Metric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
-):
+class TestHypersphere2Metric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     space = space = Hypersphere(2, equip=False)
     space.equip_with_metric(HypersphereMetric)
 
@@ -88,9 +88,7 @@ class TestHypersphere2Metric(
 
 
 @pytest.mark.smoke
-class TestHypersphere4Metric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
-):
+class TestHypersphere4Metric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     space = space = Hypersphere(4, equip=False)
     space.equip_with_metric(HypersphereMetric)
 
@@ -104,9 +102,7 @@ class TestHypersphere4Metric(
         self.assertAllClose(result, expected)
 
 
-class TestHypersphereMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
-):
+class TestHypersphereMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     space = Hypersphere(random.randint(2, 5))
     testing_data = HypersphereMetricTestData()
 
@@ -210,6 +206,8 @@ def _random_kappa():
 @pytest.fixture(
     scope="class",
     params=[
+        (1, True),
+        (1, False),
         (2, True),
         (2, False),
         (random.randint(3, 5), True),
@@ -231,6 +229,7 @@ class TestVonMisesFisher(VonMisesFisherTestCase, metaclass=DataBasedParametrizer
 @pytest.fixture(
     scope="class",
     params=[
+        1,
         2,
         random.randint(3, 5),
     ],
@@ -241,9 +240,7 @@ def von_mises_fisher_kappa_distributions(request):
 
 
 @pytest.mark.usefixtures("von_mises_fisher_kappa_distributions")
-class TestVonMisesFisherKappa(
-    VonMisesFisherTestCase, metaclass=DataBasedParametrizer
-):
+class TestVonMisesFisherKappa(VonMisesFisherTestCase, metaclass=DataBasedParametrizer):
     testing_data = VonMisesFisherKappaTestData()
 
 
@@ -307,3 +304,227 @@ class TestHypersphereRiemannianNormalFrechetMean(
     HypersphereRiemannianNormalTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = HypersphereRiemannianNormalFrechetMeanTestData()
+
+
+def _circle_angles(point):
+    """Extract the angle of points on the circle, in [-pi, pi]."""
+    point = np.asarray(point, dtype=np.float64)
+    return np.arctan2(point[..., 1], point[..., 0])
+
+
+def _von_mises_ratio(order, kappa):
+    """Compute I_order(kappa) / I_0(kappa) using exponentially scaled Bessels."""
+    return ive(order, kappa) / ive(0, kappa)
+
+
+class TestVonMisesFisherCircle:
+    """Regression tests for von Mises-Fisher sampling on the circle."""
+
+    space = Hypersphere(1)
+    n_samples = 20_000
+
+    @pytest.mark.smoke
+    def test_distribution_factory_supports_circle(self):
+        distribution = VonMisesFisher(self.space, kappa=1.0)
+        point = gs.to_numpy(distribution.sample())
+
+        assert point.shape == (2,)
+        assert np.isfinite(point).all()
+        assert np.isclose(np.linalg.norm(point), 1.0, atol=1e-10)
+
+    @pytest.mark.smoke
+    @pytest.mark.shape
+    @pytest.mark.parametrize("n_samples", [1, 2, 17, 1000])
+    def test_shapes_and_unit_norm(self, n_samples):
+        gs.random.seed(0)
+        point = gs.to_numpy(
+            self.space.random_von_mises_fisher(n_samples=n_samples, kappa=10.0)
+        )
+        expected_shape = (2,) if n_samples == 1 else (n_samples, 2)
+
+        assert point.shape == expected_shape
+        assert np.isfinite(point).all()
+        assert np.allclose(np.linalg.norm(point, axis=-1), 1.0, atol=1e-10)
+
+    @pytest.mark.random
+    @pytest.mark.parametrize("kappa", [0.0, 1e-12, 1e-8])
+    def test_vanishing_concentration_is_uniform(self, kappa):
+        gs.random.seed(0)
+        point = gs.to_numpy(
+            self.space.random_von_mises_fisher(
+                n_samples=self.n_samples, kappa=kappa, mu=gs.array([1.0, 0.0])
+            )
+        )
+        assert np.isfinite(point).all()
+        assert np.allclose(np.linalg.norm(point, axis=-1), 1.0, atol=1e-10)
+
+        angles = _circle_angles(point)
+        result = stats.kstest(angles, "uniform", args=(-np.pi, 2 * np.pi))
+        assert result.statistic < 2.5 / np.sqrt(self.n_samples)
+
+    @pytest.mark.random
+    @pytest.mark.parametrize("kappa", [1e-8, 1e-3, 0.1, 1.0, 10.0, 100.0, 1e4])
+    def test_moments_match_theory(self, kappa):
+        gs.random.seed(0)
+        point = gs.to_numpy(
+            self.space.random_von_mises_fisher(
+                n_samples=self.n_samples, kappa=kappa, mu=gs.array([1.0, 0.0])
+            )
+        )
+        angles = _circle_angles(point)
+        cos_1, cos_2 = np.cos(angles), np.cos(2 * angles)
+
+        expected_1 = _von_mises_ratio(1, kappa)
+        expected_2 = _von_mises_ratio(2, kappa)
+        var_1 = (1.0 + expected_2) / 2.0 - expected_1**2
+        var_2 = (1.0 + _von_mises_ratio(4, kappa)) / 2.0 - expected_2**2
+
+        assert abs(cos_1.mean() - expected_1) < 5.0 * np.sqrt(var_1 / len(angles))
+        assert abs(cos_2.mean() - expected_2) < 5.0 * np.sqrt(var_2 / len(angles))
+        assert abs(np.sin(angles).mean()) < 5.0 / np.sqrt(2.0 * len(angles))
+        assert abs(np.sin(2 * angles).mean()) < 5.0 / np.sqrt(2.0 * len(angles))
+
+    @pytest.mark.random
+    @pytest.mark.parametrize(
+        "mu", [[1.0, 0.0], [0.0, 1.0], [-1.0, 0.0], [-1.0, -1.0], [0.6, 0.8]]
+    )
+    def test_mean_direction(self, mu):
+        gs.random.seed(0)
+        mu = np.asarray(mu, dtype=np.float64)
+        mu = mu / np.linalg.norm(mu)
+        kappa = 5.0
+
+        point = gs.to_numpy(
+            self.space.random_von_mises_fisher(
+                n_samples=self.n_samples, kappa=kappa, mu=gs.array(mu)
+            )
+        )
+        mean_direction = point.mean(axis=0)
+        mean_direction = mean_direction / np.linalg.norm(mean_direction)
+
+        standard_error = 1.0 / np.sqrt(
+            self.n_samples * kappa * _von_mises_ratio(1, kappa)
+        )
+        assert np.linalg.norm(mean_direction - mu) < 5.0 * standard_error
+
+    @pytest.mark.smoke
+    @pytest.mark.validation
+    def test_issue_1334_reproduction(self):
+        sphere = Hypersphere(dim=1)
+        point = gs.to_numpy(sphere.random_von_mises_fisher(mu=gs.array([1.0, 0.0])))
+
+        assert point.shape == (2,)
+        assert np.isfinite(point).all()
+        assert np.isclose(np.linalg.norm(point), 1.0, atol=1e-10)
+
+    @pytest.mark.validation
+    def test_negative_kappa_raises(self):
+        with pytest.raises(ValueError, match="non-negative"):
+            self.space.random_von_mises_fisher(n_samples=5, kappa=-1.0)
+
+    @pytest.mark.validation
+    @pytest.mark.parametrize("kappa", [np.nan, np.inf, -np.inf])
+    def test_non_finite_kappa_raises(self, kappa):
+        with pytest.raises(ValueError, match="finite"):
+            self.space.random_von_mises_fisher(n_samples=5, kappa=kappa)
+
+    @pytest.mark.parametrize("n_samples", [0, -1, 1.5, True])
+    @pytest.mark.validation
+    def test_invalid_n_samples_raises(self, n_samples):
+        with pytest.raises(ValueError, match="positive integer"):
+            self.space.random_von_mises_fisher(n_samples=n_samples, kappa=1.0)
+
+    @pytest.mark.validation
+    def test_max_iter_zero_raises_informative_error(self):
+        with pytest.raises(ValueError, match="max_iter"):
+            self.space.random_von_mises_fisher(n_samples=1, kappa=10.0, max_iter=0)
+
+    @pytest.mark.parametrize("max_iter", [-1, 1.5, True])
+    @pytest.mark.validation
+    def test_invalid_max_iter_raises(self, max_iter):
+        with pytest.raises(ValueError, match="max_iter"):
+            self.space.random_von_mises_fisher(
+                n_samples=1, kappa=1.0, max_iter=max_iter
+            )
+
+    @pytest.mark.smoke
+    def test_uniform_sampling_does_not_use_max_iter(self):
+        point = gs.to_numpy(
+            self.space.random_von_mises_fisher(n_samples=5, kappa=0.0, max_iter=0)
+        )
+
+        assert point.shape == (5, 2)
+        assert np.allclose(np.linalg.norm(point, axis=-1), 1.0, atol=1e-10)
+
+    @pytest.mark.random
+    def test_partial_acceptance_returns_fewer_samples_and_warns(self, caplog):
+        gs.random.seed(0)
+        with caplog.at_level(logging.WARNING):
+            point = gs.to_numpy(
+                self.space.random_von_mises_fisher(
+                    n_samples=1000, kappa=10.0, max_iter=1
+                )
+            )
+
+        assert 0 < point.shape[0] < 1000
+        assert point.shape[1] == 2
+        assert np.isfinite(point).all()
+        assert "Maximum number of iteration" in caplog.text
+
+    @pytest.mark.validation
+    def test_exhausted_max_iter_is_never_a_concatenation_error(self):
+        for seed in range(50):
+            gs.random.seed(seed)
+            try:
+                point = self.space.random_von_mises_fisher(
+                    n_samples=1, kappa=10.0, max_iter=1
+                )
+            except ValueError as error:
+                assert "max_iter" in str(error)
+            else:
+                assert gs.to_numpy(point).shape == (2,)
+
+    @pytest.mark.validation
+    def test_sampling_is_reproducible(self):
+        gs.random.seed(0)
+        first = gs.to_numpy(
+            self.space.random_von_mises_fisher(n_samples=100, kappa=3.0)
+        )
+        gs.random.seed(0)
+        second = gs.to_numpy(
+            self.space.random_von_mises_fisher(n_samples=100, kappa=3.0)
+        )
+        assert np.array_equal(first, second)
+
+    @pytest.mark.smoke
+    def test_smallest_positive_concentration_is_finite(self):
+        kappa = np.nextafter(0.0, 1.0)
+        point = gs.to_numpy(
+            self.space.random_von_mises_fisher(n_samples=100, kappa=kappa)
+        )
+
+        assert point.shape == (100, 2)
+        assert np.isfinite(point).all()
+        assert np.allclose(np.linalg.norm(point, axis=-1), 1.0, atol=1e-10)
+
+    @pytest.mark.smoke
+    @pytest.mark.parametrize("kappa", [1e4, 1e12, 1e16, 1e100, 1e200, 1e308])
+    def test_large_concentration_is_finite(self, kappa):
+        gs.random.seed(0)
+        point = gs.to_numpy(
+            self.space.random_von_mises_fisher(n_samples=100, kappa=kappa)
+        )
+
+        assert point.shape == (100, 2)
+        assert np.isfinite(point).all()
+        assert np.allclose(np.linalg.norm(point, axis=-1), 1.0, atol=1e-10)
+        assert np.all(point[:, 0] > 0.0)
+
+    @pytest.mark.smoke
+    @pytest.mark.shape
+    def test_other_dimensions_are_unchanged(self):
+        for dim in [2, 3, 4]:
+            space = Hypersphere(dim)
+            point = gs.to_numpy(space.random_von_mises_fisher(n_samples=50, kappa=5.0))
+            assert point.shape == (50, dim + 1)
+            assert np.allclose(np.linalg.norm(point, axis=-1), 1.0, atol=1e-6)
