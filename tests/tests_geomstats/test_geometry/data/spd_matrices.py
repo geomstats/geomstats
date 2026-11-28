@@ -350,6 +350,18 @@ class SPD2BuresWassersteinMetricTestData(TestData):
 
 
 class SPD3BuresWassersteinMetricTestData(TestData):
+    def dist_test_data(self):
+        point = gs.ones((3, 3)) + gs.diag_embed(gs.array([1e-9, 2e-9, 3e-9]))
+        return self.generate_tests(
+            [
+                dict(
+                    point_a=point,
+                    point_b=gs.stack([point, 4 * point]),
+                    expected=gs.array([0.0, math.sqrt(3.0 + 6e-9)]),
+                )
+            ]
+        )
+
     def inner_product_test_data(self):
         data = [
             dict(
