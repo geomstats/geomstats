@@ -932,13 +932,12 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         tr_a = gs.trace(point_a)
         tr_b = gs.trace(point_b)
 
-        point_a_sqrt = apply_func_to_eigvalsh(point_a, gs.sqrt)
-
-        c_sq_eigvals = gs.linalg.eigvalsh(
-            gs.matmul(gs.matmul(point_a_sqrt, point_b), point_a_sqrt)
-        )
-        cross_term = gs.sum(gs.sqrt(c_sq_eigvals), axis=-1)
-
+        # The singular values of L_a.T @ L_b are the square roots of
+        # the eigenvalues of A^(1/2) B A^(1/2).
+        factor_a = gs.linalg.cholesky(point_a)
+        factor_b = gs.linalg.cholesky(point_b)
+        product = gs.matrix_transpose(factor_a) @ factor_b
+        cross_term = gs.sum(gs.linalg.svd(product, compute_uv=False), axis=-1)
         return gs.abs(tr_a + tr_b - 2 * cross_term)
 
     def parallel_transport(
